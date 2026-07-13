@@ -1,0 +1,143 @@
+name: PR Checks
+
+on:
+  workflow_call:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  lint-analysis:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Lint (Pint)
+        run: composer lint:check
+
+      - name: Static analysis (Larastan)
+        run: composer analyse
+
+  frontend:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check lockfile sync
+        run: |
+          git diff --exit-code package-lock.json || { echo "❌ lockfile out of sync"; exit 1; }
+
+      - name: Build
+        run: npm run build
+
+      - name: Audit sécurité
+        run: npm audit --audit-level=high
+
+
+  tests-php:
+    needs: [lint-analysis, frontend]
+    runs-on: self-hosted
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: testing
+        ports: ["3306:3306"]
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=5s --health-retries=10
+
+      redis:
+        image: redis:alpine
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql, redis, gd, bcmath, pcntl, exif
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Build assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Prepare App
+        run: |
+          cp .env.example .env.testing
+          php artisan key:generate --env=testing
+          php artisan migrate --env=testing --force
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testing
+          DB_USERNAME: root
+          DB_PASSWORD: password
+
+      - name: Run Tests
+        run: php artisan test --parallel
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testing
+          DB_USERNAME: root
+          DB_PASSWORD: password
+          REDIS_HOST: 127.0.0.1
+          CACHE_STORE: redis
+
+  security:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Composer Audit
+        run: composer audit
+
+      - name: TruffleHog (Secrets Scan)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}

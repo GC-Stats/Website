@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('news_authors', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->text('bio')->nullable();
+
+            // Socials
+            $table->string('twitter')->nullable();
+            $table->string('discord')->nullable();
+            $table->string('instagram')->nullable();
+            $table->string('twitch')->nullable();
+            $table->string('youtube')->nullable();
+            $table->string('website')->nullable();
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('news_authors');
+    }
+};

@@ -1,0 +1,72 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Login GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Set tags & version
+        id: meta
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          VERSION="${INPUT_VERSION:-$SHORT_SHA}"
+
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            echo "tags=ghcr.io/gc-stats/website:latest,ghcr.io/gc-stats/website:${VERSION}" >> $GITHUB_OUTPUT
+          else
+            echo "tags=ghcr.io/gc-stats/website:preprod" >> $GITHUB_OUTPUT
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Build & Push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          no-cache: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            RELEASE_VERSION=${{ steps.meta.outputs.version }}
+
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: Deploy via Webhook
+        env:
+          SECRET: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+        run: |
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            HOOK_ID="deploy-website"
+          else
+            HOOK_ID="deploy-website-preprod"
+          fi
+
+          PAYLOAD='{"ref":"refs/heads/main"}'
+
+          SIG=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | cut -d' ' -f2)
+
+          curl -sf -X POST "https://deploy.gc-stats.app/hooks/${HOOK_ID}" \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: sha256=${SIG}" \
+            -d "$PAYLOAD"

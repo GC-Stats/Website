@@ -1,0 +1,207 @@
+    <?php
+
+return [
+    'title' => 'Structure des données',
+    'styled_title' => 'Structure <span class="text-gc-yellow">des données</span>',
+    'subtitle' => 'Structure et liste des données collectés',
+
+    'opendata' => [
+        'title' => 'Portail Open Data',
+        'body' => 'Vous souhaitez explorer ou télécharger directement nos données ? Consultez notre portail Open Data.',
+        'btn' => 'Visiter le portail Open Data',
+    ],
+
+    'titles' => [
+        'player_team' => 'Structure des joueuses & équipes',
+        'tournament' => 'Structure des tournois',
+        'matches' => 'Structure des matches',
+        'news' => 'Structure des news',
+        'others' => 'Structure d\'autres données',
+    ],
+
+    'descriptions' => [
+        'player_team' => "Chaque équipe/joueur doit avoir un nom et un identifiant, les autres informations sont ajoutés par l'équipe/joueuse ou par les administrateurs via les données d'un tournoi ou de Liquipedia.<br>Les joueuses/teams ont un droit à la modification/supression sur les 'Additional Informations'<br><br>Les val_id unique et discord_id unique ne sont pas affichés ou partagés. Ils sont fournis par la joueuse via Discord.",
+        'tournament' => 'Chaque tournoi doit avoir un identifiant, un nom, des dates, une région, une category et un status. Ils sont récupérés par notre équipe, ou sur demande lors d\'une demande d\'ajout de tournoi.',
+        'matches' => "Nous récoltons beaucoup d'informations sur les matchs afin de fournir des statistiques détaillés. Nous récupérons : <br> - Les informations de base du match (Obligatoire)<br> - les vetos du match <br> - Les maps joués, avec le résultat et les stats <br> - Les stats globales du match <br> - Le résultat de chaque round (Qui gagne, et comment) <br> - Les stats de chaque joueuse par round (KDA/Economie/Arme/Armure/etc) <br><br>Ces stats ne sont pas toujours récoltés, mais nous essayons de les obtenirs afin d'afficher les statistiques les plus complète possible",
+        'news' => 'Chaque news doit avoir un identifiant, un titre, un contenu et un auteur<br><br>Le status est masqué mais permets l\'affichage (Draft = En cours de rédaction, Published = Visible sur le site, Archived = Masqué sur le site mais accessible via l\'API)',
+        'others' => 'Nous stockons le nombre de visite sur chaque page par heure, nous ne stockons pas par qui, depuis quel region, ou l\'heure exact.<br><br>Ces données sont stockés et privées. Elle ne sont jamais partagées, nous les utilisons afin de visualiser l\'usage du site et d\'adapter notre infrastructure au besoin',
+    ],
+
+    'players' => [
+        'titles' => [
+            'main' => 'Main Informations',
+            'additional' => 'Additional Informations',
+            'confidential' => 'Confidential informations',
+        ],
+        'id' => 'Identifiant unique attribué une joueuse (Visible dans l\'url)',
+        'handle' => 'Pseudo',
+        'first_name' => 'Prénom',
+        'last_name' => 'Nom',
+        'country_code' => 'Code de pays (FR = France, US = United States, etc)',
+        'bio' => 'Biographie',
+        'socials' => 'Réseaux Sociaux (Twitter/Instagram/Twitch/Youtube/Tik Tok)',
+        'discord_id' => 'Identifiant Discord (Informations privée, utilisé pour valider l\'identité d\'une joueuse lors d\'une modification de son profil)',
+        'val_id' => 'Identifiant Riot (Informations privée, identifié et assigné par notre équipe à partir des données de match Riot, utilisé pour lié les statistiques des matchs à une joueuse)',
+        'vlr_id' => 'Identifiant VLR',
+    ],
+
+    'player_team' => [
+        'cascade' => 'La suppression d\'un joueur ou d\'une équipe entraîne la suppression automatique des élements liés.',
+        'player_id' => 'Identifiant unique d\'une joueuse',
+        'team_id' => 'Identifiant unique d\'une team',
+        'role' => 'Joueuse/Coach/Manager/etc',
+        'joined_at' => 'Date d\'arrivée dans l\'équipe',
+        'left_at' => 'Date de départ de l\'équipe',
+    ],
+
+    'teams' => [
+        'titles' => [
+            'main' => 'Main Informations',
+            'additional' => 'Additional Informations',
+        ],
+        'id' => 'Identifiant unique attribué une team (Visible dans l\'url)',
+        'name' => 'Nom de l\'équipe',
+        'short_name' => 'Nom court (Fnatic = FNC)',
+        'country_code' => 'Code de pays (FR = France, US = United States, etc)',
+        'bio' => 'Biographie',
+        'website' => 'Site internet',
+        'socials' => 'Réseaux Sociaux (Twitter/Instagram/Twitch/Youtube/Tik Tok)',
+        'vlr_id' => 'Identifiant VLR',
+    ],
+
+    'tournaments' => [
+        'titles' => [
+            'main' => 'Main Informations',
+            'additional' => 'Additional Informations',
+        ],
+        'id' => 'Identifiant unique du tournoi',
+        'name' => 'Nom de la compétition',
+        'region' => 'Région du monde (EMEA, NA, etc)',
+        'category' => 'Catégorie du tournoi (ex: Challengers, Cash Cups)',
+        'prize_pool' => 'Récompense totale (Cashprize)',
+        'location' => 'Lieu physique',
+        'start_date' => 'Date de début',
+        'end_date' => 'Date de fin',
+        'status' => 'Statut actuel (À venir, En cours, Terminé)',
+        'description' => 'Présentation de l\'événement',
+    ],
+
+    'tournament_phases' => [
+        'titles' => [
+            'structure' => 'Structure technique',
+        ],
+        'tournament_id' => 'Référence au tournoi concerné',
+        'name' => 'Nom de l\'étape (ex: Playoffs, Groupe A)',
+        'format' => 'Mode de jeu (ex: Élimination directe, Round Robin)',
+        'parent_id' => 'Lien vers une étape parente (pour les sous-groupes)',
+        'order' => 'Ordre d\'affichage de l\'étape',
+    ],
+
+    'tournament_teams' => [
+        'link' => 'Table de liaison : Connecte les équipes aux tournois auxquels elles participent.',
+        'team_list' => 'Liste des équipes inscrites à l\'événement',
+    ],
+
+    'matches' => [
+        'titles' => [
+            'structure' => 'Structure technique',
+        ],
+        'id' => 'Identifiant unique du match',
+        'tournament_id' => 'Référence du tournoi',
+        'phase_id' => 'Référence de l\'étape (ex: Playoffs)',
+        'round_number' => 'Numéro du tour (ex: Tour 1)',
+        'round_name' => 'Nom du tour (ex: Grand Final)',
+        'match_order' => 'Ordre de passage',
+        'team_a_id' => 'Identifiant unique Équipe A',
+        'team_b_id' => 'Identifiant unique Équipe B',
+        'scheduled_at' => 'Date et heure de début',
+        'status' => 'Statut (upcoming, live, finished)',
+        'team_a_score' => 'Score final Équipe A',
+        'team_b_score' => 'Score final Équipe B',
+        'best_of' => 'Nombre de maps maximum (BO1, BO3, BO5)',
+        'patch' => 'Version du jeu (ex: 8.04)',
+    ],
+
+    'match_vetos' => [
+        'id' => 'Identifiant unique du veto',
+        'match_id' => 'Match concerné',
+        'team_id' => 'Équipe effectuant l\'action',
+        'map_name' => 'Nom de la carte (ex: Ascent)',
+        'type' => 'Action (Pick, Ban ou Decider)',
+        'order' => 'Ordre dans la séquence de veto',
+    ],
+
+    'game_maps' => [
+        'id' => 'Identifiant unique de la map jouée',
+        'api_match_id' => 'Identifiant de la carte, donné par l\'API Riot',
+        'match_id' => 'Match concerné',
+        'map_name' => 'Nom de la carte',
+        'team_a_score' => 'Score équipe A sur cette map',
+        'team_b_score' => 'Score équipe B sur cette map',
+        'order' => 'Position de la map dans le match',
+        'is_completed' => 'La carte est-elle terminée ?',
+    ],
+
+    'game_player_stats' => [
+        'id' => 'Identifiant unique de la stat',
+        'match_id' => 'Match concerné',
+        'game_map_id' => 'Carte concernée',
+        'player_id' => 'Joueuse concernée',
+        'team_id' => 'Équipe au moment du match',
+        'agent_name' => 'Agent joué (ex: Jett)',
+        'kills' => 'Éliminations totales',
+        'deaths' => 'Morts totales',
+        'assists' => 'Assistances totales',
+        'acs' => 'Score de combat moyen',
+        'adr' => 'Dégâts moyens par round',
+        'kast_percentage' => '% de rounds avec Kill/Assist/Survival/Trade',
+        'first_kills' => 'Premiers sangs (FK)',
+        'first_deaths' => 'Premières morts (FD)',
+        'headshot_percentage' => '% de tirs à la tête',
+    ],
+
+    'game_map_rounds' => [
+        'id' => 'Identifiant unique du round',
+        'game_map_id' => 'Carte concernée',
+        'round_number' => 'Numéro du round (1-24+)',
+        'winning_team' => 'Équipe victorieuse',
+        'win_type' => 'Type de victoire (Defuse, Detonation, Wipe)',
+    ],
+
+    'game_map_round_player_stats' => [
+        'id' => 'Identifiant unique de la stat round',
+        'game_map_round_id' => 'Round concerné',
+        'player_id' => 'Joueuse concernée',
+        'kills' => 'Kills durant ce round',
+        'assists' => 'Assists durant ce round',
+        'score' => 'Score obtenu ce round',
+        'economy_spent' => 'Crédits dépensés',
+        'economy_remaining' => 'Crédits restants',
+        'weapon_id' => 'Arme principale utilisée',
+        'armor' => 'Type d\'armure (Light/Heavy)',
+    ],
+
+    'news' => [
+        'titles' => [
+            'main' => 'Main Informations',
+            'additional' => 'Additional Informations',
+        ],
+        'id' => 'Identifiant unique de la news (Visible dans l\'url)',
+        'author' => 'Nom de l\'auteur/autrice',
+        'title' => 'Titre de la news',
+        'content' => 'Contenu de la news',
+        'status' => 'Status de la news (draft/published/archived)',
+        'is_featured' => 'Si la news est affichés en première page',
+        'published_at' => 'Date de publication',
+        'relation' => 'Lien entre une news et un tournoi/team/joueuse, il permets de l\'afficher sur le profil.',
+    ],
+
+    'others' => [
+        'titles' => [
+            'main' => 'Main Informations',
+        ],
+        'uri' => 'URL de la page',
+        'viewed_at' => 'Heure de visionnage',
+        'count' => 'Nombre de visionnage',
+    ],
+];

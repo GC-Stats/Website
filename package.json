@@ -1,0 +1,33 @@
+{
+    "name": "gc-stats-website",
+    "description": "...",
+    "license": "The official website of the GC-Stats project.",
+    "$schema": "https://www.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "dependencies": {
+        "@tailwindcss/vite": "^4.1.11",
+        "concurrently": "^10.0.3",
+        "flag-icons": "^7.5.0",
+        "laravel-vite-plugin": "^3.0.1",
+        "vite": "^8.0.10"
+    },
+    "optionalDependencies": {
+        "@rollup/rollup-linux-x64-gnu": "4.9.5",
+        "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
+        "lightningcss-linux-x64-gnu": "^1.29.1"
+    },
+    "devDependencies": {
+        "@tailwindcss/postcss": "^4.2.2",
+        "autoprefixer": "^10.5.0",
+        "postcss": "^8.5.10",
+        "tailwindcss": "^4.2.2"
+    }
+}

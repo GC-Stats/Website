@@ -1,0 +1,41 @@
+/*
+ * Theme: dark (default)
+ *
+ * Applied with no `data-theme` attribute on <html>. Other themes override
+ * these CSS variables via a `[data-theme="..."]` selector — see the
+ * sibling files in this folder.
+ */
+:root {
+    /* Main GC Colors */
+    --brand-yellow: #e4ae22;
+    --brand-yellow-hover: #c9981d;
+
+    /* Backgrounds */
+    --bg-main: #0b0b0b;
+    --bg-card: #161616;
+    --bg-card-hover: #1f1f1f;
+    --bg-input: #050505;
+
+    /* Texts */
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-muted: #666666;
+
+    /* Status */
+    --color-live: #00ff88;
+    --color-win: #00ff88;
+    --color-loss: #ff4655;
+
+    /* Layout */
+    --header-height: 60px;
+    --border-radius: 4px;
+}
+
+@theme {
+    --color-gc-yellow: #e4ae22;
+    --color-gc-yellow-hover: #c9981d;
+    --color-bg-main: #0e0e0e;
+    --color-bg-card: #161616;
+    --color-bg-card-hover: #1f1f1f;
+    --color-border-subtle: #2a2a2a;
+}

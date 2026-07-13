@@ -1,0 +1,117 @@
+/*
+ * GC-Stats — Application stylesheet
+ *
+ * Tailwind CSS entry point: imports Tailwind and the flag-icons library,
+ * declares theme tokens (fonts) and a handful of custom overrides
+ * (responsive match layout, logo filters, etc.).
+ *
+ * Themes and accents each live in their own file under ./theme and
+ * ./accent (one file per theme/accent), imported below.
+ *
+ * Copyright (c) 2026 Alice Alleman — GC-Stats-Website
+ * License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
+ * Repository: https://github.com/GC-Stats/Website
+ */
+
+@import 'tailwindcss';
+@import 'flag-icons/css/flag-icons.min.css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@import './theme/dark.css';
+@import './theme/white.css';
+
+@import './accent/pride.css';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@layer base {
+    body {
+        @apply bg-bg-main text-gray-200 antialiased font-sans;
+    }
+}
+
+/* News article content */
+.news-content h2 {
+    font-size: 1.25rem;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.news-content h3 {
+    font-size: 1.1rem;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    color: #ffffff;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.news-content ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+}
+
+.news-content ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+}
+
+.news-content a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(228, 174, 34, 0.35);
+    transition: text-decoration-color 0.2s;
+}
+
+.news-content a:hover {
+    text-decoration-color: var(--brand-yellow);
+}
+
+/* TipTap wraps <li> content in <p> — remove the extra vertical margin */
+.news-content li > p {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.news-content hr {
+    border-color: rgba(255, 255, 255, 0.06);
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.logo-filter {
+    filter: drop-shadow(0 0 2px rgba(255,255,255,0.2)) brightness(1.2);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg-main); }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-gc-yellow); }
+
+body {
+    background-color: var(--color-bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+}
+
+.bg-bg-card {
+    @apply bg-[#0A0A0A] border border-white/5 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,0,0,0.5)];
+}
+
+.tournament-card {
+    @apply bg-[#0A0A0A] border border-white/5 transition-all duration-300 hover:border-[var(--brand-yellow)]/80 hover:shadow-[0_0_30px_rgba(0,0,0,0.5)];
+}
+
+/* Small pride-flag swatch shown next to the GCSTATS wordmark in the navbar;
+   made visible by the active accent's own stylesheet (see ./accent). */
+.pride-flag-badge {
+    display: none;
+}
