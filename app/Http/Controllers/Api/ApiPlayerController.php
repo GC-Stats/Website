@@ -112,7 +112,6 @@ class ApiPlayerController extends Controller
     public function show(int $id): JsonResponse
     {
         $player = Player::with([
-            'team:id,name,short_name',
             'teams' => fn ($q) => $q->wherePivot('left_at', null)
                 ->select('teams.id', 'teams.name', 'teams.short_name'),
         ])->findOrFail($id);
@@ -140,7 +139,6 @@ class ApiPlayerController extends Controller
     public function showByVlrId(string $vlrId): JsonResponse
     {
         $player = Player::with([
-            'team:id,name,short_name',
             'teams' => fn ($q) => $q->wherePivot('left_at', null)
                 ->select('teams.id', 'teams.name', 'teams.short_name'),
         ])->where('vlr_id', $vlrId)->firstOrFail();
