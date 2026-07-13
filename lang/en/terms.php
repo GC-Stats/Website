@@ -20,9 +20,9 @@ return [
         'title' => 'Riot Match Data',
         'text' => 'GC Stats retrieves match statistics directly from the official Riot Games API for matches identified as part of tracked tournaments. This data includes:',
         'items' => [
-            'Riot IDs (game name and tagline) of participating players',
-            'Match history for matches identified as part of tracked tournaments',
-            'In-match statistics: scoreboard, performance summary, economy summary, and kill feed',
+            'riot_id' => 'Riot IDs (game name and tagline) of participating players',
+            'matchs' => 'Match history for matches identified as part of tracked tournaments',
+            'stats' => 'In-match statistics: scoreboard, performance summary, economy summary, and kill feed',
         ],
         'opt_in' => 'Basic match participation (name, statistics) is recorded for any player appearing in a tracked tournament match, as this is public competitive data. Additional profile information (biography, socials, photo) is only added with the player\'s or team\'s consent.',
         'correction' => 'If you are a player appearing in this data and wish to request a correction or removal, you may contact us at any time — see our Privacy Policy for details.',
