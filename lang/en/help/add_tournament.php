@@ -13,10 +13,10 @@ return [
     'info' => [
         'title' => 'Required Information',
         'list' => [
-            '<strong>Identity:</strong> Tournament name, dates, prize pool, and basic information.',
-            '<strong>Structure:</strong> List of phases (Playoffs, Group Stage, Round Robin).',
-            '<strong>Participants:</strong> Full list of participating teams and players.',
-            '<strong>Match Data:</strong> List of matches, results, Map-Veto (picks/bans), and statistics if available.',
+            'identity' => '<strong>Identity:</strong> Tournament name, dates, prize pool, and basic information.',
+            'structure' => '<strong>Structure:</strong> List of phases (Playoffs, Group Stage, Round Robin).',
+            'participants' => '<strong>Participants:</strong> Full list of participating teams and players.',
+            'match_data' => '<strong>Match Data:</strong> List of matches, results, Map-Veto (picks/bans), and statistics if available.',
         ],
     ],
 
