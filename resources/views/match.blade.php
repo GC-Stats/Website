@@ -217,8 +217,8 @@
 
                 <template x-if="activeMap === 0">
                     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 animate-fadeIn">
-                        @include('partials.team-stats-table', ['stats' => $totalA, 'teamName' => $match['team_a_data']['name'], 'multiple' => true])
-                        @include('partials.team-stats-table', ['stats' => $totalB, 'teamName' => $match['team_b_data']['name'], 'multiple' => true, 'reverse' => true])
+                        @include('partials.team-stats-table', ['stats' => $totalA, 'teamName' => $teamAName, 'multiple' => true])
+                        @include('partials.team-stats-table', ['stats' => $totalB, 'teamName' => $teamBName, 'multiple' => true, 'reverse' => true])
                     </div>
                 </template>
 
@@ -236,8 +236,8 @@
                             @endphp
 
                             <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                                @include('partials.team-stats-table', ['multiple' => false, 'stats' => $mStatsA, 'teamName' => $match['team_a_data']['name']])
-                                @include('partials.team-stats-table', ['multiple' => false, 'stats' => $mStatsB, 'teamName' => $match['team_b_data']['name'], 'reverse' => true])
+                                @include('partials.team-stats-table', ['multiple' => false, 'stats' => $mStatsA, 'teamName' => $teamAName])
+                                @include('partials.team-stats-table', ['multiple' => false, 'stats' => $mStatsB, 'teamName' => $teamBName, 'reverse' => true])
                             </div>
 
                             <div class="grid grid-cols-12 gap-6">
@@ -245,7 +245,7 @@
                                     <div class="col-span-12 lg:col-span-2 order-2 lg:order-1">
                                         <div class="bg-white/[0.02] border border-white/5 rounded-2xl p-4 h-full">
                                             <h4 class="text-[8px] font-black uppercase text-gray-500 mb-6 text-center tracking-[0.3em]">
-                                                {{ __("match.economy", ["team" => Str::limit($match['team_a_data']['name'], 8)]) }}
+                                                {{ __("match.economy", ["team" => Str::limit($teamAName, 8)]) }}
                                             </h4>
 
                                             <div class="flex flex-col gap-2">
@@ -340,7 +340,7 @@
                                         <div class="col-span-12 lg:col-span-2 order-3">
                                             <div class="bg-white/[0.02] border border-white/5 rounded-2xl p-4 h-full">
                                                 <h4 class="text-[8px] font-black uppercase text-gray-500 mb-6 text-center tracking-[0.3em]">
-                                                    {{ __("match.economy", ["team" => Str::limit($match['team_b_data']['name'], 8)]) }}
+                                                    {{ __("match.economy", ["team" => Str::limit($teamBName, 8)]) }}
                                                 </h4>
 
                                                 <div class="flex flex-col gap-2">
