@@ -32,12 +32,12 @@ return [
         'title' => 'Prohibited Uses',
         'text' => 'You agree not to use the platform or its API for any of the following purposes:',
         'items' => [
-            'Gambling, betting, or any activity involving wagering on game outcomes',
-            'Spreading misinformation, fake statistics, or manipulated data',
-            'Harassing, targeting, or doxing players or community members',
-            'Any illegal activity under applicable law',
-            'Automated bulk scraping beyond normal API usage',
-            'Reselling or redistributing raw data as a standalone product',
+            'gambling' => 'Gambling, betting, or any activity involving wagering on game outcomes',
+            'misinformation' => 'Spreading misinformation, fake statistics, or manipulated data',
+            'harassment' => 'Harassing, targeting, or doxing players or community members',
+            'illegal_activity' => 'Any illegal activity under applicable law',
+            'scraping' => 'Automated bulk scraping beyond normal API usage',
+            'reselling' => 'Reselling or redistributing raw data as a standalone product',
         ],
     ],
 
