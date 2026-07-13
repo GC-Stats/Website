@@ -1,0 +1,51 @@
+<?php
+return [
+    'title' => '',
+    'last_updated' => '',
+    'editor' => [
+        'title' => '',
+        'intro' => '',
+        'identity' => '',
+        'status' => '',
+        'status_value' => '',
+        'address' => '',
+        'address_value' => '',
+        'email' => '',
+        'director' => '',
+    ],
+    'property' => [
+        'title' => '',
+        'main_text' => '',
+        'note_title' => '',
+        'note_body' => '',
+        'disclaimer' => '',
+        'takedown_btn' => '',
+    ],
+    'data_usage' => [
+        'title' => '',
+        'main_text' => '',
+        'allowed_title' => '',
+        'allowed_text' => '',
+        'forbidden_title' => '',
+        'forbidden_text' => '',
+        'attribution_notice' => '',
+    ],
+    'hosting' => [
+        'title' => '',
+        'intro' => '',
+        'name' => '',
+        'address' => '',
+        'contact' => '',
+    ],
+    'gdpr' => [
+        'title' => '',
+        'intro' => '',
+        'purpose' => '',
+        'purpose_value' => '',
+        'contact' => '',
+    ],
+    'cookies' => [
+        'title' => '',
+        'text' => '',
+    ],
+];
