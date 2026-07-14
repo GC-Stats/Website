@@ -1,16 +1,13 @@
-    <?php
-
+<?php
 return [
     'title' => 'Structure des données',
     'styled_title' => 'Structure <span class="text-gc-yellow">des données</span>',
     'subtitle' => 'Structure et liste des données collectés',
-
     'opendata' => [
         'title' => 'Portail Open Data',
         'body' => 'Vous souhaitez explorer ou télécharger directement nos données ? Consultez notre portail Open Data.',
         'btn' => 'Visiter le portail Open Data',
     ],
-
     'titles' => [
         'player_team' => 'Structure des joueuses & équipes',
         'tournament' => 'Structure des tournois',
@@ -18,7 +15,6 @@ return [
         'news' => 'Structure des news',
         'others' => 'Structure d\'autres données',
     ],
-
     'descriptions' => [
         'player_team' => "Chaque équipe/joueur doit avoir un nom et un identifiant, les autres informations sont ajoutés par l'équipe/joueuse ou par les administrateurs via les données d'un tournoi ou de Liquipedia.<br>Les joueuses/teams ont un droit à la modification/supression sur les 'Additional Informations'<br><br>Les val_id unique et discord_id unique ne sont pas affichés ou partagés. Ils sont fournis par la joueuse via Discord.",
         'tournament' => 'Chaque tournoi doit avoir un identifiant, un nom, des dates, une région, une category et un status. Ils sont récupérés par notre équipe, ou sur demande lors d\'une demande d\'ajout de tournoi.',
@@ -26,7 +22,6 @@ return [
         'news' => 'Chaque news doit avoir un identifiant, un titre, un contenu et un auteur<br><br>Le status est masqué mais permets l\'affichage (Draft = En cours de rédaction, Published = Visible sur le site, Archived = Masqué sur le site mais accessible via l\'API)',
         'others' => 'Nous stockons le nombre de visite sur chaque page par heure, nous ne stockons pas par qui, depuis quel region, ou l\'heure exact.<br><br>Ces données sont stockés et privées. Elle ne sont jamais partagées, nous les utilisons afin de visualiser l\'usage du site et d\'adapter notre infrastructure au besoin',
     ],
-
     'players' => [
         'titles' => [
             'main' => 'Main Informations',
@@ -44,7 +39,6 @@ return [
         'val_id' => 'Identifiant Riot (Informations privée, identifié et assigné par notre équipe à partir des données de match Riot, utilisé pour lié les statistiques des matchs à une joueuse)',
         'vlr_id' => 'Identifiant VLR',
     ],
-
     'player_team' => [
         'cascade' => 'La suppression d\'un joueur ou d\'une équipe entraîne la suppression automatique des élements liés.',
         'player_id' => 'Identifiant unique d\'une joueuse',
@@ -53,7 +47,6 @@ return [
         'joined_at' => 'Date d\'arrivée dans l\'équipe',
         'left_at' => 'Date de départ de l\'équipe',
     ],
-
     'teams' => [
         'titles' => [
             'main' => 'Main Informations',
@@ -68,7 +61,6 @@ return [
         'socials' => 'Réseaux Sociaux (Twitter/Instagram/Twitch/Youtube/Tik Tok)',
         'vlr_id' => 'Identifiant VLR',
     ],
-
     'tournaments' => [
         'titles' => [
             'main' => 'Main Informations',
@@ -85,7 +77,6 @@ return [
         'status' => 'Statut actuel (À venir, En cours, Terminé)',
         'description' => 'Présentation de l\'événement',
     ],
-
     'tournament_phases' => [
         'titles' => [
             'structure' => 'Structure technique',
@@ -96,12 +87,10 @@ return [
         'parent_id' => 'Lien vers une étape parente (pour les sous-groupes)',
         'order' => 'Ordre d\'affichage de l\'étape',
     ],
-
     'tournament_teams' => [
         'link' => 'Table de liaison : Connecte les équipes aux tournois auxquels elles participent.',
         'team_list' => 'Liste des équipes inscrites à l\'événement',
     ],
-
     'matches' => [
         'titles' => [
             'structure' => 'Structure technique',
@@ -121,7 +110,6 @@ return [
         'best_of' => 'Nombre de maps maximum (BO1, BO3, BO5)',
         'patch' => 'Version du jeu (ex: 8.04)',
     ],
-
     'match_vetos' => [
         'id' => 'Identifiant unique du veto',
         'match_id' => 'Match concerné',
@@ -130,7 +118,6 @@ return [
         'type' => 'Action (Pick, Ban ou Decider)',
         'order' => 'Ordre dans la séquence de veto',
     ],
-
     'game_maps' => [
         'id' => 'Identifiant unique de la map jouée',
         'api_match_id' => 'Identifiant de la carte, donné par l\'API Riot',
@@ -141,7 +128,6 @@ return [
         'order' => 'Position de la map dans le match',
         'is_completed' => 'La carte est-elle terminée ?',
     ],
-
     'game_player_stats' => [
         'id' => 'Identifiant unique de la stat',
         'match_id' => 'Match concerné',
@@ -159,7 +145,6 @@ return [
         'first_deaths' => 'Premières morts (FD)',
         'headshot_percentage' => '% de tirs à la tête',
     ],
-
     'game_map_rounds' => [
         'id' => 'Identifiant unique du round',
         'game_map_id' => 'Carte concernée',
@@ -167,7 +152,6 @@ return [
         'winning_team' => 'Équipe victorieuse',
         'win_type' => 'Type de victoire (Defuse, Detonation, Wipe)',
     ],
-
     'game_map_round_player_stats' => [
         'id' => 'Identifiant unique de la stat round',
         'game_map_round_id' => 'Round concerné',
@@ -180,7 +164,6 @@ return [
         'weapon_id' => 'Arme principale utilisée',
         'armor' => 'Type d\'armure (Light/Heavy)',
     ],
-
     'news' => [
         'titles' => [
             'main' => 'Main Informations',
@@ -195,7 +178,6 @@ return [
         'published_at' => 'Date de publication',
         'relation' => 'Lien entre une news et un tournoi/team/joueuse, il permets de l\'afficher sur le profil.',
     ],
-
     'others' => [
         'titles' => [
             'main' => 'Main Informations',
