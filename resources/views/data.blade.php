@@ -71,7 +71,7 @@
                             <span class="text-[9px] font-black text-gray-500 uppercase italic">{{ __("data.players.titles.additional") }}</span>
 
                             <div class="flex flex-wrap gap-2 mt-2">
-                                @foreach(["first_name", "last_name", "country_code", "bio", "socials", "vlr_id"] as $name)
+                                @foreach(["first_name", "last_name", "country_code", "bio", "socials", "vlr_id", "liquipedia_link"] as $name)
                                     <div class="group relative w-max">
                                         <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
                                             {{ $name }}
@@ -171,7 +171,7 @@
                             <span class="text-[9px] font-black text-gray-500 uppercase italic">{{ __("data.teams.titles.additional") }}</span>
 
                             <div class="flex flex-wrap gap-2 mt-2">
-                                @foreach(["country_code", "website", "socials", "bio", "vlr_id"] as $name)
+                                @foreach(["country_code", "website", "socials", "bio", "vlr_id", "liquipedia_link"] as $name)
                                     <div class="group relative w-max">
                                         <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
                                             {{ $name }}
@@ -235,7 +235,7 @@
                         <li class="flex flex-col gap-1">
                             <span class="text-[9px] font-black text-gray-500 uppercase italic">{{ __("data.tournaments.titles.additional") }}</span>
                             <div class="flex flex-wrap gap-2 mt-2">
-                                @foreach(["prize_pool", "location", "start_date", "end_date", "vlr_id"] as $name)
+                                @foreach(["prize_pool", "location", "start_date", "end_date", "vlr_id", "liquipedia_link"] as $name)
                                     <div class="group relative w-max">
                                         <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
                                             {{ $name }}
@@ -322,7 +322,7 @@
                         <span class="text-gc-yellow">05.</span> Matches
                     </h2>
                     <div class="flex flex-wrap gap-2">
-                        @foreach(["id", "tournament_id", "phase_id", "round_number", "round_name", "match_order", "team_a_id", "team_b_id", "scheduled_at", "status", "team_a_score", "team_b_score", "best_of", "vlr_id", "patch"] as $name)
+                        @foreach(["id", "tournament_id", "phase_id", "round_number", "round_name", "match_order", "team_a_id", "team_b_id", "scheduled_at", "status", "team_a_score", "team_b_score", "best_of", "patch"] as $name)
                             <div class="group relative w-max">
                                 <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
                                     {{ $name }}
@@ -389,9 +389,27 @@
                     </div>
                 </div>
 
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative md:col-span-2 lg:col-span-3">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
+                        <span class="text-gc-yellow">09.</span> Game_Player_Advanced_Stats
+                    </h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(["id", "game_map_id", "player_id", "agent_name", "clutch_1v1_won", "clutch_1v1_total", "clutch_1v2_won", "clutch_1v2_total", "clutch_1v3_won", "clutch_1v3_total", "clutch_1v4_won", "clutch_1v4_total", "clutch_1v5_won", "clutch_1v5_total", "multikill_2k", "multikill_3k", "multikill_4k", "multikill_5k", "trade_kills", "traded_deaths", "plants", "defuses", "pistol_won", "pistol_played", "eco_won", "eco_played", "force_won", "force_played", "full_buy_won", "full_buy_played", "post_plant_won", "post_plant_played", "atk_rounds", "atk_rounds_won", "atk_kills", "atk_kast_percentage", "def_rounds", "def_rounds_won", "def_kills", "def_kast_percentage"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.game_player_advanced_stats.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
-                        <span class="text-gc-yellow">09.</span> Game_Map_Rounds
+                        <span class="text-gc-yellow">10.</span> Game_Map_Rounds
                     </h2>
                     <div class="flex flex-wrap gap-2">
                         @foreach(["id", "game_map_id", "round_number", "winning_team", "win_type"] as $name)
@@ -409,7 +427,7 @@
 
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative md:col-span-2 lg:col-span-3">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
-                        <span class="text-gc-yellow">10.</span> Game_Map_Round_Player_Stats
+                        <span class="text-gc-yellow">11.</span> Game_Map_Round_Player_Stats
                     </h2>
                     <div class="flex flex-wrap gap-2">
                         @foreach(["id", "game_map_round_id", "player_id", "kills", "assists", "score", "economy_spent", "economy_remaining", "weapon_id", "armor"] as $name)
@@ -446,7 +464,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">11.</span> News
+                        <span class="text-gc-yellow">12.</span> News
                     </h2>
 
                     <ul class="space-y-4 mt-4">
@@ -535,7 +553,7 @@
             <div class="grid grid-cols-1 gap-6">
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">12.</span> Page_views
+                        <span class="text-gc-yellow">13.</span> Page_views
                     </h2>
 
                     <ul class="space-y-4 mt-4">

@@ -22,7 +22,7 @@ return [
     'descriptions' => [
         'player_team' => "Each team/player must have a name and an identifier; other information is added by the team/player or by administrators via tournament data.<br>Players/teams have the right to modify/delete 'Additional Information'.<br><br>The val_id and discord_id are not displayed or shared. They are provided by the player via Discord.",
         'tournament' => 'Each tournament must have an identifier, a name, dates, a region, a category, and a status. They are collected by our team or upon request during a tournament addition request.',
-        'matches' => "We collect a lot of match information to provide detailed statistics. We retrieve:<br> - Basic match information (Mandatory)<br> - Match vetos<br> - Played maps, with results and stats<br> - Global match stats<br> - Each round's result (Who wins, and how)<br> - Each player's stats per round (KDA/Economy/Weapon/Armor/etc)<br><br>These stats are not always collected, but we strive to obtain them to display the most complete statistics possible.",
+        'matches' => "We collect a lot of match information to provide detailed statistics. We retrieve:<br> - Basic match information (Mandatory)<br> - Match vetos<br> - Played maps, with results, stats and advanced stats (in a separate maps dataset, referenced by map id)<br> - Each round's result (Who wins, and how)<br> - Each player's stats per round (KDA/Economy/Weapon/Armor/etc)<br><br>These stats are not always collected, but we strive to obtain them to display the most complete statistics possible.",
         'news' => 'Each news item must have an identifier, a title, content, and an author.<br><br>The status is hidden but allows for display (Draft = In progress, Published = Visible on site, Archived = Hidden on site but accessible via API).',
         'others' => 'We store the number of visits per page per hour; we do not store who visited, from which region, or the exact time.<br><br>This data is stored and private. It is never shared; we use it to visualize site usage and adapt our infrastructure as needed.',
     ],
@@ -43,6 +43,7 @@ return [
         'discord_id' => 'Discord ID (Private information, used to validate a player\'s identity when modifying their profile)',
         'val_id' => 'Riot ID (Private information, identified and assigned by our team from Riot match data, used to link match statistics with a player)',
         'vlr_id' => 'Player\'s VLR ID',
+        'liquipedia_link' => 'Link to the player\'s Liquipedia page',
     ],
 
     'player_team' => [
@@ -67,6 +68,7 @@ return [
         'website' => 'Website',
         'socials' => 'Social Media (Twitter/Instagram/Twitch/Youtube/TikTok)',
         'vlr_id' => 'Team\'s VLR ID',
+        'liquipedia_link' => 'Link to the team\'s Liquipedia page',
     ],
 
     'tournaments' => [
@@ -84,6 +86,7 @@ return [
         'end_date' => 'End Date',
         'status' => 'Current Status (Upcoming, Live, Finished)',
         'description' => 'Event presentation',
+        'liquipedia_link' => 'Link to the tournament\'s Liquipedia page',
     ],
 
     'tournament_phases' => [
@@ -140,6 +143,49 @@ return [
         'team_b_score' => 'Team B score on this map',
         'order' => 'Map position in the match',
         'is_completed' => 'Is the map completed?',
+    ],
+
+    'game_player_advanced_stats' => [
+        'id' => 'Unique advanced stat identifier',
+        'game_map_id' => 'Concerned map',
+        'player_id' => 'Concerned player',
+        'agent_name' => 'Played Agent (e.g., Jett)',
+        'clutch_1v1_won' => 'Clutches won, 1 vs 1',
+        'clutch_1v1_total' => 'Clutches played, 1 vs 1',
+        'clutch_1v2_won' => 'Clutches won, 1 vs 2',
+        'clutch_1v2_total' => 'Clutches played, 1 vs 2',
+        'clutch_1v3_won' => 'Clutches won, 1 vs 3',
+        'clutch_1v3_total' => 'Clutches played, 1 vs 3',
+        'clutch_1v4_won' => 'Clutches won, 1 vs 4',
+        'clutch_1v4_total' => 'Clutches played, 1 vs 4',
+        'clutch_1v5_won' => 'Clutches won, 1 vs 5',
+        'clutch_1v5_total' => 'Clutches played, 1 vs 5',
+        'multikill_2k' => 'Rounds with 2 kills',
+        'multikill_3k' => 'Rounds with 3 kills',
+        'multikill_4k' => 'Rounds with 4 kills',
+        'multikill_5k' => 'Rounds with 5 kills',
+        'trade_kills' => 'Kills that traded a teammate\'s death',
+        'traded_deaths' => 'Deaths traded by a teammate',
+        'plants' => 'Spike plants',
+        'defuses' => 'Spike defuses',
+        'pistol_won' => 'Pistol rounds won',
+        'pistol_played' => 'Pistol rounds played',
+        'eco_won' => 'Eco rounds won',
+        'eco_played' => 'Eco rounds played',
+        'force_won' => 'Force-buy rounds won',
+        'force_played' => 'Force-buy rounds played',
+        'full_buy_won' => 'Full-buy rounds won',
+        'full_buy_played' => 'Full-buy rounds played',
+        'post_plant_won' => 'Post-plant situations won',
+        'post_plant_played' => 'Post-plant situations played',
+        'atk_rounds' => 'Rounds played on Attack',
+        'atk_rounds_won' => 'Rounds won on Attack',
+        'atk_kills' => 'Kills on Attack',
+        'atk_kast_percentage' => '% KAST on Attack',
+        'def_rounds' => 'Rounds played on Defense',
+        'def_rounds_won' => 'Rounds won on Defense',
+        'def_kills' => 'Kills on Defense',
+        'def_kast_percentage' => '% KAST on Defense',
     ],
 
     'game_player_stats' => [
