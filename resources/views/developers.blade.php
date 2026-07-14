@@ -140,6 +140,14 @@
                             {{ __('developers.git.badge') }}
                         </span>
                     </a>
+                    <a href="https://github.com/GC-Stats/RiotRelay/" target="_blank" class="bg-bg-main p-3 rounded-sm border border-border-subtle flex items-center justify-between mt-2">
+                        <span class="text-[10px] text-gray-300 font-mono flex items-center gap-2">
+                            <x-fab-github class="w-3.5 h-3.5 inline-block" aria-hidden="true" /> github.com/GC-Stats/RiotRelay
+                        </span>
+                        <span class="text-[9px] font-mono text-gc-yellow uppercase tracking-wider font-bold">
+                            {{ __('developers.git.badge') }}
+                        </span>
+                    </a>
                 </div>
 
             </div>
