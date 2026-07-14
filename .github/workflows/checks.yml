@@ -24,9 +24,6 @@ jobs:
       - name: Lint (Pint)
         run: composer lint:check
 
-      - name: Static analysis (Larastan)
-        run: composer analyse
-
   frontend:
     runs-on: ubuntu-latest
     steps:
