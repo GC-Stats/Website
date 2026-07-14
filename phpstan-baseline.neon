@@ -1121,3 +1121,9 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Support/MatchPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$tournament.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/RenewAllMatches.php
