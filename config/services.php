@@ -50,6 +50,8 @@ return [
 
     'riot' => [
         'key' => env('RIOT_KEY'),
+        'relay_url' => env('RIOT_RELAY_URL'),
+        'relay_token' => env('RIOT_RELAY_TOKEN'),
     ],
 
     'resend' => [

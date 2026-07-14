@@ -288,13 +288,14 @@ class ApiGameMapController extends Controller
 
         $region = config('regions.riot_api.'.$gameMap->match->tournament->region);
         $isEsportEndpoint = false;
+        $relayUrl = rtrim(config('services.riot.relay_url'), '/');
 
-        $response = Http::withHeaders(['X-Riot-Token' => config('services.riot.key')])
-            ->get("https://{$region}.api.riotgames.com/val/match/v1/matches/{$gameMap->api_match_id}");
+        $response = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
+            ->get("{$relayUrl}/match/{$region}/{$gameMap->api_match_id}");
 
         if (! $response->successful()) {
-            $response = Http::withHeaders(['X-Riot-Token' => config('services.riot.key')])
-                ->get("https://esports.api.riotgames.com/val/match/v1/matches/{$gameMap->api_match_id}");
+            $response = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
+                ->get("{$relayUrl}/match/esports/{$gameMap->api_match_id}");
 
             if (! $response->successful()) {
                 return response()->json(['error' => 'Failed to fetch match data from the Riot API'], $response->status());

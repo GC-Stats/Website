@@ -8,7 +8,7 @@ The official website for **GC Stats**, providing a clean view of matches, teams,
 | Build Status |                                        Latest Version                                        |                                                                       Status                                                                        | PHP Version |
 |:---:|:--------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------:|:---:|
 | [![CI/CD Pipeline](https://github.com/GC-Stats/Website/actions/workflows/main.yml/badge.svg)](https://github.com/GC-Stats/Website/actions/workflows/main.yml) | ![GitHub release](https://img.shields.io/github/v/release/GC-Stats/website) | [![Better Stack Badge](https://uptime.betterstack.com/status-badges/v1/monitor/2m8ir.svg)](https://uptime.betterstack.com/?utm_source=status_badge) | 8.4
-
+[![Translation](http://translate.gc-stats.app/widget/website/svg-badge.svg)](http://translate.gc-stats.app/engage/website/)
 ---
 
 ## 📋 Presentation
