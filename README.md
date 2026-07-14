@@ -17,7 +17,7 @@ This repository contains the main component of GC Stats, our website
 It's designed to give you the most informations as possible, in a simple & comprehensive way
 
 ## 🤝 License
-This project is licensed under the [GC-Stats License v1.0](./LICENSE.md).
+License: This project is licensed under the GC-Stats License v1.0 - see the [LICENSE](https://github.com/GC-Stats/Website/blob/main/LICENSE) file for details.
 
 ## 🛠 Tech Stack
 
