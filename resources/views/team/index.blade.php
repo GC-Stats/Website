@@ -38,7 +38,7 @@
                 <div class="flex items-center gap-2 mb-3">
                     <span class="text-[9px] font-black uppercase tracking-[0.25em] text-white/60 shrink-0">{{ __("team.old_players") }}</span>
                     <div class="h-px flex-grow" style="background: linear-gradient(90deg, rgba(228,174,34,0.5) 0%, rgba(228,174,34,0.05) 60%, transparent 100%)"></div>
-                    <a href="{{ route('teams.history', [$team['id'], str($team['name'] ?? '')->slug()]) }}" class="group flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-white/30 hover:text-gc-yellow transition-colors shrink-0">
+                    <a href="{{ route('teams.history', [$team['id'], Str::routeSlug($team['name'] ?? '', $team['id'])]) }}" class="group flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-white/30 hover:text-gc-yellow transition-colors shrink-0">
                         <span>{{ __("team.seemore") }}</span>
                         <x-fas-chevron-right class="w-2.5 h-2.5 inline-block transform group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                     </a>
@@ -88,7 +88,7 @@
             @endforeach
 
             @if(count($matches) > 0)
-                <a href="{{ route('teams.matches', [$team['id'], str($team['name'] ?? '')->slug()]) }}" class="group flex items-center justify-center gap-2 py-3 bg-white/[0.02] border border-white/5 rounded-sm hover:border-[var(--brand-yellow)]/30 hover:bg-bg-main transition-all duration-300 text-[10px] font-black uppercase tracking-[0.15em] text-white/50 hover:text-gc-yellow">
+                <a href="{{ route('teams.matches', [$team['id'], Str::routeSlug($team['name'] ?? '', $team['id'])]) }}" class="group flex items-center justify-center gap-2 py-3 bg-white/[0.02] border border-white/5 rounded-sm hover:border-[var(--brand-yellow)]/30 hover:bg-bg-main transition-all duration-300 text-[10px] font-black uppercase tracking-[0.15em] text-white/50 hover:text-gc-yellow">
                     <span>{{ __("team.seemore") }}</span>
                     <x-fas-chevron-right class="w-2.5 h-2.5 inline-block transform group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                 </a>

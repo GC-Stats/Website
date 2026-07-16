@@ -89,7 +89,7 @@
             <div class="flex justify-start md:justify-center min-w-max md:min-w-0">
                 @php
                     $isPreview = isset($previewCode);
-                    $tournamentParam = [$tournament['id'] ?? null, str($tournament['name'] ?? '')->slug()];
+                    $tournamentParam = [$tournament['id'] ?? null, Str::routeSlug($tournament['name'] ?? '', $tournament['id'] ?? null)];
                     $navItems = [
                         ['route' => $isPreview ? 'tournament.preview' : 'tournaments.show', 'param' => $isPreview ? $previewCode : $tournamentParam, 'label' => __('tournament.nav.overview')],
                         ['route' => $isPreview ? 'tournament.preview.matches' : 'tournaments.matches', 'param' => $isPreview ? $previewCode : $tournamentParam, 'label' => __('tournament.nav.matches')],

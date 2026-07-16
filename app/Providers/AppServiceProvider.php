@@ -40,6 +40,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use League\Flysystem\Filesystem;
 use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNAdapter;
@@ -61,6 +62,17 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Route::pattern('id', '[0-9]+');
+
+        // Str::slug() returns '' for names/handles with no Latin-transliterable
+        // characters (e.g. "星の光"), which breaks route generation for routes
+        // with a required {slug} segment (Laravel can't tell an empty value
+        // apart from an unfilled one). Fall back to the numeric id so the
+        // slug segment is never empty.
+        Str::macro('routeSlug', function ($value, $fallback) {
+            $slug = Str::slug((string) $value);
+
+            return $slug !== '' ? $slug : (string) $fallback;
+        });
 
         $this->configureDefaults();
         $this->configureBunnyStorage();

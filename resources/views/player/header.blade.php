@@ -117,7 +117,7 @@
 
                 @foreach($navItems as $item)
                     @php $isActive = request()->routeIs($item['route']); @endphp
-                    <a href="{{ Route::has($item['route']) ? route($item['route'], [$player['id'], str($player['handle'] ?? '')->slug()]) : '#' }}"
+                    <a href="{{ Route::has($item['route']) ? route($item['route'], [$player['id'], Str::routeSlug($player['handle'] ?? '', $player['id'])]) : '#' }}"
                        @if($isActive) aria-current="page" @endif
                        class="relative px-6 md:px-10 py-4 text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] transition-all group/navbar whitespace-nowrap {{ $isActive ? 'text-[var(--brand-yellow)]' : 'text-gray-500 hover:text-white' }}">
 

@@ -93,7 +93,7 @@
                     <div class="flex items-center gap-2 mb-3">
                         <span class="text-[9px] font-black uppercase tracking-[0.25em] text-white/60 shrink-0">{{ __("tournament.last_matches") }}</span>
                         <div class="h-px flex-grow" style="background: linear-gradient(90deg, rgba(228,174,34,0.5) 0%, rgba(228,174,34,0.05) 60%, transparent 100%)"></div>
-                        <a href="{{ isset($previewCode) ? route('tournament.preview.matches', $previewCode) : route('tournaments.matches', [$tournament['id'], str($tournament['name'] ?? '')->slug()]) }}" class="group flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-white/30 hover:text-gc-yellow transition-colors shrink-0">
+                        <a href="{{ isset($previewCode) ? route('tournament.preview.matches', $previewCode) : route('tournaments.matches', [$tournament['id'], Str::routeSlug($tournament['name'] ?? '', $tournament['id'])]) }}" class="group flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-white/30 hover:text-gc-yellow transition-colors shrink-0">
                             <span>{{ __("tournament.seemore") }}</span>
                             <x-fas-chevron-right class="w-2.5 h-2.5 inline-block transform group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                         </a>

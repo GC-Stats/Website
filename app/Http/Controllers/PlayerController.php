@@ -36,7 +36,7 @@ class PlayerController extends Controller
         $handle = Player::where('id', $id)->value('handle');
         abort_unless($handle !== null, 404);
 
-        $canonical = Str::slug($handle);
+        $canonical = Str::routeSlug($handle, $id);
         if ($slug !== $canonical) {
             return redirect()->route($routeName, [$id, $canonical], 301);
         }

@@ -45,7 +45,7 @@
             @endforeach
 
             @if(count($upcomingMatches) + count($pastMatches) > 0)
-                <a href="{{ route('players.matches', [$player['id'], str($player['handle'] ?? '')->slug()]) }}" class="group flex items-center justify-center gap-2 py-3 bg-white/[0.02] border border-white/5 rounded-sm hover:border-[var(--brand-yellow)]/30 hover:bg-bg-main transition-all duration-300 text-[10px] font-black uppercase tracking-[0.15em] text-white/50 hover:text-gc-yellow">
+                <a href="{{ route('players.matches', [$player['id'], Str::routeSlug($player['handle'] ?? '', $player['id'])]) }}" class="group flex items-center justify-center gap-2 py-3 bg-white/[0.02] border border-white/5 rounded-sm hover:border-[var(--brand-yellow)]/30 hover:bg-bg-main transition-all duration-300 text-[10px] font-black uppercase tracking-[0.15em] text-white/50 hover:text-gc-yellow">
                     <span>{{ __("player.seemore") }}</span>
                     <x-fas-chevron-right class="w-2.5 h-2.5 inline-block transform group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                 </a>
@@ -91,7 +91,7 @@
                     <div class="flex items-center gap-2 mb-3">
                         <span class="text-[9px] font-black uppercase tracking-[0.25em] text-white/60 shrink-0">{{ __("player.old_team") }}</span>
                         <div class="h-px flex-grow" style="background: linear-gradient(90deg, rgba(228,174,34,0.5) 0%, rgba(228,174,34,0.05) 60%, transparent 100%)"></div>
-                        <a href="{{ route('players.history', [$player['id'], str($player['handle'] ?? '')->slug()]) }}" class="group flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-white/30 hover:text-gc-yellow transition-colors shrink-0">
+                        <a href="{{ route('players.history', [$player['id'], Str::routeSlug($player['handle'] ?? '', $player['id'])]) }}" class="group flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-white/30 hover:text-gc-yellow transition-colors shrink-0">
                             <span>{{ __("player.seemore") }}</span>
                             <x-fas-chevron-right class="w-2.5 h-2.5 inline-block transform group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                         </a>

@@ -37,7 +37,7 @@ class TeamController extends Controller
         $name = Team::where('id', $id)->value('name');
         abort_unless($name !== null, 404);
 
-        $canonical = Str::slug($name);
+        $canonical = Str::routeSlug($name, $id);
         if ($slug !== $canonical) {
             return redirect()->route($routeName, [$id, $canonical], 301);
         }

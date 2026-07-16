@@ -57,17 +57,17 @@ class GenerateSitemap extends Command
                         ->setLastModificationDate($tournament->updated_at)
                 );
                 $sitemap->add(
-                    Url::create(route('tournaments.matches', [$tournament->id, Str::slug($tournament->name)]))
+                    Url::create(route('tournaments.matches', [$tournament->id, Str::routeSlug($tournament->name, $tournament->id)]))
                         ->setPriority(0.9)
                         ->setLastModificationDate($tournament->updated_at)
                 );
                 $sitemap->add(
-                    Url::create(route('tournaments.stats', [$tournament->id, Str::slug($tournament->name)]))
+                    Url::create(route('tournaments.stats', [$tournament->id, Str::routeSlug($tournament->name, $tournament->id)]))
                         ->setPriority(0.9)
                         ->setLastModificationDate($tournament->updated_at)
                 );
                 $sitemap->add(
-                    Url::create(route('tournaments.maps', [$tournament->id, Str::slug($tournament->name)]))
+                    Url::create(route('tournaments.maps', [$tournament->id, Str::routeSlug($tournament->name, $tournament->id)]))
                         ->setPriority(0.9)
                         ->setLastModificationDate($tournament->updated_at)
                 );
