@@ -11,6 +11,23 @@
 @extends('layouts.app')
 
 @section('title', __('tournament.title.index', ["tournament" => $tournament['name']]))
+@section('description', \Illuminate\Support\Str::limit(strip_tags($tournament['description'] ?? ''), 160) ?: __('tournament.title.index', ["tournament" => $tournament['name']]))
+@section('canonical', route('tournaments.show', [$tournament['id'], str($tournament['name'] ?? '')->slug()]))
+@section('og_image', $tournament['logo'] ?? asset('web-app-manifest-512x512.png'))
+
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'SportsEvent',
+    'name' => $tournament['name'],
+    'startDate' => $tournament['start_date'] ?? null,
+    'endDate' => $tournament['end_date'] ?? null,
+    'image' => $tournament['logo'] ?? null,
+    'url' => route('tournaments.show', [$tournament['id'], str($tournament['name'] ?? '')->slug()]),
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+@endpush
 
 @section('content')
     <div x-data="{
@@ -160,7 +177,7 @@
                         <div class="flex-1 flex items-center justify-center w-full">
                             <a href="{{ route('teams.show', [$team['id'], str($team['name'] ?? '')->slug()]) }}" x-show="!(showAllRosters ? !showRoster : showRoster)" class="group relative shrink-0 w-16 h-16 flex items-center justify-center p-2 group-hover:scale-110 transition-transform">
                                 <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
-                                <img class="max-w-full max-h-full object-contain logo-filter" src="{{ $team['logo'] ?? asset('storage/images/default-team.webp') }}" alt="Logo" loading="lazy">
+                                <img class="max-w-full max-h-full object-contain logo-filter" src="{{ $team['logo'] ?? asset('storage/images/default-team.webp') }}" alt="" loading="lazy">
                             </a>
 
                             @if(!empty($team['roster']))

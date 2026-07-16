@@ -27,6 +27,21 @@
     </script>
 
     <title>@yield('title', '') | {{ config('app.name') }}</title>
+    <meta name="description" content="@yield('description', __('layout.meta.default_description'))">
+    <link rel="canonical" href="@yield('canonical', url()->current())">
+
+    <meta property="og:site_name" content="{{ config('app.name') }}">
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:title" content="@yield('title', '') | {{ config('app.name') }}">
+    <meta property="og:description" content="@yield('description', __('layout.meta.default_description'))">
+    <meta property="og:url" content="@yield('canonical', url()->current())">
+    <meta property="og:image" content="@yield('og_image', asset('web-app-manifest-512x512.png'))">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@GC_Stats">
+    <meta name="twitter:title" content="@yield('title', '') | {{ config('app.name') }}">
+    <meta name="twitter:description" content="@yield('description', __('layout.meta.default_description'))">
+    <meta name="twitter:image" content="@yield('og_image', asset('web-app-manifest-512x512.png'))">
 
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -36,6 +51,7 @@
     <!-- Styles / Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    @stack('schema')
 </head>
 
 <body class="flex flex-col min-h-screen">

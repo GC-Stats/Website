@@ -48,6 +48,9 @@ return [
         'teams' => 'Teams',
         'tournaments' => 'Tournaments',
     ],
+    'meta' => [
+        'default_description' => 'GC Stats tracks tournaments, teams, players and match results across all official GC competitions.',
+    ],
     'footer' => [
         'description' => 'A place to find all official GC competitions, without exception.',
         'copyright' => '© :year :name. All rights reserved.',

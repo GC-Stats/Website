@@ -134,6 +134,7 @@
                             <div class="relative inline-block">
                                 <img src="{{ $tournament['logo'] }}"
                                      alt="{{ $tournament['name'] }}"
+                                     loading="lazy"
                                      class="w-24 h-24 md:w-28 md:h-28 object-contain bg-black/60 border border-white/10 rounded-xl p-4 transition-all duration-500 group-hover:bg-black/40 group-hover:border-[var(--brand-yellow)]/20">
 
                                 @if($tournament['status'] === 'live')

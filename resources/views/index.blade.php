@@ -11,6 +11,25 @@
 @extends('layouts.app')
 
 @section('title', __('index.title'))
+@section('description', __('layout.meta.default_description'))
+@section('canonical', route('home'))
+
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'Organization',
+    'name' => config('app.name'),
+    'url' => route('home'),
+    'logo' => asset('web-app-manifest-512x512.png'),
+    'sameAs' => [
+        'https://x.com/GC_Stats',
+        'https://discord.gg/JZgVmAFK9a',
+        'https://github.com/GC-Stats/',
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+@endpush
 
 @section('content')
     <div class="grid grid-cols-12 gap-6">
