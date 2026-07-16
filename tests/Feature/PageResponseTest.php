@@ -46,11 +46,19 @@ test('homepage is accessible', function () {
 
 // ─── Player pages ────────────────────────────────────────────────────────────
 
+test('player page without a slug redirects to the canonical slugged url', function () {
+    Storage::fake('s3');
+
+    $player = Player::factory()->create();
+    $this->get(route('players.show', $player->id))
+        ->assertRedirect(route('players.show', [$player->id, str($player->handle)->slug()]));
+});
+
 test('player page is accessible', function () {
     Storage::fake('s3');
 
     $player = Player::factory()->create();
-    $response = $this->get(route('players.show', $player->id));
+    $response = $this->get(route('players.show', [$player->id, str($player->handle)->slug()]));
     $response->assertOk();
 });
 
@@ -58,7 +66,7 @@ test('player page has nav with aria-label', function () {
     Storage::fake('s3');
 
     $player = Player::factory()->create();
-    $this->get(route('players.show', $player->id))
+    $this->get(route('players.show', [$player->id, str($player->handle)->slug()]))
         ->assertSee('nav', false)
         ->assertSee('aria-label=', false);
 });
@@ -67,7 +75,7 @@ test('player page active nav tab has aria-current', function () {
     Storage::fake('s3');
 
     $player = Player::factory()->create();
-    $this->get(route('players.show', $player->id))
+    $this->get(route('players.show', [$player->id, str($player->handle)->slug()]))
         ->assertSee('aria-current="page"', false);
 });
 
@@ -103,18 +111,26 @@ test('player stats page has labelled date inputs', function () {
 
 // ─── Team pages ──────────────────────────────────────────────────────────────
 
+test('team page without a slug redirects to the canonical slugged url', function () {
+    Storage::fake('s3');
+
+    $team = Team::factory()->create();
+    $this->get(route('teams.show', $team->id))
+        ->assertRedirect(route('teams.show', [$team->id, str($team->name)->slug()]));
+});
+
 test('team page is accessible', function () {
     Storage::fake('s3');
 
     $team = Team::factory()->create();
-    $this->get(route('teams.show', $team->id))->assertOk();
+    $this->get(route('teams.show', [$team->id, str($team->name)->slug()]))->assertOk();
 });
 
 test('team logo has alt text with team name', function () {
     Storage::fake('s3');
 
     $team = Team::factory()->create(['name' => 'UniqueTeamName']);
-    $this->get(route('teams.show', $team->id))
+    $this->get(route('teams.show', [$team->id, str($team->name)->slug()]))
         ->assertSee('alt="UniqueTeamName"', false);
 });
 
@@ -122,7 +138,7 @@ test('team page active nav tab has aria-current', function () {
     Storage::fake('s3');
 
     $team = Team::factory()->create();
-    $this->get(route('teams.show', $team->id))
+    $this->get(route('teams.show', [$team->id, str($team->name)->slug()]))
         ->assertSee('aria-current="page"', false);
 });
 
@@ -214,18 +230,26 @@ test('tournaments index is accessible', function () {
     $this->get(route('tournaments.index'))->assertOk();
 });
 
+test('tournament page without a slug redirects to the canonical slugged url', function () {
+    Storage::fake('s3');
+
+    $tournament = Tournament::factory()->create();
+    $this->get(route('tournaments.show', $tournament->id))
+        ->assertRedirect(route('tournaments.show', [$tournament->id, str($tournament->name)->slug()]));
+});
+
 test('tournament page is accessible', function () {
     Storage::fake('s3');
 
     $tournament = Tournament::factory()->create();
-    $this->get(route('tournaments.show', $tournament->id))->assertOk();
+    $this->get(route('tournaments.show', [$tournament->id, str($tournament->name)->slug()]))->assertOk();
 });
 
 test('tournament logo has alt text with name', function () {
     Storage::fake('s3');
 
     $tournament = Tournament::factory()->create(['name' => 'UniqueTournamentX']);
-    $this->get(route('tournaments.show', $tournament->id))
+    $this->get(route('tournaments.show', [$tournament->id, str($tournament->name)->slug()]))
         ->assertSee('alt="UniqueTournamentX"', false);
 });
 
@@ -233,7 +257,7 @@ test('tournament page active nav tab has aria-current', function () {
     Storage::fake('s3');
 
     $tournament = Tournament::factory()->create();
-    $this->get(route('tournaments.show', $tournament->id))
+    $this->get(route('tournaments.show', [$tournament->id, str($tournament->name)->slug()]))
         ->assertSee('aria-current="page"', false);
 });
 
