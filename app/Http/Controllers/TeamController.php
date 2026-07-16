@@ -24,11 +24,33 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TeamController extends Controller
 {
+    /**
+     * Redirects to the canonical slugged URL when the incoming slug is
+     * missing or stale, so search engines only ever see one URL per team.
+     */
+    private function redirectToCanonicalSlug(int $id, ?string $slug, string $routeName)
+    {
+        $name = Team::where('id', $id)->value('name');
+        abort_unless($name !== null, 404);
+
+        $canonical = Str::slug($name);
+        if ($slug !== $canonical) {
+            return redirect()->route($routeName, [$id, $canonical], 301);
+        }
+
+        return null;
+    }
+
     public function index(int $id, ?string $slug = null)
     {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.show')) {
+            return $redirect;
+        }
+
         $cacheKey = "team_page_{$id}";
         $tag = "team_{$id}";
 
@@ -89,6 +111,10 @@ class TeamController extends Controller
 
     public function history(Request $request, int $id, ?string $slug = null)
     {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.history')) {
+            return $redirect;
+        }
+
         $page = $request->input('page', 1);
         $cacheKey = "team_history_{$id}_page_{$page}";
         $tag = "team_{$id}";
@@ -130,6 +156,10 @@ class TeamController extends Controller
 
     public function matches(Request $request, int $id, ?string $slug = null)
     {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.matches')) {
+            return $redirect;
+        }
+
         $page = $request->input('page', 1);
         $cacheKey = "team_page_matches_{$id}_page_{$page}";
         $tag = "team_{$id}";
@@ -188,6 +218,10 @@ class TeamController extends Controller
 
     public function maps(int $id, ?string $slug = null)
     {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.maps')) {
+            return $redirect;
+        }
+
         $cacheKey = "team_maps_{$id}";
         $tag = "team_{$id}";
 

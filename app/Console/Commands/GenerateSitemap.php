@@ -4,7 +4,9 @@
  * GC-Stats — Sitemap generator
  *
  * Artisan command that builds the public sitemap.xml file, listing static
- * pages as well as tournaments, teams, players and matches for SEO.
+ * pages as well as tournaments, teams, players and published news articles
+ * for SEO. Individual matches are deliberately excluded — with tens of
+ * thousands of them, listing each would blow crawl budget for no benefit.
  * Usage: php artisan sitemap:generate
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
@@ -15,6 +17,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\News;
 use App\Models\Player;
 use App\Models\Team;
 use App\Models\Tournament;
@@ -63,6 +66,11 @@ class GenerateSitemap extends Command
                         ->setPriority(0.9)
                         ->setLastModificationDate($tournament->updated_at)
                 );
+                $sitemap->add(
+                    Url::create(route('tournaments.maps', [$tournament->id, Str::slug($tournament->name)]))
+                        ->setPriority(0.9)
+                        ->setLastModificationDate($tournament->updated_at)
+                );
             }
         });
 
@@ -81,6 +89,16 @@ class GenerateSitemap extends Command
                 $sitemap->add(
                     Url::create(route('players.show', [$player->id, Str::slug($player->handle)]))
                         ->setPriority(0.6)
+                );
+            }
+        });
+
+        News::published()->chunk(200, function ($articles) use ($sitemap) {
+            foreach ($articles as $article) {
+                $sitemap->add(
+                    Url::create(route('news.show', $article->slug))
+                        ->setPriority(0.6)
+                        ->setLastModificationDate($article->updated_at)
                 );
             }
         });

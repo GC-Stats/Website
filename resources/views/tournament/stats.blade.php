@@ -162,6 +162,7 @@
                                             <template x-for="agent in stat.played_agents">
                                                 <img :src="'/storage/agents/' + agent.toLowerCase().replaceAll('/','') + '.webp'"
                                                      class="w-7 h-7 rounded-full border border-gray-900 bg-bg-main shrink-0"
+                                                     loading="lazy"
                                                      :alt="agent">
                                             </template>
                                         </div>

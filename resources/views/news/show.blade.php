@@ -11,6 +11,30 @@
 @extends('layouts.app')
 
 @section('title', $title)
+@section('description', \Illuminate\Support\Str::limit(strip_tags($excerpt ?? $content ?? ''), 160))
+@section('canonical', route('news.show', request()->route('slug')))
+@section('og_type', 'article')
+@section('og_image', $imageCover ?: asset('web-app-manifest-512x512.png'))
+
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'NewsArticle',
+    'headline' => $title,
+    'image' => $imageCover ? [$imageCover] : [],
+    'datePublished' => $date,
+    'author' => [
+        '@type' => 'Organization',
+        'name' => $author['name'] ?? config('app.name'),
+    ],
+    'publisher' => [
+        '@type' => 'Organization',
+        'name' => $publisher['name'] ?? config('app.name'),
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+@endpush
 
 @section('content')
 

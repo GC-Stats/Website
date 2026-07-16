@@ -44,6 +44,7 @@
                         <td class="p-3 text-center">
                             <img src="{{ asset('storage/agents/' . strtolower(str_replace('/', '', $stat['agent_name'])) . '.webp') }}"
                                  alt="{{ $stat['agent_name'] }}"
+                                 loading="lazy"
                                  class="w-7 h-7 rounded-sm border border-white/10 bg-black/40 mx-auto transition-all">
                         </td>
                     @endif
@@ -117,6 +118,7 @@
                             <td class="p-3 text-center">
                                 <img src="{{ asset('storage/agents/' . strtolower(str_replace('/', '', $stat['agent_name'])) . '.webp') }}"
                                      alt="{{ $stat['agent_name'] }}"
+                                     loading="lazy"
                                      class="w-7 h-7 rounded-sm border border-white/10 bg-black/40 mx-auto  transition-all">
                             </td>
                         @endif
@@ -172,6 +174,7 @@
                             <td class="p-3 text-center">
                                 <img src="{{ asset('storage/agents/' . strtolower(str_replace('/', '', $stat['agent_name'])) . '.webp') }}"
                                      alt="{{ $stat['agent_name'] }}"
+                                     loading="lazy"
                                      class="w-7 h-7 rounded-sm border border-white/10 bg-black/40 mx-auto transition-all">
                             </td>
                         @endif

@@ -11,6 +11,21 @@
 @extends('layouts.app')
 
 @section('title', __('team.title.index', ["team" => $team['name']]))
+@section('description', \Illuminate\Support\Str::limit(strip_tags($team['bio'] ?? ''), 160) ?: __('team.title.index', ["team" => $team['name']]))
+@section('canonical', route('teams.show', [$team['id'], str($team['name'] ?? '')->slug()]))
+@section('og_image', $team['logo'] ?? asset('web-app-manifest-512x512.png'))
+
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode([
+    '@context' => 'https://schema.org',
+    '@type' => 'SportsTeam',
+    'name' => $team['name'],
+    'logo' => $team['logo'] ?? null,
+    'url' => route('teams.show', [$team['id'], str($team['name'] ?? '')->slug()]),
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+@endpush
 
 @section('content')
     @include('team.header')

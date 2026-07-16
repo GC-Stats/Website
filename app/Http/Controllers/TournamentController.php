@@ -28,9 +28,27 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TournamentController extends Controller
 {
+    /**
+     * Redirects to the canonical slugged URL when the incoming slug is
+     * missing or stale, so search engines only ever see one URL per tournament.
+     */
+    private function redirectToCanonicalSlug($id, ?string $slug, string $routeName)
+    {
+        $name = Tournament::where('id', $id)->value('name');
+        abort_unless($name !== null, 404);
+
+        $canonical = Str::slug($name);
+        if ($slug !== $canonical) {
+            return redirect()->route($routeName, [$id, $canonical], 301);
+        }
+
+        return null;
+    }
+
     public function index(Request $request)
     {
         $inputs = array_filter($request->only(['region', 'category', 'year', 'sort', 'direction']), fn ($v) => $v !== null && $v !== '');
@@ -68,6 +86,10 @@ class TournamentController extends Controller
 
     public function show($id, $slug = null)
     {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'tournaments.show')) {
+            return $redirect;
+        }
+
         $cacheKey = "tournament_page_{$id}";
         $tag = "tournament_{$id}";
 
@@ -320,6 +342,10 @@ class TournamentController extends Controller
 
     public function matches(Request $request, $id, $slug = null)
     {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'tournaments.matches')) {
+            return $redirect;
+        }
+
         $page = $request->input('page', 1);
         $phaseId = $request->get('phase_id');
         $teamId = $request->get('team_id');
@@ -509,6 +535,10 @@ class TournamentController extends Controller
 
     public function stats(Request $request, $id, $slug = null)
     {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'tournaments.stats')) {
+            return $redirect;
+        }
+
         $phaseId = $request->get('phase_id');
 
         $allPhases = TournamentPhase::where('tournament_id', $id)->get(['id', 'parent_id', 'name', 'order']);
@@ -606,6 +636,10 @@ class TournamentController extends Controller
 
     public function maps(Request $request, $id, $slug = null)
     {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'tournaments.maps')) {
+            return $redirect;
+        }
+
         $phaseId = $request->get('phase_id');
 
         $allPhases = TournamentPhase::where('tournament_id', $id)->get(['id', 'parent_id', 'name', 'order']);

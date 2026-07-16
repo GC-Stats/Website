@@ -16,6 +16,26 @@
 @endphp
 
 @section('title', __("match.title", ["teamA" => $teamAName, "teamB" => $teamBName]))
+@section('description', __("match.title", ["teamA" => $teamAName, "teamB" => $teamBName]) . ' — ' . ($match['tournament']['name'] ?? $match['tournament_name'] ?? config('app.name')))
+@section('canonical', route('match.show', $match['id']))
+@section('og_image', $match['tournament']['logo'] ?? asset('web-app-manifest-512x512.png'))
+
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode(array_filter([
+    '@context' => 'https://schema.org',
+    '@type' => 'SportsEvent',
+    'name' => __("match.title", ["teamA" => $teamAName, "teamB" => $teamBName]),
+    'startDate' => $match['scheduled_at'] ?? $match['date'] ?? null,
+    'eventStatus' => 'https://schema.org/EventScheduled',
+    'url' => route('match.show', $match['id']),
+    'competitor' => [
+        ['@type' => 'SportsTeam', 'name' => $teamAName],
+        ['@type' => 'SportsTeam', 'name' => $teamBName],
+    ],
+]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+@endpush
 
 @section('content')
     <section class="mx-auto w-full max-w-7xl py-8 px-4">
