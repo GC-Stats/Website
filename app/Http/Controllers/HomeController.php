@@ -51,8 +51,15 @@ class HomeController extends Controller
                     'tournamentPhase:id,name,parent_id',
                     'tournamentPhase.parent:id,name',
                 ])
-                ->orderByRaw("FIELD(matches.status, 'live', 'upcoming', 'finished')")
-                ->orderByRaw("CASE WHEN matches.status = 'finished' THEN -UNIX_TIMESTAMP(matches.scheduled_at) ELSE UNIX_TIMESTAMP(matches.scheduled_at) END")
+                // Recently finished (< 24h) matches are surfaced first, then live,
+                // then upcoming, then older finished matches.
+                ->orderByRaw("CASE
+                    WHEN matches.status = 'finished' AND matches.scheduled_at >= NOW() - INTERVAL 1 DAY THEN 0
+                    WHEN matches.status = 'live' THEN 1
+                    WHEN matches.status = 'upcoming' THEN 2
+                    ELSE 3
+                END")
+                ->orderByRaw("CASE WHEN matches.status = 'upcoming' THEN UNIX_TIMESTAMP(matches.scheduled_at) ELSE -UNIX_TIMESTAMP(matches.scheduled_at) END")
                 ->orderBy('matches.match_order', 'asc')
                 ->take(11)
                 ->get()

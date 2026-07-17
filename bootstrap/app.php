@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsNotSanctioned;
+use App\Http\Middleware\EnsureNotSanctionedForTeam;
 use App\Http\Middleware\InternalServiceAuth;
 use App\Http\Middleware\LogPageView;
+use App\Http\Middleware\SetDefaultPermissionTeam;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\StaticPageCache;
 use Illuminate\Console\Scheduling\Schedule;
@@ -24,16 +27,20 @@ return Application::configure(basePath: dirname(__DIR__))
         // so expired-but-still-encrypted key blobs don't linger far past
         // their own expiry.
         $schedule->command('app:prune-api-key-reveals')->everyFifteenMinutes();
+        $schedule->command('discord:sync-roles')->everySixHours();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(LogPageView::class);
         $middleware->web(append: [
             SetLocale::class,
+            SetDefaultPermissionTeam::class,
         ]);
 
         $middleware->alias([
             'internal.service' => InternalServiceAuth::class,
             'static.cache' => StaticPageCache::class,
+            'not-sanctioned' => EnsureAccountIsNotSanctioned::class,
+            'not-sanctioned.team' => EnsureNotSanctionedForTeam::class,
         ]);
 
         $middleware->trustProxies(at: '*');

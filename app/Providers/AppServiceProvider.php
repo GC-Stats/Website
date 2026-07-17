@@ -29,22 +29,31 @@ use App\Observers\NewsObserver;
 use App\Observers\PlayerObserver;
 use App\Observers\TeamObserver;
 use App\Observers\TournamentObserver;
+use App\Support\Socialite\TwitterProviderWithCreatedAt;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Socialite\Contracts\Factory as Socialite;
 use League\Flysystem\Filesystem;
 use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNAdapter;
 use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNClient;
+use SocialiteProviders\Discord\DiscordExtendSocialite;
+use SocialiteProviders\Manager\SocialiteWasCalled;
+use SocialiteProviders\Twitch\TwitchExtendSocialite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -99,6 +108,55 @@ class AppServiceProvider extends ServiceProvider
             URL::forceRootUrl(config('app.url'));
             URL::forceScheme('https');
         }
+
+        Event::listen(SocialiteWasCalled::class, [DiscordExtendSocialite::class, 'handle']);
+        Event::listen(SocialiteWasCalled::class, [TwitchExtendSocialite::class, 'handle']);
+
+        $this->app->make(Socialite::class)->extend('twitter', function ($app) {
+            $config = $app['config']['services.twitter'];
+
+            return new TwitterProviderWithCreatedAt(
+                $app['request'],
+                $config['client_id'],
+                $config['client_secret'],
+                $config['redirect'],
+            );
+        });
+
+        $this->configureActivityLogging();
+    }
+
+    /**
+     * Log every login/logout/failed-login through the framework's own auth
+     * events rather than sprinkling activity() calls across every login
+     * path (password, 2FA, passkey, Socialite) — this way none can be
+     * missed as new auth methods get added.
+     */
+    protected function configureActivityLogging(): void
+    {
+        Event::listen(Login::class, function (Login $event) {
+            activity('account')
+                ->performedOn($event->user)
+                ->causedBy($event->user)
+                ->withProperties(['guard' => $event->guard, 'ip' => request()->ip()])
+                ->log('account.login');
+        });
+
+        Event::listen(Logout::class, function (Logout $event) {
+            if ($event->user) {
+                activity('account')->performedOn($event->user)->causedBy($event->user)->log('account.logout');
+            }
+        });
+
+        Event::listen(Failed::class, function (Failed $event) {
+            activity('moderation')
+                ->withProperties([
+                    'guard' => $event->guard,
+                    'identifier' => $event->credentials[config('fortify.username')] ?? null,
+                    'ip' => request()->ip(),
+                ])
+                ->log('account.login_failed');
+        });
     }
 
     /**

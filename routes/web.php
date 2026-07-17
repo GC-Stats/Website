@@ -26,6 +26,8 @@ use App\Http\Controllers\TournamentPreviewController;
 use App\Http\Controllers\TransparencyController;
 use Illuminate\Support\Facades\Route;
 
+require __DIR__.'/auth.php';
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/health', function () {
