@@ -42,6 +42,8 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         ->middleware('can:sanctions.create')->name('sanctions.store');
     Route::delete('/sanctions/{sanction}', [SanctionController::class, 'destroy'])
         ->middleware('can:sanctions.revoke')->name('sanctions.destroy');
+    Route::delete('/sanctions/{sanction}/force', [SanctionController::class, 'forceDestroy'])
+        ->middleware('can:sanctions.delete')->name('sanctions.force-destroy');
 
     Route::middleware(['can:manage-roles'])->prefix('roles')->name('roles.')->group(function () {
         Route::get('/', [RoleController::class, 'index'])->name('index');

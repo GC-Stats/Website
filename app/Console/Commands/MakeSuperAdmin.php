@@ -46,7 +46,7 @@ class MakeSuperAdmin extends Command
 
         $user->assignRole('super-admin');
 
-        activity('moderation')->performedOn($user)
+        activity('administration')->performedOn($user)
             ->withProperties(['role' => 'super-admin', 'via' => 'admin:make-super-admin'])
             ->log('role.assigned');
 

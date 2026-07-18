@@ -4,8 +4,11 @@
  * GC-Stats — Admin: sanctions
  *
  * Listing requires `sanctions.view`, issuing requires `sanctions.create`,
- * revoking requires `sanctions.revoke` (all gated at the route level, see
- * routes/admin.php).
+ * revoking requires `sanctions.revoke`, and permanently deleting requires
+ * `sanctions.delete` (all gated at the route level, see routes/admin.php).
+ * Revoke deactivates a sanction but keeps the record (and its
+ * SanctionIdentity evasion fingerprints) for the audit trail; delete
+ * erases it entirely — meant for corrections, not routine lifting.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -73,5 +76,12 @@ class SanctionController extends Controller
         $sanctions->revoke($sanction, $request->user());
 
         return back()->with('status', 'sanction-revoked');
+    }
+
+    public function forceDestroy(Request $request, Sanction $sanction, SanctionService $sanctions): RedirectResponse
+    {
+        $sanctions->delete($sanction, $request->user());
+
+        return back()->with('status', 'sanction-deleted');
     }
 }

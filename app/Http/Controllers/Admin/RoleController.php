@@ -13,7 +13,10 @@
  * with thousands of duplicate-named rows and let a mutation act on the
  * wrong team's role. Team-scoped roles are managed from each team's own
  * page instead. Gated behind the 'manage-roles' gate (super-admin only),
- * stricter than any single admin permission.
+ * stricter than any single admin permission. Every mutation here logs
+ * under the 'administration' activity log name (App\Support\AdminPermissions'
+ * activity.administration permission), not 'moderation' — role/permission
+ * management is a distinct concern from content moderation.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -56,7 +59,7 @@ class RoleController extends Controller
 
         $role = Role::create(['name' => $validated['name']]);
 
-        activity('moderation')->causedBy($request->user())
+        activity('administration')->causedBy($request->user())
             ->withProperties(['role' => $role->name])->log('role.created');
 
         return redirect()->route('admin.roles.show', $role)->with('status', 'role-created');
@@ -94,7 +97,7 @@ class RoleController extends Controller
 
         $role->syncPermissions($validated['permissions'] ?? []);
 
-        activity('moderation')->causedBy($request->user())
+        activity('administration')->causedBy($request->user())
             ->withProperties(['role' => $role->name, 'permissions' => $validated['permissions'] ?? []])
             ->log('role.permissions_updated');
 
@@ -109,7 +112,7 @@ class RoleController extends Controller
         $name = $role->name;
         $role->delete();
 
-        activity('moderation')->causedBy($request->user())
+        activity('administration')->causedBy($request->user())
             ->withProperties(['role' => $name])->log('role.deleted');
 
         return redirect()->route('admin.roles.index')->with('status', 'role-deleted');
@@ -127,7 +130,7 @@ class RoleController extends Controller
         $user = User::findOrFail($validated['user_id']);
         $user->assignRole($role);
 
-        activity('moderation')->performedOn($user)->causedBy($request->user())
+        activity('administration')->performedOn($user)->causedBy($request->user())
             ->withProperties(['role' => $role->name])->log('role.assigned');
 
         return back()->with('status', 'role-assigned');
@@ -145,7 +148,7 @@ class RoleController extends Controller
 
         $user->removeRole($role);
 
-        activity('moderation')->performedOn($user)->causedBy($request->user())
+        activity('administration')->performedOn($user)->causedBy($request->user())
             ->withProperties(['role' => $role->name])->log('role.removed');
 
         return back()->with('status', 'role-removed');
@@ -166,7 +169,7 @@ class RoleController extends Controller
             ['discord_role_id' => $validated['discord_role_id'], 'discord_role_name' => $validated['discord_role_name'] ?? null],
         );
 
-        activity('moderation')->causedBy($request->user())
+        activity('administration')->causedBy($request->user())
             ->withProperties(['role' => $role->name, 'discord_role_id' => $validated['discord_role_id']])
             ->log('role.discord_mapping_updated');
 
@@ -180,7 +183,7 @@ class RoleController extends Controller
 
         DiscordRoleMapping::whereNull('team_id')->where('app_role', $role->name)->delete();
 
-        activity('moderation')->causedBy($request->user())
+        activity('administration')->causedBy($request->user())
             ->withProperties(['role' => $role->name])->log('role.discord_mapping_removed');
 
         return back()->with('status', 'discord-mapping-removed');

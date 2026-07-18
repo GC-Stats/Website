@@ -32,8 +32,8 @@ class AdminPermissions
     {
         return [
             'reports' => ['reports.view', 'reports.resolve'],
-            'sanctions' => ['sanctions.view', 'sanctions.create', 'sanctions.revoke'],
-            'activity' => ['activity.account', 'activity.moderation'],
+            'sanctions' => ['sanctions.view', 'sanctions.create', 'sanctions.revoke', 'sanctions.delete'],
+            'activity' => ['activity.account', 'activity.moderation', 'activity.administration'],
             'news' => ['news.manage'],
         ];
     }

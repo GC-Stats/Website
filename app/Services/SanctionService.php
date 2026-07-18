@@ -64,6 +64,24 @@ class SanctionService
     }
 
     /**
+     * Permanently remove a sanction and its identity fingerprints
+     * (cascade-deleted with it) — unlike revoke(), this erases the record
+     * rather than just deactivating it, including the evasion-tracking
+     * evidence in SanctionIdentity. Meant for corrections (a sanction
+     * issued by mistake), not routine lifting — use revoke() for that.
+     */
+    public function delete(Sanction $sanction, User $deletedBy): void
+    {
+        activity('moderation')
+            ->performedOn($sanction)
+            ->causedBy($deletedBy)
+            ->withProperties(['type' => $sanction->type, 'target_user_id' => $sanction->user_id])
+            ->log('sanction.deleted');
+
+        $sanction->delete();
+    }
+
+    /**
      * Record every current auth method of $user against $sanction.
      */
     public function snapshotIdentities(Sanction $sanction, User $user): void

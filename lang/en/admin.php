@@ -4,7 +4,7 @@ return [
     'nav' => [
         'title' => 'Admin',
         'group_moderation' => 'Moderation',
-        'group_access' => 'Access control',
+        'group_access' => 'Administration',
         'reports' => 'Reports',
         'sanctions' => 'Sanctions',
         'activity' => 'Activity log',
@@ -72,6 +72,8 @@ return [
         'empty' => 'No sanctions to show.',
         'revoke' => 'Revoke',
         'revoke_confirm' => 'Revoke this sanction?',
+        'delete' => 'Delete',
+        'delete_confirm' => 'Permanently delete this sanction? Unlike revoking, this erases the record entirely, including its evasion-tracking fingerprints. This cannot be undone.',
         'issue' => [
             'title' => 'Issue a sanction',
             'user_label' => 'User ID',
@@ -143,6 +145,7 @@ return [
         'report-resolved' => 'Report resolved.',
         'sanction-issued' => 'Sanction issued.',
         'sanction-revoked' => 'Sanction revoked.',
+        'sanction-deleted' => 'Sanction permanently deleted.',
         'role-assigned' => 'Role assigned.',
         'role-removed' => 'Role removed.',
         'role-created' => 'Role created.',

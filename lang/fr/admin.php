@@ -4,7 +4,7 @@ return [
     'nav' => [
         'title' => 'Admin',
         'group_moderation' => 'Modération',
-        'group_access' => 'Contrôle d\'accès',
+        'group_access' => 'Administration',
         'reports' => 'Signalements',
         'sanctions' => 'Sanctions',
         'activity' => "Journal d'activité",
@@ -72,6 +72,8 @@ return [
         'empty' => 'Aucune sanction à afficher.',
         'revoke' => 'Révoquer',
         'revoke_confirm' => 'Révoquer cette sanction ?',
+        'delete' => 'Supprimer',
+        'delete_confirm' => 'Supprimer définitivement cette sanction ? Contrairement à la révocation, ceci efface complètement l\'enregistrement, y compris ses empreintes de suivi anti-contournement. Action irréversible.',
         'issue' => [
             'title' => 'Émettre une sanction',
             'user_label' => 'ID utilisateur',
@@ -143,6 +145,7 @@ return [
         'report-resolved' => 'Signalement résolu.',
         'sanction-issued' => 'Sanction émise.',
         'sanction-revoked' => 'Sanction révoquée.',
+        'sanction-deleted' => 'Sanction définitivement supprimée.',
         'role-assigned' => 'Rôle assigné.',
         'role-removed' => 'Rôle retiré.',
         'role-created' => 'Rôle créé.',

@@ -56,22 +56,38 @@
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $sanction->ends_at?->format('Y-m-d H:i') ?? __('admin.sanctions.permanent') }}</td>
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $sanction->issuedBy?->name ?? '—' }}</td>
                         <td class="px-4 py-3 text-right">
-                            @can('sanctions.revoke')
-                                @if ($sanction->isActive())
-                                    <form method="POST" action="{{ route('admin.sanctions.destroy', $sanction) }}">
+                            <div class="flex justify-end gap-2">
+                                @can('sanctions.revoke')
+                                    @if ($sanction->isActive())
+                                        <form method="POST" action="{{ route('admin.sanctions.destroy', $sanction) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <x-confirm-modal
+                                                :title="__('admin.sanctions.revoke')"
+                                                :body="__('admin.sanctions.revoke_confirm')"
+                                                :trigger-label="__('admin.sanctions.revoke')"
+                                                :submit-label="__('admin.sanctions.revoke')"
+                                                trigger-class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                                                submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
+                                            />
+                                        </form>
+                                    @endif
+                                @endcan
+                                @can('sanctions.delete')
+                                    <form method="POST" action="{{ route('admin.sanctions.force-destroy', $sanction) }}">
                                         @csrf
                                         @method('DELETE')
                                         <x-confirm-modal
-                                            :title="__('admin.sanctions.revoke')"
-                                            :body="__('admin.sanctions.revoke_confirm')"
-                                            :trigger-label="__('admin.sanctions.revoke')"
-                                            :submit-label="__('admin.sanctions.revoke')"
+                                            :title="__('admin.sanctions.delete')"
+                                            :body="__('admin.sanctions.delete_confirm')"
+                                            :trigger-label="__('admin.sanctions.delete')"
+                                            :submit-label="__('admin.sanctions.delete')"
                                             trigger-class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
                                             submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
                                         />
                                     </form>
-                                @endif
-                            @endcan
+                                @endcan
+                            </div>
                         </td>
                     </tr>
                 @empty
