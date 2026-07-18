@@ -3,11 +3,8 @@
 /**
  * GC-Stats — Auth & account routes
  *
- * Fortify supplies the email/password login, registration, password reset
- * and 2FA/passkey routes automatically (see config/fortify.php). This file
- * only adds what Fortify doesn't cover: Socialite provider redirect/
- * callback, linking/unlinking providers, and account settings actions
- * (password, deletion, data export).
+ * Adds what Fortify doesn't cover (see config/fortify.php): Socialite
+ * redirect/callback, provider linking, and account settings actions.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0

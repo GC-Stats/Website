@@ -3,12 +3,10 @@
 /**
  * GC-Stats — Sanction service
  *
- * Issues/revokes sanctions and maintains SanctionIdentity fingerprints so a
- * sanction "sticks" to every login method (email, Discord/Twitch/Twitter
- * account) the sanctioned user has ever used — including methods linked
- * after the sanction was issued, and even once the account itself is
- * deleted. Also exposes the evasion check used at registration / provider
- * linking time.
+ * Issues/revokes/deletes sanctions and maintains SanctionIdentity
+ * fingerprints so a sanction sticks to every auth method the user has
+ * ever used, even across account deletion. Also exposes the evasion check
+ * used at registration / provider-linking time.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0

@@ -3,12 +3,9 @@
 /**
  * GC-Stats — Admin panel routes
  *
- * Every route is gated by its own permission from App\Support\AdminPermissions
- * (one per action) rather than a shared umbrella permission — `/admin` itself
- * only requires the 'access-admin' gate (true for any role holding at least
- * one of those permissions; always true for super-admin via Gate::before).
+ * Every route is gated by its own permission from App\Support\AdminPermissions.
  * Role/permission management is locked to the super-admin-only 'manage-roles'
- * gate, see AppServiceProvider.
+ * gate instead, see AppServiceProvider.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0

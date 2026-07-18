@@ -1,10 +1,8 @@
 {{--
     GC-Stats — Generic form modal
 
-    A trigger (button/link, via the 'trigger' slot) that opens an in-page
-    dialog holding arbitrary content (typically a <form>, via the default
-    slot) — for anything heavier than a yes/no confirmation
-    (see <x-confirm-modal> for that case).
+    Trigger (via the 'trigger' slot) that opens a dialog holding arbitrary
+    content — for anything heavier than <x-confirm-modal>'s yes/no.
 
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)

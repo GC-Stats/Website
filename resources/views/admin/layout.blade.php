@@ -1,10 +1,8 @@
 {{--
     GC-Stats — Admin dashboard shell
 
-    Standalone layout for the /admin area: fixed sidebar + top bar, no
-    public-site header/footer. Meant to scale to many pages as more of the
-    dashboard gets migrated here — add new sections to the $navGroups array
-    below rather than hand-rolling nav markup per page.
+    Standalone layout for /admin: fixed sidebar + top bar, no public-site
+    chrome. Add new sections to $navGroups below.
 
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)

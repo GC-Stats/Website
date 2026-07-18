@@ -3,14 +3,9 @@
 /**
  * GC-Stats — Role seeder
  *
- * Seeds the global (site-wide) roles and the fixed admin permission
- * catalog (see App\Support\AdminPermissions — one permission per action,
- * no user-created ones). Team-scoped roles (team_owner, team_manager,
- * team_editor) are created lazily per team by
- * TeamRoleService::ensureRolesExist() instead of being seeded up front —
- * with tens of thousands of teams already imported, most will never have a
- * claimed manager, so pre-creating three role rows for each would be dead
- * weight.
+ * Seeds global roles and the admin permission catalog (see
+ * App\Support\AdminPermissions). Per-team roles are seeded lazily by
+ * TeamRoleService instead, not here.
  */
 
 namespace Database\Seeders;

@@ -3,17 +3,11 @@
 /**
  * GC-Stats — Admin permission catalog
  *
- * The full, fixed set of permissions the admin dashboard actually checks
- * (one per action) — the single source of truth for both RoleSeeder and the
- * /admin/permissions matrix. Deliberately not user-extensible: a permission
- * created through the UI with a name nothing checks would just be dead
- * weight, so the matrix can only toggle these, grouped by section for
- * display.
- *
- * 'roles.manage' is intentionally excluded — it's gated by the
- * 'manage-roles' super-admin-only Gate instead (see AppServiceProvider),
- * since granting it as an assignable permission would let any role holder
- * assign themselves super-admin and escalate.
+ * Fixed set of permissions the admin dashboard actually checks, one per
+ * action — source of truth for RoleSeeder and the roles permission matrix.
+ * Not user-extensible. Role/permission management itself is deliberately
+ * excluded — gated by the super-admin-only 'manage-roles' Gate instead, so
+ * no role can grant itself the means to escalate.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0

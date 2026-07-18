@@ -3,11 +3,8 @@
 /**
  * GC-Stats — Bootstrap a super-admin
  *
- * Assigns the 'super-admin' role (full access to /admin, see
- * AppServiceProvider's Gate::before) to an existing user by email. Meant
- * for bootstrapping the very first admin account in a fresh environment —
- * there's no UI path to do this since /admin/roles itself requires
- * 'manage-roles' (super-admin only).
+ * Grants the 'super-admin' role to an existing user by email — used to
+ * bootstrap the first admin, since /admin/roles itself requires it.
  * Usage: php artisan admin:make-super-admin user@example.com
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website

@@ -3,23 +3,10 @@
 /**
  * GC-Stats — Admin: activity log viewer
  *
- * Read-only view over spatie/laravel-activitylog's Activity records —
- * nothing here writes to the log, it only surfaces what other services
- * already record (see log names 'account' throughout app/Actions/Fortify
- * and AppServiceProvider, 'moderation' in app/Services/SanctionService.php
- * and UserReportService.php, and 'administration' in
- * Admin\RoleController.php and the admin:make-super-admin command).
- *
- * Access is split one permission per log type (activity.account,
- * activity.moderation, activity.administration — see
- * App\Support\AdminPermissions), not a single umbrella permission: a role
- * can be granted visibility into moderation actions without also seeing
- * account/login or role-management activity. The route itself is gated by
- * the composite 'activity.view' Gate (true if the user holds any one of
- * those); this controller additionally restricts the query to only the
- * specific log types the user actually holds, so "all logs" never means
- * more than "all logs I'm allowed to see" — including when a log filter is
- * requested directly via the query string.
+ * Read-only view over spatie/laravel-activitylog's records (log names:
+ * account, moderation, administration). Access is one permission per log
+ * type (App\Support\AdminPermissions), so the query only ever returns the
+ * types the current user actually holds.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0

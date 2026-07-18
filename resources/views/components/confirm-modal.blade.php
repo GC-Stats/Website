@@ -1,15 +1,9 @@
 {{--
     GC-Stats — Confirm modal
 
-    A trigger button that opens an in-page confirmation dialog instead of
-    the browser's native confirm(). Two modes:
-    - Form submit (default): place inside a <form>, the dialog's confirm
-      button submits it. The default slot can hold extra fields (e.g. a
-      password prompt) shown inside the dialog.
-    - JS action: pass `onConfirm` with an Alpine expression (e.g.
-      "deletePasskey(passkey.id)") to run instead of submitting a form —
-      for confirmations in front of an Alpine/fetch-driven action rather
-      than a native form post.
+    In-page confirmation dialog instead of the browser's confirm(). Place
+    inside a <form> to submit it on confirm, or pass `onConfirm` with an
+    Alpine expression (e.g. "deletePasskey(passkey.id)") to run JS instead.
 
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)

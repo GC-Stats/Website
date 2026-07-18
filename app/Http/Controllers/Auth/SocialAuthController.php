@@ -3,11 +3,8 @@
 /**
  * GC-Stats — Social authentication controller
  *
- * Handles the Socialite redirect/callback for the three supported login
- * providers (Twitter/X, Twitch, Discord). The same callback both logs an
- * existing user in and registers a brand new account — a user is never
- * required to set a password, only to keep at least one auth method, see
- * AccountSecurityService.
+ * Socialite redirect/callback for Twitter/X, Twitch and Discord — the same
+ * callback logs an existing user in or registers a new one.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0

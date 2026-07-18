@@ -3,20 +3,10 @@
 /**
  * GC-Stats — Admin: global role management
  *
- * Assigns/removes site-wide roles to/from users — any global role that
- * currently exists (seeded ones like super-admin/moderator/editor, or new
- * ones created from this page). Every action is scoped to roles with
- * team_id = PermissionTeam::GLOBAL_ID: spatie/laravel-permission's `roles`
- * table also holds the per-team roles (team_owner, team_manager,
- * team_editor) lazily created by TeamRoleService::ensureRolesExist() — with
- * tens of thousands of teams, an unscoped query here would flood this page
- * with thousands of duplicate-named rows and let a mutation act on the
- * wrong team's role. Team-scoped roles are managed from each team's own
- * page instead. Gated behind the 'manage-roles' gate (super-admin only),
- * stricter than any single admin permission. Every mutation here logs
- * under the 'administration' activity log name (App\Support\AdminPermissions'
- * activity.administration permission), not 'moderation' — role/permission
- * management is a distinct concern from content moderation.
+ * Assigns/removes global roles (super-admin/moderator/editor/custom) and
+ * their permissions. Scoped to team_id = PermissionTeam::GLOBAL_ID only —
+ * per-team roles (team_owner etc.) live on each team's own page. Gated by
+ * the super-admin-only 'manage-roles' gate; logs under 'administration'.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
