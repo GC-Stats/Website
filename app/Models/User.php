@@ -32,7 +32,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'email_risk', 'email_checked_at'])]
+#[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -51,7 +51,6 @@ class User extends Authenticatable implements PasskeyUser
             'password' => 'hashed',
             'preferences' => 'array',
             'discord_synced_at' => 'datetime',
-            'email_checked_at' => 'datetime',
         ];
     }
 
