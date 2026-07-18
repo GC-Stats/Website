@@ -22,6 +22,7 @@ use App\Services\AccountSecurityService;
 use App\Services\DiscordRoleSyncService;
 use App\Services\SanctionService;
 use App\Support\Socialite\ProviderAccountAge;
+use App\Support\Socialite\VerifiedEmail;
 use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -99,7 +100,7 @@ class SocialAuthController extends Controller
             abort(403, __('account.errors.social_blocked'));
         }
 
-        $email = $socialiteUser->getEmail();
+        $email = VerifiedEmail::resolve($provider, $socialiteUser->getRaw(), $socialiteUser->getEmail());
 
         // The provider's email may already belong to a different account
         // (password-based, or linked to a different provider) with no

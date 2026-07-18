@@ -24,7 +24,7 @@ use App\Http\Controllers\Team\RoleController;
 use App\Http\Controllers\Team\RosterController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'team.permission-context'])
+Route::middleware(['auth', 'team.permission-context', 'not-sanctioned', 'not-sanctioned.team'])
     ->prefix('team/{team}/{slug}')
     ->group(function () {
         Route::get('/edit', [ProfileController::class, 'edit'])->name('teams.edit');
