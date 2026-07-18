@@ -17,6 +17,10 @@ return [
         'no_account' => 'New here? Sign in with Discord, Twitch or X above to get started — no password needed.',
         'register_prompt' => "Don't have an account?",
         'register_link' => 'Create one',
+        'forgot_password' => 'Forgot your password?',
+        'passkey_submit' => 'Sign in with a passkey',
+        'passkey_unsupported' => 'Passkeys are not supported on this device or browser.',
+        'passkey_error' => 'Could not sign in with this passkey.',
     ],
     'register' => [
         'title' => 'Create an account',
@@ -35,6 +39,20 @@ return [
         'subtitle' => 'For your security, please confirm your password before continuing.',
         'password_label' => 'Password',
         'submit' => 'Confirm',
+    ],
+    'forgot_password' => [
+        'title' => 'Forgot your password?',
+        'subtitle' => "Enter your email address and we'll send you a link to reset it.",
+        'email_label' => 'Email address',
+        'submit' => 'Email password reset link',
+        'back_to_login' => 'Back to sign in',
+    ],
+    'reset_password' => [
+        'title' => 'Reset your password',
+        'email_label' => 'Email address',
+        'password_label' => 'New password',
+        'password_confirmation_label' => 'Confirm new password',
+        'submit' => 'Reset password',
     ],
     'two_factor_challenge' => [
         'title' => 'Two-factor authentication',

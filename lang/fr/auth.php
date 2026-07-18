@@ -17,6 +17,10 @@ return [
         'no_account' => "Nouveau ici ? Connectez-vous avec Discord, Twitch ou X ci-dessus pour commencer — aucun mot de passe requis.",
         'register_prompt' => "Pas encore de compte ?",
         'register_link' => 'Créer un compte',
+        'forgot_password' => 'Mot de passe oublié ?',
+        'passkey_submit' => 'Se connecter avec une clé d\'accès',
+        'passkey_unsupported' => "Les clés d'accès ne sont pas prises en charge sur cet appareil ou ce navigateur.",
+        'passkey_error' => 'Impossible de se connecter avec cette clé d\'accès.',
     ],
     'register' => [
         'title' => 'Créer un compte',
@@ -35,6 +39,20 @@ return [
         'subtitle' => 'Pour votre sécurité, veuillez confirmer votre mot de passe avant de continuer.',
         'password_label' => 'Mot de passe',
         'submit' => 'Confirmer',
+    ],
+    'forgot_password' => [
+        'title' => 'Mot de passe oublié ?',
+        'subtitle' => 'Entrez votre adresse email et nous vous enverrons un lien pour le réinitialiser.',
+        'email_label' => 'Adresse email',
+        'submit' => 'Envoyer le lien de réinitialisation',
+        'back_to_login' => 'Retour à la connexion',
+    ],
+    'reset_password' => [
+        'title' => 'Réinitialiser votre mot de passe',
+        'email_label' => 'Adresse email',
+        'password_label' => 'Nouveau mot de passe',
+        'password_confirmation_label' => 'Confirmer le nouveau mot de passe',
+        'submit' => 'Réinitialiser le mot de passe',
     ],
     'two_factor_challenge' => [
         'title' => 'Authentification à deux facteurs',

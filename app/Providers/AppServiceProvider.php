@@ -169,6 +169,17 @@ class AppServiceProvider extends ServiceProvider
             ->pluck('name')
             ->intersect(AdminPermissions::all())
             ->isNotEmpty());
+
+        // Activity log access is split one permission per log type
+        // (activity.account, activity.moderation — see AdminPermissions)
+        // rather than a single umbrella permission, so a role can be
+        // granted visibility into moderation actions without also seeing
+        // account/login activity, or vice versa. This gate is the "can
+        // reach the page at all" check; the controller itself further
+        // restricts which log types are actually queried/shown to the
+        // ones the user holds.
+        Gate::define('activity.view', fn ($user) => collect(AdminPermissions::grouped()['activity'])
+            ->contains(fn ($permission) => $user->can($permission)));
     }
 
     /**

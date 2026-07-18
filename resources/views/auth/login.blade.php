@@ -20,7 +20,13 @@
                 <p class="text-sm text-gray-400 mt-2">{{ __('auth.login.subtitle') }}</p>
             </div>
 
-            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-6">
+            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-6"
+                 x-data="passkeyLogin({
+                    optionsUrl: '{{ route('passkey.login-options') }}',
+                    loginUrl: '{{ route('passkey.login') }}',
+                    unsupportedText: '{{ __('auth.login.passkey_unsupported') }}',
+                    errorText: '{{ __('auth.login.passkey_error') }}',
+                 })">
 
                 <div class="grid grid-cols-1 gap-3">
                     <a href="{{ route('social.redirect', 'discord') }}"
@@ -38,6 +44,12 @@
                         <x-fab-twitter class="w-4 h-4" aria-hidden="true" />
                         {{ __('auth.login.social.twitter') }}
                     </a>
+                    <button type="button" @click="signIn()" :disabled="loading"
+                            class="flex items-center justify-center gap-3 w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10 disabled:opacity-50">
+                        <x-fas-key class="w-4 h-4" aria-hidden="true" />
+                        {{ __('auth.login.passkey_submit') }}
+                    </button>
+                    <p class="text-xs text-red-400 text-center" x-show="error" x-text="error" x-cloak></p>
                 </div>
 
                 <div class="flex items-center gap-4">
@@ -61,9 +73,14 @@
                     </div>
 
                     <div>
-                        <label for="password" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
-                            {{ __('auth.login.password_label') }}
-                        </label>
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="password" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                                {{ __('auth.login.password_label') }}
+                            </label>
+                            <a href="{{ route('password.request') }}" class="text-[10px] font-bold uppercase tracking-widest text-gc-yellow hover:underline">
+                                {{ __('auth.login.forgot_password') }}
+                            </a>
+                        </div>
                         <input id="password" type="password" name="password" required autocomplete="current-password"
                                class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                         @error('password')

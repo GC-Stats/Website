@@ -208,6 +208,85 @@ function encodePasskeyCreationCredential(credential) {
     };
 }
 
+function decodePasskeyRequestOptions(options) {
+    return {
+        ...options,
+        challenge: base64UrlToBuffer(options.challenge),
+        allowCredentials: (options.allowCredentials || []).map((c) => ({ ...c, id: base64UrlToBuffer(c.id) })),
+    };
+}
+
+function encodePasskeyAssertionCredential(credential) {
+    return {
+        id: credential.id,
+        rawId: bufferToBase64Url(credential.rawId),
+        type: credential.type,
+        response: {
+            clientDataJSON: bufferToBase64Url(credential.response.clientDataJSON),
+            authenticatorData: bufferToBase64Url(credential.response.authenticatorData),
+            signature: bufferToBase64Url(credential.response.signature),
+            userHandle: credential.response.userHandle ? bufferToBase64Url(credential.response.userHandle) : null,
+        },
+    };
+}
+
+/**
+ * Passwordless login via a previously-registered passkey (see
+ * window.accountSecurity's registerPasskey for the registration side).
+ * No password-confirmation gate here — these routes are guest-accessible.
+ */
+window.passkeyLogin = function (config) {
+    return {
+        optionsUrl: config.optionsUrl,
+        loginUrl: config.loginUrl,
+        unsupportedText: config.unsupportedText,
+        errorText: config.errorText,
+        loading: false,
+        error: '',
+
+        async signIn() {
+            this.error = '';
+
+            if (!window.PublicKeyCredential) {
+                this.error = this.unsupportedText;
+
+                return;
+            }
+
+            this.loading = true;
+
+            try {
+                const optionsResponse = await window.GCS.apiFetch(this.optionsUrl);
+
+                if (!optionsResponse.ok) {
+                    throw new Error(this.errorText);
+                }
+
+                const { options } = await optionsResponse.json();
+                const credential = await navigator.credentials.get({ publicKey: decodePasskeyRequestOptions(options) });
+
+                const response = await window.GCS.apiFetch(this.loginUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({ credential: encodePasskeyAssertionCredential(credential) }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(this.errorText);
+                }
+
+                const data = await response.json();
+                window.location.href = data.redirect || '/';
+            } catch (error) {
+                if (error.name !== 'NotAllowedError') {
+                    this.error = error.message || this.errorText;
+                }
+            } finally {
+                this.loading = false;
+            }
+        },
+    };
+};
+
 window.accountSecurity = function (config) {
     return {
         routes: config.routes,
