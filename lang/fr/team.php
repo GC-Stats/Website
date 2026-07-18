@@ -39,4 +39,70 @@ return [
         'comps' => 'Comps jouées',
         'vs' => 'vs',
     ],
+
+    'roles' => [
+        'title' => "Rôles de l'équipe",
+        'back_to_team' => 'Retour à :team',
+        'member_count' => ':count membre|:count membres',
+        'manage' => 'Gérer',
+        'delete' => 'Supprimer le rôle',
+        'delete_confirm' => 'Supprimer le rôle :role ? Il sera retiré de tous les membres qui le possèdent.',
+        'new_role' => [
+            'title' => 'Nouveau rôle',
+            'name_label' => 'Nom du rôle',
+            'submit' => 'Créer le rôle',
+        ],
+        'permissions' => [
+            'title' => 'Permissions',
+            'save' => 'Enregistrer les permissions',
+            'empty_ceiling' => "Cette équipe n'a encore aucune permission accordée — demandez à un admin du site de les définir.",
+        ],
+        'members' => [
+            'title' => 'Membres',
+            'empty' => 'Aucun membre avec ce rôle pour le moment.',
+            'remove' => 'Retirer',
+            'remove_confirm' => 'Retirer le rôle :role à :name ?',
+            'add' => 'Ajouter un membre',
+            'search_placeholder' => 'Nom ou email',
+            'search_submit' => 'Rechercher',
+            'search_empty' => 'Aucun utilisateur correspondant sans ce rôle.',
+            'assign' => 'Assigner',
+        ],
+        'errors' => [
+            'owner_role_protected' => 'Le rôle team_owner ne peut pas être supprimé.',
+            'last_owner' => "Impossible de retirer le dernier team_owner — assignez-en un autre d'abord.",
+        ],
+        'status' => [
+            'role-created' => 'Rôle créé.',
+            'role-deleted' => 'Rôle supprimé.',
+            'role-assigned' => 'Rôle assigné.',
+            'role-removed' => 'Rôle retiré.',
+            'permissions-updated' => 'Permissions mises à jour.',
+        ],
+    ],
+
+    'edit' => [
+        'title' => "Modifier l'équipe",
+        'logo' => [
+            'title' => 'Logo',
+            'submit' => 'Envoyer',
+        ],
+        'profile' => [
+            'title' => 'Profil',
+            'submit' => 'Enregistrer',
+        ],
+        'fields' => [
+            'name' => "Nom de l'équipe",
+            'short_name' => 'Nom court',
+            'country_code' => 'Code pays',
+            'bio' => 'Description',
+            'website' => 'Site web',
+            'liquipedia_link' => 'Lien Liquipedia',
+            'socials' => 'Réseaux sociaux',
+        ],
+        'status' => [
+            'profile-updated' => 'Profil mis à jour.',
+            'logo-updated' => 'Logo mis à jour.',
+        ],
+    ],
 ];

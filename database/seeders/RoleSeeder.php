@@ -3,8 +3,10 @@
 /**
  * GC-Stats — Role seeder
  *
- * Seeds global roles and the admin permission catalog (see
- * App\Support\AdminPermissions). Per-team roles are seeded lazily by
+ * Seeds global roles and both permission catalogs (see
+ * App\Support\AdminPermissions and App\Support\TeamPermissions — the
+ * latter isn't team-scoped itself, only the roles that use it are, see
+ * TeamPermissions' docblock). Per-team roles are seeded lazily by
  * TeamRoleService instead, not here.
  */
 
@@ -12,6 +14,7 @@ namespace Database\Seeders;
 
 use App\Support\AdminPermissions;
 use App\Support\PermissionTeam;
+use App\Support\TeamPermissions;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -22,7 +25,9 @@ class RoleSeeder extends Seeder
     {
         PermissionTeam::global();
 
-        foreach (AdminPermissions::all() as $permission) {
+        $catalog = [...AdminPermissions::all(), ...TeamPermissions::all()];
+
+        foreach ($catalog as $permission) {
             Permission::findOrCreate($permission);
         }
 
@@ -30,9 +35,9 @@ class RoleSeeder extends Seeder
         // 'site.moderate'/'sanction.issue'/'sanction.revoke' names, before
         // the one-permission-per-action split) would otherwise linger in
         // the `permissions` table and role_has_permissions forever —
-        // prune anything not in the current catalog so the roles/{role}
-        // permission matrix never shows a checkbox nothing checks.
-        Permission::whereNotIn('name', AdminPermissions::all())->get()->each->delete();
+        // prune anything not in either current catalog so no permission
+        // matrix ever shows a checkbox nothing checks.
+        Permission::whereNotIn('name', $catalog)->get()->each->delete();
 
         // super-admin doesn't need explicit permissions — it bypasses every
         // ability check via Gate::before (see AppServiceProvider) — but the

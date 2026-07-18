@@ -11,7 +11,7 @@
 
 @section('content')
     <div class="flex items-center justify-end mb-6">
-        <x-admin::modal :title="__('admin.roles.new_role.title')">
+        <x-modal :title="__('admin.roles.new_role.title')">
             <x-slot:trigger>
                 <button type="button"
                         class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
@@ -36,7 +36,7 @@
                     {{ __('admin.roles.new_role.submit') }}
                 </button>
             </form>
-        </x-admin::modal>
+        </x-modal>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

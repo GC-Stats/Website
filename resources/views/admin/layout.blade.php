@@ -44,6 +44,7 @@
             [
                 'label' => __('admin.nav.group_access'),
                 'items' => [
+                    ['route' => 'admin.teams.index', 'pattern' => 'admin.teams.*', 'label' => __('admin.nav.teams'), 'icon' => 'fas-people-group', 'can' => 'teams.manage'],
                     ['route' => 'admin.roles.index', 'pattern' => 'admin.roles.*', 'label' => __('admin.nav.roles'), 'icon' => 'fas-user-shield', 'can' => 'manage-roles'],
                 ],
             ],

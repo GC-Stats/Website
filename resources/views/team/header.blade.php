@@ -38,6 +38,15 @@
                                 {{ $team['bio'] }}
                             </p>
                         @endif
+
+                        @auth
+                            @if(auth()->user()->canManageTeam($team['id']))
+                                <a href="{{ route('teams.edit', [$team['id'], Str::routeSlug($team['name'] ?? '', $team['id'])]) }}"
+                                   class="inline-flex items-center gap-2 self-start mt-3 font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                                    {{ __('team.edit.title') }}
+                                </a>
+                            @endif
+                        @endauth
                     </div>
                 </div>
 

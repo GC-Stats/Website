@@ -24,7 +24,6 @@ use App\Support\PermissionTeam;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
@@ -44,7 +43,11 @@ class RoleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100', 'alpha_dash', Rule::unique('roles', 'name')],
+            // Scoped to global-team rows only: the DB's own unique
+            // constraint is (team_id, name, guard_name), so an unrelated
+            // team already having a role with this name is not a real
+            // conflict here and shouldn't block creating the global one.
+            'name' => ['required', 'string', 'max:100', 'alpha_dash', Rule::unique('roles', 'name')->where('team_id', PermissionTeam::GLOBAL_ID)],
         ]);
 
         $role = Role::create(['name' => $validated['name']]);
@@ -123,7 +126,11 @@ class RoleController extends Controller
         activity('administration')->performedOn($user)->causedBy($request->user())
             ->withProperties(['role' => $role->name])->log('role.assigned');
 
-        return back()->with('status', 'role-assigned');
+        // Not back(): the referer still carries the search modal's ?q=...,
+        // which would reopen it (see <x-modal :open-by-default>) right
+        // back onto a now-stale result list. Redirecting to the clean URL
+        // closes it.
+        return redirect()->route('admin.roles.show', $role)->with('status', 'role-assigned');
     }
 
     public function removeMember(Request $request, Role $role, User $user): RedirectResponse
@@ -196,10 +203,5 @@ class RoleController extends Controller
                 'role' => __('admin.roles.errors.protected_role'),
             ]);
         }
-    }
-
-    private function escapeLike(string $value): string
-    {
-        return Str::of($value)->replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'])->toString();
     }
 }

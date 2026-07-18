@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Str;
 
 class Team extends Model
 {
@@ -35,11 +36,36 @@ class Team extends Model
         'vlr_id',
         'is_active',
         'liquipedia_link',
+        'max_permissions',
     ];
 
     protected $casts = [
         'socials' => 'array',
+        'max_permissions' => 'array',
     ];
+
+    /**
+     * The ceiling of App\Support\TeamPermissions this team's own roles can
+     * ever be granted, set by a site admin — see Admin\TeamController.
+     *
+     * @return list<string>
+     */
+    public function maxPermissions(): array
+    {
+        return $this->max_permissions ?? [];
+    }
+
+    /**
+     * SEO-friendly URL segment for this team — not stored, derived from
+     * the name (falls back to the id for names with no Latin-
+     * transliterable characters). Every team-scoped management route
+     * includes it after the id, matching the public team pages'
+     * /team/{id}/{slug}/... convention.
+     */
+    public function routeSlug(): string
+    {
+        return Str::routeSlug($this->name, $this->id);
+    }
 
     public function players()
     {

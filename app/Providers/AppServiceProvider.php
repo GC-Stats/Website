@@ -40,7 +40,6 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -122,11 +121,6 @@ class AppServiceProvider extends ServiceProvider
         Logo::observe(LogoObserver::class);
         News::observe(NewsObserver::class);
 
-        // Components only the /admin dashboard uses (e.g. <x-admin::modal>)
-        // live under resources/views/admin/components rather than the
-        // shared resources/views/components root.
-        Blade::anonymousComponentPath(resource_path('views/admin/components'), 'admin');
-
         if (config('app.env') == 'production' || request()->header('X-Forwarded-Proto') === 'https') {
             URL::forceRootUrl(config('app.url'));
             URL::forceScheme('https');
@@ -149,17 +143,19 @@ class AppServiceProvider extends ServiceProvider
         $this->configureActivityLogging();
 
         // 'super-admin' always passes every ability check, including
-        // permissions added later to App\Support\AdminPermissions — so
-        // full access never drifts out of sync with whatever permissions
-        // exist at any given time.
-        Gate::before(fn ($user, string $ability) => $user->hasRole('super-admin') ? true : null);
+        // permissions added later to App\Support\AdminPermissions. Uses
+        // isSuperAdmin() (not hasRole(), which is scoped to whatever
+        // PermissionTeam context is active) so this stays true even while
+        // browsing a team's own role-management pages, which switch
+        // context to that team for the duration of the request.
+        Gate::before(fn ($user, string $ability) => $user->isSuperAdmin() ? true : null);
 
         // Assigning/removing global site roles and editing the
         // role/permission matrix is more sensitive than any single admin
         // permission — kept as its own gate, super-admin only, rather than
         // an assignable permission so a role can never grant itself the
         // means to escalate to super-admin.
-        Gate::define('manage-roles', fn ($user) => $user->hasRole('super-admin'));
+        Gate::define('manage-roles', fn ($user) => $user->isSuperAdmin());
 
         // Whether the admin dashboard (and its nav entry) shows up at all
         // — true for anyone holding at least one permission from the

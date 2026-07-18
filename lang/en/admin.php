@@ -8,6 +8,7 @@ return [
         'reports' => 'Reports',
         'sanctions' => 'Sanctions',
         'activity' => 'Activity log',
+        'teams' => 'Teams',
         'roles' => 'Roles',
         'back_to_site' => 'Back to site',
     ],
@@ -141,6 +142,30 @@ return [
         ],
     ],
 
+    'teams' => [
+        'title' => 'Teams',
+        'search_placeholder' => 'Team name',
+        'search_submit' => 'Search',
+        'manage' => 'Manage',
+        'no_owner' => 'No owner assigned.',
+        'owner' => [
+            'title' => 'Owner',
+            'remove' => 'Remove',
+            'remove_confirm' => 'Remove :name as owner of :team?',
+            'add' => 'Assign an owner',
+            'search_placeholder' => 'Name or email',
+            'search_submit' => 'Search',
+            'search_empty' => 'No matching user.',
+            'assign' => 'Assign',
+        ],
+        'max_permissions' => [
+            'title' => 'Maximum permissions',
+            'help' => 'The ceiling of what this team\'s own roles can ever be granted, set here — a role\'s specific permissions are then assigned from :link, within this ceiling.',
+            'link_text' => 'the team\'s role page',
+            'save' => 'Save ceiling',
+        ],
+    ],
+
     'status' => [
         'report-resolved' => 'Report resolved.',
         'sanction-issued' => 'Sanction issued.',
@@ -153,5 +178,8 @@ return [
         'permissions-updated' => 'Permissions updated.',
         'discord-mapping-updated' => 'Discord mapping saved.',
         'discord-mapping-removed' => 'Discord mapping removed.',
+        'max-permissions-updated' => 'Maximum permissions updated.',
+        'owner-assigned' => 'Owner assigned.',
+        'owner-removed' => 'Owner removed.',
     ],
 ];

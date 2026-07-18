@@ -17,7 +17,7 @@
 
 namespace App\Support;
 
-class AdminPermissions
+class AdminPermissions extends PermissionCatalog
 {
     /**
      * @return array<string, list<string>> permission names grouped by section, for display
@@ -27,16 +27,9 @@ class AdminPermissions
         return [
             'reports' => ['reports.view', 'reports.resolve'],
             'sanctions' => ['sanctions.view', 'sanctions.create', 'sanctions.revoke', 'sanctions.delete'],
-            'activity' => ['activity.account', 'activity.moderation', 'activity.administration'],
+            'activity' => ['activity.account', 'activity.moderation', 'activity.administration', 'activity.team'],
+            'teams' => ['teams.manage'],
             'news' => ['news.manage'],
         ];
-    }
-
-    /**
-     * @return list<string>
-     */
-    public static function all(): array
-    {
-        return array_merge(...array_values(self::grouped()));
     }
 }

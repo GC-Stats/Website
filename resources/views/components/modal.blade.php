@@ -8,10 +8,15 @@
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
-@props(['title', 'maxWidth' => 'max-w-md'])
+{{--
+    $openByDefault: pass true to start open — needed for modals whose
+    content is a GET search form (full page reload on submit resets Alpine
+    state), so the modal doesn't appear to "close" after searching.
+--}}
+@props(['title', 'maxWidth' => 'max-w-md', 'openByDefault' => false])
 
-<div x-data="{ open: false }" style="display: contents">
-    <span @click="open = true" style="display: contents">
+<div x-data="{ open: {{ $openByDefault ? 'true' : 'false' }} }" style="display: contents">
+    <span @click="open = true; $nextTick(() => $refs.search && ($refs.search.value = ''))" style="display: contents">
         {{ $trigger }}
     </span>
 

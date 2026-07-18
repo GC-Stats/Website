@@ -126,7 +126,7 @@
                     </div>
 
                     @can('sanctions.create')
-                        <x-admin::modal :title="__('admin.reports.issue_sanction')">
+                        <x-modal :title="__('admin.reports.issue_sanction')">
                             <x-slot:trigger>
                                 <button type="button"
                                         class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20">
@@ -134,7 +134,7 @@
                                 </button>
                             </x-slot:trigger>
                             @include('admin.sanctions._form', ['user' => $report->reportedUser])
-                        </x-admin::modal>
+                        </x-modal>
                     @endcan
                 </div>
             @endif

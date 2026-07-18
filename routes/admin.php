@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SanctionController;
+use App\Http\Controllers\Admin\TeamController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -41,6 +42,14 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         ->middleware('can:sanctions.revoke')->name('sanctions.destroy');
     Route::delete('/sanctions/{sanction}/force', [SanctionController::class, 'forceDestroy'])
         ->middleware('can:sanctions.delete')->name('sanctions.force-destroy');
+
+    Route::middleware(['can:teams.manage'])->prefix('teams')->name('teams.')->group(function () {
+        Route::get('/', [TeamController::class, 'index'])->name('index');
+        Route::get('/{team}', [TeamController::class, 'show'])->name('show');
+        Route::put('/{team}/max-permissions', [TeamController::class, 'updateMaxPermissions'])->name('max-permissions.update');
+        Route::post('/{team}/owner', [TeamController::class, 'assignOwner'])->name('owner.store');
+        Route::delete('/{team}/owner/{user}', [TeamController::class, 'removeOwner'])->name('owner.destroy');
+    });
 
     Route::middleware(['can:manage-roles'])->prefix('roles')->name('roles.')->group(function () {
         Route::get('/', [RoleController::class, 'index'])->name('index');

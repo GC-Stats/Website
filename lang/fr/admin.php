@@ -8,6 +8,7 @@ return [
         'reports' => 'Signalements',
         'sanctions' => 'Sanctions',
         'activity' => "Journal d'activité",
+        'teams' => 'Équipes',
         'roles' => 'Rôles',
         'back_to_site' => 'Retour au site',
     ],
@@ -141,6 +142,30 @@ return [
         ],
     ],
 
+    'teams' => [
+        'title' => 'Équipes',
+        'search_placeholder' => "Nom de l'équipe",
+        'search_submit' => 'Rechercher',
+        'manage' => 'Gérer',
+        'no_owner' => 'Aucun owner assigné.',
+        'owner' => [
+            'title' => 'Owner',
+            'remove' => 'Retirer',
+            'remove_confirm' => 'Retirer :name en tant qu\'owner de :team ?',
+            'add' => 'Assigner un owner',
+            'search_placeholder' => 'Nom ou email',
+            'search_submit' => 'Rechercher',
+            'search_empty' => 'Aucun utilisateur correspondant.',
+            'assign' => 'Assigner',
+        ],
+        'max_permissions' => [
+            'title' => 'Permissions maximales',
+            'help' => "Le plafond de ce que les rôles de cette équipe peuvent obtenir, défini ici — les permissions précises de chaque rôle sont ensuite assignées depuis :link, dans la limite de ce plafond.",
+            'link_text' => "la page des rôles de l'équipe",
+            'save' => 'Enregistrer le plafond',
+        ],
+    ],
+
     'status' => [
         'report-resolved' => 'Signalement résolu.',
         'sanction-issued' => 'Sanction émise.',
@@ -153,5 +178,8 @@ return [
         'permissions-updated' => 'Permissions mises à jour.',
         'discord-mapping-updated' => 'Liaison Discord enregistrée.',
         'discord-mapping-removed' => 'Liaison Discord retirée.',
+        'max-permissions-updated' => 'Permissions maximales mises à jour.',
+        'owner-assigned' => 'Owner assigné.',
+        'owner-removed' => 'Owner retiré.',
     ],
 ];
