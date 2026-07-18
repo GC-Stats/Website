@@ -88,6 +88,15 @@ class RoleController extends Controller
     {
         $this->ensureBelongsToTeam($team, $role);
 
+        // team_owner always mirrors the team's max_permissions ceiling
+        // (TeamRoleService, Admin\TeamController::updateMaxPermissions) —
+        // it isn't an independently editable set.
+        if ($role->name === TeamRoleService::ROLE_OWNER) {
+            throw ValidationException::withMessages([
+                'role' => __('team.roles.errors.owner_role_protected'),
+            ]);
+        }
+
         $validated = $request->validate([
             'permissions' => ['array'],
             // Bounded by the team's own max_permissions ceiling (set by a

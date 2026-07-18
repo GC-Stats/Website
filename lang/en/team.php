@@ -71,6 +71,7 @@ return [
         ],
         'errors' => [
             'owner_role_protected' => 'The team_owner role cannot be deleted.',
+            'owner_role_admin_only' => 'Assigning a new team_owner is a site admin action (team admin page).',
             'last_owner' => 'Cannot remove the last team_owner — assign another one first.',
         ],
         'status' => [

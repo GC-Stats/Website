@@ -70,6 +70,7 @@ return [
         ],
         'errors' => [
             'owner_role_protected' => 'Le rôle team_owner ne peut pas être supprimé.',
+            'owner_role_admin_only' => "Assigner un nouveau team_owner est une action réservée aux administrateurs du site (page d'administration de l'équipe).",
             'last_owner' => "Impossible de retirer le dernier team_owner — assignez-en un autre d'abord.",
         ],
         'status' => [

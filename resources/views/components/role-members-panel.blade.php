@@ -28,6 +28,7 @@
     'searchEmptyLabel',
     'membersEmptyLabel',
     'headingTag' => 'h3',
+    'canAdd' => true,
 ])
 
 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
@@ -58,42 +59,44 @@
         @endforelse
     </div>
 
-    <x-modal :title="$addLabel" :open-by-default="$search !== ''">
-        <x-slot:trigger>
-            <button type="button"
-                    class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
-                {{ $addLabel }}
-            </button>
-        </x-slot:trigger>
+    @if ($canAdd)
+        <x-modal :title="$addLabel" :open-by-default="$search !== ''">
+            <x-slot:trigger>
+                <button type="button"
+                        class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                    {{ $addLabel }}
+                </button>
+            </x-slot:trigger>
 
-        <form method="GET" action="{{ $searchUrl }}" class="flex gap-2">
-            <input type="text" name="q" x-ref="search" value="{{ $search }}" placeholder="{{ $searchPlaceholder }}"
-                   class="flex-1 bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
-            <button type="submit"
-                    class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
-                {{ $searchSubmitLabel }}
-            </button>
-        </form>
+            <form method="GET" action="{{ $searchUrl }}" class="flex gap-2">
+                <input type="text" name="q" x-ref="search" value="{{ $search }}" placeholder="{{ $searchPlaceholder }}"
+                       class="flex-1 bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                <button type="submit"
+                        class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                    {{ $searchSubmitLabel }}
+                </button>
+            </form>
 
-        @if ($search)
-            <div class="space-y-2 pt-4">
-                @forelse ($searchResults as $found)
-                    <form method="POST" action="{{ $addMemberUrl }}" class="flex items-center justify-between gap-2 bg-[#050505] border border-border-subtle rounded-sm px-3 py-2">
-                        @csrf
-                        <input type="hidden" name="user_id" value="{{ $found->id }}">
-                        <div>
-                            <p class="text-xs text-white font-semibold">{{ $found->name }}</p>
-                            <p class="text-[10px] text-gray-500">{{ $found->email }}</p>
-                        </div>
-                        <button type="submit"
-                                class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
-                            {{ $assignLabel }}
-                        </button>
-                    </form>
-                @empty
-                    <p class="text-xs text-gray-500">{{ $searchEmptyLabel }}</p>
-                @endforelse
-            </div>
-        @endif
-    </x-modal>
+            @if ($search)
+                <div class="space-y-2 pt-4">
+                    @forelse ($searchResults as $found)
+                        <form method="POST" action="{{ $addMemberUrl }}" class="flex items-center justify-between gap-2 bg-[#050505] border border-border-subtle rounded-sm px-3 py-2">
+                            @csrf
+                            <input type="hidden" name="user_id" value="{{ $found->id }}">
+                            <div>
+                                <p class="text-xs text-white font-semibold">{{ $found->name }}</p>
+                                <p class="text-[10px] text-gray-500">{{ $found->email }}</p>
+                            </div>
+                            <button type="submit"
+                                    class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                                {{ $assignLabel }}
+                            </button>
+                        </form>
+                    @empty
+                        <p class="text-xs text-gray-500">{{ $searchEmptyLabel }}</p>
+                    @endforelse
+                </div>
+            @endif
+        </x-modal>
+    @endif
 </div>

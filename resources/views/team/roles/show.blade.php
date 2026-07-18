@@ -49,15 +49,19 @@
                 <div class="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-sm px-4 py-3">{{ $message }}</div>
             @enderror
 
-            <x-role-permissions-form
-                :role="$role"
-                :permission-groups="$permissionGroups"
-                :update-url="route('teams.roles.update', [...$teamParams, $role])"
-                :title="__('team.roles.permissions.title')"
-                :save-label="__('team.roles.permissions.save')"
-                :empty-message="__('team.roles.permissions.empty_ceiling')"
-                heading-tag="h2"
-            />
+            @if ($ownerRole)
+                <p class="text-xs text-gray-500">{{ __('team.roles.errors.owner_role_admin_only') }}</p>
+            @else
+                <x-role-permissions-form
+                    :role="$role"
+                    :permission-groups="$permissionGroups"
+                    :update-url="route('teams.roles.update', [...$teamParams, $role])"
+                    :title="__('team.roles.permissions.title')"
+                    :save-label="__('team.roles.permissions.save')"
+                    :empty-message="__('team.roles.permissions.empty_ceiling')"
+                    heading-tag="h2"
+                />
+            @endif
 
             <x-role-members-panel
                 :members="$members"
@@ -76,6 +80,7 @@
                 :remove-confirm-body="fn ($member) => __('team.roles.members.remove_confirm', ['role' => $role->name, 'name' => $member->name])"
                 :search-empty-label="__('team.roles.members.search_empty')"
                 :members-empty-label="__('team.roles.members.empty')"
+                :can-add="! $ownerRole"
                 heading-tag="h2"
             />
         </section>
