@@ -35,7 +35,11 @@ class Countries
     public function list(): array
     {
         return Cache::rememberForever('countries.list', function () {
-            $raw = json_decode(file_get_contents(base_path('node_modules/flag-icons/country.json')), true) ?? [];
+            $path = file_exists(resource_path('data/countries.json'))
+                ? resource_path('data/countries.json')
+                : base_path('node_modules/flag-icons/country.json');
+
+            $raw = json_decode(file_get_contents($path), true) ?? [];
 
             $countries = collect($raw)
                 ->filter(fn ($country) => $country['iso'] ?? false)

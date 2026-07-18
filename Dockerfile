@@ -66,6 +66,9 @@ RUN rm -rf /var/www/html/public/build
 
 COPY --chown=www-data:www-data --from=frontend /app/public/build ./public/build
 
+# the flag-icons country list is necessary for Countries.php.
+COPY --chown=www-data:www-data --from=frontend /app/node_modules/flag-icons/country.json ./resources/data/countries.json
+
 RUN mkdir -p storage/framework/{sessions,views,cache} \
     storage/logs \
     bootstrap/cache \
