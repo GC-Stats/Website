@@ -39,22 +39,31 @@
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
                     <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('team.edit.logo.title') }}</h2>
 
-                    <div class="flex items-center gap-4">
-                        <img src="{{ $team->logo }}" alt="" class="w-16 h-16 object-contain border border-white/10 rounded-lg bg-black/40 p-2">
-
-                        <form method="POST" action="{{ route('teams.logo.update', $teamParams) }}" enctype="multipart/form-data" class="flex-1 flex items-center gap-3">
-                            @csrf
-                            <input type="file" name="logo" accept="image/*" required
-                                   class="flex-1 text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:bg-white/5 file:text-white hover:file:bg-white/10">
-                            <button type="submit"
-                                    class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90 shrink-0">
-                                {{ __('team.edit.logo.submit') }}
-                            </button>
-                        </form>
-                    </div>
+                    <x-logo-upload-form
+                        :current-url="$team->logo"
+                        :action-url="route('teams.logo.update', $teamParams)"
+                        :submit-label="__('team.edit.logo.submit')"
+                    />
                     @error('logo')
                         <p class="text-xs text-red-400">{{ $message }}</p>
                     @enderror
+
+                    <x-logo-history
+                        :logos="$team->logos()->orderByDesc('from')->get()"
+                        folder="teams"
+                        :add-url="route('teams.logo.history.store', $teamParams)"
+                        :update-url="fn ($logo) => route('teams.logo.history.update', [...$teamParams, $logo->id])"
+                        :delete-url="fn ($logo) => route('teams.logo.history.destroy', [...$teamParams, $logo->id])"
+                        :title="__('team.edit.logo.history_title')"
+                        :from-label="__('team.edit.logo.history_from')"
+                        :until-label="__('team.edit.logo.history_until')"
+                        :save-label="__('team.roster.save')"
+                        :add-label="__('team.edit.logo.history_add')"
+                        :remove-label="__('team.roster.remove')"
+                        :remove-confirm-title="__('team.roster.remove')"
+                        :remove-confirm-body="fn ($logo) => __('team.edit.logo.history_remove_confirm')"
+                        :empty-label="__('team.edit.logo.history_empty')"
+                    />
                 </div>
             @endcan
 
@@ -74,6 +83,37 @@
                         </button>
                     </form>
                 </div>
+            @endcan
+
+            @can('team.roster.manage')
+                <x-roster-panel
+                    :current="$roster"
+                    :history="$rosterHistory"
+                    :search="$playerSearch"
+                    :search-results="$playerSearchResults"
+                    :search-url="route('teams.edit', $teamParams)"
+                    :add-url="route('teams.roster.store', $teamParams)"
+                    :update-url="fn ($entry) => route('teams.roster.update', [...$teamParams, $entry->id])"
+                    :delete-url="fn ($entry) => route('teams.roster.destroy', [...$teamParams, $entry->id])"
+                    :roles="__('team.roster.roles')"
+                    :title="__('team.roster.title')"
+                    :history-title="__('team.roster.history_title')"
+                    :add-label="__('team.roster.add')"
+                    :role-label="__('team.roster.role')"
+                    :joined-at-label="__('team.roster.joined_at')"
+                    :left-at-label="__('team.roster.left_at')"
+                    :save-label="__('team.roster.save')"
+                    :search-placeholder="__('team.roster.search_placeholder')"
+                    :search-submit-label="__('team.roster.search_submit')"
+                    :assign-label="__('team.roster.assign')"
+                    :remove-label="__('team.roster.remove')"
+                    :remove-confirm-title="__('team.roster.remove')"
+                    :remove-confirm-body="fn ($entry) => __('team.roster.remove_confirm', ['player' => $entry->player_handle])"
+                    :search-empty-label="__('team.roster.search_empty')"
+                    :current-empty-label="__('team.roster.current_empty')"
+                    :history-empty-label="__('team.roster.history_empty')"
+                    heading-tag="h2"
+                />
             @endcan
         </section>
     </div>

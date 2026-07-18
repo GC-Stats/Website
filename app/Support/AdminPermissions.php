@@ -28,7 +28,7 @@ class AdminPermissions extends PermissionCatalog
             'reports' => ['reports.view', 'reports.resolve'],
             'sanctions' => ['sanctions.view', 'sanctions.create', 'sanctions.revoke', 'sanctions.delete'],
             'activity' => ['activity.account', 'activity.moderation', 'activity.administration', 'activity.team'],
-            'teams' => ['teams.manage'],
+            'teams' => ['teams.view', 'teams.edit', 'teams.delete', 'teams.merge'],
             'news' => ['news.manage'],
         ];
     }

@@ -15,12 +15,54 @@
 
 namespace App\Services;
 
+use App\Models\Team;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class RosterService
 {
+    public const ROLES = ['player', 'sub', 'manager', 'coach', 'assistant coach', 'analyst'];
+
+    public function history(int $teamId): Collection
+    {
+        return DB::table('player_team')
+            ->join('players', 'players.id', '=', 'player_team.player_id')
+            ->where('player_team.team_id', $teamId)
+            ->select('player_team.id', 'player_team.player_id', 'players.handle as player_handle', 'player_team.role', 'player_team.joined_at', 'player_team.left_at')
+            ->orderByDesc('player_team.joined_at')
+            ->get();
+    }
+
+    public function addMember(Team $team, int $playerId, ?string $role, string $joinedAt): void
+    {
+        $entries = $this->entriesFor($team->id);
+        $entries[] = ['player_id' => $playerId, 'team_id' => $team->id, 'role' => $role ?: 'player', 'joined_at' => $joinedAt];
+
+        $this->save('team_id', $team->id, $entries);
+    }
+
+    public function updateEntry(Team $team, int $entryId, array $fields): void
+    {
+        $entries = $this->entriesFor($team->id);
+
+        foreach ($entries as &$entry) {
+            if ($entry['id'] === $entryId) {
+                $entry = array_merge($entry, $fields);
+            }
+        }
+
+        $this->save('team_id', $team->id, $entries);
+    }
+
+    private function entriesFor(int $teamId): array
+    {
+        return DB::table('player_team')->where('team_id', $teamId)
+            ->get(['id', 'player_id', 'team_id', 'role', 'joined_at', 'left_at'])
+            ->map(fn ($row) => (array) $row)
+            ->all();
+    }
+
     /**
      * Bulk-save `player_team` rows for a given player or team.
      *
@@ -45,6 +87,7 @@ class RosterService
             $keptIds = [];
 
             $rows = collect();
+            $activeRows = [];
 
             foreach ($entries as $entry) {
                 $data = [
@@ -59,36 +102,43 @@ class RosterService
                 if (! empty($entry['id'])) {
                     DB::table('player_team')->where('id', $entry['id'])->update($data);
                     $id = $entry['id'];
-                    $keptIds[] = $id;
                 } else {
                     $data['created_at'] = now();
                     $id = DB::table('player_team')->insertGetId($data);
-                    $keptIds[] = $id;
+                }
+                $keptIds[] = $id;
 
-                    if ($data['left_at'] === null) {
-                        $closedRows = DB::table('player_team')
-                            ->where('player_id', $data['player_id'])
-                            ->where('team_id', '!=', $data['team_id'])
-                            ->where('id', '!=', $id)
-                            ->whereNull('left_at')
-                            ->get(['id', 'team_id']);
-
-                        if ($closedRows->isNotEmpty()) {
-                            DB::table('player_team')
-                                ->whereIn('id', $closedRows->pluck('id'))
-                                ->update(['left_at' => $data['joined_at'], 'updated_at' => now()]);
-
-                            foreach ($closedRows as $closedRow) {
-                                $affectedTeamIds[] = $closedRow->team_id;
-                            }
-                        }
-                    }
+                if ($data['left_at'] === null) {
+                    $activeRows[] = ['id' => $id, 'player_id' => $data['player_id'], 'team_id' => $data['team_id'], 'joined_at' => $data['joined_at']];
                 }
 
                 $affectedPlayerIds[] = $data['player_id'];
                 $affectedTeamIds[] = $data['team_id'];
 
                 $rows->push(array_merge(['id' => $id], $data));
+            }
+
+            // Every row left active by this save (whether newly inserted or an
+            // existing row reactivated by clearing left_at) must close out any
+            // other active row for that player — a player can't be active on
+            // two teams at once, regardless of which call path made her active.
+            foreach ($activeRows as $activeRow) {
+                $closedRows = DB::table('player_team')
+                    ->where('player_id', $activeRow['player_id'])
+                    ->where('team_id', '!=', $activeRow['team_id'])
+                    ->where('id', '!=', $activeRow['id'])
+                    ->whereNull('left_at')
+                    ->get(['id', 'team_id']);
+
+                if ($closedRows->isNotEmpty()) {
+                    DB::table('player_team')
+                        ->whereIn('id', $closedRows->pluck('id'))
+                        ->update(['left_at' => $activeRow['joined_at'], 'updated_at' => now()]);
+
+                    foreach ($closedRows as $closedRow) {
+                        $affectedTeamIds[] = $closedRow->team_id;
+                    }
+                }
             }
 
             $toDelete = array_diff($existingIds, $keptIds);
@@ -117,11 +167,13 @@ class RosterService
     }
 
     /**
-     * Delete a single `player_team` row by id and flush related caches.
+     * Delete a single `player_team` row by id, scoped to $team, and flush
+     * related caches. Scoping to $team prevents a caller authorized to
+     * manage one team's roster from deleting another team's row by id.
      */
-    public function deleteEntry(int $id): bool
+    public function deleteEntry(Team $team, int $id): bool
     {
-        $row = DB::table('player_team')->where('id', $id)->first();
+        $row = DB::table('player_team')->where('id', $id)->where('team_id', $team->id)->first();
 
         if (! $row) {
             return false;

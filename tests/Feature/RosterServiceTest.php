@@ -97,7 +97,26 @@ test('deleteEntry removes the row and returns false for a missing id', function 
         'updated_at' => now(),
     ]);
 
-    expect(app(RosterService::class)->deleteEntry($rowId))->toBeTrue()
+    expect(app(RosterService::class)->deleteEntry($team, $rowId))->toBeTrue()
         ->and(DB::table('player_team')->where('id', $rowId)->exists())->toBeFalse()
-        ->and(app(RosterService::class)->deleteEntry($rowId))->toBeFalse();
+        ->and(app(RosterService::class)->deleteEntry($team, $rowId))->toBeFalse();
+});
+
+test('deleteEntry does not delete a row belonging to another team', function () {
+    $team = Team::factory()->create();
+    $otherTeam = Team::factory()->create();
+    $player = Player::factory()->create();
+
+    $rowId = DB::table('player_team')->insertGetId([
+        'player_id' => $player->id,
+        'team_id' => $otherTeam->id,
+        'role' => 'player',
+        'joined_at' => '2025-01-01',
+        'left_at' => null,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    expect(app(RosterService::class)->deleteEntry($team, $rowId))->toBeFalse()
+        ->and(DB::table('player_team')->where('id', $rowId)->exists())->toBeTrue();
 });

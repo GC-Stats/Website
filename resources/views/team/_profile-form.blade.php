@@ -36,12 +36,41 @@
         @enderror
     </div>
 
-    <div>
-        <label for="country_code" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+    @php
+        $selectedCountryCode = Str::lower(old('country_code', $team->country_code) ?? '') ?: null;
+        $selectedCountryName = $selectedCountryCode ? ($countries[$selectedCountryCode] ?? null) : null;
+        $selectedCountryLabel = $selectedCountryName ? $selectedCountryName.' ('.Str::upper($selectedCountryCode).')' : '';
+    @endphp
+    <div x-data="{
+            open: false,
+            query: @js($selectedCountryLabel),
+            selected: @js($selectedCountryCode ?? ''),
+            countries: @js($countries),
+            select(code, label) { this.selected = code; this.query = label; this.open = false; },
+            clear() { this.selected = ''; this.query = ''; this.open = false; },
+            flagClass(code) { return code === '{{ \App\Support\Countries::INTERNATIONAL }}' ? 'un' : code; },
+         }" class="relative" @click.away="open = false">
+        <label for="country_code_query" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
             {{ __('team.edit.fields.country_code') }}
         </label>
-        <input id="country_code" type="text" name="country_code" value="{{ old('country_code', $team->country_code) }}" maxlength="5"
+        <input type="hidden" name="country_code" :value="selected">
+        <input id="country_code_query" type="text" x-model="query" @focus="open = true" autocomplete="off"
+               placeholder="{{ __('team.edit.fields.country_code_search') }}"
                class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+        <div x-show="open" x-cloak
+             class="absolute z-10 mt-1 w-full max-h-64 overflow-y-auto bg-[#050505] border border-border-subtle rounded-sm shadow-xl">
+            <div @click="clear()" class="px-4 py-2 text-xs text-gray-500 cursor-pointer hover:bg-white/5">
+                {{ __('team.edit.fields.country_code_none') }}
+            </div>
+            <template x-for="[code, name] in Object.entries(countries)" :key="code">
+                <div x-show="query === '' || (name + ' ' + code).toLowerCase().includes(query.toLowerCase())"
+                     @click="select(code, name + ' (' + code.toUpperCase() + ')')"
+                     class="flex items-center gap-2 px-4 py-2 text-sm text-white cursor-pointer hover:bg-white/5">
+                    <span class="fi shadow-sm flex-shrink-0" :class="'fi-' + flagClass(code)"></span>
+                    <span x-text="name + ' (' + code.toUpperCase() + ')'"></span>
+                </div>
+            </template>
+        </div>
         @error('country_code')
             <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
         @enderror
@@ -65,6 +94,25 @@
         <input id="liquipedia_link" type="url" name="liquipedia_link" value="{{ old('liquipedia_link', $team->liquipedia_link) }}" placeholder="https://liquipedia.net/…"
                class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
         @error('liquipedia_link')
+            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <div>
+        <label for="vlr_id" class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+            {{ __('team.edit.fields.vlr_id') }}
+            <span class="group relative inline-flex" tabindex="0">
+                @svg('fas-circle-info', 'w-3 h-3 text-gray-600 hover:text-gray-400 transition-colors cursor-help', ['aria-hidden' => 'true'])
+                <span class="sr-only">{{ __('team.edit.fields.vlr_id_info') }}</span>
+                <span role="tooltip"
+                      class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 normal-case tracking-normal font-normal text-[11px] text-gray-300 bg-[#0a0a0a] border border-border-subtle rounded-sm px-3 py-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10">
+                    {{ __('team.edit.fields.vlr_id_info') }}
+                </span>
+            </span>
+        </label>
+        <input id="vlr_id" type="number" name="vlr_id" value="{{ old('vlr_id', $team->vlr_id) }}"
+               class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+        @error('vlr_id')
             <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
         @enderror
     </div>

@@ -43,12 +43,37 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
     Route::delete('/sanctions/{sanction}/force', [SanctionController::class, 'forceDestroy'])
         ->middleware('can:sanctions.delete')->name('sanctions.force-destroy');
 
-    Route::middleware(['can:teams.manage'])->prefix('teams')->name('teams.')->group(function () {
-        Route::get('/', [TeamController::class, 'index'])->name('index');
-        Route::get('/{team}', [TeamController::class, 'show'])->name('show');
-        Route::put('/{team}/max-permissions', [TeamController::class, 'updateMaxPermissions'])->name('max-permissions.update');
-        Route::post('/{team}/owner', [TeamController::class, 'assignOwner'])->name('owner.store');
-        Route::delete('/{team}/owner/{user}', [TeamController::class, 'removeOwner'])->name('owner.destroy');
+    Route::prefix('teams')->name('teams.')->group(function () {
+        Route::middleware(['can:teams.view'])->group(function () {
+            Route::get('/', [TeamController::class, 'index'])->name('index');
+            Route::get('/{team}', [TeamController::class, 'show'])->name('show');
+            Route::get('/{team}/merge', [TeamController::class, 'showMerge'])
+                ->middleware('can:teams.merge')->name('merge.show');
+        });
+
+        Route::middleware(['can:teams.edit'])->group(function () {
+            Route::put('/{team}', [TeamController::class, 'updateProfile'])->name('update');
+            Route::prefix('{team}/logo')->name('logo.')->group(function () {
+                Route::post('/', [TeamController::class, 'updateLogo'])->name('update');
+                Route::post('/history', [TeamController::class, 'storeLogoHistory'])->name('history.store');
+                Route::put('/history/{logo}', [TeamController::class, 'updateLogoEntry'])->name('history.update');
+                Route::delete('/history/{logo}', [TeamController::class, 'destroyLogoEntry'])->name('history.destroy');
+            });
+            Route::put('/{team}/max-permissions', [TeamController::class, 'updateMaxPermissions'])->name('max-permissions.update');
+            Route::post('/{team}/owner', [TeamController::class, 'assignOwner'])->name('owner.store');
+            Route::delete('/{team}/owner/{user}', [TeamController::class, 'removeOwner'])->name('owner.destroy');
+
+            Route::prefix('{team}/roster')->name('roster.')->group(function () {
+                Route::post('/', [TeamController::class, 'storeRosterMember'])->name('store');
+                Route::put('/{entry}', [TeamController::class, 'updateRosterMember'])->name('update');
+                Route::delete('/{entry}', [TeamController::class, 'destroyRosterMember'])->name('destroy');
+            });
+        });
+
+        Route::delete('/{team}', [TeamController::class, 'destroy'])
+            ->middleware('can:teams.delete')->name('destroy');
+        Route::post('/{team}/merge', [TeamController::class, 'merge'])
+            ->middleware('can:teams.merge')->name('merge.execute');
     });
 
     Route::middleware(['can:manage-roles'])->prefix('roles')->name('roles.')->group(function () {

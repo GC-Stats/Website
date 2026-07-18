@@ -21,6 +21,7 @@
 
 use App\Http\Controllers\Team\ProfileController;
 use App\Http\Controllers\Team\RoleController;
+use App\Http\Controllers\Team\RosterController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'team.permission-context'])
@@ -29,8 +30,18 @@ Route::middleware(['auth', 'team.permission-context'])
         Route::get('/edit', [ProfileController::class, 'edit'])->name('teams.edit');
         Route::put('/edit', [ProfileController::class, 'update'])
             ->middleware('can:team.profile.edit')->name('teams.update');
-        Route::post('/edit/logo', [ProfileController::class, 'updateLogo'])
-            ->middleware('can:team.logo.upload')->name('teams.logo.update');
+        Route::prefix('edit/logo')->name('teams.logo.')->middleware('can:team.logo.upload')->group(function () {
+            Route::post('/', [ProfileController::class, 'updateLogo'])->name('update');
+            Route::post('/history', [ProfileController::class, 'storeLogoHistory'])->name('history.store');
+            Route::put('/history/{logo}', [ProfileController::class, 'updateLogoEntry'])->name('history.update');
+            Route::delete('/history/{logo}', [ProfileController::class, 'destroyLogoEntry'])->name('history.destroy');
+        });
+
+        Route::prefix('roster')->name('teams.roster.')->middleware('can:team.roster.manage')->group(function () {
+            Route::post('/', [RosterController::class, 'store'])->name('store');
+            Route::put('/{entry}', [RosterController::class, 'update'])->name('update');
+            Route::delete('/{entry}', [RosterController::class, 'destroy'])->name('destroy');
+        });
 
         Route::prefix('roles')->name('teams.roles.')->group(function () {
             Route::middleware(['can:team.roles.manage'])->group(function () {

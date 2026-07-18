@@ -29,7 +29,7 @@ class TeamProfileService
      * website lives inside `socials['website']` alongside its other social
      * links (see resources/views/team/header.blade.php's $socialConfig).
      *
-     * @param  array{name: string, short_name?: ?string, country_code?: ?string, bio?: ?string, liquipedia_link?: ?string, socials?: array}  $data
+     * @param  array{name: string, short_name?: ?string, country_code?: ?string, bio?: ?string, vlr_id?: ?int, liquipedia_link?: ?string, socials?: array}  $data
      */
     public function updateProfile(Team $team, array $data, User $actor): void
     {
@@ -38,6 +38,7 @@ class TeamProfileService
             'short_name' => $data['short_name'] ?? null,
             'country_code' => $data['country_code'] ?? null,
             'bio' => $data['bio'] ?? null,
+            'vlr_id' => $data['vlr_id'] ?? null,
             'liquipedia_link' => $data['liquipedia_link'] ?? null,
             'socials' => array_filter($data['socials'] ?? [], fn ($value) => filled($value)),
         ]);
@@ -51,5 +52,30 @@ class TeamProfileService
         $this->logoUploadService->acceptWithHistory($team, 'team', $uuid);
 
         activity('team')->performedOn($team)->causedBy($actor)->log('team.logo_updated');
+    }
+
+    public function addLogoHistoryEntry(Team $team, UploadedFile $file, string $from, string $until, User $actor): void
+    {
+        $uuid = $this->logoUploadService->storeLogoPair($file, 'teams');
+        $this->logoUploadService->acceptWithHistory($team, 'team', $uuid, $from, $until);
+
+        activity('team')->performedOn($team)->causedBy($actor)->log('team.logo_history_added');
+    }
+
+    public function updateLogoEntry(Team $team, string $logoId, string $from, ?string $until, User $actor): void
+    {
+        $logo = $team->logos()->findOrFail($logoId);
+        $logo->update(['from' => $from, 'until' => $until]);
+
+        activity('team')->performedOn($team)->causedBy($actor)->log('team.logo_history_updated');
+    }
+
+    public function deleteLogoEntry(Team $team, string $logoId, User $actor): void
+    {
+        $logo = $team->logos()->findOrFail($logoId);
+        $this->logoUploadService->deleteFiles('teams', $logo->id);
+        $logo->delete();
+
+        activity('team')->performedOn($team)->causedBy($actor)->log('team.logo_history_removed');
     }
 }
