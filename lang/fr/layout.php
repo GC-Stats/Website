@@ -14,6 +14,14 @@ return [
         'open_menu' => 'Ouvrir le menu',
         'close_menu' => 'Fermer le menu',
     ],
+    'account' => [
+        'menu_label' => 'Menu du compte',
+        'login' => 'Connexion',
+        'settings' => 'Paramètres du compte',
+        'admin' => 'Panneau admin',
+        'no_admin_section' => "Votre rôle a des permissions admin, mais aucune section du dashboard n'est encore construite pour celle-ci.",
+        'logout' => 'Déconnexion',
+    ],
     'lang' => [
         'switcher_label' => 'Changer de langue',
         'dropdown_label' => 'Langues disponibles',

@@ -102,9 +102,23 @@ class SocialAuthController extends Controller
             abort(403, __('account.errors.social_blocked'));
         }
 
+        $email = $socialiteUser->getEmail();
+
+        // The provider's email may already belong to a different account
+        // (password-based, or linked to a different provider) with no
+        // SocialAccount row for *this* provider yet — creating a new user
+        // would hit the unique constraint on users.email and 500. Send
+        // them to log in and link this provider from their account
+        // settings instead.
+        if ($email !== null && User::where('email', $email)->exists()) {
+            return redirect()->route('login')->withErrors([
+                'email' => __('account.errors.email_already_registered'),
+            ]);
+        }
+
         $user = User::create([
             'name' => $socialiteUser->getNickname() ?? $socialiteUser->getName() ?? 'Player',
-            'email' => $socialiteUser->getEmail(),
+            'email' => $email,
             'password' => null,
         ]);
 

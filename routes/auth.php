@@ -31,15 +31,12 @@ Route::middleware(['auth'])->group(function () {
     // status — these are personal-data-rights actions, not privileges to
     // revoke, and the sanction record persists through deletion anyway
     // (see Sanction/SanctionIdentity nullOnDelete).
+    Route::get('/settings/account', [AccountSettingsController::class, 'edit'])
+        ->name('account.edit');
     Route::get('/settings/account/export', [AccountSettingsController::class, 'exportData'])
         ->name('account.export');
     Route::delete('/settings/account', [AccountSettingsController::class, 'destroyAccount'])
         ->name('account.destroy');
-
-    Route::get('/moderation/reports', [UserReportController::class, 'index'])
-        ->name('moderation.reports.index');
-    Route::patch('/moderation/reports/{userReport}', [UserReportController::class, 'resolve'])
-        ->name('moderation.reports.resolve');
 
     Route::middleware(['not-sanctioned'])->group(function () {
         Route::delete('/settings/social/{socialAccount}', [SocialAccountController::class, 'destroy'])

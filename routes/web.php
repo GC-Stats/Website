@@ -27,6 +27,7 @@ use App\Http\Controllers\TransparencyController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
+require __DIR__.'/admin.php';
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 

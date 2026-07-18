@@ -124,7 +124,19 @@ class AccountSecurityService
             throw new LastAuthMethodException;
         }
 
-        $user->forceFill(['password' => null])->save();
+        // Two-factor authentication and passkeys are only offered on
+        // password-protected accounts (they exist to harden a password
+        // login) — dropping the password strips their reason to exist, so
+        // they're wiped along with it rather than left in a state the
+        // account-settings UI no longer surfaces.
+        $user->passkeys()->delete();
+
+        $user->forceFill([
+            'password' => null,
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+        ])->save();
 
         activity('account')->performedOn($user)->causedBy($user)->log('account.password_removed');
     }

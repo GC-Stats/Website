@@ -18,15 +18,27 @@ namespace App\Http\Controllers\Auth;
 use App\Exceptions\LastAuthMethodException;
 use App\Http\Controllers\Controller;
 use App\Services\AccountSecurityService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AccountSettingsController extends Controller
 {
+    public function edit(Request $request): View
+    {
+        $user = $request->user()->load(['socialAccounts', 'passkeys']);
+
+        return view('auth.account-edit', [
+            'user' => $user,
+            'linkedProviders' => $user->socialAccounts->pluck('provider')->all(),
+        ]);
+    }
+
     public function setPassword(Request $request, AccountSecurityService $accountSecurity): RedirectResponse
     {
         $user = $request->user();
@@ -65,11 +77,19 @@ class AccountSettingsController extends Controller
     {
         $user = $request->user()->load(['socialAccounts', 'player', 'sanctions' => fn ($q) => $q->with('team:id,name')]);
 
+        // $user->roles() is scoped to the *current* permission-team context
+        // (global, per SetDefaultPermissionTeam) and would silently drop
+        // any team-scoped role (team_owner/manager/editor) from the export.
+        // Role::users() carries no such team filter, so querying from that
+        // side returns every role the user holds across every team.
+        $roles = Role::whereHas('users', fn ($q) => $q->where('model_has_roles.model_id', $user->id))
+            ->get(['name', 'team_id']);
+
         $payload = [
             'profile' => $user->only(['id', 'name', 'email', 'preferences', 'created_at']),
             'social_accounts' => $user->socialAccounts->map->only(['provider', 'nickname', 'created_at']),
             'player_profile' => $user->player?->only(['id', 'handle']),
-            'teams' => $user->roles()->get()->map->only(['name', 'team_id']),
+            'teams' => $roles->map->only(['name', 'team_id']),
             'sanctions_received' => $user->sanctions->map->only(['type', 'reason', 'team', 'starts_at', 'ends_at', 'revoked_at']),
         ];
 
