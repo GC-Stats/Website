@@ -28,7 +28,7 @@ class AccountSecurityService
     /**
      * Provider accounts younger than this are flagged for moderation when
      * first linked — a brand new Discord/Twitch/X account is a common
-     * ban-evasion / throwaway-account signal, same idea as email_risk.
+     * ban-evasion / throwaway-account signal.
      */
     private const YOUNG_ACCOUNT_THRESHOLD_DAYS = 30;
 

@@ -86,8 +86,6 @@ return [
         'password_requires_email' => 'You must add an email address to your account before setting a password.',
         'email_required_for_password' => 'You cannot remove your email address while a password is set on your account — remove your password first, or add a different email.',
         'email_blocked' => 'This email address cannot be used to create an account.',
-        'email_disposable' => 'Temporary/disposable email addresses are not accepted. Please use a permanent address.',
-        'email_undeliverable' => 'This email address does not appear to be valid or reachable.',
         'email_already_registered' => 'An account already exists with this email address. Please sign in, then link this provider from your account settings.',
         'social_blocked' => 'This account cannot be used to create a profile.',
         'sanctioned_global' => 'Your account is currently under an active sanction: :reason',

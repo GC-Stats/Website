@@ -4,7 +4,6 @@ namespace App\Actions\Fortify;
 
 use App\Models\SanctionIdentity;
 use App\Models\User;
-use App\Services\EmailReputationService;
 use App\Services\SanctionService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -18,7 +17,6 @@ class CreateNewUser implements CreatesNewUsers
 
     public function __construct(
         private readonly SanctionService $sanctions,
-        private readonly EmailReputationService $emailReputation,
     ) {}
 
     /**
@@ -48,34 +46,17 @@ class CreateNewUser implements CreatesNewUsers
             ]);
         }
 
-        $reputation = $this->emailReputation->check($input['email']);
-
-        if ($this->emailReputation->isBlocking($reputation['status'])) {
-            throw ValidationException::withMessages([
-                'email' => __('account.errors.email_undeliverable'),
-            ]);
-        }
-
         $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
-            'email_risk' => $reputation['status'],
-            'email_checked_at' => now(),
             'password' => Hash::make($input['password']),
         ]);
 
         activity('account')
             ->performedOn($user)
             ->causedBy($user)
-            ->withProperties(['method' => 'password', 'email_risk' => $reputation['status']])
+            ->withProperties(['method' => 'password'])
             ->log('account.registered');
-
-        if ($this->emailReputation->flagsForModeration($reputation['status'])) {
-            activity('moderation')
-                ->performedOn($user)
-                ->withProperties(['reason' => 'email_risk', 'status' => $reputation['status']])
-                ->log('account.flagged');
-        }
 
         return $user;
     }

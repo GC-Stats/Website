@@ -83,10 +83,6 @@ return [
         'redirect' => env('TWITCH_REDIRECT_URI'),
     ],
 
-    'kickbox' => [
-        'key' => env('KICKBOX_API_KEY'),
-    ],
-
     'discord' => [
         'client_id' => env('DISCORD_CLIENT_ID'),
         'client_secret' => env('DISCORD_CLIENT_SECRET'),

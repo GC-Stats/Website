@@ -86,8 +86,6 @@ return [
         'password_requires_email' => "Vous devez d'abord ajouter un email à votre compte avant de définir un mot de passe.",
         'email_required_for_password' => "Vous ne pouvez pas retirer votre adresse email tant qu'un mot de passe est défini sur ce compte — retirez d'abord votre mot de passe, ou ajoutez une autre adresse.",
         'email_blocked' => 'Cette adresse email ne peut pas être utilisée pour créer un compte.',
-        'email_disposable' => "Les adresses email temporaires/jetables ne sont pas acceptées. Merci d'utiliser une adresse permanente.",
-        'email_undeliverable' => "Cette adresse email ne semble pas valide ou joignable.",
         'email_already_registered' => "Un compte existe déjà avec cette adresse email. Connectez-vous, puis liez ce fournisseur depuis les paramètres de votre compte.",
         'social_blocked' => 'Ce compte ne peut pas être utilisé pour créer un profil.',
         'sanctioned_global' => "Votre compte fait l'objet d'une sanction active : :reason",
