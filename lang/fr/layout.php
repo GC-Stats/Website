@@ -1,5 +1,4 @@
 <?php
-
 return [
     'searchbar' => 'Rechercher...',
     'searching' => 'Recherche en cours...',
@@ -77,5 +76,8 @@ return [
             'add_tournament' => 'Intégrer son tournoi',
             'widgets' => 'Widgets',
         ],
+    ],
+    'meta' => [
+        'default_description' => 'GC Stats suit les tournois, équipes, joueuses et matchs de tous les tournois Game Changers.',
     ],
 ];
