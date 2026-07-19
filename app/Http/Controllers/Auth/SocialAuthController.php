@@ -56,9 +56,6 @@ class SocialAuthController extends Controller
             ->where('provider_id', $providerId)
             ->first();
 
-        // Checked up front and enforced on every branch below (link, login,
-        // register) — a sanctioned identity must not be able to attach
-        // itself to any account, new or existing, see SanctionService.
         $isSanctioned = $sanctions->hasActiveSanctionFor($provider, $providerId);
 
         // Linking a new provider to the account that's currently logged in.
@@ -109,12 +106,6 @@ class SocialAuthController extends Controller
 
         $email = VerifiedEmail::resolve($provider, $socialiteUser->getRaw(), $socialiteUser->getEmail());
 
-        // The provider's email may already belong to a different account
-        // (password-based, or linked to a different provider) with no
-        // SocialAccount row for *this* provider yet — creating a new user
-        // would hit the unique constraint on users.email and 500. Send
-        // them to log in and link this provider from their account
-        // settings instead.
         if ($email !== null && User::where('email', $email)->exists()) {
             return redirect()->route('login')->withErrors([
                 'email' => __('account.errors.email_already_registered'),
