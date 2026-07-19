@@ -75,11 +75,6 @@ class AppServiceProvider extends ServiceProvider
     {
         Route::pattern('id', '[0-9]+');
 
-        // Str::slug() returns '' for names/handles with no Latin-transliterable
-        // characters (e.g. "星の光"), which breaks route generation for routes
-        // with a required {slug} segment (Laravel can't tell an empty value
-        // apart from an unfilled one). Fall back to the numeric id so the
-        // slug segment is never empty.
         Str::macro('routeSlug', function ($value, $fallback) {
             $slug = Str::slug((string) $value);
 
@@ -90,16 +85,6 @@ class AppServiceProvider extends ServiceProvider
         $this->configureBunnyStorage();
         Paginator::useTailwind();
 
-        // SetDefaultPermissionTeam (which sets spatie/laravel-permission's
-        // team context to the global sentinel) only runs on the 'web'
-        // middleware group. Outside a web request — artisan commands,
-        // tinker, queued jobs, the scheduler — spatie's team resolver
-        // defaults to null, and `WHERE team_id = NULL` never matches the
-        // team_id = 0 rows every global role/permission assignment uses,
-        // so hasRole()/can() silently see the user as having nothing.
-        // Default console-context runs to global; anything that needs a
-        // real team (TeamRoleService, DiscordRoleSyncService) already
-        // switches explicitly via PermissionTeam::use() before checking.
         if ($this->app->runningInConsole()) {
             PermissionTeam::global();
         }
@@ -142,38 +127,15 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureActivityLogging();
 
-        // 'super-admin' always passes every ability check, including
-        // permissions added later to App\Support\AdminPermissions. Uses
-        // isSuperAdmin() (not hasRole(), which is scoped to whatever
-        // PermissionTeam context is active) so this stays true even while
-        // browsing a team's own role-management pages, which switch
-        // context to that team for the duration of the request.
         Gate::before(fn ($user, string $ability) => $user->isSuperAdmin() ? true : null);
 
-        // Assigning/removing global site roles and editing the
-        // role/permission matrix is more sensitive than any single admin
-        // permission — kept as its own gate, super-admin only, rather than
-        // an assignable permission so a role can never grant itself the
-        // means to escalate to super-admin.
         Gate::define('manage-roles', fn ($user) => $user->isSuperAdmin());
 
-        // Whether the admin dashboard (and its nav entry) shows up at all
-        // — true for anyone holding at least one permission from the
-        // catalog, so the entry point doesn't depend on a single umbrella
-        // permission that may not match what a given role can actually do.
         Gate::define('access-admin', fn ($user) => $user->getAllPermissions()
             ->pluck('name')
             ->intersect(AdminPermissions::all())
             ->isNotEmpty());
 
-        // Activity log access is split one permission per log type
-        // (activity.account, activity.moderation — see AdminPermissions)
-        // rather than a single umbrella permission, so a role can be
-        // granted visibility into moderation actions without also seeing
-        // account/login activity, or vice versa. This gate is the "can
-        // reach the page at all" check; the controller itself further
-        // restricts which log types are actually queried/shown to the
-        // ones the user holds.
         Gate::define('activity.view', fn ($user) => collect(AdminPermissions::grouped()['activity'])
             ->contains(fn ($permission) => $user->can($permission)));
     }
