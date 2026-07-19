@@ -35,10 +35,6 @@ class TeamRoleService
 
     public function ensureRolesExist(Team $team): void
     {
-        // Cheap bail-out: once all three roles exist (the overwhelming
-        // majority of calls — this runs on every team roles page view,
-        // not just on first provisioning) skip straight past the
-        // per-role existence checks below with a single query.
         if (Role::where('team_id', $team->id)->count() >= self::ROLE_COUNT) {
             return;
         }
@@ -54,13 +50,6 @@ class TeamRoleService
         ];
 
         foreach ($defaults as $role => $permissions) {
-            // team_id must be explicit here: spatie's Role model does not
-            // apply an automatic team-scoped query scope on plain
-            // where('name', ...) lookups (only on the creating hook and
-            // the HasRoles::roles() relation) — without this filter, one
-            // team having 'team_owner' makes every other team's
-            // ensureRolesExist() wrongly believe its own row already
-            // exists and skip creating it.
             if (Role::where('name', $role)->where('team_id', $team->id)->exists()) {
                 continue;
             }
