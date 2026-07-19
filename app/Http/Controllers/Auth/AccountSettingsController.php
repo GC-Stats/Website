@@ -77,11 +77,6 @@ class AccountSettingsController extends Controller
     {
         $user = $request->user()->load(['socialAccounts', 'player', 'sanctions' => fn ($q) => $q->with('team:id,name')]);
 
-        // $user->roles() is scoped to the *current* permission-team context
-        // (global, per SetDefaultPermissionTeam) and would silently drop
-        // any team-scoped role (team_owner/manager/editor) from the export.
-        // Role::users() carries no such team filter, so querying from that
-        // side returns every role the user holds across every team.
         $roles = Role::whereHas('users', fn ($q) => $q->where('model_has_roles.model_id', $user->id))
             ->get(['name', 'team_id']);
 
