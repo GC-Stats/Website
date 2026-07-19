@@ -136,7 +136,12 @@
                 </div>
 
                 <div class="flex items-center gap-4 shrink-0">
-                    <span class="hidden sm:block text-xs text-gray-400">{{ auth()->user()->name }}</span>
+                    <span class="hidden sm:block text-xs text-gray-400">
+                        {{ auth()->user()->name }}
+                        @if (auth()->user()->username)
+                            <span class="text-gray-600">{{ '@'.auth()->user()->username }}</span>
+                        @endif
+                    </span>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" aria-label="{{ __('layout.account.logout') }}"

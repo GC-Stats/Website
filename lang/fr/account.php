@@ -9,6 +9,7 @@ return [
         'profile' => [
             'title' => 'Profil',
             'name_label' => "Nom d'affichage",
+            'username_label' => "Nom d'utilisateur",
             'email_label' => 'Adresse email',
             'email_help' => "Utilisée pour la connexion et les notifications de compte. Laissez vide si vous vous connectez uniquement via un compte lié.",
             'submit' => 'Enregistrer',

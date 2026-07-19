@@ -9,6 +9,7 @@ return [
         'profile' => [
             'title' => 'Profile',
             'name_label' => 'Display name',
+            'username_label' => 'Username',
             'email_label' => 'Email address',
             'email_help' => 'Used for sign-in and account notifications. Leave empty if you only sign in with a connected account.',
             'submit' => 'Save changes',

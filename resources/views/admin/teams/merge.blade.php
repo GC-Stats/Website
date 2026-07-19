@@ -187,6 +187,9 @@
                                     <input type="checkbox" name="roles[]" value="{{ $item->role_id }}:{{ $item->user_id }}" x-model="roles"
                                            class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
                                     {{ $item->user_name }}
+                                    @if ($item->user_username)
+                                        <span class="text-gray-500">{{ '@'.$item->user_username }}</span>
+                                    @endif
                                     <span class="text-gray-500">({{ $item->role_name }})</span>
                                 </label>
                             @endforeach

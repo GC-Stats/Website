@@ -127,7 +127,7 @@ class TeamController extends Controller
             'permissionGroups' => TeamPermissions::grouped(),
             'search' => $search ?? '',
             'searchResults' => $search
-                ? User::where(fn ($q) => $q->where('name', 'like', '%'.$this->escapeLike($search).'%')->orWhere('email', 'like', '%'.$this->escapeLike($search).'%'))
+                ? User::where(fn ($q) => $q->where('name', 'like', '%'.$this->escapeLike($search).'%')->orWhere('username', 'like', '%'.$this->escapeLike($search).'%')->orWhere('email', 'like', '%'.$this->escapeLike($search).'%'))
                     ->whereNotIn('id', $existingOwnerIds)
                     ->limit(10)->get()
                 : collect(),
@@ -352,7 +352,7 @@ class TeamController extends Controller
             ->where('model_has_roles.team_id', $team->id)
             ->where('model_has_roles.model_type', User::class)
             ->orderBy('roles.name')->orderBy('users.name')
-            ->get(['roles.id as role_id', 'roles.name as role_name', 'users.id as user_id', 'users.name as user_name']);
+            ->get(['roles.id as role_id', 'roles.name as role_name', 'users.id as user_id', 'users.name as user_name', 'users.username as user_username']);
     }
 
     public function merge(Request $request, Team $team, TeamMergeService $mergeService): RedirectResponse

@@ -26,8 +26,17 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      */
     public function update(User $user, array $input): void
     {
-        Validator::make($input, [
+        $validator = Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
+
+            'username' => [
+                'required',
+                'string',
+                'min:3',
+                'max:32',
+                'alpha_dash',
+                Rule::unique('users')->ignore($user->id),
+            ],
 
             'email' => [
                 'nullable',
@@ -36,7 +45,18 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
             ],
-        ])->validateWithBag('updateProfileInformation');
+        ]);
+
+        // Not ->validateWithBag(): that throws with no redirectTo, so the
+        // handler falls back to url()->previous() — which resolves to the
+        // request's Referer header first (see UrlGenerator::previous()). A
+        // stripped/absent Referer then lands somewhere other than the
+        // account settings page instead of erroring cleanly back onto it.
+        if ($validator->fails()) {
+            throw ValidationException::withMessages($validator->errors()->getMessages())
+                ->errorBag('updateProfileInformation')
+                ->redirectTo(route('account.edit'));
+        }
 
         $email = $input['email'] ?? null;
         $emailChanged = $email !== $user->email;
@@ -44,14 +64,14 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         if ($emailChanged && $email === null && $user->password !== null) {
             throw ValidationException::withMessages([
                 'email' => __('account.errors.email_required_for_password'),
-            ])->errorBag('updateProfileInformation');
+            ])->errorBag('updateProfileInformation')->redirectTo(route('account.edit'));
         }
 
         if ($emailChanged && $email !== null) {
             if ($this->sanctions->hasActiveSanctionFor(SanctionIdentity::TYPE_EMAIL, $email)) {
                 throw ValidationException::withMessages([
                     'email' => __('account.errors.email_blocked'),
-                ])->errorBag('updateProfileInformation');
+                ])->errorBag('updateProfileInformation')->redirectTo(route('account.edit'));
             }
         }
 
@@ -60,6 +80,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         } else {
             $user->forceFill([
                 'name' => $input['name'],
+                'username' => $input['username'],
                 'email' => $email,
             ])->save();
         }
@@ -83,6 +104,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     {
         $user->forceFill([
             'name' => $input['name'],
+            'username' => $input['username'],
             'email' => $email,
             'email_verified_at' => null,
         ])->save();

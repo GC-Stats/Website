@@ -23,6 +23,7 @@ use App\Services\DiscordRoleSyncService;
 use App\Services\SanctionService;
 use App\Support\Socialite\ProviderAccountAge;
 use App\Support\Socialite\VerifiedEmail;
+use App\Support\UsernameGenerator;
 use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -114,8 +115,11 @@ class SocialAuthController extends Controller
             ]);
         }
 
+        $name = $socialiteUser->getNickname() ?? $socialiteUser->getName() ?? 'Player';
+
         $user = User::create([
-            'name' => $socialiteUser->getNickname() ?? $socialiteUser->getName() ?? 'Player',
+            'name' => $name,
+            'username' => UsernameGenerator::generate($name),
             'email' => $email,
             'password' => null,
         ]);

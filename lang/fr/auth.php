@@ -26,6 +26,7 @@ return [
         'title' => 'Créer un compte',
         'subtitle' => 'Rejoignez GC Stats',
         'name_label' => "Nom d'affichage",
+        'username_label' => "Nom d'utilisateur",
         'email_label' => 'Adresse email',
         'password_label' => 'Mot de passe',
         'password_confirmation_label' => 'Confirmer le mot de passe',

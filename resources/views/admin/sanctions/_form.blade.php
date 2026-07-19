@@ -21,7 +21,12 @@
 
     @if (isset($user))
         <input type="hidden" name="user_id" value="{{ $user->id }}">
-        <p class="text-sm text-white font-semibold">{{ $user->name }}</p>
+        <p class="text-sm text-white font-semibold">
+            {{ $user->name }}
+            @if ($user->username)
+                <span class="text-gray-500 font-normal">{{ '@'.$user->username }}</span>
+            @endif
+        </p>
     @else
         <div>
             <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">

@@ -24,10 +24,6 @@ Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'
     ->name('social.callback');
 
 Route::middleware(['auth'])->group(function () {
-    // Data export and account deletion stay available regardless of sanction
-    // status — these are personal-data-rights actions, not privileges to
-    // revoke, and the sanction record persists through deletion anyway
-    // (see Sanction/SanctionIdentity nullOnDelete).
     Route::get('/settings/account', [AccountSettingsController::class, 'edit'])
         ->name('account.edit');
     Route::get('/settings/account/export', [AccountSettingsController::class, 'exportData'])

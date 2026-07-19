@@ -71,7 +71,7 @@ class RoleController extends Controller
             'discordMapping' => DiscordRoleMapping::whereNull('team_id')->where('app_role', $role->name)->first(),
             'search' => $search ?? '',
             'searchResults' => $search
-                ? User::where(fn ($q) => $q->where('name', 'like', '%'.$this->escapeLike($search).'%')->orWhere('email', 'like', '%'.$this->escapeLike($search).'%'))
+                ? User::where(fn ($q) => $q->where('name', 'like', '%'.$this->escapeLike($search).'%')->orWhere('username', 'like', '%'.$this->escapeLike($search).'%')->orWhere('email', 'like', '%'.$this->escapeLike($search).'%'))
                     ->whereDoesntHave('roles', fn ($q) => $q->where('id', $role->id))
                     ->limit(10)->get()
                 : collect(),

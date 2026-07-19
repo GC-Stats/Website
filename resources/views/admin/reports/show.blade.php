@@ -30,12 +30,22 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                         <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('admin.reports.reported_user') }}</p>
-                        <p class="text-white font-semibold">{{ $report->reportedUser?->name ?? '—' }}</p>
+                        <p class="text-white font-semibold">
+                            {{ $report->reportedUser?->name ?? '—' }}
+                            @if ($report->reportedUser?->username)
+                                <span class="text-gray-500 font-normal">{{ '@'.$report->reportedUser->username }}</span>
+                            @endif
+                        </p>
                         <p class="text-gray-500 text-xs">{{ $report->reportedUser?->email }}</p>
                     </div>
                     <div>
                         <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('admin.reports.reporter') }}</p>
-                        <p class="text-white font-semibold">{{ $report->reporter?->name ?? '—' }}</p>
+                        <p class="text-white font-semibold">
+                            {{ $report->reporter?->name ?? '—' }}
+                            @if ($report->reporter?->username)
+                                <span class="text-gray-500 font-normal">{{ '@'.$report->reporter->username }}</span>
+                            @endif
+                        </p>
                         <p class="text-gray-500 text-xs">{{ $report->reporter?->email }}</p>
                     </div>
                     @if ($report->team)
@@ -53,7 +63,7 @@
 
                 @if ($report->reviewedBy)
                     <p class="text-xs text-gray-500 pt-2 border-t border-border-subtle">
-                        {{ __('admin.reports.reviewed_by', ['name' => $report->reviewedBy->name, 'date' => $report->reviewed_at?->format('Y-m-d H:i')]) }}
+                        {{ __('admin.reports.reviewed_by', ['name' => $report->reviewedBy->username ? $report->reviewedBy->name.' @'.$report->reviewedBy->username : $report->reviewedBy->name, 'date' => $report->reviewed_at?->format('Y-m-d H:i')]) }}
                     </p>
                     @if ($report->resolution_note)
                         <p class="text-sm text-gray-300 italic">{{ $report->resolution_note }}</p>

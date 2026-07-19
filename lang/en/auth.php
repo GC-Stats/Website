@@ -26,6 +26,7 @@ return [
         'title' => 'Create an account',
         'subtitle' => 'Join GC Stats',
         'name_label' => 'Display name',
+        'username_label' => 'Username',
         'email_label' => 'Email address',
         'password_label' => 'Password',
         'password_confirmation_label' => 'Confirm password',

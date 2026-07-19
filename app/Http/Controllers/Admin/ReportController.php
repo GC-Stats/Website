@@ -35,7 +35,7 @@ class ReportController extends Controller
     {
         $status = $request->get('status', UserReport::STATUS_PENDING);
 
-        $reports = UserReport::with(['reporter:id,name', 'reportedUser:id,name', 'team:id,name'])
+        $reports = UserReport::with(['reporter:id,name,username', 'reportedUser:id,name,username', 'team:id,name'])
             ->when(in_array($status, self::STATUSES, true), fn ($query) => $query->where('status', $status))
             ->latest()
             ->paginate(25)
@@ -50,7 +50,7 @@ class ReportController extends Controller
 
     public function show(UserReport $userReport): View
     {
-        $userReport->load(['reporter:id,name,email', 'reportedUser.socialAccounts', 'reportedUser.sanctions', 'team:id,name', 'reviewedBy:id,name']);
+        $userReport->load(['reporter:id,name,username,email', 'reportedUser.socialAccounts', 'reportedUser.sanctions', 'team:id,name', 'reviewedBy:id,name,username']);
 
         return view('admin.reports.show', [
             'report' => $userReport,

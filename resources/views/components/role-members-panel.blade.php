@@ -38,7 +38,12 @@
         @forelse ($members as $member)
             <div class="flex items-center justify-between gap-4 bg-[#050505] border border-border-subtle rounded-sm px-4 py-3">
                 <div>
-                    <p class="text-sm text-white font-semibold">{{ $member->name }}</p>
+                    <p class="text-sm text-white font-semibold">
+                        {{ $member->name }}
+                        @if ($member->username)
+                            <span class="text-gray-500 font-normal">{{ '@'.$member->username }}</span>
+                        @endif
+                    </p>
                     <p class="text-xs text-gray-500">{{ $member->email }}</p>
                 </div>
                 <form method="POST" action="{{ $removeMemberUrl($member) }}">
@@ -84,7 +89,12 @@
                             @csrf
                             <input type="hidden" name="user_id" value="{{ $found->id }}">
                             <div>
-                                <p class="text-xs text-white font-semibold">{{ $found->name }}</p>
+                                <p class="text-xs text-white font-semibold">
+                                    {{ $found->name }}
+                                    @if ($found->username)
+                                        <span class="text-gray-500 font-normal">{{ '@'.$found->username }}</span>
+                                    @endif
+                                </p>
                                 <p class="text-[10px] text-gray-500">{{ $found->email }}</p>
                             </div>
                             <button type="submit"

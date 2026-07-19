@@ -37,7 +37,16 @@
                 @forelse ($activities as $activity)
                     <tr class="border-b border-border-subtle last:border-0 align-top">
                         <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{{ $activity->created_at->format('Y-m-d H:i') }}</td>
-                        <td class="px-4 py-3 text-white">{{ $activity->causer?->name ?? __('admin.activity.system') }}</td>
+                        <td class="px-4 py-3 text-white">
+                            @if ($activity->causer)
+                                {{ $activity->causer->name }}
+                                @if ($activity->causer->username)
+                                    <span class="text-gray-500">{{ '@'.$activity->causer->username }}</span>
+                                @endif
+                            @else
+                                {{ __('admin.activity.system') }}
+                            @endif
+                        </td>
                         <td class="px-4 py-3 text-gray-300">
                             <code class="text-xs text-gc-yellow">{{ $activity->description }}</code>
                             @if ($activity->properties->isNotEmpty())

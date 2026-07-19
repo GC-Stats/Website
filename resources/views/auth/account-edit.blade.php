@@ -83,10 +83,21 @@
                     </div>
 
                     <div>
+                        <label for="username" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+                            {{ __('account.edit.profile.username_label') }}
+                        </label>
+                        <input id="username" type="text" name="username" value="{{ old('username', $user->username) }}" required
+                               class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                        @error('username', 'updateProfileInformation')
+                            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
                         <label for="email" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
                             {{ __('account.edit.profile.email_label') }}
                         </label>
-                        <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" autocomplete="username"
+                        <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" autocomplete="email"
                                class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                         <p class="text-xs text-gray-500 mt-2">{{ __('account.edit.profile.email_help') }}</p>
                         @error('email', 'updateProfileInformation')

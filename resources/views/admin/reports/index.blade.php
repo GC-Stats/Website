@@ -34,8 +34,18 @@
             <tbody>
                 @forelse ($reports as $report)
                     <tr class="border-b border-border-subtle last:border-0">
-                        <td class="px-4 py-3 text-white font-semibold">{{ $report->reportedUser?->name ?? '—' }}</td>
-                        <td class="px-4 py-3 text-gray-400">{{ $report->reporter?->name ?? '—' }}</td>
+                        <td class="px-4 py-3 text-white font-semibold">
+                            {{ $report->reportedUser?->name ?? '—' }}
+                            @if ($report->reportedUser?->username)
+                                <span class="text-gray-500 font-normal">{{ '@'.$report->reportedUser->username }}</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-gray-400">
+                            {{ $report->reporter?->name ?? '—' }}
+                            @if ($report->reporter?->username)
+                                <span class="text-gray-500">{{ '@'.$report->reporter->username }}</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-3 text-gray-400">{{ __('admin.reports.category.'.$report->category) }}</td>
                         <td class="px-4 py-3 text-gray-400">{{ $report->team?->name ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $report->created_at->diffForHumans() }}</td>

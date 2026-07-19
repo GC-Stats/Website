@@ -112,11 +112,6 @@ Route::get('/tournaments/{id}/maps', [TournamentController::class, 'maps']);
 Route::get('/tournaments/{id}/{slug}/maps', [TournamentController::class, 'maps'])->name('tournaments.maps');
 Route::get('/tournaments/{tournament}/{slug?}', [TournamentController::class, 'show'])->name('tournaments.show');
 
-// throttle:30,1 is IP-keyed and only bounds high-volume brute force of the
-// token space — it does not stop a targeted racer that already has the
-// correct token, since the reveal isn't bound to any Dashboard session
-// (Website and Dashboard are separate apps/sessions, so that binding isn't
-// available here). Accepted tradeoff, not a full fix for that threat.
 Route::middleware(['throttle:30,1'])->group(function () {
     Route::get('/api-keys/reveal/{token}', [ApiKeyRevealController::class, 'show'])->name('api-keys.reveal');
     Route::post('/api-keys/reveal/{token}', [ApiKeyRevealController::class, 'reveal'])->name('api-keys.reveal.confirm');
