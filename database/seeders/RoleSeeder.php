@@ -33,7 +33,6 @@ class RoleSeeder extends Seeder
 
         Permission::whereNotIn('name', $catalog)->get()->each->delete();
 
-
         Role::findOrCreate('super-admin');
 
         Role::findOrCreate('moderator')->syncPermissions([

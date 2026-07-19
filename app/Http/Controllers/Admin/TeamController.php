@@ -277,7 +277,7 @@ class TeamController extends Controller
 
         activity('team')->performedOn($user)->causedBy($request->user())
             ->withProperties(['team_id' => $team->id])->log('team.owner_assigned');
-        
+
         return redirect()->route('admin.teams.show', $team)->with('status', 'owner-assigned');
     }
 
