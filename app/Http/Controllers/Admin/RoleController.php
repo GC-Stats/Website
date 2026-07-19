@@ -43,10 +43,6 @@ class RoleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            // Scoped to global-team rows only: the DB's own unique
-            // constraint is (team_id, name, guard_name), so an unrelated
-            // team already having a role with this name is not a real
-            // conflict here and shouldn't block creating the global one.
             'name' => ['required', 'string', 'max:100', 'alpha_dash', Rule::unique('roles', 'name')->where('team_id', PermissionTeam::GLOBAL_ID)],
         ]);
 
@@ -126,10 +122,6 @@ class RoleController extends Controller
         activity('administration')->performedOn($user)->causedBy($request->user())
             ->withProperties(['role' => $role->name])->log('role.assigned');
 
-        // Not back(): the referer still carries the search modal's ?q=...,
-        // which would reopen it (see <x-modal :open-by-default>) right
-        // back onto a now-stale result list. Redirecting to the clean URL
-        // closes it.
         return redirect()->route('admin.roles.show', $role)->with('status', 'role-assigned');
     }
 
