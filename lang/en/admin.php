@@ -301,6 +301,7 @@ return [
         'team-merged' => 'Teams merged.',
         'team-delete-blocked' => 'This team has matches on record and cannot be deleted.',
         'player-deleted' => 'Player deleted.',
+        'player-delete-blocked' => 'This player has matches on record and cannot be deleted.',
         'player-merged' => 'Players merged.',
         'val-id-reset' => 'Riot ID reset.',
         'discord-id-reset' => 'Discord ID reset.',

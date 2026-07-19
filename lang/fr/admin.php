@@ -301,6 +301,7 @@ return [
         'team-merged' => 'Équipes fusionnées.',
         'team-delete-blocked' => 'Cette équipe a des matchs enregistrés et ne peut pas être supprimée.',
         'player-deleted' => 'Joueuse supprimée.',
+        'player-delete-blocked' => 'Cette joueuse a des matchs enregistrés et ne peut pas être supprimée.',
         'player-merged' => 'Joueuses fusionnées.',
         'val-id-reset' => 'Riot ID réinitialisé.',
         'discord-id-reset' => 'ID Discord réinitialisé.',

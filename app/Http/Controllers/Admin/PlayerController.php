@@ -16,6 +16,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\PlayerHasMatchesException;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Services\PlayerMergeService;
@@ -183,12 +184,13 @@ class PlayerController extends Controller
         return back()->with('status', 'logo-history-removed');
     }
 
-    public function destroy(Request $request, Player $player): RedirectResponse
+    public function destroy(Request $request, Player $player, PlayerMergeService $mergeService): RedirectResponse
     {
-        activity('player')->performedOn($player)->causedBy($request->user())
-            ->withProperties(['handle' => $player->handle])->log('player.deleted');
-
-        $player->delete();
+        try {
+            $mergeService->delete($player, $request->user());
+        } catch (PlayerHasMatchesException) {
+            return redirect()->route('admin.players.show', $player)->with('error', 'player-delete-blocked');
+        }
 
         return redirect()->route('admin.players.index')->with('status', 'player-deleted');
     }

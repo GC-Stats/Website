@@ -18,6 +18,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\PlayerHasMatchesException;
 use App\Models\Logo;
 use App\Models\Player;
 use App\Models\User;
@@ -27,6 +28,45 @@ use Illuminate\Support\Facades\DB;
 class PlayerMergeService
 {
     public function __construct(private readonly LogoUploadService $logoUploadService) {}
+
+    /**
+     * A player with any recorded match stats protects that history and
+     * cannot be deleted outright. Mirrors TeamMergeService::hasMatches().
+     */
+    public function hasMatches(Player $player): bool
+    {
+        return DB::table('game_player_stats')->where('player_id', $player->id)->exists();
+    }
+
+    /**
+     * Delete a player, guarded by hasMatches(). Related rows (player_team,
+     * logos, news_relations) are left to their DB cascade constraints —
+     * unlike TeamMergeService::delete(), which cleans those up manually
+     * because a team also owns team-scoped roles with no such constraint.
+     *
+     * @throws PlayerHasMatchesException if $player has recorded match stats
+     */
+    public function delete(Player $player, User $actor): void
+    {
+        if ($this->hasMatches($player)) {
+            throw new PlayerHasMatchesException;
+        }
+
+        $playerId = $player->id;
+        $handle = $player->handle;
+
+        foreach ($player->logos as $logo) {
+            $this->logoUploadService->deleteFiles('players', $logo->id);
+        }
+
+        $player->delete();
+
+        Cache::tags(["player_{$playerId}"])->flush();
+
+        activity('player')->causedBy($actor)
+            ->withProperties(['player_id' => $playerId, 'handle' => $handle])
+            ->log('player.deleted');
+    }
 
     /**
      * $source itself is never deleted here — only the checked items move.
