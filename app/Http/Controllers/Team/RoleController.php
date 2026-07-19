@@ -88,9 +88,6 @@ class RoleController extends Controller
     {
         $this->ensureBelongsToTeam($team, $role);
 
-        // team_owner always mirrors the team's max_permissions ceiling
-        // (TeamRoleService, Admin\TeamController::updateMaxPermissions) —
-        // it isn't an independently editable set.
         if ($role->name === TeamRoleService::ROLE_OWNER) {
             throw ValidationException::withMessages([
                 'role' => __('team.roles.errors.owner_role_protected'),
@@ -99,9 +96,6 @@ class RoleController extends Controller
 
         $validated = $request->validate([
             'permissions' => ['array'],
-            // Bounded by the team's own max_permissions ceiling (set by a
-            // site admin, see Admin\TeamController), not the full catalog
-            // — a role can never exceed what its team is allowed at all.
             'permissions.*' => ['string', Rule::in($team->maxPermissions())],
         ]);
 
@@ -137,10 +131,6 @@ class RoleController extends Controller
     {
         $this->ensureBelongsToTeam($team, $role);
 
-        // team_owner grants the team's full max_permissions ceiling —
-        // handing it out is a site-admin action (Admin\TeamController::
-        // assignOwner), not something a team.roles.manage holder should be
-        // able to grant to themselves or anyone else via the roles page.
         if ($role->name === TeamRoleService::ROLE_OWNER) {
             throw ValidationException::withMessages([
                 'role' => __('team.roles.errors.owner_role_protected'),
@@ -157,10 +147,6 @@ class RoleController extends Controller
         activity('team')->performedOn($user)->causedBy($request->user())
             ->withProperties(['team_id' => $team->id, 'role' => $role->name])->log('team_role.assigned');
 
-        // Not back(): the referer still carries the search modal's ?q=...,
-        // which would reopen it (see <x-modal :open-by-default>) right
-        // back onto a now-stale result list. Redirecting to the clean URL
-        // closes it.
         return redirect()->route('teams.roles.show', [$team, $team->routeSlug(), $role])->with('status', 'role-assigned');
     }
 
