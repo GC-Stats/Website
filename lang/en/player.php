@@ -33,6 +33,10 @@ return [
         'players_history' => 'This player has no past teams',
     ],
 
+    'errors' => [
+        'multiple_active_teams' => 'A player can only have one active team at a time.',
+    ],
+
     'nav' => [
         'aria_label' => 'Player navigation',
         'overview' => 'Overview',

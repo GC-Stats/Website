@@ -16,7 +16,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\User;
 use App\Services\DiscordRoleSyncService;
 use Illuminate\Console\Command;
 
@@ -28,17 +27,9 @@ class SyncDiscordRoles extends Command
 
     public function handle(DiscordRoleSyncService $service): int
     {
-        $users = User::whereHas('socialAccounts', fn ($q) => $q->where('provider', 'discord'))->get();
+        $result = $service->syncAll();
 
-        $synced = 0;
-
-        foreach ($users as $user) {
-            if ($service->sync($user)) {
-                $synced++;
-            }
-        }
-
-        $this->info("Synced {$synced}/{$users->count()} users.");
+        $this->info("Synced {$result['synced']}/{$result['total']} users.");
 
         return self::SUCCESS;
     }

@@ -33,6 +33,10 @@ return [
         'players_history' => "Cette joueuse n'a pas d'équipe",
     ],
 
+    'errors' => [
+        'multiple_active_teams' => "Une joueuse ne peut avoir qu'une seule équipe active à la fois.",
+    ],
+
     'nav' => [
         'aria_label' => 'Navigation du joueur',
         'overview' => "Vue d'ensemble",

@@ -75,11 +75,13 @@ class TeamRoleService
 
         PermissionTeam::use($team->id);
         $user->assignRole($role);
+        PermissionTeam::global();
     }
 
     public function revoke(User $user, Team $team, string $role): void
     {
         PermissionTeam::use($team->id);
         $user->removeRole($role);
+        PermissionTeam::global();
     }
 }

@@ -73,7 +73,13 @@ class SocialAuthController extends Controller
 
             /** @var User $user */
             $user = Auth::user();
-            $accountSecurity->linkProvider($user, $provider, $this->providerPayload($provider, $socialiteUser));
+
+            try {
+                $accountSecurity->linkProvider($user, $provider, $this->providerPayload($provider, $socialiteUser));
+            } catch (SocialAccountAlreadyLinkedException $e) {
+                return back()->withErrors(['social' => $e->getMessage()]);
+            }
+
             $sanctions->propagateIdentity($user, $provider, $providerId);
 
             if ($provider === 'discord') {
@@ -124,7 +130,11 @@ class SocialAuthController extends Controller
             'password' => null,
         ]);
 
-        $accountSecurity->linkProvider($user, $provider, $this->providerPayload($provider, $socialiteUser));
+        try {
+            $accountSecurity->linkProvider($user, $provider, $this->providerPayload($provider, $socialiteUser));
+        } catch (SocialAccountAlreadyLinkedException $e) {
+            return redirect()->route('login')->withErrors(['social' => $e->getMessage()]);
+        }
 
         if ($provider === 'discord') {
             $discordRoleSync->sync($user);

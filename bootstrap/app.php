@@ -28,7 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // so expired-but-still-encrypted key blobs don't linger far past
         // their own expiry.
         $schedule->command('app:prune-api-key-reveals')->everyFifteenMinutes();
-        $schedule->command('discord:sync-roles')->everySixHours();
+        $schedule->command('discord:sync-roles')->everyFifteenMinutes();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(LogPageView::class);

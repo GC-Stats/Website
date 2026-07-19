@@ -57,6 +57,8 @@ class TeamMergeService
         $teamId = $team->id;
         $teamName = $team->name;
 
+        $affectedPlayerIds = DB::table('player_team')->where('team_id', $team->id)->pluck('player_id')->unique();
+
         DB::transaction(function () use ($team) {
             DB::table('player_team')->where('team_id', $team->id)->delete();
 
@@ -76,6 +78,10 @@ class TeamMergeService
         });
 
         Cache::tags(["team_{$teamId}"])->flush();
+
+        foreach ($affectedPlayerIds as $playerId) {
+            Cache::tags(["player_{$playerId}"])->flush();
+        }
 
         activity('team')->causedBy($actor)
             ->withProperties(['team_id' => $teamId, 'name' => $teamName])
@@ -259,10 +265,12 @@ class TeamMergeService
             ->whereIn('model_id', $userIds)
             ->get(['role_id', 'model_id']);
 
+        $usersById = User::whereIn('id', $assignments->pluck('model_id')->unique())->get()->keyBy('id');
+
         foreach ($assignments as $assignment) {
             $sourceRole = $sourceRolesById->get($assignment->role_id);
             $targetRole = $sourceRole ? $targetRolesByName->get($sourceRole->name) : null;
-            $user = $targetRole ? User::find($assignment->model_id) : null;
+            $user = $targetRole ? $usersById->get($assignment->model_id) : null;
 
             if (! $user) {
                 continue;

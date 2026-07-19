@@ -55,6 +55,8 @@ class PlayerMergeService
         $playerId = $player->id;
         $handle = $player->handle;
 
+        $affectedTeamIds = DB::table('player_team')->where('player_id', $player->id)->pluck('team_id')->unique();
+
         foreach ($player->logos as $logo) {
             $this->logoUploadService->deleteFiles('players', $logo->id);
         }
@@ -62,6 +64,10 @@ class PlayerMergeService
         $player->delete();
 
         Cache::tags(["player_{$playerId}"])->flush();
+
+        foreach ($affectedTeamIds as $teamId) {
+            Cache::tags(["team_{$teamId}"])->flush();
+        }
 
         activity('player')->causedBy($actor)
             ->withProperties(['player_id' => $playerId, 'handle' => $handle])

@@ -18,6 +18,7 @@ use App\Support\PermissionTeam;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -149,6 +150,22 @@ class User extends Authenticatable implements PasskeyUser
         $registrar->setPermissionsTeamId($previousTeamId);
 
         return $canManage;
+    }
+
+    /**
+     * Shared by every "search users to assign a role/owner to" screen
+     * (Admin\RoleController, Admin\TeamController, Team\RoleController) so
+     * the searchable columns and LIKE-escaping stay identical everywhere.
+     */
+    public function scopeMatching(Builder $query, string $term): Builder
+    {
+        $escaped = Str::of($term)->replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'])->toString();
+
+        return $query->where(
+            fn ($q) => $q->where('name', 'like', "%{$escaped}%")
+                ->orWhere('username', 'like', "%{$escaped}%")
+                ->orWhere('email', 'like', "%{$escaped}%")
+        );
     }
 
     /**

@@ -118,15 +118,13 @@ class RosterService
                 $rows->push(array_merge(['id' => $id], $data));
             }
 
-            // Every row left active by this save (whether newly inserted or an
-            // existing row reactivated by clearing left_at) must close out any
-            // other active row for that player — a player can't be active on
-            // two teams at once, regardless of which call path made her active.
+            $activeIdsInBatch = array_column($activeRows, 'id');
+
             foreach ($activeRows as $activeRow) {
                 $closedRows = DB::table('player_team')
                     ->where('player_id', $activeRow['player_id'])
                     ->where('team_id', '!=', $activeRow['team_id'])
-                    ->where('id', '!=', $activeRow['id'])
+                    ->whereNotIn('id', $activeIdsInBatch)
                     ->whereNull('left_at')
                     ->get(['id', 'team_id']);
 

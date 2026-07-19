@@ -127,7 +127,7 @@ class TeamController extends Controller
             'permissionGroups' => TeamPermissions::grouped(),
             'search' => $search ?? '',
             'searchResults' => $search
-                ? User::where(fn ($q) => $q->where('name', 'like', '%'.$this->escapeLike($search).'%')->orWhere('username', 'like', '%'.$this->escapeLike($search).'%')->orWhere('email', 'like', '%'.$this->escapeLike($search).'%'))
+                ? User::matching($search)
                     ->whereNotIn('id', $existingOwnerIds)
                     ->limit(10)->get()
                 : collect(),
