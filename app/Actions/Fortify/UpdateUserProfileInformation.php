@@ -47,11 +47,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             ],
         ]);
 
-        // Not ->validateWithBag(): that throws with no redirectTo, so the
-        // handler falls back to url()->previous() — which resolves to the
-        // request's Referer header first (see UrlGenerator::previous()). A
-        // stripped/absent Referer then lands somewhere other than the
-        // account settings page instead of erroring cleanly back onto it.
         if ($validator->fails()) {
             throw ValidationException::withMessages($validator->errors()->getMessages())
                 ->errorBag('updateProfileInformation')
