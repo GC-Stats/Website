@@ -100,19 +100,10 @@ class User extends Authenticatable implements PasskeyUser
 
     public function isSuperAdmin(): bool
     {
-        // Memoized: Gate::before calls this on every single ->can()/
-        // Gate::allows() check for the lifetime of the request, and unlike
-        // hasRole() (which reuses Eloquent's in-memory roles relation)
-        // this hits the DB directly — without caching, a single page with
-        // a dozen permission checks would run two extra queries each.
         if ($this->isSuperAdminCache !== null) {
             return $this->isSuperAdminCache;
         }
 
-        // team_id filter matters: a team can name a custom role
-        // 'super-admin' too (Team\RoleController::store has no reserved-
-        // name check), and Role::where('name', ...) alone isn't
-        // team-scoped — without this it could resolve to the wrong row.
         $roleId = Role::where('name', 'super-admin')->where('team_id', PermissionTeam::GLOBAL_ID)->value('id');
 
         if ($roleId === null) {
