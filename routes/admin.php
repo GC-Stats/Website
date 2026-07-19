@@ -15,6 +15,7 @@
 
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SanctionController;
@@ -74,6 +75,35 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             ->middleware('can:teams.delete')->name('destroy');
         Route::post('/{team}/merge', [TeamController::class, 'merge'])
             ->middleware('can:teams.merge')->name('merge.execute');
+    });
+
+    Route::prefix('players')->name('players.')->group(function () {
+        Route::middleware(['can:players.view'])->group(function () {
+            Route::get('/', [PlayerController::class, 'index'])->name('index');
+            Route::get('/{player}', [PlayerController::class, 'show'])->name('show');
+            Route::get('/{player}/merge', [PlayerController::class, 'showMerge'])
+                ->middleware('can:players.merge')->name('merge.show');
+        });
+
+        Route::middleware(['can:players.edit'])->group(function () {
+            Route::put('/{player}', [PlayerController::class, 'updateProfile'])->name('update');
+            Route::delete('/{player}/val-id', [PlayerController::class, 'resetValId'])->name('val-id.destroy');
+            Route::delete('/{player}/discord-id', [PlayerController::class, 'resetDiscordId'])->name('discord-id.destroy');
+            Route::prefix('{player}/logo')->name('logo.')->group(function () {
+                Route::post('/', [PlayerController::class, 'updateLogo'])->name('update');
+                Route::post('/history', [PlayerController::class, 'storeLogoHistory'])->name('history.store');
+                Route::put('/history/{logo}', [PlayerController::class, 'updateLogoEntry'])->name('history.update');
+                Route::delete('/history/{logo}', [PlayerController::class, 'destroyLogoEntry'])->name('history.destroy');
+            });
+        });
+
+        Route::put('/{player}/identifiers', [PlayerController::class, 'updateIdentifiers'])
+            ->middleware('can:players.identifiers.manage')->name('identifiers.update');
+
+        Route::delete('/{player}', [PlayerController::class, 'destroy'])
+            ->middleware('can:players.delete')->name('destroy');
+        Route::post('/{player}/merge', [PlayerController::class, 'merge'])
+            ->middleware('can:players.merge')->name('merge.execute');
     });
 
     Route::middleware(['can:manage-roles'])->prefix('roles')->name('roles.')->group(function () {

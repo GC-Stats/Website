@@ -40,4 +40,36 @@ return [
         'stats' => 'Stats',
         'teams_history' => 'Teams history',
     ],
+
+    'edit' => [
+        'title' => 'Edit player',
+        'logo' => [
+            'title' => 'Photo',
+            'submit' => 'Upload',
+            'history_title' => 'Photo history',
+            'history_from' => 'From',
+            'history_until' => 'Until',
+            'history_add' => 'Add to history',
+            'history_remove_confirm' => 'Permanently remove this photo history entry?',
+            'history_empty' => 'No past photos.',
+        ],
+        'profile' => [
+            'title' => 'Profile',
+            'submit' => 'Save changes',
+        ],
+        'fields' => [
+            'handle' => 'Handle',
+            'first_name' => 'First name',
+            'last_name' => 'Last name',
+            'country_code' => 'Country code',
+            'country_code_search' => 'Search for a country…',
+            'country_code_none' => 'No country / international',
+            'bio' => 'Description',
+            'vlr_id' => 'VLR.gg ID',
+            'vlr_id_info' => 'Not displayed or shared publicly — used internally to simplify our work.',
+            'liquipedia_link' => 'Liquipedia link',
+            'is_active' => 'Active player',
+            'socials' => 'Social accounts',
+        ],
+    ],
 ];

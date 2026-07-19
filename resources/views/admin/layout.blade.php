@@ -45,6 +45,7 @@
                 'label' => __('admin.nav.group_content'),
                 'items' => [
                     ['route' => 'admin.teams.index', 'pattern' => 'admin.teams.*', 'label' => __('admin.nav.teams'), 'icon' => 'fas-people-group', 'can' => 'teams.view'],
+                    ['route' => 'admin.players.index', 'pattern' => 'admin.players.*', 'label' => __('admin.nav.players'), 'icon' => 'fas-user', 'can' => 'players.view'],
                 ],
             ],
             [

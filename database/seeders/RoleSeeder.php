@@ -54,6 +54,6 @@ class RoleSeeder extends Seeder
             'activity.moderation',
         ]);
 
-        Role::findOrCreate('editor')->syncPermissions(['news.manage', 'teams.view', 'teams.edit']);
+        Role::findOrCreate('editor')->syncPermissions(['news.manage', 'teams.view', 'teams.edit', 'players.view', 'players.edit']);
     }
 }

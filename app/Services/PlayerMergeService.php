@@ -1,0 +1,139 @@
+<?php
+
+/**
+ * GC-Stats — Player merge service
+ *
+ * Merges specific items of one player's data into another. Mirrors
+ * TeamMergeService's merge() — see its docblock — but scoped to what a
+ * Player actually owns: team history (player_team, the roster-equivalent
+ * from the player's side), match stats, logos and news tags. Players have
+ * no per-entity roles or tournament participation of their own, so those
+ * TeamMergeService categories have no equivalent here.
+ *
+ * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
+ * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
+ *
+ * @link      https://github.com/GC-Stats/Website
+ */
+
+namespace App\Services;
+
+use App\Models\Logo;
+use App\Models\Player;
+use App\Models\User;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+
+class PlayerMergeService
+{
+    public function __construct(private readonly LogoUploadService $logoUploadService) {}
+
+    /**
+     * $source itself is never deleted here — only the checked items move.
+     *
+     * @param  array{teams?: list<int>, news?: list<int>, logos?: list<string>, stats?: list<int>}  $selection
+     */
+    public function merge(Player $source, Player $target, array $selection, User $actor): void
+    {
+        DB::transaction(function () use ($source, $target, $selection) {
+            if (! empty($selection['teams'])) {
+                $this->mergeTeams($source, $target, $selection['teams']);
+            }
+
+            if (! empty($selection['news'])) {
+                $this->mergeNews($source, $target, $selection['news']);
+            }
+
+            if (! empty($selection['logos'])) {
+                Logo::where('entity_type', 'player')->where('entity_id', $source->id)
+                    ->whereIn('id', $selection['logos'])
+                    ->update(['entity_id' => $target->id]);
+            }
+
+            if (! empty($selection['stats'])) {
+                $this->mergeStats($source, $target, $selection['stats']);
+            }
+        });
+
+        Cache::tags(["player_{$source->id}"])->flush();
+        Cache::tags(["player_{$target->id}"])->flush();
+
+        activity('player')->causedBy($actor)
+            ->withProperties(['source_id' => $source->id, 'target_id' => $target->id, 'selection' => $selection])
+            ->log('player.merged');
+    }
+
+    /**
+     * Moves each selected `player_team` row (by pivot id, current or
+     * historical) from $source to $target. Mirrors
+     * TeamMergeService::mergeRoster(), direction-flipped: a player can only
+     * be active on one team at a time, so a moved active row (left_at null)
+     * closes out any other active row $target already holds elsewhere
+     * first — otherwise the merge would leave $target active on two teams.
+     *
+     * @param  list<int>  $entryIds
+     */
+    private function mergeTeams(Player $source, Player $target, array $entryIds): void
+    {
+        $entries = DB::table('player_team')->where('player_id', $source->id)->whereIn('id', $entryIds)->get();
+
+        $affectedTeamIds = [];
+
+        foreach ($entries as $entry) {
+            if ($entry->left_at === null) {
+                DB::table('player_team')
+                    ->where('player_id', $target->id)
+                    ->whereNull('left_at')
+                    ->update(['left_at' => $entry->joined_at, 'updated_at' => now()]);
+            }
+
+            DB::table('player_team')->where('id', $entry->id)->update(['player_id' => $target->id, 'updated_at' => now()]);
+
+            $affectedTeamIds[] = $entry->team_id;
+        }
+
+        foreach (array_unique($affectedTeamIds) as $teamId) {
+            Cache::tags(["team_{$teamId}"])->flush();
+        }
+    }
+
+    /**
+     * @param  list<int>  $newsIds
+     */
+    private function mergeNews(Player $source, Player $target, array $newsIds): void
+    {
+        $targetNewsIds = DB::table('news_relations')
+            ->where('relationable_type', 'player')->where('relationable_id', $target->id)
+            ->whereIn('news_id', $newsIds)->pluck('news_id');
+
+        DB::table('news_relations')
+            ->where('relationable_type', 'player')->where('relationable_id', $source->id)
+            ->whereIn('news_id', $newsIds)->whereIn('news_id', $targetNewsIds)
+            ->delete();
+
+        DB::table('news_relations')
+            ->where('relationable_type', 'player')->where('relationable_id', $source->id)
+            ->whereIn('news_id', $newsIds)->whereNotIn('news_id', $targetNewsIds)
+            ->update(['relationable_id' => $target->id]);
+    }
+
+    /**
+     * Moves each selected `game_player_stats` row from $source to $target.
+     * A stat row is keyed one-per-(match, player), so a selected row whose
+     * match $target already has a stat row for is skipped rather than
+     * moved — same dedup-by-target pattern as mergeNews().
+     *
+     * @param  list<int>  $statIds
+     */
+    private function mergeStats(Player $source, Player $target, array $statIds): void
+    {
+        $sourceStats = DB::table('game_player_stats')->where('player_id', $source->id)->whereIn('id', $statIds)->get(['id', 'match_id']);
+
+        $targetMatchIds = DB::table('game_player_stats')->where('player_id', $target->id)
+            ->whereIn('match_id', $sourceStats->pluck('match_id'))->pluck('match_id');
+
+        $movableIds = $sourceStats->whereNotIn('match_id', $targetMatchIds)->pluck('id');
+
+        DB::table('game_player_stats')->whereIn('id', $movableIds)->update(['player_id' => $target->id]);
+    }
+}
