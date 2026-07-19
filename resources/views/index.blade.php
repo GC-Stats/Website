@@ -32,6 +32,12 @@
 @endpush
 
 @section('content')
+    @if (session('status') === 'no-admin-section')
+        <div class="mb-6 bg-white/5 border border-border-subtle text-gray-300 text-sm rounded-sm px-4 py-3">
+            {{ __('layout.account.no_admin_section') }}
+        </div>
+    @endif
+
     <div class="grid grid-cols-12 gap-6">
         <aside class="col-span-12 lg:col-span-3 space-y-2" aria-label="{{ __('index.news') }}">
             @include('news._sidebar', ['news' => $newsItems, 'newsFeatured' => $newsFeatured])

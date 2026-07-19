@@ -14,6 +14,14 @@ return [
         'open_menu' => 'Open menu',
         'close_menu' => 'Close menu',
     ],
+    'account' => [
+        'menu_label' => 'Account menu',
+        'login' => 'Sign in',
+        'settings' => 'Account settings',
+        'admin' => 'Admin panel',
+        'no_admin_section' => 'Your role has admin permissions, but no dashboard section is built for it yet.',
+        'logout' => 'Sign out',
+    ],
     'lang' => [
         'switcher_label' => 'Change language',
         'dropdown_label' => 'Available languages',

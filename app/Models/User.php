@@ -14,20 +14,31 @@
 
 namespace App\Models;
 
+use App\Support\PermissionTeam;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Passkeys\Contracts\PasskeyUser;
+use Laravel\Passkeys\PasskeyAuthenticatable;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+#[Fillable(['name', 'username', 'email', 'password'])]
+#[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
+class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
@@ -39,7 +50,113 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'preferences' => 'array',
+            'discord_synced_at' => 'datetime',
         ];
+    }
+
+    public function player(): HasOne
+    {
+        return $this->hasOne(Player::class);
+    }
+
+    public function socialAccounts(): HasMany
+    {
+        return $this->hasMany(SocialAccount::class);
+    }
+
+    public function sanctions(): HasMany
+    {
+        return $this->hasMany(Sanction::class);
+    }
+
+    public function reportsReceived(): HasMany
+    {
+        return $this->hasMany(UserReport::class, 'reported_user_id');
+    }
+
+    public function reportsSubmitted(): HasMany
+    {
+        return $this->hasMany(UserReport::class, 'reporter_id');
+    }
+
+    /**
+     * Number of distinct ways this account can currently be authenticated
+     * with (password + each linked social provider). Must never drop to 0.
+     */
+    public function authMethodsCount(): int
+    {
+        return ($this->password !== null ? 1 : 0) + $this->socialAccounts()->count();
+    }
+
+    /**
+     * Whether this user holds the global 'super-admin' role — checked
+     * directly against the pivot table rather than hasRole(), which is
+     * scoped to whatever PermissionTeam context is currently active (e.g.
+     * a team's own role-management pages switch context to that team).
+     * Site-wide super-admin status must never depend on that.
+     */
+    private ?bool $isSuperAdminCache = null;
+
+    public function isSuperAdmin(): bool
+    {
+        if ($this->isSuperAdminCache !== null) {
+            return $this->isSuperAdminCache;
+        }
+
+        $roleId = Role::where('name', 'super-admin')->where('team_id', PermissionTeam::GLOBAL_ID)->value('id');
+
+        if ($roleId === null) {
+            return $this->isSuperAdminCache = false;
+        }
+
+        return $this->isSuperAdminCache = DB::table('model_has_roles')
+            ->where('model_id', $this->id)
+            ->where('model_type', static::class)
+            ->where('role_id', $roleId)
+            ->where('team_id', PermissionTeam::GLOBAL_ID)
+            ->exists();
+    }
+
+    /**
+     * Whether this user can reach that team's own management page at all
+     * (any of the team.* permissions, checked under that team's own
+     * PermissionTeam context — then restored, so callers on a page that
+     * also does its own global-context permission checks elsewhere in the
+     * same request, e.g. the nav's admin-panel link, aren't affected).
+     */
+    public function canManageTeam(int $teamId): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        $registrar = app(PermissionRegistrar::class);
+        $previousTeamId = $registrar->getPermissionsTeamId();
+
+        PermissionTeam::use($teamId);
+
+        $canManage = $this->can('team.profile.edit') || $this->can('team.logo.upload') || $this->can('team.roles.manage');
+
+        $registrar->setPermissionsTeamId($previousTeamId);
+
+        return $canManage;
+    }
+
+    /**
+     * Shared by every "search users to assign a role/owner to" screen
+     * (Admin\RoleController, Admin\TeamController, Team\RoleController) so
+     * the searchable columns and LIKE-escaping stay identical everywhere.
+     */
+    public function scopeMatching(Builder $query, string $term): Builder
+    {
+        $escaped = Str::of($term)->replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'])->toString();
+
+        return $query->where(
+            fn ($q) => $q->where('name', 'like', "%{$escaped}%")
+                ->orWhere('username', 'like', "%{$escaped}%")
+                ->orWhere('email', 'like', "%{$escaped}%")
+        );
     }
 
     /**

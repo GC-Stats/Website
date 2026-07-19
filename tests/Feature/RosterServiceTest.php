@@ -64,6 +64,30 @@ test('inserting a new row with an explicit left_at does not close other active r
     expect($oldRow->left_at)->toBeNull();
 });
 
+test('submitting two active rows for the same player in one batch keeps both active', function () {
+    $player = Player::factory()->create();
+    $teamA = Team::factory()->create();
+    $teamB = Team::factory()->create();
+
+    $rows = app(RosterService::class)->save('player_id', $player->id, [
+        [
+            'player_id' => $player->id,
+            'team_id' => $teamA->id,
+            'joined_at' => '2025-01-01',
+            'left_at' => null,
+        ],
+        [
+            'player_id' => $player->id,
+            'team_id' => $teamB->id,
+            'joined_at' => '2025-02-01',
+            'left_at' => null,
+        ],
+    ]);
+
+    expect($rows->pluck('left_at')->filter()->isEmpty())->toBeTrue()
+        ->and(DB::table('player_team')->where('player_id', $player->id)->whereNull('left_at')->count())->toBe(2);
+});
+
 test('rows not present in the entries list are deleted', function () {
     $team = Team::factory()->create();
     $player = Player::factory()->create();
@@ -97,7 +121,26 @@ test('deleteEntry removes the row and returns false for a missing id', function 
         'updated_at' => now(),
     ]);
 
-    expect(app(RosterService::class)->deleteEntry($rowId))->toBeTrue()
+    expect(app(RosterService::class)->deleteEntry($team, $rowId))->toBeTrue()
         ->and(DB::table('player_team')->where('id', $rowId)->exists())->toBeFalse()
-        ->and(app(RosterService::class)->deleteEntry($rowId))->toBeFalse();
+        ->and(app(RosterService::class)->deleteEntry($team, $rowId))->toBeFalse();
+});
+
+test('deleteEntry does not delete a row belonging to another team', function () {
+    $team = Team::factory()->create();
+    $otherTeam = Team::factory()->create();
+    $player = Player::factory()->create();
+
+    $rowId = DB::table('player_team')->insertGetId([
+        'player_id' => $player->id,
+        'team_id' => $otherTeam->id,
+        'role' => 'player',
+        'joined_at' => '2025-01-01',
+        'left_at' => null,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    expect(app(RosterService::class)->deleteEntry($team, $rowId))->toBeFalse()
+        ->and(DB::table('player_team')->where('id', $rowId)->exists())->toBeTrue();
 });

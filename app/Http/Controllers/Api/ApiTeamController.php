@@ -202,9 +202,9 @@ class ApiTeamController extends Controller
 
     public function deleteRosterEntry(int $id, int $entry, RosterService $rosterService): JsonResponse
     {
-        Team::findOrFail($id);
+        $team = Team::findOrFail($id);
 
-        $deleted = $rosterService->deleteEntry($entry);
+        $deleted = $rosterService->deleteEntry($team, $entry);
 
         if (! $deleted) {
             return response()->json(['error' => 'Roster entry not found'], 404);

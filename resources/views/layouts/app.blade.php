@@ -13,6 +13,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <script>
         (function () {
@@ -145,6 +146,60 @@
 
                     <div class="hidden md:block h-6 w-[1px] bg-white/10 ml-2"></div>
 
+                    @auth
+                        <div class="relative"
+                             x-data="{ accountOpen: false }"
+                             @click.away="accountOpen = false">
+                            <button
+                                @click="accountOpen = !accountOpen"
+                                aria-haspopup="true"
+                                :aria-expanded="accountOpen.toString()"
+                                aria-label="{{ __('layout.account.menu_label') }}"
+                                class="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--brand-yellow)]/50 transition-all text-[10px] font-black uppercase text-white">
+                                {{ auth()->user()->initials() }}
+                            </button>
+
+                            <div x-show="accountOpen"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 translate-y-1"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 translate-y-1"
+                                 role="menu"
+                                 class="absolute right-0 mt-2 w-52 bg-bg-main/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] z-50 overflow-hidden origin-top-right"
+                                 x-cloak>
+                                <div class="py-1">
+                                    <a href="{{ route('account.edit') }}" role="menuitem"
+                                       class="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
+                                        <x-fas-user class="w-3.5 h-3.5" aria-hidden="true" />
+                                        {{ __('layout.account.settings') }}
+                                    </a>
+                                    @can('access-admin')
+                                        <a href="{{ route('admin.dashboard') }}" role="menuitem"
+                                           class="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
+                                            <x-fas-shield-halved class="w-3.5 h-3.5" aria-hidden="true" />
+                                            {{ __('layout.account.admin') }}
+                                        </a>
+                                    @endcan
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" role="menuitem"
+                                                class="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
+                                            <x-fas-arrow-right-from-bracket class="w-3.5 h-3.5" aria-hidden="true" />
+                                            {{ __('layout.account.logout') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}"
+                           class="flex-shrink-0 flex items-center px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:border-[var(--brand-yellow)]/50 hover:text-white transition-all">
+                            {{ __('layout.account.login') }}
+                        </a>
+                    @endauth
+
                     <div class="relative"
                          x-data="{ langOpen: false }"
                          @mouseenter="langOpen = true"
@@ -262,6 +317,36 @@
                     <x-fas-trophy class="w-3.5 h-3.5" aria-hidden="true" />
                     {{ __('tournament.title.nav') }}
                 </a>
+
+                @auth
+                    <a href="{{ route('account.edit') }}"
+                       @if(request()->routeIs('account.edit')) aria-current="page" @endif
+                       class="flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all {{ request()->routeIs('account.edit') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 bg-white/5' }}">
+                        <x-fas-user class="w-3.5 h-3.5" aria-hidden="true" />
+                        {{ __('layout.account.settings') }}
+                    </a>
+                    @can('access-admin')
+                        <a href="{{ route('admin.dashboard') }}"
+                           class="flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all text-gray-400 bg-white/5">
+                            <x-fas-shield-halved class="w-3.5 h-3.5" aria-hidden="true" />
+                            {{ __('layout.account.admin') }}
+                        </a>
+                    @endcan
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit"
+                                class="w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all text-gray-400 bg-white/5">
+                            <x-fas-arrow-right-from-bracket class="w-3.5 h-3.5" aria-hidden="true" />
+                            {{ __('layout.account.logout') }}
+                        </button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}"
+                       class="flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all text-gray-400 bg-white/5">
+                        <x-fas-user class="w-3.5 h-3.5" aria-hidden="true" />
+                        {{ __('layout.account.login') }}
+                    </a>
+                @endauth
             </div>
         </div>
 

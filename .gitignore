@@ -2,6 +2,7 @@
 
 /public/build
 /public/hot
+/resources/data/countries.json
 /storage/*.key
 /storage/pail
 /vendor

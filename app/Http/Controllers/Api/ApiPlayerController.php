@@ -20,6 +20,7 @@ use App\Services\RosterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ApiPlayerController extends Controller
 {
@@ -98,6 +99,14 @@ class ApiPlayerController extends Controller
             'history.*.joined_at' => ['required', 'date'],
             'history.*.left_at' => ['sometimes', 'nullable', 'date'],
         ]);
+
+        $activeCount = collect($validated['history'])->filter(fn ($entry) => empty($entry['left_at']))->count();
+
+        if ($activeCount > 1) {
+            throw ValidationException::withMessages([
+                'history' => __('player.errors.multiple_active_teams'),
+            ]);
+        }
 
         $entries = array_map(fn ($entry) => array_merge($entry, ['player_id' => $player->id]), $validated['history']);
 

@@ -17,6 +17,7 @@ namespace App\Models;
 use App\Models\Concerns\HasLogo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -27,6 +28,7 @@ class Player extends Model
     protected $appends = ['profile_photo'];
 
     protected $fillable = [
+        'user_id',
         'handle',
         'first_name',
         'last_name',
@@ -48,6 +50,11 @@ class Player extends Model
     public function stats(): HasMany
     {
         return $this->hasMany(GamePlayerStat::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function teams()
