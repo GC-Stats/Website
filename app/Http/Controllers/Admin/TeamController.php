@@ -111,10 +111,6 @@ class TeamController extends Controller
         $playerSearch = $request->get('player_q');
         $history = $rosterService->history($team->id);
 
-        // Deliberately not $user->roles() / whereHas('roles', ...): that
-        // relation is scoped to whatever PermissionTeam context is
-        // currently active, not $ownerRole's own team — querying the
-        // pivot table directly here avoids that mismatch entirely.
         $existingOwnerIds = $ownerRole
             ? DB::table('model_has_roles')->where('role_id', $ownerRole->id)->where('model_type', User::class)->pluck('model_id')
             : collect();
@@ -258,15 +254,6 @@ class TeamController extends Controller
 
         PermissionTeam::use($team->id);
         foreach (Role::where('team_id', $team->id)->get() as $role) {
-            // team_owner always tracks the ceiling exactly: it's the
-            // team's "full access" role by definition (TeamRoleService),
-            // so widening the ceiling must widen owner along with it —
-            // otherwise a team whose roles were first provisioned before
-            // any ceiling was set (owner synced to an empty ceiling, see
-            // TeamRoleService::ensureRolesExist) stays permission-less
-            // forever, since intersecting can only ever narrow, never add.
-            // Every other role keeps whatever subset an admin deliberately
-            // chose for it, just trimmed back if it now exceeds the ceiling.
             $permissions = $role->name === TeamRoleService::ROLE_OWNER
                 ? $ceiling
                 : array_intersect($role->permissions->pluck('name')->all(), $ceiling);
@@ -290,11 +277,7 @@ class TeamController extends Controller
 
         activity('team')->performedOn($user)->causedBy($request->user())
             ->withProperties(['team_id' => $team->id])->log('team.owner_assigned');
-
-        // Not back(): the referer still carries the search modal's ?q=...,
-        // which would reopen it (see <x-modal :open-by-default>) right
-        // back onto a now-stale result list. Redirecting to the clean URL
-        // closes it.
+        
         return redirect()->route('admin.teams.show', $team)->with('status', 'owner-assigned');
     }
 
