@@ -31,11 +31,6 @@ class ProfileController extends Controller
 {
     public function edit(Request $request, Team $team, RosterService $rosterService): View
     {
-        // Matches User::canManageTeam(), which decides whether the "Edit
-        // team" link is shown at all — a team.roles.manage-only user must
-        // land on a real page here (they'll just see neither form section,
-        // per the @can checks in team.edit, but the roles-page link at the
-        // top of it) rather than 403 on the only link they're given.
         abort_unless(
             $request->user()->can('team.profile.edit')
                 || $request->user()->can('team.logo.upload')
