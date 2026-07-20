@@ -16,6 +16,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasLogo;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -28,6 +29,7 @@ class NewsAuthor extends Model
     protected $appends = ['logo'];
 
     protected $fillable = [
+        'user_id',
         'name',
         'slug',
         'bio',
@@ -37,6 +39,11 @@ class NewsAuthor extends Model
     protected $casts = [
         'socials' => 'array',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function news(): HasMany
     {

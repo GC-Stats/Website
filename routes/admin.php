@@ -15,11 +15,16 @@
 
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\NewsAuthorController;
+use App\Http\Controllers\Admin\NewsController;
+use App\Http\Controllers\Admin\NewsMediaController;
+use App\Http\Controllers\Admin\NewsPublisherController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SanctionController;
 use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\News\RoleController as PublisherRoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -104,6 +109,87 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             ->middleware('can:players.delete')->name('destroy');
         Route::post('/{player}/merge', [PlayerController::class, 'merge'])
             ->middleware('can:players.merge')->name('merge.execute');
+    });
+
+    Route::prefix('news')->name('news.')->group(function () {
+        Route::get('/', [NewsController::class, 'index'])->name('index');
+        Route::get('/create', [NewsController::class, 'create'])->name('create');
+        Route::get('/relations/search', [NewsController::class, 'searchRelations'])->name('relations.search');
+        Route::post('/', [NewsController::class, 'store'])->name('store');
+        Route::get('/{article}/edit', [NewsController::class, 'edit'])->name('edit');
+        Route::put('/{article}', [NewsController::class, 'update'])->name('update');
+        Route::delete('/{article}', [NewsController::class, 'destroy'])->name('destroy');
+        Route::post('/{article}/publish', [NewsController::class, 'publish'])->name('publish');
+        Route::post('/{article}/archive', [NewsController::class, 'archive'])->name('archive');
+
+        Route::middleware(['can:news.edit'])->group(function () {
+            Route::post('/{article}/feature', [NewsController::class, 'toggleFeature'])->name('feature');
+            Route::post('/{article}/show-on-home', [NewsController::class, 'toggleShowOnHome'])->name('show-on-home');
+        });
+
+        Route::prefix('media')->name('media.')->group(function () {
+            Route::get('/', [NewsMediaController::class, 'index'])->name('index');
+            Route::post('/', [NewsMediaController::class, 'store'])->name('store');
+            Route::put('/{image}/link', [NewsMediaController::class, 'link'])->name('link');
+            Route::put('/{article}/cover/{image}', [NewsMediaController::class, 'setCover'])->name('cover.update');
+            Route::delete('/{image}', [NewsMediaController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('publishers')->name('publishers.')->group(function () {
+            // Site admins see the full list; a publisher-only member is
+            // self-redirected to their own publisher — see
+            // Admin\NewsPublisherController::index.
+            Route::get('/', [NewsPublisherController::class, 'index'])->name('index');
+
+            Route::middleware(['can:news.publishers.edit'])->group(function () {
+                Route::post('/', [NewsPublisherController::class, 'store'])->name('store');
+            });
+
+            Route::get('/{publisher}', [NewsPublisherController::class, 'show'])->name('show');
+            Route::put('/{publisher}', [NewsPublisherController::class, 'update'])->name('update');
+            Route::post('/{publisher}/logo', [NewsPublisherController::class, 'updateLogo'])->name('logo.update');
+
+            Route::middleware(['can:news.publishers.edit'])->group(function () {
+                Route::put('/{publisher}/max-permissions', [NewsPublisherController::class, 'updateMaxPermissions'])->name('max-permissions.update');
+            });
+            Route::middleware(['can:news.publishers.owner.manage'])->group(function () {
+                Route::post('/{publisher}/owner', [NewsPublisherController::class, 'assignOwner'])->name('owner.store');
+                Route::delete('/{publisher}/owner/{user}', [NewsPublisherController::class, 'removeOwner'])->name('owner.destroy');
+            });
+            Route::delete('/{publisher}', [NewsPublisherController::class, 'destroy'])
+                ->middleware('can:news.publishers.delete')->name('destroy');
+
+            Route::prefix('{publisher}/roles')->name('roles.')
+                ->middleware(['publisher.permission-context', 'can:publisher.roles.manage'])
+                ->group(function () {
+                    Route::get('/', [PublisherRoleController::class, 'index'])->name('index');
+                    Route::post('/', [PublisherRoleController::class, 'store'])->name('store');
+                    Route::get('/{role}', [PublisherRoleController::class, 'show'])->name('show');
+                    Route::put('/{role}', [PublisherRoleController::class, 'update'])->name('update');
+                    Route::delete('/{role}', [PublisherRoleController::class, 'destroy'])->name('destroy');
+
+                    Route::post('/{role}/members', [PublisherRoleController::class, 'addMember'])->name('members.store');
+                    Route::delete('/{role}/members/{user}', [PublisherRoleController::class, 'removeMember'])->name('members.destroy');
+                });
+        });
+
+        Route::prefix('authors')->name('authors.')->group(function () {
+            Route::get('/', [NewsAuthorController::class, 'index'])->name('index');
+
+            // Admins can create a profile for anyone; anyone without a
+            // profile yet can self-create exactly one — see
+            // Admin\NewsAuthorController::store.
+            Route::post('/', [NewsAuthorController::class, 'store'])->name('store');
+
+            // Self-scoped for the linked author user, or any admin with
+            // news.authors.edit — see NewsAuthorController::ensureCanManage.
+            Route::get('/{author}', [NewsAuthorController::class, 'show'])->name('show');
+            Route::put('/{author}', [NewsAuthorController::class, 'update'])->name('update');
+            Route::post('/{author}/logo', [NewsAuthorController::class, 'updateLogo'])->name('logo.update');
+
+            Route::delete('/{author}', [NewsAuthorController::class, 'destroy'])
+                ->middleware('can:news.authors.delete')->name('destroy');
+        });
     });
 
     Route::middleware(['can:manage-roles'])->prefix('roles')->name('roles.')->group(function () {

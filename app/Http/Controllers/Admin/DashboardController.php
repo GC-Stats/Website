@@ -16,6 +16,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\PublisherScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -30,7 +31,15 @@ class DashboardController extends Controller
             $user->can('sanctions.view') => redirect()->route('admin.sanctions.index'),
             $user->can('activity.view') => redirect()->route('admin.activity.index'),
             $user->can('teams.view') => redirect()->route('admin.teams.index'),
+            $user->can('players.view') => redirect()->route('admin.players.index'),
+            $user->can('news.view') => redirect()->route('admin.news.index'),
+            $user->can('news.publishers.view') => redirect()->route('admin.news.publishers.index'),
+            $user->can('news.authors.view') => redirect()->route('admin.news.authors.index'),
+            $user->can('news.media.view') => redirect()->route('admin.news.media.index'),
             $user->can('manage-roles') => redirect()->route('admin.roles.index'),
+
+            PublisherScope::publisherIdsForUser($user->id)->isNotEmpty() => redirect()->route('admin.news.publishers.index'),
+            $user->newsAuthor()->exists() => redirect()->route('admin.news.authors.index'),
 
             default => redirect()->route('home')->with('status', 'no-admin-section'),
         };

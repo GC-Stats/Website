@@ -60,6 +60,11 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasOne(Player::class);
     }
 
+    public function newsAuthor(): HasOne
+    {
+        return $this->hasOne(NewsAuthor::class);
+    }
+
     public function socialAccounts(): HasMany
     {
         return $this->hasMany(SocialAccount::class);

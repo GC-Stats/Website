@@ -31,6 +31,8 @@ use App\Observers\TeamObserver;
 use App\Observers\TournamentObserver;
 use App\Support\AdminPermissions;
 use App\Support\PermissionTeam;
+use App\Support\PublisherPermissions;
+use App\Support\PublisherScope;
 use App\Support\Socialite\TwitterProviderWithCreatedAt;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
@@ -129,15 +131,40 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::before(fn ($user, string $ability) => $user->isSuperAdmin() ? true : null);
 
+        Gate::before(fn ($user, string $ability) => str_starts_with($ability, 'publisher.')
+            ? ($user->hasPermissionTo($ability, PublisherPermissions::GUARD) ?: null)
+            : null);
+
         Gate::define('manage-roles', fn ($user) => $user->isSuperAdmin());
 
         Gate::define('access-admin', fn ($user) => $user->getAllPermissions()
             ->pluck('name')
             ->intersect(AdminPermissions::all())
-            ->isNotEmpty());
+            ->isNotEmpty()
+            || $user->newsAuthor()->exists()
+            || PublisherScope::publisherIdsForUser($user->id)->isNotEmpty());
 
         Gate::define('activity.view', fn ($user) => collect(AdminPermissions::grouped()['activity'])
             ->contains(fn ($permission) => $user->can($permission)));
+        
+        Gate::define('news.nav.articles', fn ($user) => $user->can('news.view')
+            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.news.view')->isNotEmpty());
+
+        Gate::define('news.nav.publishers', fn ($user) => $user->can('news.publishers.view')
+            || PublisherScope::publisherIdsForUser($user->id)->isNotEmpty());
+
+        Gate::define('news.nav.authors', fn ($user) => $user->can('news.authors.view')
+            || $user->newsAuthor()->exists()
+            || PublisherScope::publisherIdsForUser($user->id)->isNotEmpty());
+
+        Gate::define('news.nav.media', fn ($user) => $user->can('news.media.view')
+            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.media.view')->isNotEmpty());
+
+        Gate::define('news.action.create', fn ($user) => $user->can('news.create')
+            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.news.edit')->isNotEmpty());
+
+        Gate::define('news.media.action.upload', fn ($user) => $user->can('news.media.upload')
+            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.media.upload')->isNotEmpty());
     }
 
     /**
