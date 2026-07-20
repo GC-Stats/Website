@@ -146,7 +146,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('activity.view', fn ($user) => collect(AdminPermissions::grouped()['activity'])
             ->contains(fn ($permission) => $user->can($permission)));
-        
+
         Gate::define('news.nav.articles', fn ($user) => $user->can('news.view')
             || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.news.view')->isNotEmpty());
 

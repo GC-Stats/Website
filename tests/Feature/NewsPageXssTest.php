@@ -2,6 +2,7 @@
 
 use App\Models\News;
 use App\Models\NewsAuthor;
+use App\Services\HtmlSanitizer;
 
 test('a news article title containing a script-breakout payload cannot escape the JSON-LD block', function () {
     $payload = '</script><script>alert(document.cookie)</script>';
@@ -38,7 +39,7 @@ test('a news article content field is sanitized to strip script tags and event h
         'lang' => 'en',
         'title' => 'Safe title',
         'slug' => 'sanitized-content-article',
-        'content' => app(\App\Services\HtmlSanitizer::class)->sanitize(
+        'content' => app(HtmlSanitizer::class)->sanitize(
             '<p>hello</p><script>alert(document.cookie)</script><img src=x onerror=alert(1)>'
         ),
         'status' => 'published',

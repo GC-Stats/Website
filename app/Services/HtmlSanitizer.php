@@ -67,7 +67,7 @@ class HtmlSanitizer
             return '';
         }
 
-        $dom = new DOMDocument();
+        $dom = new DOMDocument;
 
         // Wrap in a container so we can pull the sanitized body back out;
         // LIBXML_NOERROR/NOWARNING silence libxml's complaints about
