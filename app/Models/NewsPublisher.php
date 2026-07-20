@@ -31,11 +31,25 @@ class NewsPublisher extends Model
         'name',
         'slug',
         'socials',
+        'max_permissions',
     ];
 
     protected $casts = [
         'socials' => 'array',
+        'max_permissions' => 'array',
     ];
+
+    /**
+     * The ceiling of App\Support\PublisherPermissions this publisher's own
+     * roles can ever be granted, set by a site admin — see
+     * Admin\NewsPublisherController.
+     *
+     * @return list<string>
+     */
+    public function maxPermissions(): array
+    {
+        return $this->max_permissions ?? [];
+    }
 
     public function news(): HasMany
     {

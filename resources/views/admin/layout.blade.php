@@ -49,6 +49,15 @@
                 ],
             ],
             [
+                'label' => __('admin.nav.news'),
+                'items' => [
+                    ['route' => 'admin.news.index', 'pattern' => 'admin.news.index', 'label' => __('admin.nav.news'), 'icon' => 'fas-newspaper', 'can' => 'news.nav.articles'],
+                    ['route' => 'admin.news.publishers.index', 'pattern' => 'admin.news.publishers.*', 'label' => __('admin.nav.news_publishers'), 'icon' => 'fas-building', 'can' => 'news.nav.publishers'],
+                    ['route' => 'admin.news.authors.index', 'pattern' => 'admin.news.authors.*', 'label' => __('admin.nav.news_authors'), 'icon' => 'fas-pen', 'can' => 'news.nav.authors'],
+                    ['route' => 'admin.news.media.index', 'pattern' => 'admin.news.media.*', 'label' => __('admin.nav.news_media'), 'icon' => 'fas-images', 'can' => 'news.nav.media'],
+                ],
+            ],
+            [
                 'label' => __('admin.nav.group_access'),
                 'items' => [
                     ['route' => 'admin.roles.index', 'pattern' => 'admin.roles.*', 'label' => __('admin.nav.roles'), 'icon' => 'fas-user-shield', 'can' => 'manage-roles'],

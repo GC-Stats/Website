@@ -18,6 +18,7 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\PermissionRegistrar;
 
 class PermissionTeam
@@ -32,5 +33,7 @@ class PermissionTeam
     public static function use(?int $teamId): void
     {
         app(PermissionRegistrar::class)->setPermissionsTeamId($teamId ?? self::GLOBAL_ID);
+
+        Auth::user()?->unsetRelation('roles');
     }
 }

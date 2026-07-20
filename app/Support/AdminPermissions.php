@@ -30,7 +30,10 @@ class AdminPermissions extends PermissionCatalog
             'activity' => ['activity.account', 'activity.moderation', 'activity.administration', 'activity.team', 'activity.player'],
             'teams' => ['teams.view', 'teams.edit', 'teams.delete', 'teams.merge'],
             'players' => ['players.view', 'players.edit', 'players.delete', 'players.merge', 'players.identifiers.manage'],
-            'news' => ['news.manage'],
+            'news' => ['news.view', 'news.create', 'news.edit', 'news.delete', 'news.publish'],
+            'news_publishers' => ['news.publishers.view', 'news.publishers.edit', 'news.publishers.delete', 'news.publishers.owner.manage'],
+            'news_authors' => ['news.authors.view', 'news.authors.edit', 'news.authors.delete'],
+            'news_media' => ['news.media.view', 'news.media.upload', 'news.media.delete'],
         ];
     }
 }

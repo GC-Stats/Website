@@ -6,6 +6,7 @@ use App\Http\Middleware\InternalServiceAuth;
 use App\Http\Middleware\LogPageView;
 use App\Http\Middleware\SetDefaultPermissionTeam;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SetPublisherPermissionContext;
 use App\Http\Middleware\SetTeamPermissionContext;
 use App\Http\Middleware\StaticPageCache;
 use Illuminate\Console\Scheduling\Schedule;
@@ -43,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'not-sanctioned' => EnsureAccountIsNotSanctioned::class,
             'not-sanctioned.team' => EnsureNotSanctionedForTeam::class,
             'team.permission-context' => SetTeamPermissionContext::class,
+            'publisher.permission-context' => SetPublisherPermissionContext::class,
         ]);
 
         $middleware->trustProxies(at: '*');
