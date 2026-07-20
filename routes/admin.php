@@ -184,7 +184,6 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::prefix('authors')->name('authors.')->group(function () {
             Route::get('/', [NewsAuthorController::class, 'index'])->name('index');
 
-
             Route::post('/', [NewsAuthorController::class, 'store'])->name('store');
 
             Route::get('/{author}', [NewsAuthorController::class, 'show'])->name('show');

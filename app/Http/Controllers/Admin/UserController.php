@@ -121,8 +121,8 @@ class UserController extends Controller
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, int>  $userIds
-     * @param  \Illuminate\Support\Collection<int, NewsPublisher>  $publishers  already-loaded id=>name map, reused from index() rather than re-queried
+     * @param  Collection<int, int>  $userIds
+     * @param  Collection<int, NewsPublisher>  $publishers  already-loaded id=>name map, reused from index() rather than re-queried
      * @return array<int, list<string>>
      */
     private function publisherNamesByUserId($userIds, Collection $publishers): array
