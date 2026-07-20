@@ -60,7 +60,12 @@
             [
                 'label' => __('admin.nav.group_access'),
                 'items' => [
+                    ['route' => 'admin.users.index', 'pattern' => 'admin.users.*', 'label' => __('admin.nav.users'), 'icon' => 'fas-users', 'can' => 'users.view'],
                     ['route' => 'admin.roles.index', 'pattern' => 'admin.roles.*', 'label' => __('admin.nav.roles'), 'icon' => 'fas-user-shield', 'can' => 'manage-roles'],
+                    ['route' => 'admin.analytics.index', 'pattern' => 'admin.analytics.*', 'label' => __('admin.nav.analytics'), 'icon' => 'fas-chart-line', 'can' => 'analytics.view'],
+                    ['route' => 'admin.finance.index', 'pattern' => 'admin.finance.*', 'label' => __('admin.nav.finance'), 'icon' => 'fas-sack-dollar', 'can' => 'finance.view'],
+                    ['route' => 'admin.about.index', 'pattern' => 'admin.about.*', 'label' => __('admin.nav.about'), 'icon' => 'fas-circle-info', 'can' => 'about.view'],
+                    ['route' => 'admin.api-keys.index', 'pattern' => 'admin.api-keys.*', 'label' => __('admin.nav.api_keys'), 'icon' => 'fas-key', 'can' => 'api-keys.view'],
                 ],
             ],
         ];
@@ -75,25 +80,8 @@
                 <span class="text-[9px] font-black uppercase tracking-widest text-gray-500 border border-white/10 rounded px-1.5 py-0.5">{{ __('admin.nav.title') }}</span>
             </a>
 
-            <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-8">
-                @foreach ($navGroups as $group)
-                    @php $visibleItems = collect($group['items'])->filter(fn ($item) => auth()->user()->can($item['can'])); @endphp
-                    @if ($visibleItems->isNotEmpty())
-                        <div>
-                            <p class="px-3 mb-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-600">{{ $group['label'] }}</p>
-                            <div class="space-y-1">
-                                @foreach ($visibleItems as $item)
-                                    <a href="{{ route($item['route']) }}"
-                                       @if(request()->routeIs($item['pattern'])) aria-current="page" @endif
-                                       class="flex items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg transition-all {{ request()->routeIs($item['pattern']) ? 'bg-gc-yellow text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
-                                        @svg($item['icon'], 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
-                                        {{ $item['label'] }}
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-                @endforeach
+            <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-5">
+                @include('admin.partials.nav', ['navGroups' => $navGroups])
             </nav>
 
             <div class="border-t border-white/10 p-3">
@@ -115,24 +103,8 @@
                     @svg('fas-xmark', 'w-4 h-4 text-gray-400', ['aria-hidden' => 'true'])
                 </button>
             </div>
-            <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-8">
-                @foreach ($navGroups as $group)
-                    @php $visibleItems = collect($group['items'])->filter(fn ($item) => auth()->user()->can($item['can'])); @endphp
-                    @if ($visibleItems->isNotEmpty())
-                        <div>
-                            <p class="px-3 mb-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-600">{{ $group['label'] }}</p>
-                            <div class="space-y-1">
-                                @foreach ($visibleItems as $item)
-                                    <a href="{{ route($item['route']) }}"
-                                       class="flex items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg transition-all {{ request()->routeIs($item['pattern']) ? 'bg-gc-yellow text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
-                                        @svg($item['icon'], 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
-                                        {{ $item['label'] }}
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-                @endforeach
+            <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-5">
+                @include('admin.partials.nav', ['navGroups' => $navGroups])
             </nav>
         </aside>
 
@@ -179,5 +151,6 @@
     </div>
 
     @livewireScripts
+    @stack('scripts')
 </body>
 </html>

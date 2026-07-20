@@ -13,8 +13,12 @@
  * @link      https://github.com/GC-Stats/Website
  */
 
+use App\Http\Controllers\Admin\AboutController;
 use App\Http\Controllers\Admin\ActivityLogController;
+use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\NewsAuthorController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\NewsMediaController;
@@ -24,6 +28,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SanctionController;
 use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\News\RoleController as PublisherRoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +44,9 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
 
     Route::get('/activity', [ActivityLogController::class, 'index'])
         ->middleware('can:activity.view')->name('activity.index');
+
+    Route::get('/analytics', [AnalyticsController::class, 'index'])
+        ->middleware('can:analytics.view')->name('analytics.index');
 
     Route::get('/sanctions', [SanctionController::class, 'index'])
         ->middleware('can:sanctions.view')->name('sanctions.index');
@@ -176,19 +184,62 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::prefix('authors')->name('authors.')->group(function () {
             Route::get('/', [NewsAuthorController::class, 'index'])->name('index');
 
-            // Admins can create a profile for anyone; anyone without a
-            // profile yet can self-create exactly one — see
-            // Admin\NewsAuthorController::store.
+
             Route::post('/', [NewsAuthorController::class, 'store'])->name('store');
 
-            // Self-scoped for the linked author user, or any admin with
-            // news.authors.edit — see NewsAuthorController::ensureCanManage.
             Route::get('/{author}', [NewsAuthorController::class, 'show'])->name('show');
             Route::put('/{author}', [NewsAuthorController::class, 'update'])->name('update');
             Route::post('/{author}/logo', [NewsAuthorController::class, 'updateLogo'])->name('logo.update');
 
             Route::delete('/{author}', [NewsAuthorController::class, 'destroy'])
                 ->middleware('can:news.authors.delete')->name('destroy');
+        });
+    });
+
+    Route::prefix('users')->name('users.')->middleware(['can:users.view'])->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/{user}', [UserController::class, 'show'])->name('show');
+    });
+
+    Route::prefix('about')->name('about.')->group(function () {
+        Route::get('/', [AboutController::class, 'index'])
+            ->middleware('can:about.view')->name('index');
+
+        Route::middleware(['can:about.manage'])->group(function () {
+            Route::put('/sections/{key}', [AboutController::class, 'saveSection'])->name('sections.update');
+
+            Route::post('/team', [AboutController::class, 'storeMember'])->name('team.store');
+            Route::put('/team/{member}', [AboutController::class, 'updateMember'])->name('team.update');
+            Route::delete('/team/{member}', [AboutController::class, 'destroyMember'])->name('team.destroy');
+            Route::post('/team/{member}/photo', [AboutController::class, 'uploadMemberPhoto'])->name('team.photo');
+
+            Route::post('/projects', [AboutController::class, 'storeProject'])->name('projects.store');
+            Route::put('/projects/{project}', [AboutController::class, 'updateProject'])->name('projects.update');
+            Route::delete('/projects/{project}', [AboutController::class, 'destroyProject'])->name('projects.destroy');
+            Route::post('/projects/{project}/logo', [AboutController::class, 'uploadProjectLogo'])->name('projects.logo');
+        });
+    });
+
+    Route::prefix('finance')->name('finance.')->group(function () {
+        Route::get('/', [FinanceController::class, 'index'])
+            ->middleware('can:finance.view')->name('index');
+
+        Route::middleware(['can:finance.manage'])->group(function () {
+            Route::post('/', [FinanceController::class, 'store'])->name('store');
+            Route::patch('/{entry}', [FinanceController::class, 'update'])->name('update');
+            Route::delete('/{entry}', [FinanceController::class, 'destroy'])->name('destroy');
+        });
+    });
+
+    Route::prefix('api-keys')->name('api-keys.')->group(function () {
+        Route::get('/', [ApiKeyController::class, 'index'])
+            ->middleware('can:api-keys.view')->name('index');
+
+        Route::middleware(['can:api-keys.manage'])->group(function () {
+            Route::post('/', [ApiKeyController::class, 'store'])->name('store');
+            Route::patch('/{key}', [ApiKeyController::class, 'update'])->name('update');
+            Route::patch('/{key}/toggle', [ApiKeyController::class, 'toggleStatus'])->name('toggle');
+            Route::patch('/{key}/regenerate', [ApiKeyController::class, 'regenerate'])->name('regenerate');
         });
     });
 

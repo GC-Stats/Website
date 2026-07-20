@@ -23,7 +23,7 @@ class AboutController extends Controller
 {
     public function index(): View
     {
-        $sections = AboutSection::all()->keyBy('key');
+        $sections = AboutSection::orderBy('order')->get()->keyBy('key');
 
         $team = AboutTeamMember::where('is_active', true)
             ->orderBy('order')
