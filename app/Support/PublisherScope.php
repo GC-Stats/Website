@@ -83,4 +83,34 @@ class PublisherScope
             ->distinct()
             ->pluck('model_has_roles.model_id');
     }
+
+    /**
+     * Batched form of publisherIdsForUser() — every publisher id each of the
+     * given users holds a role on, in a single query, keyed by user id.
+     * Used by admin listings that need this for many users at once (see
+     * Admin\UserController::publisherNamesByUserId) instead of looping
+     * publisherIdsForUser() per row.
+     *
+     * @param  array<int>|Collection<int, int>  $userIds
+     * @return Collection<int, Collection<int, int>>
+     */
+    public static function publisherIdsForUsers(array|Collection $userIds): Collection
+    {
+        $userIds = collect($userIds)->values();
+
+        if ($userIds->isEmpty()) {
+            return collect();
+        }
+
+        return DB::table('model_has_roles')
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->whereIn('model_has_roles.model_id', $userIds)
+            ->where('model_has_roles.model_type', User::class)
+            ->where('roles.guard_name', PublisherPermissions::GUARD)
+            ->select('model_has_roles.model_id', 'model_has_roles.team_id')
+            ->distinct()
+            ->get()
+            ->groupBy('model_id')
+            ->map(fn ($rows) => $rows->pluck('team_id'));
+    }
 }

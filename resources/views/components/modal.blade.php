@@ -24,7 +24,7 @@
          class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
          @keydown.escape.window="open = false">
         <div @click.away="open = false" role="dialog" aria-modal="true"
-             class="w-full {{ $maxWidth }} bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+             class="w-full {{ $maxWidth }} bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto text-left">
             <div class="flex items-center justify-between">
                 <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ $title }}</h2>
                 <button type="button" @click="open = false" aria-label="{{ __('account.edit.cancel') }}" class="text-gray-500 hover:text-white transition">

@@ -20,6 +20,7 @@ class AboutSection extends Model
 {
     protected $fillable = [
         'key',
+        'order',
         'title',
         'content',
     ];

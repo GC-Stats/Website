@@ -34,6 +34,11 @@ class AdminPermissions extends PermissionCatalog
             'news_publishers' => ['news.publishers.view', 'news.publishers.edit', 'news.publishers.delete', 'news.publishers.owner.manage'],
             'news_authors' => ['news.authors.view', 'news.authors.edit', 'news.authors.delete'],
             'news_media' => ['news.media.view', 'news.media.upload', 'news.media.delete'],
+            'api_keys' => ['api-keys.view', 'api-keys.manage'],
+            'analytics' => ['analytics.view'],
+            'users' => ['users.view'],
+            'finance' => ['finance.view', 'finance.manage'],
+            'about' => ['about.view', 'about.manage'],
         ];
     }
 }

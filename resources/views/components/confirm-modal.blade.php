@@ -28,7 +28,7 @@
          class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
          @keydown.escape.window="open = false">
         <div @click.away="open = false" role="dialog" aria-modal="true"
-             class="w-full max-w-sm bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+             class="w-full max-w-sm bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4 text-left">
             <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ $title }}</h2>
             <p class="text-xs text-gray-500">{{ $body }}</p>
 
