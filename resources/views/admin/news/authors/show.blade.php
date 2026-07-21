@@ -79,8 +79,11 @@
                     @can('news.authors.edit')
                         <div>
                             <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.news.authors.form.user_label') }}</label>
-                            <input type="number" name="user_id" value="{{ $author->user_id }}"
-                                   class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+                            <input type="text" name="username" value="{{ old('username', $author->user->username ?? '') }}" placeholder="@username"
+                                   class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                            @error('username')
+                                <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                            @enderror
                         </div>
                     @endcan
 

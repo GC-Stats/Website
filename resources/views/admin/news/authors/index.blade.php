@@ -21,7 +21,7 @@
         </form>
 
         @can('news.authors.edit')
-            <x-modal :title="__('admin.news.authors.create')">
+            <x-modal :title="__('admin.news.authors.create')" :open-by-default="$errors->any()">
                 <x-slot:trigger>
                     <button type="button"
                             class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)] shrink-0">
@@ -38,8 +38,11 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.news.authors.form.user_label') }}</label>
-                        <input type="number" name="user_id"
-                               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+                        <input type="text" name="username" placeholder="@username"
+                               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                        @error('username')
+                            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                        @enderror
                     </div>
                     <button type="submit"
                             class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">

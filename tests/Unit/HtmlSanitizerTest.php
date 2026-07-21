@@ -64,3 +64,25 @@ it('preserves ordinary formatting tags used by the prose styling', function () {
         ->toContain('<strong>bold</strong>')
         ->toContain('<li>one</li>');
 });
+
+it('keeps color/background-color styles on span tags from the rich text editor', function () {
+    $result = $this->sanitizer->sanitize('<p><span style="color: #e63946;">red</span> <span style="background-color: rgb(10, 20, 30);">bg</span></p>');
+
+    expect($result)
+        ->toContain('<span style="color: #e63946">red</span>')
+        ->toContain('<span style="background-color: rgb(10, 20, 30)">bg</span>');
+});
+
+it('strips unsafe or disallowed style declarations while keeping safe ones', function () {
+    $result = $this->sanitizer->sanitize('<span style="color: red; background: url(javascript:alert(1)); position: fixed;">x</span>');
+
+    expect($result)->toContain('style="color: red"')
+        ->and($result)->not->toContain('url(')
+        ->and($result)->not->toContain('position');
+});
+
+it('drops the style attribute entirely when nothing safe survives', function () {
+    $result = $this->sanitizer->sanitize('<span style="position: fixed; top: 0;">x</span>');
+
+    expect($result)->not->toContain('style');
+});
