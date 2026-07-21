@@ -1,7 +1,7 @@
 <?php
 return [
-    'previous' => '',
-    'next' => '',
-    'page' => '',
-    'go_to_page' => '',
+    'previous' => '&laquo; Anterior',
+    'next' => 'Próximo &raquo;',
+    'page' => 'Página :page, página atual',
+    'go_to_page' => 'Ir para página :page',
 ];
