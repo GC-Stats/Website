@@ -60,6 +60,7 @@ use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNClient;
 use SocialiteProviders\Discord\DiscordExtendSocialite;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Twitch\TwitchExtendSocialite;
+use Spatie\Permission\PermissionRegistrar;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -88,12 +89,12 @@ class AppServiceProvider extends ServiceProvider
         $this->configureBunnyStorage();
         Paginator::useTailwind();
 
-        if ($this->app->runningInConsole()) {
-            PermissionTeam::global();
+        if ($this->app->runningUnitTests() && ($token = ParallelTesting::token())) {
+            app(PermissionRegistrar::class)->cacheKey = 'spatie.permission.cache.'.$token;
         }
 
-        if ($this->app->runningUnitTests() && ($token = ParallelTesting::token())) {
-            config(['permission.cache.key' => 'spatie.permission.cache.'.$token]);
+        if ($this->app->runningInConsole()) {
+            PermissionTeam::global();
         }
 
         JsonResource::withoutWrapping();
