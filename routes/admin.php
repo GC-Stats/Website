@@ -72,6 +72,9 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
                 ->middleware('can:teams.merge')->name('merge.show');
         });
 
+        Route::post('/', [TeamController::class, 'store'])
+            ->middleware('can:teams.create')->name('store');
+
         Route::middleware(['can:teams.edit'])->group(function () {
             Route::put('/{team}', [TeamController::class, 'updateProfile'])->name('update');
             Route::prefix('{team}/logo')->name('logo.')->group(function () {
@@ -104,6 +107,9 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             Route::get('/{player}/merge', [PlayerController::class, 'showMerge'])
                 ->middleware('can:players.merge')->name('merge.show');
         });
+
+        Route::post('/', [PlayerController::class, 'store'])
+            ->middleware('can:players.create')->name('store');
 
         Route::middleware(['can:players.edit'])->group(function () {
             Route::put('/{player}', [PlayerController::class, 'updateProfile'])->name('update');

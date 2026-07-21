@@ -42,6 +42,7 @@ return [
     'show_all_rosters' => 'Afficher tous les rosters',
     'hide_all_rosters' => 'Masquer tous les rosters',
     'last_matches' => 'Derniers matchs',
+    'inactive_access' => "Ce tournoi n'est pas encore visible publiquement. Vous pouvez le voir car votre rôle donne accès aux tournois inactifs.",
     'no_match' => 'Aucun match',
     'seemore' => 'Voir plus',
     'go_back' => 'Revenir en arrière',

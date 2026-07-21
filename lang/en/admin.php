@@ -148,7 +148,7 @@ return [
         'delete_confirm' => 'Permanently delete this sanction? Unlike revoking, this erases the record entirely, including its evasion-tracking fingerprints. This cannot be undone.',
         'issue' => [
             'title' => 'Issue a sanction',
-            'user_label' => 'User ID',
+            'user_label' => 'Username',
             'type_label' => 'Type',
             'reason_label' => 'Reason',
             'ends_at_label' => 'Ends at (leave empty for permanent)',
@@ -230,6 +230,14 @@ return [
         'manage' => 'Manage',
         'public_page' => 'Public page',
         'no_owner' => 'No owner assigned.',
+        'create' => [
+            'title' => 'Create',
+            'name_label' => 'Name',
+            'country_label' => 'Country',
+            'vlr_id_label' => 'VLR ID',
+            'submit' => 'Create team',
+            'success' => ':name has been created.',
+        ],
         'sort' => [
             'name' => 'Sort: Name',
             'country' => 'Sort: Country',
@@ -299,6 +307,15 @@ return [
         'search_submit' => 'Search',
         'manage' => 'Manage',
         'public_page' => 'Public page',
+        'create' => [
+            'title' => 'Create',
+            'name_label' => 'Handle',
+            'country_label' => 'Country',
+            'team_label' => 'Team',
+            'vlr_id_label' => 'VLR ID',
+            'submit' => 'Create player',
+            'success' => ':name has been created.',
+        ],
         'sort' => [
             'name' => 'Sort: Name',
             'country' => 'Sort: Country',
@@ -359,6 +376,7 @@ return [
         'search_placeholder' => 'Tournament name',
         'search_submit' => 'Search',
         'manage' => 'Manage',
+        'public_page' => 'Public page',
         'all_regions' => 'All regions',
         'all_statuses' => 'All statuses',
         'all_active' => 'Active & inactive',
@@ -440,6 +458,7 @@ return [
     'matches' => [
         'title' => 'Matches',
         'manage' => 'Manage',
+        'public_page' => 'Public page',
         'all_teams' => 'All teams',
         'all_phases' => 'All phases',
         'all_statuses' => 'All statuses',

@@ -55,7 +55,7 @@ class RoleSeeder extends Seeder
 
         Role::findOrCreate('editor')->syncPermissions([
             'news.view', 'news.create', 'news.edit', 'news.publish',
-            'teams.view', 'teams.edit', 'players.view', 'players.edit',
+            'teams.view', 'teams.create', 'teams.edit', 'players.view', 'players.create', 'players.edit',
             'tournaments.view', 'tournaments.edit', 'matches.view', 'matches.edit',
         ]);
     }

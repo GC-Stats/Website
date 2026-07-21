@@ -102,27 +102,31 @@ class TournamentController extends Controller
             ->get()
             ->toArray();
 
-        $cached = Cache::tags([$tag])->get($cacheKey);
-        if ($cached) {
-            $ttl = match ($cached['tournament']['status']) {
-                'finished' => 86400 * 7,
-                'upcoming' => 86400,
-                'live' => 60,
-                default => 3600,
-            };
+        $tournamentMeta = Tournament::where('id', $id)->first(['status', 'active']);
+        abort_unless($tournamentMeta, 404);
 
-            return response()
-                ->view('tournament.show', array_merge($cached, ['news' => $news]))
-                ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
-                ->header('Vary', 'Accept-Language');
+        if (! $tournamentMeta->active) {
+            abort_unless(auth()->user()?->can('tournaments.view'), 404);
         }
 
-        $status = Tournament::where('id', $id)->where('active', true)->value('status');
-        if (! $status) {
-            abort(404);
+        if ($tournamentMeta->active) {
+            $cached = Cache::tags([$tag])->get($cacheKey);
+            if ($cached) {
+                $ttl = match ($cached['tournament']['status']) {
+                    'finished' => 86400 * 7,
+                    'upcoming' => 86400,
+                    'live' => 60,
+                    default => 3600,
+                };
+
+                return response()
+                    ->view('tournament.show', array_merge($cached, ['news' => $news]))
+                    ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
+                    ->header('Vary', 'Accept-Language');
+            }
         }
 
-        $data = Cache::tags([$tag])->remember($cacheKey, CacheTtl::forTournament($status), function () use ($id) {
+        $buildData = function () use ($id) {
             $tournament = Tournament::with(['teams:id,name'])->findOrFail($id);
 
             $phasesRaw = DB::table('tournament_phases')
@@ -333,7 +337,18 @@ class TournamentController extends Controller
                 'matches' => $recentMatches->toArray(),
                 'root_phases' => $rootPhases,
             ];
-        });
+        };
+
+        if (! $tournamentMeta->active) {
+            $data = $buildData();
+
+            return response()
+                ->view('tournament.show', array_merge($data, ['news' => $news, 'inactive_access' => true]))
+                ->header('Cache-Control', 'private, no-store')
+                ->header('Vary', 'Accept-Language');
+        }
+
+        $data = Cache::tags([$tag])->remember($cacheKey, CacheTtl::forTournament($tournamentMeta->status), $buildData);
 
         $ttl = match ($data['tournament']['status']) {
             'finished' => 86400 * 7,
@@ -361,14 +376,17 @@ class TournamentController extends Controller
 
         $tag = "tournament_{$id}";
 
-        $status = Tournament::where('id', $id)->value('status');
-        if (! $status) {
-            abort(404);
+        $tournamentMeta = Tournament::where('id', $id)->first(['status', 'active']);
+        abort_unless($tournamentMeta, 404);
+
+        if (! $tournamentMeta->active) {
+            abort_unless(auth()->user()?->can('tournaments.view'), 404);
         }
 
+        $status = $tournamentMeta->status;
         $ttl = CacheTtl::forTournament($status);
 
-        $filters = Cache::tags([$tag])->remember("tournament_matches_filters_{$id}", $ttl, function () use ($id) {
+        $buildFilters = function () use ($id) {
             $tournament = Tournament::findOrFail($id);
 
             $phases = TournamentPhase::where('tournament_id', $id)
@@ -412,35 +430,9 @@ class TournamentController extends Controller
                 'teams' => $teams,
                 'rounds' => $rounds,
             ];
-        });
+        };
 
-        $filterKey = ($phaseId ?: 'all').'_'.($teamId ?: 'all').'_'.($roundName ?: 'all');
-        $cacheKey = "tournament_page_matches_{$id}_page_{$page}_{$filterKey}";
-
-        $cached = Cache::tags([$tag])->get($cacheKey);
-        if ($cached) {
-            $matches = new LengthAwarePaginator(
-                $cached['matches'],
-                $cached['meta']['total'],
-                $cached['meta']['per_page'],
-                $cached['meta']['current_page'],
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-
-            return response()
-                ->view('tournament.matches', [
-                    'tournament' => $cached['tournament'],
-                    'matches' => $matches,
-                    'filters' => $filters,
-                    'phaseId' => $phaseId,
-                    'teamId' => $teamId,
-                    'roundName' => $roundName,
-                ])
-                ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
-                ->header('Vary', 'Accept-Language');
-        }
-
-        $data = Cache::tags([$tag])->remember($cacheKey, $ttl, function () use ($id, $phaseId, $teamId, $roundName) {
+        $buildPage = function () use ($id, $phaseId, $teamId, $roundName) {
             $tournament = Tournament::findOrFail($id);
             $tournamentArray = $tournament->toArray();
 
@@ -518,7 +510,63 @@ class TournamentController extends Controller
                     'current_page' => $paginated->currentPage(),
                 ],
             ];
-        });
+        };
+
+        if (! $tournamentMeta->active) {
+            $filters = $buildFilters();
+            $data = $buildPage();
+
+            $matches = new LengthAwarePaginator(
+                $data['matches'],
+                $data['meta']['total'],
+                $data['meta']['per_page'],
+                $data['meta']['current_page'],
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return response()
+                ->view('tournament.matches', [
+                    'tournament' => $data['tournament'],
+                    'matches' => $matches,
+                    'filters' => $filters,
+                    'phaseId' => $phaseId,
+                    'teamId' => $teamId,
+                    'roundName' => $roundName,
+                    'inactive_access' => true,
+                ])
+                ->header('Cache-Control', 'private, no-store')
+                ->header('Vary', 'Accept-Language');
+        }
+
+        $filters = Cache::tags([$tag])->remember("tournament_matches_filters_{$id}", $ttl, $buildFilters);
+
+        $filterKey = ($phaseId ?: 'all').'_'.($teamId ?: 'all').'_'.($roundName ?: 'all');
+        $cacheKey = "tournament_page_matches_{$id}_page_{$page}_{$filterKey}";
+
+        $cached = Cache::tags([$tag])->get($cacheKey);
+        if ($cached) {
+            $matches = new LengthAwarePaginator(
+                $cached['matches'],
+                $cached['meta']['total'],
+                $cached['meta']['per_page'],
+                $cached['meta']['current_page'],
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
+            return response()
+                ->view('tournament.matches', [
+                    'tournament' => $cached['tournament'],
+                    'matches' => $matches,
+                    'filters' => $filters,
+                    'phaseId' => $phaseId,
+                    'teamId' => $teamId,
+                    'roundName' => $roundName,
+                ])
+                ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
+                ->header('Vary', 'Accept-Language');
+        }
+
+        $data = Cache::tags([$tag])->remember($cacheKey, $ttl, $buildPage);
 
         $matches = new LengthAwarePaginator(
             $data['matches'],

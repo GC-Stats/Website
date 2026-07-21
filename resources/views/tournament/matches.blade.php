@@ -16,6 +16,12 @@
     <div x-data="{ activePhase: {{ $root_phases[0]['id'] ?? 0 }} }">
        @include("tournament.header")
 
+        @if($inactive_access ?? false)
+            <div class="mb-6 bg-gc-yellow/10 border border-gc-yellow/40 rounded-lg px-4 py-3 text-xs text-gc-yellow">
+                {{ __('tournament.inactive_access') }}
+            </div>
+        @endif
+
         <div class="max-w-6xl mx-auto">
             <div class="pb-2 flex justify-between items-end mb-3 border-b border-border-subtle">
                 <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest">

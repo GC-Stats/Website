@@ -19,8 +19,10 @@ namespace App\Http\Controllers\Admin;
 use App\Exceptions\PlayerHasMatchesException;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
+use App\Models\Team;
 use App\Services\PlayerMergeService;
 use App\Services\PlayerProfileService;
+use App\Services\RosterService;
 use App\Support\Countries;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -84,7 +86,40 @@ class PlayerController extends Controller
             'search' => $search ?? '',
             'sort' => $sort,
             'activeWithin' => $activeWithin ?? '',
+            'countries' => app(Countries::class)->list(),
+            'teamOptions' => Team::orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    /**
+     * Quick creation from the admin players list — only the handle is
+     * required. If a team is picked, the player joins its current roster
+     * via RosterService (which closes out any prior active roster row,
+     * though a brand new player never has one).
+     */
+    public function store(Request $request, RosterService $rosterService): RedirectResponse
+    {
+        $validated = $request->validate([
+            'handle' => ['required', 'string', 'max:255', 'unique:players,handle'],
+            'country_code' => ['nullable', 'string', 'max:5'],
+            'team_id' => ['nullable', 'integer', 'exists:teams,id'],
+            'vlr_id' => ['nullable', 'integer'],
+        ]);
+
+        $player = Player::create([
+            'handle' => $validated['handle'],
+            'country_code' => $validated['country_code'] ?? null,
+            'vlr_id' => $validated['vlr_id'] ?? null,
+            'is_active' => true,
+        ]);
+
+        if (! empty($validated['team_id'])) {
+            $rosterService->addMember(Team::findOrFail($validated['team_id']), $player->id, 'player', now()->toDateString());
+        }
+
+        activity('player')->performedOn($player)->causedBy($request->user())->log('player.created');
+
+        return redirect()->route('admin.players.index')->with('status', 'player-created')->with('created_player', $player->id);
     }
 
     public function show(Player $player): View

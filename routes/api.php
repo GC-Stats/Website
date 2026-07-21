@@ -61,7 +61,6 @@ Route::prefix('internal')
         Route::get('/tournaments/{id}/teams', [ApiTournamentController::class, 'teams']);
         Route::post('/tournaments/{id}/teams', [ApiTournamentController::class, 'attachTeam']);
         Route::delete('/tournaments/{id}/teams/{team_id}', [ApiTournamentController::class, 'detachTeam']);
-        Route::post('/tournaments/{id}/preview', [ApiTournamentController::class, 'preview']);
 
         Route::get('/tournaments/{id}/matches', [ApiMatchController::class, 'index']);
         Route::post('/tournaments/{id}/matches', [ApiMatchController::class, 'store']);
