@@ -46,6 +46,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -89,6 +90,10 @@ class AppServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             PermissionTeam::global();
+        }
+
+        if ($this->app->runningUnitTests() && ($token = ParallelTesting::token())) {
+            config(['permission.cache.key' => 'spatie.permission.cache.'.$token]);
         }
 
         JsonResource::withoutWrapping();
