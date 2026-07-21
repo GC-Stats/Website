@@ -18,6 +18,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\NewsAuthor;
+use App\Models\User;
 use App\Services\HtmlSanitizer;
 use App\Services\LogoUploadService;
 use Illuminate\Contracts\View\View;
@@ -25,6 +26,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class NewsAuthorController extends Controller
 {
@@ -68,6 +70,8 @@ class NewsAuthorController extends Controller
     {
         $this->ensureCanManage($request, $author);
 
+        $canManageUser = $request->user()->can('news.authors.edit');
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'slug' => ['nullable', 'string', 'max:100', Rule::unique('news_authors', 'slug')->ignore($author->id)],
@@ -78,15 +82,31 @@ class NewsAuthorController extends Controller
                     $fail('The '.$attribute.' field must be a valid link.');
                 }
             }],
-            'user_id' => ['nullable', 'integer', 'exists:users,id', Rule::unique('news_authors', 'user_id')->ignore($author->id)],
+            'username' => $canManageUser ? ['nullable', 'string', 'exists:users,username'] : ['prohibited'],
         ]);
+
+        $userId = $author->user_id;
+
+        if ($canManageUser) {
+            $userId = null;
+
+            if (filled($validated['username'] ?? null)) {
+                $user = User::where('username', $validated['username'])->firstOrFail();
+
+                if (NewsAuthor::where('user_id', $user->id)->where('id', '!=', $author->id)->exists()) {
+                    throw ValidationException::withMessages(['username' => __('admin.news.authors.form.user_already_linked')]);
+                }
+
+                $userId = $user->id;
+            }
+        }
 
         $author->update([
             'name' => $validated['name'],
             'slug' => ($validated['slug'] ?? null) ?: Str::slug($validated['name']),
             'bio' => $validated['bio'] ?? null,
             'socials' => array_filter($validated['socials'] ?? [], fn ($value) => filled($value)),
-            'user_id' => $request->user()->can('news.authors.edit') ? ($validated['user_id'] ?? null) : $author->user_id,
+            'user_id' => $userId,
         ]);
 
         return back()->with('status', 'author-updated');
@@ -120,11 +140,30 @@ class NewsAuthorController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'slug' => ['nullable', 'string', 'max:100', 'unique:news_authors,slug'],
             'bio' => ['nullable', 'string', 'max:2000'],
-            'user_id' => $isAdmin ? ['nullable', 'integer', 'exists:users,id', 'unique:news_authors,user_id'] : ['prohibited'],
+            'username' => $isAdmin ? ['nullable', 'string', 'exists:users,username'] : ['prohibited'],
         ]);
 
         $validated['slug'] = ($validated['slug'] ?? null) ?: Str::slug($validated['name']);
-        $validated['user_id'] = $isAdmin ? ($validated['user_id'] ?? null) : $request->user()->id;
+
+        if ($isAdmin) {
+            $userId = null;
+
+            if (filled($validated['username'] ?? null)) {
+                $user = User::where('username', $validated['username'])->firstOrFail();
+
+                if (NewsAuthor::where('user_id', $user->id)->exists()) {
+                    throw ValidationException::withMessages(['username' => __('admin.news.authors.form.user_already_linked')]);
+                }
+
+                $userId = $user->id;
+            }
+
+            $validated['user_id'] = $userId;
+        } else {
+            $validated['user_id'] = $request->user()->id;
+        }
+
+        unset($validated['username']);
 
         $author = NewsAuthor::create($validated);
 
