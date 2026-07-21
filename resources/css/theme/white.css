@@ -6,6 +6,8 @@
  * Tailwind utility classes used throughout the templates.
  */
 [data-theme="white"] {
+    color-scheme: light;
+
     --brand-yellow: #e4ae22;
     --brand-yellow-hover: #c9981d;
 

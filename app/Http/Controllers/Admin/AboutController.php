@@ -21,6 +21,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AboutProject;
 use App\Models\AboutSection;
 use App\Models\AboutTeamMember;
+use App\Services\HtmlSanitizer;
 use App\Services\LogoUploadService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -157,7 +158,11 @@ class AboutController extends Controller
             'bio' => ['sometimes', 'nullable', 'array'],
             'bio.*' => ['nullable', 'string', 'max:2000'],
             'socials' => ['sometimes', 'array'],
-            'socials.*' => ['nullable', 'string', 'max:255'],
+            'socials.*' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
+                if (! HtmlSanitizer::isSafeUrl($value)) {
+                    $fail('The '.$attribute.' field must be a valid link.');
+                }
+            }],
             'order' => ['sometimes', 'integer'],
         ]);
 

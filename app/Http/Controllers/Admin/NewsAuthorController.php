@@ -18,6 +18,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\NewsAuthor;
+use App\Services\HtmlSanitizer;
 use App\Services\LogoUploadService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -36,7 +37,6 @@ class NewsAuthorController extends Controller
                 return redirect()->route('admin.news.authors.show', $ownProfile);
             }
 
-            // No profile yet
             return view('admin.news.authors.create-self');
         }
 
@@ -73,7 +73,11 @@ class NewsAuthorController extends Controller
             'slug' => ['nullable', 'string', 'max:100', Rule::unique('news_authors', 'slug')->ignore($author->id)],
             'bio' => ['nullable', 'string', 'max:2000'],
             'socials' => ['nullable', 'array'],
-            'socials.*' => ['nullable', 'string', 'max:255'],
+            'socials.*' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
+                if (! HtmlSanitizer::isSafeUrl($value)) {
+                    $fail('The '.$attribute.' field must be a valid link.');
+                }
+            }],
             'user_id' => ['nullable', 'integer', 'exists:users,id', Rule::unique('news_authors', 'user_id')->ignore($author->id)],
         ]);
 

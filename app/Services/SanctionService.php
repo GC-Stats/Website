@@ -87,7 +87,7 @@ class SanctionService
         if ($user->email !== null) {
             $sanction->identities()->firstOrCreate([
                 'type' => SanctionIdentity::TYPE_EMAIL,
-                'value' => $user->email,
+                'value' => self::canonicalizeIdentity(SanctionIdentity::TYPE_EMAIL, $user->email),
             ]);
         }
 
@@ -106,6 +106,8 @@ class SanctionService
      */
     public function propagateIdentity(User $user, string $type, string $value): void
     {
+        $value = self::canonicalizeIdentity($type, $value);
+
         foreach ($user->sanctions as $sanction) {
             $sanction->identities()->firstOrCreate(['type' => $type, 'value' => $value]);
         }
@@ -118,8 +120,29 @@ class SanctionService
     public function hasActiveSanctionFor(string $type, string $value): bool
     {
         return SanctionIdentity::where('type', $type)
-            ->where('value', $value)
+            ->where('value', self::canonicalizeIdentity($type, $value))
             ->whereHas('sanction', fn ($query) => $query->active())
             ->exists();
+    }
+
+    /**
+     * Emails are lowercased and stripped of a `+tag` local-part suffix
+     * before being stored/matched, so a banned user can't evade an
+     * email-based sanction with `Victim@x.com` or `victim+1@x.com` — both
+     * resolve to the same mailbox as `victim@x.com`. Provider ids are
+     * opaque and left as-is.
+     */
+    private static function canonicalizeIdentity(string $type, string $value): string
+    {
+        if ($type !== SanctionIdentity::TYPE_EMAIL) {
+            return $value;
+        }
+
+        $value = mb_strtolower(trim($value));
+
+        [$local, $domain] = array_pad(explode('@', $value, 2), 2, '');
+        $local = preg_replace('/\+.*$/', '', $local);
+
+        return $domain !== '' ? "{$local}@{$domain}" : $value;
     }
 }

@@ -44,6 +44,7 @@
             [
                 'label' => __('admin.nav.group_content'),
                 'items' => [
+                    ['route' => 'admin.tournaments.index', 'pattern' => ['admin.tournaments.*', 'admin.matches.*'], 'label' => __('admin.nav.tournaments'), 'icon' => 'fas-trophy', 'can' => 'tournaments.view'],
                     ['route' => 'admin.teams.index', 'pattern' => 'admin.teams.*', 'label' => __('admin.nav.teams'), 'icon' => 'fas-people-group', 'can' => 'teams.view'],
                     ['route' => 'admin.players.index', 'pattern' => 'admin.players.*', 'label' => __('admin.nav.players'), 'icon' => 'fas-user', 'can' => 'players.view'],
                 ],
@@ -71,16 +72,30 @@
         ];
     @endphp
 
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-[var(--brand-yellow)] opacity-[0.03] blur-[120px]"></div>
+        <div class="absolute top-[20%] -right-[5%] w-[30%] h-[30%] rounded-full bg-[var(--brand-yellow)] opacity-[0.02] blur-[100px]"></div>
+    </div>
+
     <div class="flex min-h-screen">
-        <aside class="hidden lg:flex lg:flex-col w-64 shrink-0 border-r border-white/10 bg-black/40">
-            <a href="{{ route('home') }}" class="flex items-center gap-2 px-6 h-16 border-b border-white/10 shrink-0">
+        <aside class="hidden lg:flex lg:flex-col w-64 shrink-0 border-r border-white/10 bg-black/40 backdrop-blur-xl h-screen sticky top-0">
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 px-6 h-16 border-b border-white/10 shrink-0">
                 <span class="text-lg font-black tracking-tighter text-white uppercase italic">
                     GC<span class="text-[var(--brand-yellow)]">STATS</span>
                 </span>
-                <span class="text-[9px] font-black uppercase tracking-widest text-gray-500 border border-white/10 rounded px-1.5 py-0.5">{{ __('admin.nav.title') }}</span>
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-500 border border-white/10 rounded-md px-1.5 py-0.5">{{ __('admin.nav.title') }}</span>
             </a>
 
             <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-5">
+                <div class="pb-5 mb-5 border-b border-white/10">
+                    <a href="{{ route('admin.dashboard') }}"
+                       @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif
+                       class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
+                        @svg('fas-gauge', 'w-3.5 h-3.5 shrink-0', ['aria-hidden' => 'true'])
+                        <span class="truncate">{{ __('admin.nav.dashboard') }}</span>
+                    </a>
+                </div>
+
                 @include('admin.partials.nav', ['navGroups' => $navGroups])
             </nav>
 
@@ -93,7 +108,7 @@
         </aside>
 
         <template x-teleport="body">
-            <div x-show="sidebarOpen" x-cloak class="lg:hidden fixed inset-0 z-[90] bg-black/60" @click="sidebarOpen = false"></div>
+            <div x-show="sidebarOpen" x-cloak class="lg:hidden fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm" @click="sidebarOpen = false"></div>
         </template>
         <aside x-show="sidebarOpen" x-cloak x-transition
                class="lg:hidden fixed inset-y-0 left-0 z-[95] w-64 bg-bg-main border-r border-white/10 flex flex-col">
@@ -104,12 +119,21 @@
                 </button>
             </div>
             <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-5">
+                <div class="pb-5 mb-5 border-b border-white/10">
+                    <a href="{{ route('admin.dashboard') }}"
+                       @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif
+                       class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
+                        @svg('fas-gauge', 'w-3.5 h-3.5 shrink-0', ['aria-hidden' => 'true'])
+                        <span class="truncate">{{ __('admin.nav.dashboard') }}</span>
+                    </a>
+                </div>
+
                 @include('admin.partials.nav', ['navGroups' => $navGroups])
             </nav>
         </aside>
 
         <div class="flex-1 flex flex-col min-w-0">
-            <header class="flex items-center justify-between h-16 px-4 lg:px-8 border-b border-white/10 shrink-0">
+            <header class="flex items-center justify-between h-16 px-4 lg:px-8 border-b border-white/10 bg-black/20 backdrop-blur-xl shrink-0">
                 <div class="flex items-center gap-4 min-w-0">
                     <button @click="sidebarOpen = true" class="lg:hidden" aria-label="{{ __('layout.nav.open_menu') }}">
                         @svg('fas-bars', 'w-4 h-4 text-gray-400', ['aria-hidden' => 'true'])
@@ -118,16 +142,24 @@
                 </div>
 
                 <div class="flex items-center gap-4 shrink-0">
-                    <span class="hidden sm:block text-xs text-gray-400">
+                    <a href="{{ route('admin.profile.edit') }}"
+                       @if(request()->routeIs('admin.profile.edit')) aria-current="page" @endif
+                       class="hidden sm:flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-all"
+                       title="{{ __('admin.profile.title') }}">
                         {{ auth()->user()->name }}
                         @if (auth()->user()->username)
                             <span class="text-gray-600">{{ '@'.auth()->user()->username }}</span>
                         @endif
-                    </span>
+                    </a>
+                    <a href="{{ route('admin.profile.edit') }}" aria-label="{{ __('admin.profile.title') }}"
+                       @if(request()->routeIs('admin.profile.edit')) aria-current="page" @endif
+                       class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-[var(--brand-yellow)]/50 transition-all {{ request()->routeIs('admin.profile.edit') ? 'border-[var(--brand-yellow)]/50 text-white' : '' }}">
+                        @svg('fas-user', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" aria-label="{{ __('layout.account.logout') }}"
-                                class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition-all">
+                                class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-[var(--brand-yellow)]/50 transition-all">
                             @svg('fas-arrow-right-from-bracket', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
                         </button>
                     </form>
@@ -136,13 +168,19 @@
 
             <main class="flex-1 p-4 lg:p-8 min-w-0">
                 @if (session('status'))
-                    <div class="mb-6 bg-green-500/10 border border-green-500/30 text-green-400 text-sm rounded-sm px-4 py-3">
+                    <div class="mb-6 bg-green-500/10 border border-green-500/30 text-green-400 text-sm rounded-lg px-4 py-3">
                         {{ __('admin.status.'.session('status')) }}
                     </div>
                 @endif
 
+                @if (session('error'))
+                    <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">
+                        {{ __('admin.status.'.session('error')) }}
+                    </div>
+                @endif
+
                 @error('role')
-                    <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-sm px-4 py-3">{{ $message }}</div>
+                    <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">{{ $message }}</div>
                 @enderror
 
                 @yield('content')

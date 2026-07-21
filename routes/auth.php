@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
     ->name('social.redirect');
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
+    ->middleware(['not-sanctioned'])
     ->name('social.callback');
 
 Route::middleware(['auth'])->group(function () {

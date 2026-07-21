@@ -3,7 +3,7 @@
 /**
  * GC-Stats — Bootstrap a super-admin
  *
- * Grants the 'super-admin' role to an existing user by email — used to
+ * Grants the 'super-admin' role to an existing user by username — used to
  * bootstrap the first admin, since /admin/roles itself requires it.
  * Usage: php artisan admin:make-super-admin user@example.com
  *
@@ -20,23 +20,23 @@ use Illuminate\Console\Command;
 
 class MakeSuperAdmin extends Command
 {
-    protected $signature = 'admin:make-super-admin {email : Email address of an existing user}';
+    protected $signature = 'admin:make-super-admin {username : Username of an existing user}';
 
     protected $description = 'Grant the super-admin role to an existing user';
 
     public function handle(): int
     {
-        $email = $this->argument('email');
-        $user = User::where('email', $email)->first();
+        $username = $this->argument('username');
+        $user = User::where('username', $username)->first();
 
         if (! $user) {
-            $this->error("No user found with email [{$email}]. They need to sign up first (password or social login).");
+            $this->error("No user found [{$username}]. They need to sign up first (password or social login).");
 
             return self::FAILURE;
         }
 
         if ($user->hasRole('super-admin')) {
-            $this->info("{$user->name} ({$email}) is already super-admin.");
+            $this->info("{$user->name} ({$username}) is already super-admin.");
 
             return self::SUCCESS;
         }
@@ -47,7 +47,7 @@ class MakeSuperAdmin extends Command
             ->withProperties(['role' => 'super-admin', 'via' => 'admin:make-super-admin'])
             ->log('role.assigned');
 
-        $this->info("Granted super-admin to {$user->name} ({$email}).");
+        $this->info("Granted super-admin to {$user->name} ({$username}).");
 
         return self::SUCCESS;
     }

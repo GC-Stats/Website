@@ -63,7 +63,7 @@ class TeamMergeService
             DB::table('player_team')->where('team_id', $team->id)->delete();
 
             PermissionTeam::use($team->id);
-            Role::where('team_id', $team->id)->get()->each->delete();
+            Role::where('team_id', $team->id)->where('guard_name', 'web')->get()->each->delete();
             PermissionTeam::global();
 
             foreach ($team->logos as $logo) {

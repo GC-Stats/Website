@@ -147,7 +147,7 @@ class HtmlSanitizer
                 continue;
             }
 
-            if (in_array($name, ['href', 'src'], true) && ! $this->isSafeUrl($attribute->value)) {
+            if (in_array($name, ['href', 'src'], true) && ! self::isSafeUrl($attribute->value)) {
                 $element->removeAttribute($attribute->name);
             }
         }
@@ -159,7 +159,12 @@ class HtmlSanitizer
         }
     }
 
-    private function isSafeUrl(string $url): bool
+    /**
+     * Public so callers validating standalone URL fields (e.g. profile
+     * "socials" links, which never pass through sanitize()'s DOM walk) can
+     * apply the same javascript:/data: rejection instead of duplicating it.
+     */
+    public static function isSafeUrl(string $url): bool
     {
         $url = trim($url);
 

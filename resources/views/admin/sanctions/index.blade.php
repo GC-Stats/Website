@@ -13,11 +13,11 @@
     <div class="flex items-center justify-between mb-6">
         <div class="flex gap-2">
             <a href="{{ route('admin.sanctions.index') }}"
-               class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-sm transition-all {{ ! $showAll ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
+               class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all {{ ! $showAll ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
                 {{ __('admin.sanctions.active_only') }}
             </a>
             <a href="{{ route('admin.sanctions.index', ['all' => 1]) }}"
-               class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-sm transition-all {{ $showAll ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
+               class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all {{ $showAll ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
                 {{ __('admin.sanctions.show_all') }}
             </a>
         </div>
@@ -26,7 +26,7 @@
             <x-modal :title="__('admin.sanctions.issue.title')">
                 <x-slot:trigger>
                     <button type="button"
-                            class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                            class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                         {{ __('admin.sanctions.issue.title') }}
                     </button>
                 </x-slot:trigger>
@@ -35,21 +35,26 @@
         @endcan
     </div>
 
-    <div class="bg-bg-card border border-border-subtle rounded-sm shadow-xl overflow-x-auto">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
+         x-data="GCS.sortableTable()">
         <table class="w-full text-sm text-left">
             <thead>
-                <tr class="border-b border-border-subtle text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    <th class="px-4 py-3">{{ __('admin.sanctions.user') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.sanctions.type_column') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.sanctions.reason') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.sanctions.ends_at') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.sanctions.issued_by') }}</th>
+                <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    @foreach ([['user', 'admin.sanctions.user'], ['type', 'admin.sanctions.type_column'], ['reason', 'admin.sanctions.reason'], ['ends_at', 'admin.sanctions.ends_at'], ['issued_by', 'admin.sanctions.issued_by']] as [$col, $label])
+                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
+                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
+                                {{ __($label) }}
+                                @include('admin.partials.sort-arrows', ['col' => $col])
+                            </span>
+                        </th>
+                    @endforeach
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody x-ref="tbody">
                 @forelse ($sanctions as $sanction)
-                    <tr class="border-b border-border-subtle last:border-0">
+                    <tr data-row data-user="{{ $sanction->user?->name ?? '' }}" data-type="{{ __('admin.sanctions.type.'.$sanction->type) }}" data-reason="{{ $sanction->reason }}" data-ends_at="{{ $sanction->ends_at?->timestamp ?? PHP_INT_MAX }}" data-issued_by="{{ $sanction->issuedBy?->name ?? '' }}"
+                        class="border-b border-white/10 last:border-0">
                         <td class="px-4 py-3 text-white font-semibold">{{ $sanction->user?->name ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-400">{{ __('admin.sanctions.type.'.$sanction->type) }}</td>
                         <td class="px-4 py-3 text-gray-400 max-w-xs truncate" title="{{ $sanction->reason }}">{{ $sanction->reason }}</td>
@@ -67,7 +72,7 @@
                                                 :body="__('admin.sanctions.revoke_confirm')"
                                                 :trigger-label="__('admin.sanctions.revoke')"
                                                 :submit-label="__('admin.sanctions.revoke')"
-                                                trigger-class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                                                trigger-class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
                                                 submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
                                             />
                                         </form>
@@ -82,7 +87,7 @@
                                             :body="__('admin.sanctions.delete_confirm')"
                                             :trigger-label="__('admin.sanctions.delete')"
                                             :submit-label="__('admin.sanctions.delete')"
-                                            trigger-class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                                            trigger-class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
                                             submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
                                         />
                                     </form>

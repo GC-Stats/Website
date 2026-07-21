@@ -20,12 +20,12 @@
         <h1 class="text-2xl font-black uppercase tracking-tighter text-white">{{ $player->handle }}</h1>
         <div class="flex gap-2">
             <a href="{{ route('players.show', $playerParams) }}" target="_blank" rel="noopener"
-               class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+               class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
                 {{ __('admin.players.public_page') }}
             </a>
             @can('players.merge')
                 <a href="{{ route('admin.players.merge.show', $player) }}"
-                   class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                   class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
                     {{ __('admin.players.merge.trigger') }}
                 </a>
             @endcan
@@ -38,7 +38,7 @@
                         :body="__('admin.players.delete.confirm_body', ['player' => $player->handle])"
                         :trigger-label="__('admin.players.delete.trigger')"
                         :submit-label="__('admin.players.delete.trigger')"
-                        trigger-class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                        trigger-class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
                         submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
                     />
                 </form>
@@ -46,22 +46,10 @@
         </div>
     </div>
 
-    @if (session('status'))
-        <div class="bg-green-500/10 border border-green-500/30 text-green-400 text-sm rounded-sm px-4 py-3 mb-6">
-            {{ __('admin.status.'.session('status')) }}
-        </div>
-    @endif
-    @if (session('error'))
-        <div class="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-sm px-4 py-3 mb-6">
-            {{ __('admin.status.'.session('error')) }}
-        </div>
-    @endif
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
             @can('players.edit')
-                {{-- Logo --}}
-                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+                <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                     <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('player.edit.logo.title') }}</h2>
 
                     <x-logo-upload-form
@@ -91,8 +79,7 @@
                     />
                 </div>
 
-                {{-- Profile --}}
-                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-6">
+                <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-6">
                     <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('player.edit.profile.title') }}</h2>
 
                     <form method="POST" action="{{ route('admin.players.update', $player) }}" class="space-y-6">
@@ -102,7 +89,7 @@
                         @include('player._profile-form', ['player' => $player])
 
                         <button type="submit"
-                                class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                                class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                             {{ __('player.edit.profile.submit') }}
                         </button>
                     </form>
@@ -110,8 +97,7 @@
             @endcan
 
             @canany(['players.edit', 'players.identifiers.manage'])
-                {{-- Identifiers --}}
-                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+                <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                     <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.players.identifiers.title') }}</h2>
 
                     @can('players.identifiers.manage')
@@ -123,7 +109,7 @@
                                     {{ __('admin.players.identifiers.val_id') }}
                                 </label>
                                 <input id="val_id" type="text" name="val_id" value="{{ old('val_id', $player->val_id) }}"
-                                       class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                                       class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                                 @error('val_id')
                                     <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
                                 @enderror
@@ -133,20 +119,20 @@
                                     {{ __('admin.players.identifiers.discord_id') }}
                                 </label>
                                 <input id="discord_id" type="text" name="discord_id" value="{{ old('discord_id', $player->discord_id) }}"
-                                       class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                                       class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                                 @error('discord_id')
                                     <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
                                 @enderror
                             </div>
                             <button type="submit"
-                                    class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                                    class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                                 {{ __('admin.players.identifiers.submit') }}
                             </button>
                         </form>
                     @endcan
 
                     @can('players.edit')
-                        <div @class(['flex gap-2', 'pt-4 border-t border-border-subtle' => auth()->user()->can('players.identifiers.manage')])>
+                        <div @class(['flex gap-2', 'pt-4 border-t border-white/10' => auth()->user()->can('players.identifiers.manage')])>
                             <form method="POST" action="{{ route('admin.players.val-id.destroy', $player) }}" class="flex-1">
                                 @csrf
                                 @method('DELETE')
@@ -155,7 +141,7 @@
                                     :body="__('admin.players.identifiers.reset_confirm')"
                                     :trigger-label="__('admin.players.identifiers.reset_val_id')"
                                     :submit-label="__('admin.players.identifiers.reset_val_id')"
-                                    trigger-class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                                    trigger-class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
                                     submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
                                 />
                             </form>
@@ -167,7 +153,7 @@
                                     :body="__('admin.players.identifiers.reset_confirm')"
                                     :trigger-label="__('admin.players.identifiers.reset_discord_id')"
                                     :submit-label="__('admin.players.identifiers.reset_discord_id')"
-                                    trigger-class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                                    trigger-class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
                                     submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
                                 />
                             </form>

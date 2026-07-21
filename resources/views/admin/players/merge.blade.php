@@ -29,18 +29,18 @@
     </h1>
 
     @error('target_id')
-        <div class="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-sm px-4 py-3 mb-6">{{ $message }}</div>
+        <div class="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3 mb-6">{{ $message }}</div>
     @enderror
 
-    <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-6">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-6">
         <div>
             <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2">{{ __('admin.players.merge.select_target') }}</p>
 
             <form method="GET" action="{{ route('admin.players.merge.show', $player) }}" class="flex gap-2 mb-4">
                 <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.players.merge.target_search_placeholder') }}"
-                       class="flex-1 max-w-sm bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                       class="flex-1 max-w-sm bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                 <button type="submit"
-                        class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                        class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
                     {{ __('admin.players.merge.target_search_submit') }}
                 </button>
             </form>
@@ -60,10 +60,10 @@
                 @if ($search)
                     <div class="space-y-2">
                         @forelse ($searchResults as $found)
-                            <label class="flex items-center gap-3 bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 cursor-pointer">
+                            <label class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-3 cursor-pointer">
                                 <input type="radio" name="target_id" value="{{ $found->id }}" required
                                        @change="targetName = '{{ addslashes($found->handle) }}'"
-                                       class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                                       class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                                 <span class="text-sm text-white font-semibold">{{ $found->handle }}</span>
                             </label>
                         @empty
@@ -72,21 +72,20 @@
                     </div>
                 @endif
 
-                {{-- Teams --}}
                 @if ($teamItems->isNotEmpty())
-                    <div class="pt-4 border-t border-border-subtle space-y-3">
+                    <div class="pt-4 border-t border-white/10 space-y-3">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox"
                                    :checked="teams.length === {{ $teamItems->count() }}"
                                    @change="teams = $event.target.checked ? @js($teamItems->pluck('id')->map(fn ($id) => (string) $id)) : []"
-                                   class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                                   class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                             <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{{ __('admin.players.merge.categories.teams') }}</span>
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             @foreach ($teamItems as $entry)
-                                <label class="flex items-center gap-2 text-sm text-gray-300 bg-[#050505] border border-border-subtle rounded-sm px-3 py-2 cursor-pointer">
+                                <label class="flex items-center gap-2 text-sm text-gray-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 cursor-pointer">
                                     <input type="checkbox" name="teams[]" value="{{ $entry->id }}" x-model="teams"
-                                           class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                                           class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                                     {{ $entry->team_name }}
                                     @if ($entry->role && $entry->role !== 'player')
                                         <span class="text-gray-500">({{ $entry->role }})</span>
@@ -101,21 +100,20 @@
                     </div>
                 @endif
 
-                {{-- News --}}
                 @if ($newsItems->isNotEmpty())
-                    <div class="pt-4 border-t border-border-subtle space-y-3">
+                    <div class="pt-4 border-t border-white/10 space-y-3">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox"
                                    :checked="news.length === {{ $newsItems->count() }}"
                                    @change="news = $event.target.checked ? @js($newsItems->pluck('id')->map(fn ($id) => (string) $id)) : []"
-                                   class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                                   class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                             <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{{ __('admin.players.merge.categories.news') }}</span>
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             @foreach ($newsItems as $article)
-                                <label class="flex items-center gap-2 text-sm text-gray-300 bg-[#050505] border border-border-subtle rounded-sm px-3 py-2 cursor-pointer">
+                                <label class="flex items-center gap-2 text-sm text-gray-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 cursor-pointer">
                                     <input type="checkbox" name="news[]" value="{{ $article->id }}" x-model="news"
-                                           class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                                           class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                                     {{ $article->title }}
                                 </label>
                             @endforeach
@@ -123,21 +121,20 @@
                     </div>
                 @endif
 
-                {{-- Logos --}}
                 @if ($logoItems->isNotEmpty())
-                    <div class="pt-4 border-t border-border-subtle space-y-3">
+                    <div class="pt-4 border-t border-white/10 space-y-3">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox"
                                    :checked="logos.length === {{ $logoItems->count() }}"
                                    @change="logos = $event.target.checked ? @js($logoItems->pluck('id')) : []"
-                                   class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                                   class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                             <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{{ __('admin.players.merge.categories.logos') }}</span>
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             @foreach ($logoItems as $logo)
-                                <label class="flex items-center gap-2 text-sm text-gray-300 bg-[#050505] border border-border-subtle rounded-sm px-3 py-2 cursor-pointer">
+                                <label class="flex items-center gap-2 text-sm text-gray-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 cursor-pointer">
                                     <input type="checkbox" name="logos[]" value="{{ $logo->id }}" x-model="logos"
-                                           class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                                           class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                                     {{ $logo->from?->format('Y-m-d') }}
                                     @if ($logo->until)
                                         &rarr; {{ $logo->until->format('Y-m-d') }}
@@ -148,35 +145,34 @@
                     </div>
                 @endif
 
-                {{-- Matches, grouped by tournament --}}
                 @if ($matchGroups->isNotEmpty())
                     @php $allMatchIds = $matchGroups->flatten(1)->pluck('id')->map(fn ($id) => (string) $id); @endphp
-                    <div class="pt-4 border-t border-border-subtle space-y-4">
+                    <div class="pt-4 border-t border-white/10 space-y-4">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox"
                                    :checked="stats.length === {{ $allMatchIds->count() }}"
                                    @change="stats = $event.target.checked ? @js($allMatchIds) : []"
-                                   class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                                   class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                             <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{{ __('admin.players.merge.categories.matches') }}</span>
                         </label>
 
                         @foreach ($matchGroups as $tournamentMatches)
                             @php $tournamentMatchIds = $tournamentMatches->pluck('id')->map(fn ($id) => (string) $id); @endphp
-                            <div class="pl-4 border-l-2 border-border-subtle space-y-2">
+                            <div class="pl-4 border-l-2 border-white/10 space-y-2">
                                 <label class="flex items-center gap-2 cursor-pointer">
                                     <input type="checkbox"
                                            :checked="{{ json_encode($tournamentMatchIds) }}.every(id => stats.includes(id))"
                                            @change="stats = $event.target.checked
                                                ? [...new Set([...stats, ...{{ json_encode($tournamentMatchIds) }}])]
                                                : stats.filter(id => !{{ json_encode($tournamentMatchIds) }}.includes(id))"
-                                           class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                                           class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                                     <span class="text-xs font-bold text-white">{{ $tournamentMatches->first()->tournament_name }}</span>
                                 </label>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     @foreach ($tournamentMatches as $stat)
-                                        <label class="flex items-center gap-2 text-sm text-gray-300 bg-[#050505] border border-border-subtle rounded-sm px-3 py-2 cursor-pointer">
+                                        <label class="flex items-center gap-2 text-sm text-gray-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 cursor-pointer">
                                             <input type="checkbox" name="stats[]" value="{{ $stat->id }}" x-model="stats"
-                                                   class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                                                   class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                                             {{ $stat->agent_name }}
                                             <span class="text-gray-600 text-xs">&mdash; {{ $stat->scheduled_at }}</span>
                                         </label>
@@ -194,8 +190,8 @@
                         :body="__('admin.players.merge.confirm_body', ['source' => $player->handle])"
                         :trigger-label="__('admin.players.merge.submit')"
                         :submit-label="__('admin.players.merge.submit')"
-                        trigger-class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90"
-                        submit-class="bg-gc-yellow text-black hover:opacity-90"
+                        trigger-class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]"
+                        submit-class="bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]"
                     >
                         <p class="text-xs text-gray-400">
                             <span x-text="targetName || '{{ __('admin.players.merge.no_target_selected') }}'"></span>

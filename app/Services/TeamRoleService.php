@@ -35,7 +35,7 @@ class TeamRoleService
 
     public function ensureRolesExist(Team $team): void
     {
-        if (Role::where('team_id', $team->id)->count() >= self::ROLE_COUNT) {
+        if (Role::where('team_id', $team->id)->where('guard_name', 'web')->count() >= self::ROLE_COUNT) {
             return;
         }
 
@@ -50,7 +50,7 @@ class TeamRoleService
         ];
 
         foreach ($defaults as $role => $permissions) {
-            if (Role::where('name', $role)->where('team_id', $team->id)->exists()) {
+            if (Role::where('name', $role)->where('team_id', $team->id)->where('guard_name', 'web')->exists()) {
                 continue;
             }
 

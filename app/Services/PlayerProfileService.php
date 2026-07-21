@@ -45,7 +45,13 @@ class PlayerProfileService
             'socials' => array_filter($data['socials'] ?? [], fn ($value) => filled($value)),
         ]);
 
-        activity('player')->performedOn($player)->causedBy($actor)->log('player.profile_updated');
+        if ($player->wasChanged(['handle', 'first_name', 'last_name', 'country_code', 'bio', 'vlr_id', 'liquipedia_link', 'is_active'])) {
+            activity('player')->performedOn($player)->causedBy($actor)->log('player.information_updated');
+        }
+
+        if ($player->wasChanged('socials')) {
+            activity('player')->performedOn($player)->causedBy($actor)->log('player.socials_updated');
+        }
     }
 
     /**

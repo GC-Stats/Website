@@ -89,6 +89,7 @@ return [
         'redirect' => env('DISCORD_REDIRECT_URI'),
         'bot_token' => env('DISCORD_BOT_TOKEN'),
         'guild_id' => env('DISCORD_GUILD_ID'),
+        'match_live_webhook' => env('DISCORD_MATCH_LIVE_WEBHOOK_URL'),
     ],
 
 ];

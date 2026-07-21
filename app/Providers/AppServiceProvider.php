@@ -46,6 +46,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -59,6 +60,7 @@ use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNClient;
 use SocialiteProviders\Discord\DiscordExtendSocialite;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Twitch\TwitchExtendSocialite;
+use Spatie\Permission\PermissionRegistrar;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -86,6 +88,10 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureBunnyStorage();
         Paginator::useTailwind();
+
+        if ($this->app->runningUnitTests() && ($token = ParallelTesting::token())) {
+            app(PermissionRegistrar::class)->cacheKey = 'spatie.permission.cache.'.$token;
+        }
 
         if ($this->app->runningInConsole()) {
             PermissionTeam::global();

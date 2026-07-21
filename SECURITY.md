@@ -4,11 +4,12 @@
 
 Only the latest version of each repository is actively maintained and eligible for security fixes.
 
-| Repository         | Supported |
-|--------------------|-----------|
-| GC-Stats-Website   | ✅ Latest  |
-| GC-Stats-DiscordBot| ✅ Latest  |
-| GC-Stats-API       | ✅ Latest  |
+| Repository          | Supported |
+|---------------------|-----------|
+| GC-Stats-Website    | ✅ Latest  |
+| GC-Stats-DiscordBot | ✅ Latest  |
+| GC-Stats-API        | ✅ Latest  |
+| GC-Stats-RiotRelay  | ✅ Latest  |
 
 ---
 

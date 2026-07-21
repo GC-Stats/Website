@@ -19,21 +19,28 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FinanceController;
+use App\Http\Controllers\Admin\GameMapController;
+use App\Http\Controllers\Admin\MatchController;
 use App\Http\Controllers\Admin\NewsAuthorController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\NewsMediaController;
 use App\Http\Controllers\Admin\NewsPublisherController;
 use App\Http\Controllers\Admin\PlayerController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SanctionController;
 use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\Admin\TournamentController;
+use App\Http\Controllers\Admin\TournamentOperationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\News\RoleController as PublisherRoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
     Route::middleware(['can:reports.view'])->group(function () {
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -117,6 +124,79 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             ->middleware('can:players.delete')->name('destroy');
         Route::post('/{player}/merge', [PlayerController::class, 'merge'])
             ->middleware('can:players.merge')->name('merge.execute');
+    });
+
+    Route::prefix('tournaments')->name('tournaments.')->group(function () {
+        Route::middleware(['can:tournaments.view'])->group(function () {
+            Route::get('/', [TournamentController::class, 'index'])->name('index');
+            Route::get('/create', [TournamentController::class, 'create'])->name('create');
+            Route::get('/{tournament}', [TournamentController::class, 'show'])->name('show');
+            Route::get('/{tournament}/edit', [TournamentController::class, 'edit'])->name('edit');
+        });
+
+        Route::post('/', [TournamentController::class, 'store'])
+            ->middleware('can:tournaments.create')->name('store');
+        Route::put('/{tournament}', [TournamentController::class, 'update'])
+            ->middleware('can:tournaments.edit')->name('update');
+        Route::delete('/{tournament}', [TournamentController::class, 'destroy'])
+            ->middleware('can:tournaments.delete')->name('destroy');
+        Route::patch('/{tournament}/toggle-active', [TournamentController::class, 'toggleActive'])
+            ->middleware('can:tournaments.activate')->name('toggle-active');
+
+        Route::middleware(['can:tournaments.teams.manage'])->group(function () {
+            Route::post('/{tournament}/teams', [TournamentController::class, 'attachTeam'])->name('teams.store');
+            Route::post('/{tournament}/teams/quick-create', [TournamentController::class, 'quickCreateTeam'])->name('teams.quick-create');
+            Route::delete('/{tournament}/teams/{team}', [TournamentController::class, 'detachTeam'])->name('teams.destroy');
+        });
+    });
+
+    Route::prefix('tournaments/{tournament}/operations')->name('tournaments.operations.')->group(function () {
+        Route::get('/', [TournamentOperationController::class, 'index'])->name('index');
+        Route::post('/patch', [TournamentOperationController::class, 'patchAll'])
+            ->middleware('can:operations.patch')->name('patch');
+        Route::post('/bulk-create', [TournamentOperationController::class, 'bulkCreate'])
+            ->middleware('can:operations.bulk-create')->name('bulk-create');
+        Route::post('/cache-purge', [TournamentOperationController::class, 'purgeCache'])
+            ->middleware('can:operations.cache-purge')->name('cache-purge');
+    });
+
+    Route::prefix('tournaments/{tournament}/matches')->name('matches.')->group(function () {
+        Route::middleware(['can:matches.view'])->group(function () {
+            Route::get('/', [MatchController::class, 'index'])->name('index');
+            Route::get('/{match}', [MatchController::class, 'show'])->name('show');
+            Route::get('/{match}/edit', [MatchController::class, 'edit'])->name('edit');
+            Route::get('/{match}/veto', [MatchController::class, 'editVeto'])->name('veto.edit');
+        });
+
+        Route::post('/', [MatchController::class, 'store'])
+            ->middleware('can:matches.create')->name('store');
+        Route::put('/{match}', [MatchController::class, 'update'])
+            ->middleware('can:matches.edit')->name('update');
+        Route::delete('/{match}', [MatchController::class, 'destroy'])
+            ->middleware('can:matches.delete')->name('destroy');
+        Route::put('/{match}/veto', [MatchController::class, 'updateVeto'])
+            ->middleware('can:matches.veto.edit')->name('veto.update');
+        Route::delete('/{match}/reset-maps', [MatchController::class, 'resetMaps'])
+            ->middleware('can:maps.reset')->name('reset-maps');
+        Route::post('/{match}/import-wikicode', [MatchController::class, 'importWikicode'])
+            ->middleware('can:matches.import')->name('import-wikicode');
+
+        Route::prefix('{match}/maps')->name('maps.')->group(function () {
+            Route::get('/{map}', [GameMapController::class, 'show'])
+                ->middleware('can:maps.edit')->name('show');
+            Route::put('/{map}', [GameMapController::class, 'update'])
+                ->middleware('can:maps.edit')->name('update');
+            Route::put('/{map}/stats', [GameMapController::class, 'updateStats'])
+                ->middleware('can:maps.edit')->name('stats.update');
+            Route::post('/{map}/fetch', [GameMapController::class, 'fetch'])
+                ->middleware('can:maps.fetch')->name('fetch');
+            Route::post('/{map}/renew', [GameMapController::class, 'renew'])
+                ->middleware('can:maps.cache.renew')->name('renew');
+            Route::post('/{map}/reset', [GameMapController::class, 'reset'])
+                ->middleware('can:maps.reset')->name('reset');
+            Route::delete('/{map}', [GameMapController::class, 'destroy'])
+                ->middleware('can:maps.delete')->name('destroy');
+        });
     });
 
     Route::prefix('news')->name('news.')->group(function () {

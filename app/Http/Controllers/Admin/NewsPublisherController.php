@@ -21,6 +21,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\NewsPublisher;
 use App\Models\User;
+use App\Services\HtmlSanitizer;
 use App\Services\LogoUploadService;
 use App\Services\PublisherRoleService;
 use App\Support\PermissionTeam;
@@ -97,7 +98,11 @@ class NewsPublisherController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'slug' => ['nullable', 'string', 'max:100', 'unique:news_publishers,slug'],
             'socials' => ['nullable', 'array'],
-            'socials.*' => ['nullable', 'string', 'max:255'],
+            'socials.*' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
+                if (! HtmlSanitizer::isSafeUrl($value)) {
+                    $fail('The '.$attribute.' field must be a valid link.');
+                }
+            }],
         ]);
 
         $validated['slug'] = ($validated['slug'] ?? null) ?: Str::slug($validated['name']);
@@ -116,7 +121,11 @@ class NewsPublisherController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'slug' => ['nullable', 'string', 'max:100', Rule::unique('news_publishers', 'slug')->ignore($publisher->id)],
             'socials' => ['nullable', 'array'],
-            'socials.*' => ['nullable', 'string', 'max:255'],
+            'socials.*' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
+                if (! HtmlSanitizer::isSafeUrl($value)) {
+                    $fail('The '.$attribute.' field must be a valid link.');
+                }
+            }],
         ]);
 
         $publisher->update([

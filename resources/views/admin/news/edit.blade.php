@@ -29,7 +29,7 @@
             @if ($canPublish && $article->status !== 'published')
                 <form method="POST" action="{{ route('admin.news.publish', $article) }}">
                     @csrf
-                    <button type="submit" class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                    <button type="submit" class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                         {{ __('admin.news.publish') }}
                     </button>
                 </form>
@@ -37,7 +37,7 @@
             @if ($canArchive && $article->status !== 'archived')
                 <form method="POST" action="{{ route('admin.news.archive', $article) }}">
                     @csrf
-                    <button type="submit" class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                    <button type="submit" class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
                         {{ __('admin.news.archive') }}
                     </button>
                 </form>
@@ -45,13 +45,13 @@
             @can('news.edit')
                 <form method="POST" action="{{ route('admin.news.feature', $article) }}">
                     @csrf
-                    <button type="submit" class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle {{ $article->is_featured ? 'text-gc-yellow' : 'text-white' }} hover:bg-white/10">
+                    <button type="submit" class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 {{ $article->is_featured ? 'text-gc-yellow' : 'text-white' }} hover:bg-white/10">
                         {{ __('admin.news.feature') }}
                     </button>
                 </form>
                 <form method="POST" action="{{ route('admin.news.show-on-home', $article) }}">
                     @csrf
-                    <button type="submit" class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle {{ $article->show_on_home ? 'text-gc-yellow' : 'text-white' }} hover:bg-white/10">
+                    <button type="submit" class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 {{ $article->show_on_home ? 'text-gc-yellow' : 'text-white' }} hover:bg-white/10">
                         {{ __('admin.news.show_on_home') }}
                     </button>
                 </form>
@@ -65,7 +65,7 @@
                         :body="__('admin.news.delete_confirm')"
                         :trigger-label="__('admin.news.delete')"
                         :submit-label="__('admin.news.delete')"
-                        trigger-class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                        trigger-class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
                         submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
                     />
                 </form>
@@ -74,7 +74,7 @@
     </div>
 
     @if ($errors->any())
-        <div class="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-sm px-4 py-3 mb-6">
+        <div class="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3 mb-6">
             <ul class="list-disc list-inside">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -84,29 +84,29 @@
     @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <form method="POST" action="{{ route('admin.news.update', $article) }}" class="lg:col-span-2 bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-6">
+        <form method="POST" action="{{ route('admin.news.update', $article) }}" class="lg:col-span-2 bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-6">
             @csrf
             @method('PUT')
             @include('admin.news._form')
 
             <button type="submit"
-                    class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                    class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                 {{ __('admin.news.form.save') }}
             </button>
         </form>
 
         <div class="space-y-6">
-            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+            <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                 <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.news.media.title') }}</h2>
 
                 @if ($article->image_cover)
-                    <img src="{{ $article->image_cover }}" alt="" class="w-full aspect-video object-cover rounded-sm border border-border-subtle">
+                    <img src="{{ $article->image_cover }}" alt="" class="w-full aspect-video object-cover rounded-lg border border-white/10">
                 @endif
 
                 <div class="grid grid-cols-3 gap-2">
                     @forelse ($images as $image)
                         <div class="relative group">
-                            <img src="{{ $image->url }}" alt="" class="w-full aspect-square object-cover rounded-sm border border-border-subtle">
+                            <img src="{{ $image->url }}" alt="" class="w-full aspect-square object-cover rounded-lg border border-white/10">
                             <div class="absolute inset-0 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition bg-black/60 p-1">
                                 @if ($image->url !== $article->image_cover)
                                     <form method="POST" action="{{ route('admin.news.media.cover.update', [$article, $image]) }}">
@@ -134,7 +134,7 @@
                 </div>
 
                 <a href="{{ route('admin.news.media.index') }}"
-                   class="block text-center w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                   class="block text-center w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
                     {{ __('admin.news.media.title') }} &rarr;
                 </a>
             </div>

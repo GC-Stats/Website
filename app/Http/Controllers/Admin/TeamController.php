@@ -253,7 +253,7 @@ class TeamController extends Controller
         $team->update(['max_permissions' => $ceiling]);
 
         PermissionTeam::use($team->id);
-        foreach (Role::where('team_id', $team->id)->get() as $role) {
+        foreach (Role::where('team_id', $team->id)->where('guard_name', 'web')->get() as $role) {
             $permissions = $role->name === TeamRoleService::ROLE_OWNER
                 ? $ceiling
                 : array_intersect($role->permissions->pluck('name')->all(), $ceiling);

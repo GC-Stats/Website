@@ -27,7 +27,7 @@ class AdminPermissions extends PermissionCatalog
         return [
             'reports' => ['reports.view', 'reports.resolve'],
             'sanctions' => ['sanctions.view', 'sanctions.create', 'sanctions.revoke', 'sanctions.delete'],
-            'activity' => ['activity.account', 'activity.moderation', 'activity.administration', 'activity.team', 'activity.player'],
+            'activity' => ['activity.account', 'activity.moderation', 'activity.administration', 'activity.team', 'activity.player', 'activity.tournament'],
             'teams' => ['teams.view', 'teams.edit', 'teams.delete', 'teams.merge'],
             'players' => ['players.view', 'players.edit', 'players.delete', 'players.merge', 'players.identifiers.manage'],
             'news' => ['news.view', 'news.create', 'news.edit', 'news.delete', 'news.publish'],
@@ -39,6 +39,30 @@ class AdminPermissions extends PermissionCatalog
             'users' => ['users.view'],
             'finance' => ['finance.view', 'finance.manage'],
             'about' => ['about.view', 'about.manage'],
+            'tournaments' => [
+                'tournaments.view', 'tournaments.create', 'tournaments.edit', 'tournaments.delete',
+                'tournaments.teams.manage', 'tournaments.finished.edit', 'tournaments.activate',
+            ],
+            'matches' => [
+                'matches.view',
+                'matches.create', 'matches.create.finished',
+                'matches.edit', 'matches.edit.finished',
+                'matches.delete', 'matches.delete.finished',
+                'matches.veto.edit', 'matches.veto.edit.finished',
+                'matches.import', 'matches.import.finished',
+            ],
+            'maps' => [
+                'maps.edit', 'maps.edit.finished',
+                'maps.fetch', 'maps.fetch.finished',
+                'maps.reset', 'maps.reset.finished',
+                'maps.delete', 'maps.delete.finished',
+                'maps.cache.renew', 'maps.cache.renew.finished',
+            ],
+            'operations' => [
+                'operations.patch', 'operations.patch.finished',
+                'operations.bulk-create', 'operations.bulk-create.finished',
+                'operations.cache-purge', 'operations.cache-purge.finished',
+            ],
         ];
     }
 }
