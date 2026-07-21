@@ -13,27 +13,32 @@
     <div class="flex flex-wrap gap-2 mb-6">
         @foreach ($statuses as $option)
             <a href="{{ route('admin.reports.index', ['status' => $option]) }}"
-               class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-sm transition-all {{ $status === $option ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
+               class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all {{ $status === $option ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
                 {{ __('admin.reports.status.'.$option) }}
             </a>
         @endforeach
     </div>
 
-    <div class="bg-bg-card border border-border-subtle rounded-sm shadow-xl overflow-x-auto">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
+         x-data="GCS.sortableTable('submitted_at', false)">
         <table class="w-full text-sm text-left">
             <thead>
-                <tr class="border-b border-border-subtle text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    <th class="px-4 py-3">{{ __('admin.reports.reported_user') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.reports.reporter') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.reports.category_column') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.reports.team') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.reports.submitted_at') }}</th>
+                <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    @foreach ([['reported_user', 'admin.reports.reported_user'], ['reporter', 'admin.reports.reporter'], ['category', 'admin.reports.category_column'], ['team', 'admin.reports.team'], ['submitted_at', 'admin.reports.submitted_at']] as [$col, $label])
+                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
+                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
+                                {{ __($label) }}
+                                @include('admin.partials.sort-arrows', ['col' => $col])
+                            </span>
+                        </th>
+                    @endforeach
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody x-ref="tbody">
                 @forelse ($reports as $report)
-                    <tr class="border-b border-border-subtle last:border-0">
+                    <tr data-row data-reported_user="{{ $report->reportedUser?->name ?? '' }}" data-reporter="{{ $report->reporter?->name ?? '' }}" data-category="{{ __('admin.reports.category.'.$report->category) }}" data-team="{{ $report->team?->name ?? '' }}" data-submitted_at="{{ $report->created_at->timestamp }}"
+                        class="border-b border-white/10 last:border-0">
                         <td class="px-4 py-3 text-white font-semibold">
                             {{ $report->reportedUser?->name ?? '—' }}
                             @if ($report->reportedUser?->username)
@@ -51,7 +56,7 @@
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ $report->created_at->diffForHumans() }}</td>
                         <td class="px-4 py-3 text-right">
                             <a href="{{ route('admin.reports.show', $report) }}"
-                               class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                               class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
                                 {{ __('admin.reports.view') }}
                             </a>
                         </td>

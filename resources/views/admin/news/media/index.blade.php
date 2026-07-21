@@ -14,7 +14,7 @@
         <form method="GET" action="{{ route('admin.news.media.index') }}" class="flex items-center gap-2">
             <label class="flex items-center gap-2 text-xs text-gray-400">
                 <input type="checkbox" name="unattached" value="1" @checked($unattachedOnly) onchange="this.form.submit()"
-                       class="rounded-sm border-border-subtle bg-[#050505] text-gc-yellow focus:ring-gc-yellow">
+                       class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
                 {{ __('admin.news.media.unattached_only') }}
             </label>
         </form>
@@ -23,7 +23,7 @@
             <x-modal :title="__('admin.news.media.upload')">
                 <x-slot:trigger>
                     <button type="button"
-                            class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90 shrink-0">
+                            class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)] shrink-0">
                         {{ __('admin.news.media.upload') }}
                     </button>
                 </x-slot:trigger>
@@ -31,9 +31,9 @@
                 <form method="POST" action="{{ route('admin.news.media.store') }}" enctype="multipart/form-data" class="space-y-4">
                     @csrf
                     <input type="file" name="image" accept="image/*" required
-                           class="w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:bg-white/5 file:text-white hover:file:bg-white/10">
+                           class="w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:bg-white/5 file:text-white hover:file:bg-white/10">
                     <button type="submit"
-                            class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                            class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                         {{ __('admin.news.media.upload') }}
                     </button>
                 </form>
@@ -43,7 +43,7 @@
 
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         @forelse ($images as $image)
-            <div class="bg-bg-card border border-border-subtle rounded-sm overflow-hidden shadow-xl">
+            <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm overflow-hidden shadow-xl">
                 <img src="{{ $image->url }}" alt="" class="w-full aspect-video object-cover">
                 <div class="p-3 space-y-2">
                     <p class="text-[10px] text-gray-500 truncate">
@@ -54,7 +54,7 @@
                             @csrf
                             @method('PUT')
                             <select name="news_id" onchange="this.form.submit()" title="{{ __('admin.news.media.link_to_article') }}"
-                                    class="w-full bg-[#050505] border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
+                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                                 <option value="">{{ __('admin.news.media.unattached') }}</option>
                                 @foreach ($linkableArticles as $linkable)
                                     <option value="{{ $linkable->id }}" @selected($image->news_id === $linkable->id)>{{ $linkable->title }}</option>
@@ -71,15 +71,15 @@
                                 setTimeout(() => copied = false, 2000);
                             "
                             x-text="copied ? '{{ __('admin.news.media.copied') }}' : '{{ __('admin.news.media.copy') }}'"
-                            class="shrink-0 font-bold uppercase text-[10px] tracking-widest px-2 py-1.5 rounded-sm transition active:scale-95 border"
-                            :class="copied ? 'bg-green-500/10 border-green-500/40 text-green-400' : 'bg-white/5 border-border-subtle text-white hover:bg-white/10'"
+                            class="shrink-0 font-bold uppercase text-[10px] tracking-widest px-2 py-1.5 rounded-lg transition active:scale-95 border"
+                            :class="copied ? 'bg-green-500/10 border-green-500/40 text-green-400' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'"
                         >{{ __('admin.news.media.copy') }}</button>
                         @if ($image->news && (auth()->user()->can('news.edit') || $editablePublisherIds->contains($image->news->publisher_id)) && $image->url !== $image->news->image_cover)
                             <form method="POST" action="{{ route('admin.news.media.cover.update', [$image->news, $image]) }}">
                                 @csrf
                                 @method('PUT')
                                 <button type="submit" title="{{ __('admin.news.media.set_as_cover') }}"
-                                        class="shrink-0 font-bold uppercase text-[10px] tracking-widest px-2 py-1.5 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                                        class="shrink-0 font-bold uppercase text-[10px] tracking-widest px-2 py-1.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
                                     {{ __('admin.news.media.set_as_cover') }}
                                 </button>
                             </form>
@@ -90,7 +90,7 @@
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"
-                                        class="font-bold uppercase text-[10px] tracking-widest px-2 py-1.5 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10">
+                                        class="font-bold uppercase text-[10px] tracking-widest px-2 py-1.5 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10">
                                     {{ __('admin.news.media.delete') }}
                                 </button>
                             </form>

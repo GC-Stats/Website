@@ -78,7 +78,14 @@ class TeamController extends Controller
                 ->toArray();
 
             $matchesRaw = $this->teamMatchesQuery($id)
-                ->orderBy('matches.scheduled_at', 'desc')
+                // Live first, then upcoming within the next 24h, then finished.
+                ->orderByRaw("CASE
+                    WHEN matches.status = 'live' THEN 0
+                    WHEN matches.status = 'upcoming' AND matches.scheduled_at <= NOW() + INTERVAL 1 DAY THEN 1
+                    WHEN matches.status = 'finished' THEN 2
+                    ELSE 3
+                END")
+                ->orderByRaw("CASE WHEN matches.status = 'upcoming' THEN UNIX_TIMESTAMP(matches.scheduled_at) ELSE -UNIX_TIMESTAMP(matches.scheduled_at) END")
                 ->limit(10)
                 ->get();
 

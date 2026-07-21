@@ -14,7 +14,7 @@
         <x-modal :title="__('admin.roles.new_role.title')">
             <x-slot:trigger>
                 <button type="button"
-                        class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                        class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                     {{ __('admin.roles.new_role.title') }}
                 </button>
             </x-slot:trigger>
@@ -26,13 +26,13 @@
                         {{ __('admin.roles.new_role.name_label') }}
                     </label>
                     <input type="text" name="name" required pattern="[A-Za-z0-9_\-]+"
-                           class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                     @error('name')
                         <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
                     @enderror
                 </div>
                 <button type="submit"
-                        class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                        class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                     {{ __('admin.roles.new_role.submit') }}
                 </button>
             </form>
@@ -42,7 +42,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @foreach ($roles as $role)
             <a href="{{ route('admin.roles.show', $role) }}"
-               class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl hover:border-gc-yellow/50 transition-all group">
+               class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl hover:border-gc-yellow/50 transition-all group">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-sm font-black uppercase tracking-widest text-white group-hover:text-gc-yellow transition-colors">{{ $role->name }}</h2>
                     @if ($role->name === 'super-admin')

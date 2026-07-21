@@ -257,7 +257,15 @@ class TournamentController extends Controller
                 ->whereNotNull('team_a_id')
                 ->whereNotNull('team_b_id')
                 ->with(['teamA:id,name', 'teamB:id,name', 'tournamentPhase:id,name'])
-                ->latest('scheduled_at')
+                // Live first, then recently finished (< 24h), then upcoming, then older finished.
+                ->orderByRaw("CASE
+                    WHEN status = 'live' THEN 0
+                    WHEN status = 'finished' AND scheduled_at >= NOW() - INTERVAL 1 DAY THEN 1
+                    WHEN status = 'upcoming' THEN 2
+                    ELSE 3
+                END")
+                ->orderByRaw("CASE WHEN status = 'upcoming' THEN UNIX_TIMESTAMP(scheduled_at) ELSE -UNIX_TIMESTAMP(scheduled_at) END")
+                ->orderBy('match_order', 'asc')
                 ->take(9)
                 ->get()
                 ->map(fn ($m) => [

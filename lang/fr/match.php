@@ -7,6 +7,7 @@ return [
     'upcoming' => 'Match à venir',
     'unknown_date' => 'Date inconnue',
     'round_history' => 'Historique des rounds',
+    'overtime_short' => 'OT',
     'map_selector' => 'Sélectionner une carte',
     'score_label' => ':teamA :scoreA – :scoreB :teamB',
     'performance_caption' => 'Résumé des performances : :teamA vs :teamB',

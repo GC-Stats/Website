@@ -16,12 +16,12 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+            <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                 <div class="flex flex-wrap items-center gap-3">
-                    <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-sm bg-gc-yellow text-black">
+                    <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg bg-gc-yellow text-black">
                         {{ __('admin.reports.category.'.$report->category) }}
                     </span>
-                    <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-sm bg-white/5 text-gray-300">
+                    <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg bg-white/5 text-gray-300">
                         {{ __('admin.reports.status.'.$report->status) }}
                     </span>
                     <span class="text-xs text-gray-500">{{ $report->created_at->format('Y-m-d H:i') }}</span>
@@ -62,7 +62,7 @@
                 </div>
 
                 @if ($report->reviewedBy)
-                    <p class="text-xs text-gray-500 pt-2 border-t border-border-subtle">
+                    <p class="text-xs text-gray-500 pt-2 border-t border-white/10">
                         {{ __('admin.reports.reviewed_by', ['name' => $report->reviewedBy->username ? $report->reviewedBy->name.' @'.$report->reviewedBy->username : $report->reviewedBy->name, 'date' => $report->reviewed_at?->format('Y-m-d H:i')]) }}
                     </p>
                     @if ($report->resolution_note)
@@ -72,7 +72,7 @@
             </div>
 
             @can('reports.resolve')
-                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+                <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                     <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.reports.resolve.title') }}</h2>
 
                     <form method="POST" action="{{ route('admin.reports.resolve', $report) }}" class="space-y-4">
@@ -84,7 +84,7 @@
                                 {{ __('admin.reports.resolve.status_label') }}
                             </label>
                             <select id="status" name="status" required
-                                    class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                                 @foreach ($statuses as $option)
                                     <option value="{{ $option }}" @selected(old('status') === $option)>{{ __('admin.reports.status.'.$option) }}</option>
                                 @endforeach
@@ -99,12 +99,12 @@
                                 {{ __('admin.reports.resolve.note_label') }}
                             </label>
                             <textarea id="resolution_note" name="resolution_note" rows="3"
-                                      class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">{{ old('resolution_note') }}</textarea>
+                                      class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">{{ old('resolution_note') }}</textarea>
                             <p class="text-xs text-gray-500 mt-2">{{ __('admin.reports.resolve.note_help') }}</p>
                         </div>
 
                         <button type="submit"
-                                class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                                class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                             {{ __('admin.reports.resolve.submit') }}
                         </button>
                     </form>
@@ -114,7 +114,7 @@
 
         <div class="space-y-6">
             @if ($report->reportedUser)
-                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+                <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                     <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.reports.reported_user_history') }}</h2>
 
                     <div>
@@ -126,7 +126,7 @@
                         @endforelse
                     </div>
 
-                    <div class="pt-3 border-t border-border-subtle">
+                    <div class="pt-3 border-t border-white/10">
                         <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.reports.active_sanctions') }}</p>
                         @forelse ($report->reportedUser->sanctions->filter->isActive() as $sanction)
                             <p class="text-xs text-red-400">{{ __('admin.sanctions.type.'.$sanction->type) }} — {{ $sanction->reason }}</p>
@@ -139,7 +139,7 @@
                         <x-modal :title="__('admin.reports.issue_sanction')">
                             <x-slot:trigger>
                                 <button type="button"
-                                        class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20">
+                                        class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20">
                                     {{ __('admin.reports.issue_sanction') }}
                                 </button>
                             </x-slot:trigger>

@@ -116,6 +116,14 @@ class NewsMediaController extends Controller
             return back()->with('status', 'media-unlinked');
         }
 
+        // Re-linking an image already attached elsewhere also requires
+        // being able to manage its *current* article, not just the target
+        // one — otherwise a publisher member could re-point another
+        // publisher's media onto their own article by guessing its id.
+        if ($image->news) {
+            $this->ensureCanManageArticle($request, $image->news, 'news.media.upload', 'publisher.media.upload');
+        }
+
         $article = News::findOrFail($validated['news_id']);
         $this->ensureCanManageArticle($request, $article, 'news.media.upload', 'publisher.media.upload');
 

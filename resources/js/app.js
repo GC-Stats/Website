@@ -148,6 +148,207 @@ window.GCS.getTimezones = function () {
 };
 
 /**
+ * Admin: generic sortable table
+ *
+ * Sorts the existing `<tr data-row>` DOM nodes inside `$refs.tbody` in
+ * place, reading the column's value from `data-<col>` on each row — rows
+ * keep their fully server-rendered markup (forms, modals, CSRF tokens),
+ * only their order in the DOM changes. Used by admin index tables that
+ * need real per-row actions, unlike the simpler Alpine `x-for` sort used
+ * where rows are plain data (e.g. tournament stats, admin matches list).
+ */
+window.GCS.sortableTable = function (defaultCol = null, defaultAsc = true) {
+    return {
+        sortCol: defaultCol,
+        sortAsc: defaultAsc,
+
+        sortBy(col) {
+            if (this.sortCol === col) this.sortAsc = !this.sortAsc;
+            else { this.sortCol = col; this.sortAsc = true; }
+
+            const tbody = this.$refs.tbody;
+            const rows = Array.from(tbody.querySelectorAll(':scope > tr[data-row]'));
+
+            rows.sort((a, b) => {
+                const valA = a.dataset[this.sortCol] ?? '';
+                const valB = b.dataset[this.sortCol] ?? '';
+                const numA = parseFloat(valA);
+                const numB = parseFloat(valB);
+
+                if (valA !== '' && valB !== '' && !isNaN(numA) && !isNaN(numB)) {
+                    return this.sortAsc ? numA - numB : numB - numA;
+                }
+
+                return this.sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            });
+
+            rows.forEach((row) => tbody.appendChild(row));
+        },
+    };
+};
+
+/**
+ * Admin: manual map stat entry
+ *
+ * Lets an admin type in a map's player stats (and, optionally, per-round
+ * stats) by hand — used when a map has no linked Riot match ID to fetch
+ * from (LAN matches, matches too old for the relay's cache, etc). Ported
+ * from the old dashboard's Matches/Map.vue.
+ */
+window.GCS.manualMapStats = function (config) {
+    function emptyPlayerStatRow(playerId, teamId) {
+        return { player_id: playerId ?? '', team_id: teamId ?? '', agent_name: '', kills: 0, deaths: 0, assists: 0, acs: '', adr: '', kast_percentage: '', first_kills: '', first_deaths: '', headshot_percentage: '' };
+    }
+
+    function emptyRoundPlayerStatRow(playerId, teamId) {
+        return { player_id: playerId ?? '', team_id: teamId ?? '', kills: 0, assists: 0, score: 0, loadout_value: -1, economy_spent: -1, economy_remaining: -1, weapon_id: '', armor: '' };
+    }
+
+    function initPlayerStatsRows() {
+        const teamAId = config.teamA?.id ?? '';
+        const teamBId = config.teamB?.id ?? '';
+
+        let rows;
+
+        if (config.initialPlayerStats.length > 0) {
+            rows = config.initialPlayerStats.map((stat) => ({ ...stat }));
+        } else {
+            rows = [];
+            (config.teamAPlayers ?? []).forEach((p) => rows.push(emptyPlayerStatRow(p.id, teamAId)));
+            (config.teamBPlayers ?? []).forEach((p) => rows.push(emptyPlayerStatRow(p.id, teamBId)));
+        }
+
+        const countFor = (teamId) => rows.filter((r) => String(r.team_id) === String(teamId)).length;
+
+        while (teamAId !== '' && countFor(teamAId) < 5) rows.push(emptyPlayerStatRow('', teamAId));
+        while (teamBId !== '' && countFor(teamBId) < 5) rows.push(emptyPlayerStatRow('', teamBId));
+
+        return rows;
+    }
+
+    return {
+        playerStats: initPlayerStatsRows(),
+        rounds: config.initialRounds.map((r) => ({ ...r, player_stats: (r.player_stats ?? []).map((ps) => ({ ...ps })) })),
+        editingRoundIndex: null,
+        submitting: false,
+        error: '',
+
+        byTeam(rows) {
+            return {
+                teamA: rows.filter((r) => String(r.team_id) === String(config.teamA?.id)),
+                teamB: rows.filter((r) => String(r.team_id) === String(config.teamB?.id)),
+            };
+        },
+
+        get mainStatsByTeam() {
+            return this.byTeam(this.playerStats);
+        },
+
+        removePlayerRow(stat) {
+            const idx = this.playerStats.indexOf(stat);
+            if (idx !== -1) this.playerStats.splice(idx, 1);
+        },
+
+        get editingRound() {
+            return this.editingRoundIndex !== null ? this.rounds[this.editingRoundIndex] : null;
+        },
+
+        get editingRoundByTeam() {
+            return this.editingRound ? this.byTeam(this.editingRound.player_stats) : { teamA: [], teamB: [] };
+        },
+
+        defaultRoundPlayerStats() {
+            const rows = [];
+            this.mainStatsByTeam.teamA.forEach((s) => rows.push(emptyRoundPlayerStatRow(s.player_id, s.team_id)));
+            this.mainStatsByTeam.teamB.forEach((s) => rows.push(emptyRoundPlayerStatRow(s.player_id, s.team_id)));
+            return rows;
+        },
+
+        openRoundEditor(index) {
+            const round = this.rounds[index];
+            if (!round.player_stats || round.player_stats.length === 0) {
+                round.player_stats = this.defaultRoundPlayerStats();
+            }
+            this.editingRoundIndex = index;
+        },
+
+        removeRoundPlayerRow(ps) {
+            const idx = this.editingRound.player_stats.indexOf(ps);
+            if (idx !== -1) this.editingRound.player_stats.splice(idx, 1);
+        },
+
+        addRound() {
+            const next = this.rounds.length > 0 ? Math.max(...this.rounds.map((r) => Number(r.round_number) || 0)) + 1 : 1;
+            this.rounds.push({ round_number: next, winning_team: '', win_type: '', player_stats: [] });
+        },
+
+        removeRound(index) {
+            this.rounds.splice(index, 1);
+        },
+
+        async submit() {
+            this.error = '';
+            this.submitting = true;
+
+            const payload = {
+                player_stats: this.playerStats.filter((s) => s.player_id !== '' && s.team_id !== '').map((s) => {
+                    const out = {
+                        player_id: parseInt(s.player_id),
+                        team_id: parseInt(s.team_id),
+                        agent_name: s.agent_name,
+                        kills: parseInt(s.kills) || 0,
+                        deaths: parseInt(s.deaths) || 0,
+                        assists: parseInt(s.assists) || 0,
+                    };
+                    if (s.acs !== '' && s.acs !== null) out.acs = parseFloat(s.acs);
+                    if (s.adr !== '' && s.adr !== null) out.adr = parseFloat(s.adr);
+                    if (s.kast_percentage !== '' && s.kast_percentage !== null) out.kast_percentage = parseFloat(s.kast_percentage);
+                    if (s.first_kills !== '' && s.first_kills !== null) out.first_kills = parseInt(s.first_kills);
+                    if (s.first_deaths !== '' && s.first_deaths !== null) out.first_deaths = parseInt(s.first_deaths);
+                    if (s.headshot_percentage !== '' && s.headshot_percentage !== null) out.headshot_percentage = parseFloat(s.headshot_percentage);
+                    return out;
+                }),
+                rounds: this.rounds.filter((r) => r.round_number !== '' && r.winning_team !== '').map((r) => ({
+                    round_number: parseInt(r.round_number),
+                    winning_team: parseInt(r.winning_team),
+                    win_type: r.win_type || null,
+                    player_stats: (r.player_stats || []).filter((ps) => ps.player_id !== '').map((ps) => ({
+                        player_id: parseInt(ps.player_id),
+                        kills: parseInt(ps.kills) || 0,
+                        assists: parseInt(ps.assists) || 0,
+                        score: parseInt(ps.score) || 0,
+                        loadout_value: ps.loadout_value === '' || ps.loadout_value === null ? null : parseInt(ps.loadout_value),
+                        economy_spent: ps.economy_spent === '' || ps.economy_spent === null ? null : parseInt(ps.economy_spent),
+                        economy_remaining: ps.economy_remaining === '' || ps.economy_remaining === null ? null : parseInt(ps.economy_remaining),
+                        weapon_id: ps.weapon_id || null,
+                        armor: ps.armor || null,
+                    })),
+                })),
+            };
+
+            try {
+                const response = await window.GCS.apiFetch(config.updateUrl, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload),
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                    return;
+                }
+
+                const data = await response.json().catch(() => ({}));
+                this.error = Object.values(data.errors ?? {})[0]?.[0] ?? data.message ?? config.errorText;
+            } catch (e) {
+                this.error = config.errorText;
+            } finally {
+                this.submitting = false;
+            }
+        },
+    };
+};
+
+/**
  * Account security (two-factor authentication & passkeys)
  *
  * Talks directly to Fortify's and Laravel Passkeys' JSON endpoints. Any

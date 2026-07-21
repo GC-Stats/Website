@@ -8,7 +8,13 @@
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
-@php $roundCount = count($map['rounds']); @endphp
+@php
+    $roundCount = count($map['rounds']);
+    $regulationLength = 24;
+    $maxPerLine = 30;
+    $roundChunks = array_chunk($map['rounds'], $maxPerLine);
+    $wrapped = count($roundChunks) > 1;
+@endphp
 <section class="w-full bg-[#0d0d0d] rounded-2xl border border-white/5 shadow-2xl overflow-hidden" aria-label="{{ __('match.round_history') }}">
     {{-- Mobile layout: teams stacked with side colors + wrapping round grid --}}
     <div class="md:hidden p-4 space-y-3">
@@ -46,38 +52,46 @@
         </div>
     </div>
 
-    <div class="hidden md:block p-6 space-y-3">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.4)] p-1.5">
-                <img alt="{{ $match['team_a']['name'] ?? 'TBD' }}" src="{{ $match['team_a']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
-            </div>
-
-            <div class="grid items-end gap-1 flex-grow" style="grid-template-columns: repeat({{ $roundCount }}, minmax(0, 1fr));">
-                @foreach($map["rounds"] as $round)
-                    <div class="relative flex flex-col items-center gap-1 group">
-                        <span class="text-[8px] text-gray-600 font-black font-mono leading-none transition-colors group-hover:text-gray-400">
-                            {{ str_pad($round["round_number"], 2, '0', STR_PAD_LEFT) }}
-                        </span>
-
-                        <div class="w-6 h-6 aspect-square rounded-md flex items-center justify-center transition-all duration-300
-                            {{ $round['winning_team'] === $match['team_a']['id'] ? 'bg-blue-500/10 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.1)]' : 'bg-black/40 border border-white/5 opacity-40' }}">
-
-                            @if($round["winning_team"] === $match['team_a']["id"])
-                                @php $winType = $round["win_type"] ? str_replace(' ', '_', strtolower($round["win_type"])) : 'timeout'; @endphp
-                                <img src="{{ asset('storage/icons/wins/' . $winType . '.webp') }}"
-                                     alt="{{ $round['win_type'] ?? 'timeout' }}"
-                                     class="w-3/4 h-3/4 object-contain brightness-110 drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]">
-                            @endif
-                        </div>
-
-                        @if($loop->iteration == 12 || $loop->iteration == 24)
-                            <div class="absolute -right-1 top-0 bottom-0 w-px bg-white/10"></div>
-                        @endif
+    <div class="hidden md:block p-6 space-y-2">
+        <div class="space-y-2">
+            @foreach($roundChunks as $i => $chunk)
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.4)] p-1.5 {{ $i > 0 ? 'invisible' : '' }}">
+                        <img alt="{{ $match['team_a']['name'] ?? 'TBD' }}" src="{{ $match['team_a']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
                     </div>
-                @endforeach
-            </div>
 
-            <div class="w-12 hidden md:block"></div>
+                    <div class="flex-grow overflow-hidden">
+                        <div class="grid items-end gap-1" style="grid-template-columns: repeat({{ $wrapped ? $maxPerLine : count($chunk) }}, minmax(0, 1fr));">
+                            @foreach($chunk as $round)
+                                <div class="relative flex flex-col items-center gap-1 group">
+                                    <span class="text-[8px] font-black font-mono leading-none transition-colors {{ $round['round_number'] > $regulationLength ? 'text-gc-yellow/70' : 'text-gray-600 group-hover:text-gray-400' }}">
+                                        {{ str_pad($round["round_number"], 2, '0', STR_PAD_LEFT) }}
+                                    </span>
+
+                                    <div class="w-6 h-6 aspect-square rounded-md flex items-center justify-center transition-all duration-300
+                                        {{ $round['winning_team'] === $match['team_a']['id'] ? 'bg-blue-500/10 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.1)]' : 'bg-black/40 border border-white/5 opacity-40' }}">
+
+                                        @if($round["winning_team"] === $match['team_a']["id"])
+                                            @php $winType = $round["win_type"] ? str_replace(' ', '_', strtolower($round["win_type"])) : 'timeout'; @endphp
+                                            <img src="{{ asset('storage/icons/wins/' . $winType . '.webp') }}"
+                                                 alt="{{ $round['win_type'] ?? 'timeout' }}"
+                                                 class="w-3/4 h-3/4 object-contain brightness-110 drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]">
+                                        @endif
+                                    </div>
+
+                                    @if($round['round_number'] == 12)
+                                        <div class="absolute -right-1 top-0 bottom-0 w-px bg-white/10"></div>
+                                    @elseif($round['round_number'] == $regulationLength + 1)
+                                        <div class="absolute -left-1 top-0 bottom-0 w-px bg-gc-yellow/30"></div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="w-12 hidden md:block"></div>
+                </div>
+            @endforeach
         </div>
 
         <div class="relative h-px w-full">
@@ -85,33 +99,45 @@
             <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rotate-45 border border-white/20 bg-[#0d0d0d]"></div>
         </div>
 
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 shadow-[0_0_10px_rgba(239,68,68,0.4)] p-1.5">
-                <img alt="{{ $match['team_b']['name'] ?? 'TBD' }}" src="{{ $match['team_b']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
-            </div>
-
-            <div class="grid items-start gap-1 flex-grow" style="grid-template-columns: repeat({{ $roundCount }}, minmax(0, 1fr));">
-                @foreach($map["rounds"] as $round)
-                    <div class="relative flex flex-col items-center gap-1 group">
-                        <div class="w-6 h-6 aspect-square rounded-md flex items-center justify-center transition-all duration-300
-                            {{ $round['winning_team'] === $match['team_b']['id'] ? 'bg-red-500/10 border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.1)]' : 'bg-black/40 border border-white/5 opacity-40' }}">
-
-                            @if($round["winning_team"] === $match['team_b']["id"])
-                                @php $winType = $round["win_type"] ? str_replace(' ', '_', strtolower($round["win_type"])) : 'timeout'; @endphp
-                                <img src="{{ asset('storage/icons/wins/' . $winType . '.webp') }}"
-                                     alt="{{ $round['win_type'] ?? 'timeout' }}"
-                                     class="w-3/4 h-3/4 object-contain brightness-110 drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]">
-                            @endif
-                        </div>
-
-                        @if($loop->iteration == 12 || $loop->iteration == 24)
-                            <div class="absolute -right-1 top-0 bottom-0 w-px bg-white/10"></div>
-                        @endif
+        <div class="space-y-2">
+            @foreach($roundChunks as $i => $chunk)
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 shadow-[0_0_10px_rgba(239,68,68,0.4)] p-1.5 {{ $i > 0 ? 'invisible' : '' }}">
+                        <img alt="{{ $match['team_b']['name'] ?? 'TBD' }}" src="{{ $match['team_b']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
                     </div>
-                @endforeach
-            </div>
 
-            <div class="w-12 hidden md:block"></div>
+                    <div class="flex-grow overflow-hidden">
+                        <div class="grid items-start gap-1" style="grid-template-columns: repeat({{ $wrapped ? $maxPerLine : count($chunk) }}, minmax(0, 1fr));">
+                            @foreach($chunk as $round)
+                                <div class="relative flex flex-col items-center gap-1 group">
+                                    <div class="w-6 h-6 aspect-square rounded-md flex items-center justify-center transition-all duration-300
+                                        {{ $round['winning_team'] === $match['team_b']['id'] ? 'bg-red-500/10 border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.1)]' : 'bg-black/40 border border-white/5 opacity-40' }}">
+
+                                        @if($round["winning_team"] === $match['team_b']["id"])
+                                            @php $winType = $round["win_type"] ? str_replace(' ', '_', strtolower($round["win_type"])) : 'timeout'; @endphp
+                                            <img src="{{ asset('storage/icons/wins/' . $winType . '.webp') }}"
+                                                 alt="{{ $round['win_type'] ?? 'timeout' }}"
+                                                 class="w-3/4 h-3/4 object-contain brightness-110 drop-shadow-[0_0_5px_rgba(239,68,68,0.5)]">
+                                        @endif
+                                    </div>
+
+                                    <span class="text-[8px] font-black font-mono leading-none transition-colors {{ $round['round_number'] > $regulationLength ? 'text-gc-yellow/70' : 'text-gray-600 group-hover:text-gray-400' }}">
+                                        {{ str_pad($round["round_number"], 2, '0', STR_PAD_LEFT) }}
+                                    </span>
+
+                                    @if($round['round_number'] == 12)
+                                        <div class="absolute -right-1 top-0 bottom-0 w-px bg-white/10"></div>
+                                    @elseif($round['round_number'] == $regulationLength + 1)
+                                        <div class="absolute -left-1 top-0 bottom-0 w-px bg-gc-yellow/30"></div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="w-12 hidden md:block"></div>
+                </div>
+            @endforeach
         </div>
     </div>
 </section>

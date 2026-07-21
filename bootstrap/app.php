@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // their own expiry.
         $schedule->command('app:prune-api-key-reveals')->everyFifteenMinutes();
         $schedule->command('discord:sync-roles')->everyFifteenMinutes();
+        $schedule->command('matches:activate-live')->everyMinute();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(LogPageView::class);

@@ -236,9 +236,142 @@
                 </div>
 
                 <template x-if="activeMap === 0">
-                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 animate-fadeIn">
-                        @include('partials.team-stats-table', ['stats' => $totalA, 'teamName' => $teamAName, 'multiple' => true])
-                        @include('partials.team-stats-table', ['stats' => $totalB, 'teamName' => $teamBName, 'multiple' => true, 'reverse' => true])
+                    <div class="space-y-12 animate-fadeIn">
+                        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                            @include('partials.team-stats-table', ['stats' => $totalA, 'teamName' => $teamAName, 'multiple' => true])
+                            @include('partials.team-stats-table', ['stats' => $totalB, 'teamName' => $teamBName, 'multiple' => true, 'reverse' => true])
+                        </div>
+
+                        <div class="grid grid-cols-12 gap-6">
+                            @if($totalEcoSummary['team_a']['eco']['total'] > 0)
+                                <div class="col-span-12 lg:col-span-2 order-2 lg:order-1">
+                                    <div class="bg-white/[0.02] border border-white/5 rounded-2xl p-4 h-full">
+                                        <h4 class="text-[8px] font-black uppercase text-gray-500 mb-6 text-center tracking-[0.3em]">
+                                            {{ __("match.economy", ["team" => Str::limit($teamAName, 8)]) }}
+                                        </h4>
+
+                                        <div class="flex flex-col gap-2">
+                                            @foreach($totalEcoSummary['team_a'] as $eco)
+                                                <div class="group flex items-center justify-between bg-black/40 rounded-xl border border-white/5 p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300">
+
+                                                    <div class="flex items-center gap-3">
+                                                    <span class="text-[8px] text-gray-400 uppercase font-black tracking-wider group-hover:text-gray-200 transition-colors">
+                                                        {{ $eco['label'] }}
+                                                    </span>
+                                                    </div>
+
+                                                    <div class="flex flex-col items-end">
+                                                    <span class="text-white font-black text-[11px] leading-none">
+                                                        {{ $eco['win'] }}<span class="text-gray-600 mx-0.5 text-[9px]">/</span>{{ $eco['total'] }}
+                                                    </span>
+                                                        <div class="mt-1 w-8 h-[2px] bg-white/5 rounded-full overflow-hidden">
+                                                            <div class="h-full bg-[var(--brand-yellow)] opacity-40 group-hover:opacity-100 transition-all"
+                                                                 style="width: {{ $eco['total'] > 0 ? ($eco['win'] / $eco['total']) * 100 : 0 }}%">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($totalPerformance))
+                                <div class="col-span-12 lg:col-span-8 order-1 lg:order-2 bg-[#0d0d0d] rounded-2xl border border-white/5 shadow-2xl overflow-hidden">
+                                    <div class="bg-white/[0.03] px-6 py-4 border-b border-white/5">
+                                        <div class="flex items-center justify-center gap-4">
+                                            <span class="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
+                                                {{ __('match.performance') }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="overflow-x-auto no-scrollbar">
+                                        <table class="w-full text-[10px] border-separate border-spacing-0">
+                                            <caption class="sr-only">{{ __('match.performance_caption', ['teamA' => $teamAName, 'teamB' => $teamBName]) }}</caption>
+                                            <thead>
+                                            <tr class="text-gray-500 uppercase font-black tracking-widest bg-white/[0.01]">
+                                                <th scope="col" class="p-4 text-left border-b border-white/5">{{ __('match.stats.player') }}</th>
+                                                @foreach(['SHERIFF','2K','3K','4K','5K'] as $h)
+                                                    <th scope="col" class="p-4 border-b border-white/5">{{ $h }}</th>
+                                                @endforeach
+                                                @foreach(['5K','4K','3K','2K','SHERIFF'] as $h)
+                                                    <th scope="col" class="p-4 border-b border-white/5 bg-black/20">{{ $h }}</th>
+                                                @endforeach
+                                                <th scope="col" class="p-4 text-right border-b border-white/5 bg-black/20">{{ __('match.stats.player') }}</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-white/[0.03]">
+                                            @for($i = 0; $i < 5; $i++)
+                                                @php
+                                                    $pA = $totalA[$i] ?? null;
+                                                    $pB = $totalB[$i] ?? null;
+                                                    $pfA = $pA ? ($totalPerformance[$pA['player_id']] ?? null) : null;
+                                                    $pfB = $pB ? ($totalPerformance[$pB['player_id']] ?? null) : null;
+                                                @endphp
+                                                <tr class="group hover:bg-white/[0.02] transition-colors">
+                                                    <td class="p-4 font-black text-white italic tracking-tighter">{{ $pA['player']['handle'] ?? '-' }}</td>
+
+                                                    @foreach(['sheriff_kills','2k','3k','4k','5k'] as $k)
+                                                        <td class="p-4 text-center">
+                                                            <span class="{{ ($pfA[$k] ?? 0) > 0 ? 'text-[var(--brand-yellow)] font-black drop-shadow-[0_0_8px_rgba(var(--brand-yellow-rgb),0.4)]' : 'text-gray-700 font-medium' }}">
+                                                                {{ $pfA[$k] ?? 0 }}
+                                                            </span>
+                                                        </td>
+                                                    @endforeach
+
+                                                    @foreach(['5k','4k','3k','2k','sheriff_kills'] as $k)
+                                                        <td class="p-4 text-center bg-black/10">
+                                                            <span class="{{ ($pfB[$k] ?? 0) > 0 ? 'text-[var(--brand-yellow)] font-black drop-shadow-[0_0_8px_rgba(var(--brand-yellow-rgb),0.4)]' : 'text-gray-700 font-medium' }}">
+                                                                {{ $pfB[$k] ?? 0 }}
+                                                            </span>
+                                                        </td>
+                                                    @endforeach
+
+                                                    <td class="p-4 font-black text-right text-white italic tracking-tighter bg-black/10">{{ $pB['player']['handle'] ?? '-' }}</td>
+                                                </tr>
+                                            @endfor
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if($totalEcoSummary['team_b']['eco']['total'] > 0)
+                                <div class="col-span-12 lg:col-span-2 order-3">
+                                    <div class="bg-white/[0.02] border border-white/5 rounded-2xl p-4 h-full">
+                                        <h4 class="text-[8px] font-black uppercase text-gray-500 mb-6 text-center tracking-[0.3em]">
+                                            {{ __("match.economy", ["team" => Str::limit($teamBName, 8)]) }}
+                                        </h4>
+
+                                        <div class="flex flex-col gap-2">
+                                            @foreach($totalEcoSummary['team_b'] as $eco)
+                                                <div class="group flex items-center justify-between bg-black/40 rounded-xl border border-white/5 p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300">
+
+                                                    <div class="flex items-center gap-3">
+                                                    <span class="text-[8px] text-gray-400 uppercase font-black tracking-wider group-hover:text-gray-200 transition-colors">
+                                                        {{ $eco['label'] }}
+                                                    </span>
+                                                    </div>
+
+                                                    <div class="flex flex-col items-end">
+                                                    <span class="text-white font-black text-[11px] leading-none">
+                                                        {{ $eco['win'] }}<span class="text-gray-600 mx-0.5 text-[9px]">/</span>{{ $eco['total'] }}
+                                                    </span>
+                                                        <div class="mt-1 w-8 h-[2px] bg-white/5 rounded-full overflow-hidden">
+                                                            <div class="h-full bg-[var(--brand-yellow)] opacity-40 group-hover:opacity-100 transition-all"
+                                                                 style="width: {{ $eco['total'] > 0 ? ($eco['win'] / $eco['total']) * 100 : 0 }}%">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </template>
 

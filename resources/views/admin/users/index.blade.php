@@ -12,10 +12,10 @@
 @section('content')
     <form method="GET" class="mb-6 flex flex-wrap gap-3">
         <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.users.search_placeholder') }}"
-               class="flex-1 min-w-[200px] max-w-sm bg-[#050505] border border-border-subtle rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+               class="flex-1 min-w-[200px] max-w-sm bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
         <select name="role" onchange="this.form.submit()"
-                class="bg-[#050505] border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
             <option value="">{{ __('admin.users.all_roles') }}</option>
             @foreach ($roles as $role)
                 <option value="{{ $role->name }}" @selected($roleFilter === $role->name)>{{ $role->name }}</option>
@@ -23,7 +23,7 @@
         </select>
 
         <select name="publisher" onchange="this.form.submit()"
-                class="bg-[#050505] border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
             <option value="">{{ __('admin.users.all_publishers') }}</option>
             @foreach ($publishers as $publisher)
                 <option value="{{ $publisher->id }}" @selected((string) $publisherFilter === (string) $publisher->id)>{{ $publisher->name }}</option>
@@ -32,29 +32,38 @@
 
         @if ($search || $roleFilter || $publisherFilter)
             <a href="{{ route('admin.users.index') }}"
-               class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-gray-400 hover:text-white">
+               class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-gray-400 hover:text-white">
                 {{ __('admin.users.clear_filters') }}
             </a>
         @endif
     </form>
 
-    <div class="bg-bg-card border border-border-subtle rounded-sm shadow-xl overflow-x-auto">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
+         x-data="GCS.sortableTable()">
         <table class="w-full text-sm text-left">
             <thead>
-                <tr class="border-b border-b-border-subtle text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    <th class="px-4 py-3">{{ __('admin.users.user') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.users.roles') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.users.publishers') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.users.sanctions') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.users.joined') }}</th>
+                <tr class="border-b border-b-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    @foreach ([['user', 'admin.users.user'], ['sanctions', 'admin.users.sanctions'], ['joined', 'admin.users.joined']] as [$col, $label])
+                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
+                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
+                                {{ __($label) }}
+                                @include('admin.partials.sort-arrows', ['col' => $col])
+                            </span>
+                        </th>
+                        @if ($col === 'user')
+                            <th class="px-4 py-3">{{ __('admin.users.roles') }}</th>
+                            <th class="px-4 py-3">{{ __('admin.users.publishers') }}</th>
+                        @endif
+                    @endforeach
                 </tr>
             </thead>
-            <tbody>
+            <tbody x-ref="tbody">
                 @forelse ($users as $user)
-                    <tr class="border-b border-b-border-subtle last:border-b-0 hover:bg-white/[0.02] transition">
+                    <tr data-row data-user="{{ $user->name }}" data-sanctions="{{ $user->active_sanctions_count }}" data-joined="{{ $user->created_at?->timestamp ?? 0 }}"
+                        class="border-b border-b-white/10 last:border-b-0 hover:bg-white/[0.02] transition">
                         <td class="px-4 py-3">
                             <a href="{{ route('admin.users.show', $user) }}" class="flex items-center gap-3">
-                                <div class="w-8 h-8 shrink-0 rounded-lg bg-white/5 border border-border-subtle flex items-center justify-center text-[10px] font-black uppercase text-white">
+                                <div class="w-8 h-8 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase text-white">
                                     {{ $user->initials() }}
                                 </div>
                                 <div class="min-w-0">
@@ -67,7 +76,7 @@
                         </td>
                         <td class="px-4 py-3">
                             @forelse ($user->roles as $role)
-                                <span class="inline-block px-2 py-1 mr-1 mb-1 text-[10px] font-bold uppercase tracking-widest rounded-sm bg-white/5 border border-border-subtle text-gray-300">
+                                <span class="inline-block px-2 py-1 mr-1 mb-1 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-white/5 border border-white/10 text-gray-300">
                                     {{ $role->name }}
                                 </span>
                             @empty
@@ -76,7 +85,7 @@
                         </td>
                         <td class="px-4 py-3">
                             @forelse ($publisherNamesByUserId[$user->id] ?? [] as $publisherName)
-                                <span class="inline-block px-2 py-1 mr-1 mb-1 text-[10px] font-bold uppercase tracking-widest rounded-sm bg-white/5 border border-border-subtle text-gray-300">
+                                <span class="inline-block px-2 py-1 mr-1 mb-1 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-white/5 border border-white/10 text-gray-300">
                                     {{ $publisherName }}
                                 </span>
                             @empty
@@ -85,7 +94,7 @@
                         </td>
                         <td class="px-4 py-3">
                             @if ($user->active_sanctions_count > 0)
-                                <span class="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded-sm bg-red-500/10 text-red-400 border border-red-500/30">
+                                <span class="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-red-500/10 text-red-400 border border-red-500/30">
                                     {{ $user->active_sanctions_count }}
                                 </span>
                             @else

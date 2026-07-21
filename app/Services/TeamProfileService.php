@@ -43,7 +43,13 @@ class TeamProfileService
             'socials' => array_filter($data['socials'] ?? [], fn ($value) => filled($value)),
         ]);
 
-        activity('team')->performedOn($team)->causedBy($actor)->log('team.profile_updated');
+        if ($team->wasChanged(['name', 'short_name', 'country_code', 'bio', 'vlr_id', 'liquipedia_link'])) {
+            activity('team')->performedOn($team)->causedBy($actor)->log('team.information_updated');
+        }
+
+        if ($team->wasChanged('socials')) {
+            activity('team')->performedOn($team)->causedBy($actor)->log('team.socials_updated');
+        }
     }
 
     public function updateLogo(Team $team, UploadedFile $file, User $actor): void

@@ -8,6 +8,7 @@ return [
     'upcoming' => 'Upcoming match',
     'unknown_date' => 'Unknown date',
     'round_history' => 'Round history',
+    'overtime_short' => 'OT',
     'map_selector' => 'Select a map',
     'score_label' => ':teamA :scoreA – :scoreB :teamB',
     'performance_caption' => 'Performance summary: :teamA vs :teamB',

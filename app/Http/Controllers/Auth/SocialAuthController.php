@@ -16,6 +16,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Exceptions\SocialAccountAlreadyLinkedException;
 use App\Http\Controllers\Controller;
+use App\Models\SanctionIdentity;
 use App\Models\SocialAccount;
 use App\Models\User;
 use App\Services\AccountSecurityService;
@@ -110,6 +111,10 @@ class SocialAuthController extends Controller
             return redirect()->route('login')->withErrors([
                 'email' => __('account.errors.email_already_registered'),
             ]);
+        }
+
+        if ($email !== null && $sanctions->hasActiveSanctionFor(SanctionIdentity::TYPE_EMAIL, $email)) {
+            abort(403, __('account.errors.social_blocked'));
         }
 
         $name = $socialiteUser->getNickname() ?? $socialiteUser->getName() ?? 'Player';

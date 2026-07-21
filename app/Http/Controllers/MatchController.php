@@ -256,6 +256,39 @@ class MatchController extends Controller
             $totalA = collect($totalA)->sortByDesc('acs')->values()->all();
             $totalB = collect($totalB)->sortByDesc('acs')->values()->all();
 
+            $totalEcoSummary = ['team_a' => [], 'team_b' => []];
+            foreach (['team_a', 'team_b'] as $teamKey) {
+                foreach ($ecoTiers as $tierKey => $tier) {
+                    $totalEcoSummary[$teamKey][$tierKey] = [
+                        'label' => $tier['label'],
+                        'icon' => $tier['icon'],
+                        'total' => 0,
+                        'win' => 0,
+                    ];
+                }
+            }
+
+            $totalPerformance = [];
+
+            foreach ($maps as $map) {
+                foreach (['team_a', 'team_b'] as $teamKey) {
+                    foreach ($map['eco_summary'][$teamKey] as $tierKey => $tierData) {
+                        $totalEcoSummary[$teamKey][$tierKey]['total'] += $tierData['total'];
+                        $totalEcoSummary[$teamKey][$tierKey]['win'] += $tierData['win'];
+                    }
+                }
+
+                foreach ($map['performance'] as $playerId => $perf) {
+                    if (! isset($totalPerformance[$playerId])) {
+                        $totalPerformance[$playerId] = $perf;
+                    } else {
+                        foreach (['2k', '3k', '4k', '5k', 'sheriff_kills'] as $k) {
+                            $totalPerformance[$playerId][$k] += $perf[$k];
+                        }
+                    }
+                }
+            }
+
             $finalMatch = $match->toArray();
             $finalMatch['game_maps'] = $maps;
 
@@ -275,6 +308,8 @@ class MatchController extends Controller
                 'idsB' => $idsB,
                 'totalA' => $totalA,
                 'totalB' => $totalB,
+                'totalEcoSummary' => $totalEcoSummary,
+                'totalPerformance' => $totalPerformance,
             ];
         });
 

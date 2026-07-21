@@ -13,9 +13,9 @@
     <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <form method="GET" class="flex gap-2 flex-1 min-w-[200px] max-w-lg">
             <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.finance.search_placeholder') }}"
-                   class="flex-1 bg-[#050505] border border-border-subtle rounded-sm px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                   class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
             <select name="type" onchange="this.form.submit()"
-                    class="bg-[#050505] border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                    class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                 <option value="">{{ __('admin.finance.all_types') }}</option>
                 @foreach (['income', 'expense'] as $t)
                     <option value="{{ $t }}" @selected($type === $t)>{{ __('admin.finance.type.'.$t) }}</option>
@@ -27,7 +27,7 @@
             <x-modal :title="__('admin.finance.create.title')">
                 <x-slot:trigger>
                     <button type="button"
-                            class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                            class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                         {{ __('admin.finance.create.title') }}
                     </button>
                 </x-slot:trigger>
@@ -36,21 +36,27 @@
         @endcan
     </div>
 
-    <div class="bg-bg-card border border-border-subtle rounded-sm shadow-xl overflow-x-auto">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
+         x-data="GCS.sortableTable('date', false)">
         <table class="w-full text-sm text-left">
             <thead>
-                <tr class="border-b border-border-subtle text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    <th class="px-4 py-3">{{ __('admin.finance.date') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.finance.label') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.finance.category_column') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.finance.amount') }}</th>
+                <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    @foreach ([['date', 'admin.finance.date'], ['label', 'admin.finance.label'], ['category', 'admin.finance.category_column'], ['amount', 'admin.finance.amount']] as [$col, $label])
+                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
+                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
+                                {{ __($label) }}
+                                @include('admin.partials.sort-arrows', ['col' => $col])
+                            </span>
+                        </th>
+                    @endforeach
                     <th class="px-4 py-3">{{ __('admin.finance.source') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody x-ref="tbody">
                 @forelse ($entries as $entry)
-                    <tr class="border-b border-b-border-subtle last:border-b-0 border-l-2 {{ $entry->type === 'income' ? 'border-l-green-500/60' : 'border-l-red-500/60' }}">
+                    <tr data-row data-date="{{ $entry->entry_date->timestamp }}" data-label="{{ $entry->label }}" data-category="{{ $entry->category }}" data-amount="{{ $entry->amount_eur }}"
+                        class="border-b border-b-white/10 last:border-b-0 border-l-2 {{ $entry->type === 'income' ? 'border-l-green-500/60' : 'border-l-red-500/60' }}">
                         <td class="px-4 py-3 text-gray-400 text-xs">{{ $entry->entry_date->format('Y-m-d') }}</td>
                         <td class="px-4 py-3 text-white font-semibold">{{ $entry->label }}</td>
                         <td class="px-4 py-3 text-gray-400">{{ $entry->category }}</td>
@@ -71,7 +77,7 @@
                                     <x-modal :title="__('admin.finance.edit_modal.title')" max-width="max-w-md">
                                         <x-slot:trigger>
                                             <button type="button"
-                                                    class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                                                    class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
                                                 {{ __('admin.finance.edit') }}
                                             </button>
                                         </x-slot:trigger>
@@ -86,7 +92,7 @@
                                             :body="__('admin.finance.delete_confirm')"
                                             :trigger-label="__('admin.finance.delete')"
                                             :submit-label="__('admin.finance.delete')"
-                                            trigger-class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                                            trigger-class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
                                             submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
                                         />
                                     </form>

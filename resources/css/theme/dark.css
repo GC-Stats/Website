@@ -6,6 +6,11 @@
  * sibling files in this folder.
  */
 :root {
+    /* Tells the browser to render native form controls (select dropdown
+       popups, date pickers, scrollbars, ...) with their dark UA styling
+       instead of defaulting to light regardless of the page's own colors. */
+    color-scheme: dark;
+
     /* Main GC Colors */
     --brand-yellow: #e4ae22;
     --brand-yellow-hover: #c9981d;
