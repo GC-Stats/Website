@@ -49,9 +49,13 @@
 
 <div>
     <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.news.form.content_label') }}</label>
-    <textarea name="content" rows="14" required
+    <textarea id="news-content-editor" name="content" rows="14" required
               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">{{ old('content', $article?->content) }}</textarea>
 </div>
+
+@push('scripts')
+    @vite('resources/js/admin-news-editor.js')
+@endpush
 
 <div class="flex items-center gap-6">
     <label class="flex items-center gap-2 text-sm text-gray-300">

@@ -45,10 +45,20 @@ class HtmlSanitizer
         'img' => ['src', 'alt', 'title', 'width', 'height'],
         'table' => [], 'thead' => [], 'tbody' => [], 'tr' => [], 'th' => [], 'td' => [],
         'figure' => [], 'figcaption' => [],
-        'span' => [],
+        'span' => ['style'],
     ];
 
     private const ALLOWED_URL_SCHEMES = ['http', 'https', 'mailto'];
+
+    /**
+     * The only `style` declarations kept by cleanAttributes() — matches what
+     * the admin rich text editor's forecolor/backcolor toolbar buttons emit
+     * (span style="color:..."/"background-color:..."). Everything else
+     * (url(), expression(), font/position tricks, ...) is dropped.
+     */
+    private const ALLOWED_STYLE_PROPERTIES = ['color', 'background-color'];
+
+    private const SAFE_STYLE_VALUE_PATTERN = '/^(#[0-9a-f]{3}|#[0-9a-f]{4}|#[0-9a-f]{6}|#[0-9a-f]{8}|rgba?\(\s*[\d.]+%?\s*,\s*[\d.]+%?\s*,\s*[\d.]+%?\s*(,\s*[\d.]+\s*)?\)|[a-z]+)$/i';
 
     /**
      * Tags whose *content* is dangerous, not just the wrapper — a plain
@@ -149,6 +159,18 @@ class HtmlSanitizer
 
             if (in_array($name, ['href', 'src'], true) && ! self::isSafeUrl($attribute->value)) {
                 $element->removeAttribute($attribute->name);
+
+                continue;
+            }
+
+            if ($name === 'style') {
+                $safeStyle = self::sanitizeStyleValue($attribute->value);
+
+                if ($safeStyle === '') {
+                    $element->removeAttribute($attribute->name);
+                } else {
+                    $element->setAttribute('style', $safeStyle);
+                }
             }
         }
 
@@ -157,6 +179,39 @@ class HtmlSanitizer
             // rel was (or wasn't) supplied.
             $element->setAttribute('rel', 'noopener noreferrer');
         }
+    }
+
+    /**
+     * Keeps only allow-listed `property: value` declarations with a value
+     * matching SAFE_STYLE_VALUE_PATTERN, dropping everything else
+     * (url(), expression(), calc(), custom properties, ...) rather than
+     * trying to blocklist specific dangerous constructs.
+     */
+    private static function sanitizeStyleValue(string $style): string
+    {
+        $safeDeclarations = [];
+
+        foreach (explode(';', $style) as $declaration) {
+            if (! str_contains($declaration, ':')) {
+                continue;
+            }
+
+            [$property, $value] = explode(':', $declaration, 2);
+            $property = strtolower(trim($property));
+            $value = trim($value);
+
+            if (! in_array($property, self::ALLOWED_STYLE_PROPERTIES, true)) {
+                continue;
+            }
+
+            if (preg_match(self::SAFE_STYLE_VALUE_PATTERN, $value) !== 1) {
+                continue;
+            }
+
+            $safeDeclarations[] = "{$property}: {$value}";
+        }
+
+        return implode('; ', $safeDeclarations);
     }
 
     /**

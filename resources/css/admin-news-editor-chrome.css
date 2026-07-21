@@ -1,0 +1,148 @@
+/*
+ * GC-Stats — TinyMCE chrome overrides to match the admin theme
+ *
+ * TinyMCE's own oxide-dark skin ships as `.tox-*`-scoped CSS, so it's safe
+ * to bundle at page level (unlike the iframe content stylesheets, see
+ * admin-news-editor.js). These rules just re-point its colors/radii at the
+ * same tokens the rest of the admin panel already uses (bg-white/5 +
+ * border-white/10 inputs, gc-yellow accents, rounded-lg) instead of Tiny's
+ * default blue-grey palette.
+ *
+ * Copyright (c) 2026 Alice Alleman — GC-Stats-Website
+ * License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
+ * Repository: https://github.com/GC-Stats/Website
+ */
+
+.tox-tinymce {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.5rem !important;
+    font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.tox .tox-editor-header {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+}
+
+.tox .tox-toolbar,
+.tox .tox-toolbar__primary,
+.tox .tox-toolbar-overlord {
+    background: transparent !important;
+}
+
+.tox .tox-tbtn {
+    color: #d1d5db !important;
+}
+
+.tox .tox-tbtn svg {
+    fill: currentColor !important;
+}
+
+.tox .tox-tbtn:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+}
+
+.tox .tox-tbtn--enabled,
+.tox .tox-tbtn--enabled:hover {
+    background: rgba(228, 174, 34, 0.15) !important;
+    color: var(--brand-yellow, #e4ae22) !important;
+}
+
+.tox .tox-edit-area {
+    border-color: transparent !important;
+}
+
+.tox .tox-statusbar {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.tox .tox-statusbar a,
+.tox .tox-statusbar__path-item,
+.tox .tox-statusbar__wordcount {
+    color: #a0a0a0 !important;
+}
+
+/* Dialogs — link/image/table insert, source code view */
+.tox .tox-dialog-wrap__backdrop {
+    background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.tox .tox-dialog {
+    background: #161616 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.5rem !important;
+}
+
+.tox .tox-dialog__header,
+.tox .tox-dialog__footer {
+    background: #161616 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.tox .tox-dialog__title,
+.tox .tox-dialog__body-content,
+.tox .tox-label,
+.tox .tox-form__group {
+    color: #fff !important;
+}
+
+.tox .tox-textfield,
+.tox .tox-selectfield select,
+.tox .tox-textarea,
+.tox .tox-listboxfield .tox-listbox {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border-radius: 0.5rem !important;
+}
+
+.tox .tox-textfield:focus,
+.tox .tox-textarea:focus {
+    border-color: var(--brand-yellow, #e4ae22) !important;
+    box-shadow: none !important;
+}
+
+.tox .tox-button {
+    border-radius: 0.5rem !important;
+}
+
+.tox .tox-button:not(.tox-button--secondary):not(.tox-button--icon) {
+    background-color: var(--brand-yellow, #e4ae22) !important;
+    border-color: var(--brand-yellow, #e4ae22) !important;
+    color: #000 !important;
+}
+
+.tox .tox-button:not(.tox-button--secondary):not(.tox-button--icon):hover {
+    background-color: var(--brand-yellow-hover, #c9981d) !important;
+    border-color: var(--brand-yellow-hover, #c9981d) !important;
+}
+
+.tox .tox-button--secondary {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #d1d5db !important;
+}
+
+/* Toolbar dropdown menus (blocks, color swatches, ...) */
+.tox .tox-menu {
+    background: #161616 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.5rem !important;
+}
+
+.tox .tox-collection__item {
+    color: #d1d5db !important;
+}
+
+.tox .tox-collection__item--active,
+.tox .tox-collection__item--enabled {
+    background: rgba(228, 174, 34, 0.15) !important;
+    color: var(--brand-yellow, #e4ae22) !important;
+}
+
+.tox .tox-collection__item-label {
+    color: inherit !important;
+}
