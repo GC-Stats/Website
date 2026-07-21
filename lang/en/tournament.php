@@ -42,6 +42,7 @@ return [
     'show_all_rosters' => 'Show all rosters',
     'hide_all_rosters' => 'Hide all rosters',
     'last_matches' => 'Latest Matches',
+    'inactive_access' => 'This tournament is not publicly visible yet. You can see it because your role grants access to inactive tournaments.',
     'no_match' => 'No matches',
     'seemore' => 'See more',
     'go_back' => 'Go back',

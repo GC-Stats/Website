@@ -339,7 +339,7 @@
                                                 <select x-model="stat.player_id" class="w-full h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
                                                     <option value="">—</option>
                                                     <template x-for="p in {{ \Illuminate\Support\Js::from($pickerPlayers) }}" :key="p.id">
-                                                        <option :value="p.id" x-text="p.handle"></option>
+                                                        <option :value="p.id" :selected="String(stat.player_id) === String(p.id)" x-text="p.handle"></option>
                                                     </template>
                                                 </select>
                                             </td>
@@ -347,7 +347,7 @@
                                                 <select x-model="stat.agent_name" class="w-full h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
                                                     <option value="">—</option>
                                                     <template x-for="a in {{ \Illuminate\Support\Js::from($agentPool) }}" :key="a">
-                                                        <option :value="a" x-text="a"></option>
+                                                        <option :value="a" :selected="stat.agent_name === a" x-text="a"></option>
                                                     </template>
                                                 </select>
                                             </td>
@@ -405,15 +405,15 @@
                                     <td class="py-1.5 pr-2">
                                         <select x-model="round.winning_team" class="w-40 h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
                                             <option value="">{{ __('admin.matches.maps.manual_stats.select_team') }}</option>
-                                            <option :value="{{ $match->team_a_id }}">{{ \App\Support\MatchDisplay::teamName($match->teamA, $match->status) }}</option>
-                                            <option :value="{{ $match->team_b_id }}">{{ \App\Support\MatchDisplay::teamName($match->teamB, $match->status) }}</option>
+                                            <option :value="{{ $match->team_a_id }}" :selected="String(round.winning_team) === String({{ $match->team_a_id }})">{{ \App\Support\MatchDisplay::teamName($match->teamA, $match->status) }}</option>
+                                            <option :value="{{ $match->team_b_id }}" :selected="String(round.winning_team) === String({{ $match->team_b_id }})">{{ \App\Support\MatchDisplay::teamName($match->teamB, $match->status) }}</option>
                                         </select>
                                     </td>
                                     <td class="py-1.5 pr-2">
                                         <select x-model="round.win_type" class="w-36 h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
                                             <option value="">—</option>
                                             <template x-for="w in {{ \Illuminate\Support\Js::from($winTypePool) }}" :key="w">
-                                                <option :value="w" x-text="w"></option>
+                                                <option :value="w" :selected="round.win_type === w" x-text="w"></option>
                                             </template>
                                         </select>
                                     </td>
@@ -478,7 +478,7 @@
                                                     <select x-model="ps.player_id" class="w-28 h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
                                                         <option value="">—</option>
                                                         <template x-for="p in {{ \Illuminate\Support\Js::from($pickerPlayers) }}" :key="p.id">
-                                                            <option :value="p.id" x-text="p.handle"></option>
+                                                            <option :value="p.id" :selected="String(ps.player_id) === String(p.id)" x-text="p.handle"></option>
                                                         </template>
                                                     </select>
                                                 </td>
@@ -492,7 +492,7 @@
                                                     <select x-model="ps.weapon_id" class="w-24 h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
                                                         <option value="">—</option>
                                                         <template x-for="w in {{ \Illuminate\Support\Js::from($weaponPool) }}" :key="w">
-                                                            <option :value="w" x-text="w"></option>
+                                                            <option :value="w" :selected="ps.weapon_id === w" x-text="w"></option>
                                                         </template>
                                                     </select>
                                                 </td>
@@ -500,7 +500,7 @@
                                                     <select x-model="ps.armor" class="w-24 h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
                                                         <option value="">—</option>
                                                         <template x-for="ar in {{ \Illuminate\Support\Js::from($armorPool) }}" :key="ar">
-                                                            <option :value="ar" x-text="ar"></option>
+                                                            <option :value="ar" :selected="ps.armor === ar" x-text="ar"></option>
                                                         </template>
                                                     </select>
                                                 </td>

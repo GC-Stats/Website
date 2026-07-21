@@ -46,6 +46,12 @@
     }">
         @include("tournament.header")
 
+        @if($inactive_access ?? false)
+            <div class="mb-6 bg-gc-yellow/10 border border-gc-yellow/40 rounded-lg px-4 py-3 text-xs text-gc-yellow">
+                {{ __('tournament.inactive_access') }}
+            </div>
+        @endif
+
         @if(!empty($root_phases))
             <div class="mb-8 sticky top-20 z-40">
                 <div class="flex items-center flex-wrap gap-2 p-1.5 bg-white/[0.02] border border-white/5 rounded-xl backdrop-blur-xl">
@@ -93,7 +99,7 @@
                     <div class="flex items-center gap-2 mb-3">
                         <span class="text-[9px] font-black uppercase tracking-[0.25em] text-white/60 shrink-0">{{ __("tournament.last_matches") }}</span>
                         <div class="h-px flex-grow" style="background: linear-gradient(90deg, rgba(228,174,34,0.5) 0%, rgba(228,174,34,0.05) 60%, transparent 100%)"></div>
-                        <a href="{{ isset($previewCode) ? route('tournament.preview.matches', $previewCode) : route('tournaments.matches', [$tournament['id'], Str::routeSlug($tournament['name'] ?? '', $tournament['id'])]) }}" class="group flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-white/30 hover:text-gc-yellow transition-colors shrink-0">
+                        <a href="{{ route('tournaments.matches', [$tournament['id'], Str::routeSlug($tournament['name'] ?? '', $tournament['id'])]) }}" class="group flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.15em] text-white/30 hover:text-gc-yellow transition-colors shrink-0">
                             <span>{{ __("tournament.seemore") }}</span>
                             <x-fas-chevron-right class="w-2.5 h-2.5 inline-block transform group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                         </a>

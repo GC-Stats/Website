@@ -502,7 +502,7 @@ class MatchController extends Controller
     {
         $rule = $isUpdate ? 'sometimes' : 'required';
 
-        return $request->validate([
+        $validated = $request->validate([
             'phase_id' => [$rule, 'integer', 'exists:tournament_phases,id'],
             'team_a_id' => ['sometimes', 'nullable', 'integer', 'exists:teams,id'],
             'team_b_id' => ['sometimes', 'nullable', 'integer', 'exists:teams,id'],
@@ -516,6 +516,20 @@ class MatchController extends Controller
             'round_name' => ['sometimes', 'nullable', 'string', 'max:100'],
             'round_number' => ['sometimes', 'nullable', 'integer'],
         ]);
+
+        if (array_key_exists('match_order', $validated) && $validated['match_order'] === null) {
+            $validated['match_order'] = 0;
+        }
+
+        if (array_key_exists('round_number', $validated) && $validated['round_number'] === null) {
+            $validated['round_number'] = 0;
+        }
+
+        if (array_key_exists('round_name', $validated) && $validated['round_name'] === null) {
+            $validated['round_name'] = '';
+        }
+
+        return $validated;
     }
 
     /**

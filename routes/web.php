@@ -22,7 +22,6 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TournamentController;
-use App\Http\Controllers\TournamentPreviewController;
 use App\Http\Controllers\TransparencyController;
 use Illuminate\Support\Facades\Route;
 
@@ -99,9 +98,6 @@ Route::get('/search', [SearchController::class, 'index'])->name('search.results'
 Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
 Route::get('/news/author/{slug}', [NewsController::class, 'author'])->name('news.author');
 Route::get('/news/publisher/{slug}', [NewsController::class, 'publisher'])->name('news.publisher');
-
-Route::get('/preview/{code}', [TournamentPreviewController::class, 'show'])->name('tournament.preview');
-Route::get('/preview/{code}/matches', [TournamentPreviewController::class, 'matches'])->name('tournament.preview.matches');
 
 Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
 Route::get('/tournaments/{tournament}/matches', [TournamentController::class, 'matches']);

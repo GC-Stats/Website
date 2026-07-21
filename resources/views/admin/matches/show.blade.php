@@ -21,9 +21,16 @@
 @section('title', \App\Support\MatchDisplay::teamShortName($match->teamA, $match->status).' vs '.\App\Support\MatchDisplay::teamShortName($match->teamB, $match->status))
 
 @section('content')
-    <a href="{{ route('admin.matches.index', $tournament) }}" class="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-white transition mb-6">
-        &larr; {{ __('admin.matches.title') }}
-    </a>
+    <div class="flex items-center justify-between gap-4 mb-6">
+        <a href="{{ route('admin.matches.index', $tournament) }}" class="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-white transition">
+            &larr; {{ __('admin.matches.title') }}
+        </a>
+
+        <a href="{{ route('match.show', $match->id) }}" target="_blank" rel="noopener"
+           class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
+            {{ __('admin.matches.public_page') }}
+        </a>
+    </div>
 
     @if ($anyLocked)
         <div class="mb-6 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm rounded-lg px-4 py-3">

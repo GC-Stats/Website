@@ -148,7 +148,7 @@ return [
         'delete_confirm' => 'Supprimer définitivement cette sanction ? Contrairement à la révocation, ceci efface complètement l\'enregistrement, y compris ses empreintes de suivi anti-contournement. Action irréversible.',
         'issue' => [
             'title' => 'Émettre une sanction',
-            'user_label' => 'ID utilisateur',
+            'user_label' => "Nom d'utilisateur",
             'type_label' => 'Type',
             'reason_label' => 'Raison',
             'ends_at_label' => 'Se termine le (laisser vide pour permanent)',
@@ -230,6 +230,14 @@ return [
         'manage' => 'Gérer',
         'public_page' => 'Page publique',
         'no_owner' => 'Aucun owner assigné.',
+        'create' => [
+            'title' => 'Créer',
+            'name_label' => 'Nom',
+            'country_label' => 'Pays',
+            'vlr_id_label' => 'ID VLR',
+            'submit' => "Créer l'équipe",
+            'success' => ':name a été créée.',
+        ],
         'sort' => [
             'name' => 'Trier : Nom',
             'country' => 'Trier : Pays',
@@ -299,6 +307,15 @@ return [
         'search_submit' => 'Rechercher',
         'manage' => 'Gérer',
         'public_page' => 'Page publique',
+        'create' => [
+            'title' => 'Créer',
+            'name_label' => 'Pseudo',
+            'country_label' => 'Pays',
+            'team_label' => 'Équipe',
+            'vlr_id_label' => 'ID VLR',
+            'submit' => 'Créer la joueuse',
+            'success' => ':name a été créée.',
+        ],
         'sort' => [
             'name' => 'Trier : Nom',
             'country' => 'Trier : Pays',
@@ -359,6 +376,7 @@ return [
         'search_placeholder' => 'Nom du tournoi',
         'search_submit' => 'Rechercher',
         'manage' => 'Gérer',
+        'public_page' => 'Page publique',
         'all_regions' => 'Toutes les régions',
         'all_statuses' => 'Tous les statuts',
         'all_active' => 'Actifs & inactifs',
@@ -440,6 +458,7 @@ return [
     'matches' => [
         'title' => 'Matchs',
         'manage' => 'Gérer',
+        'public_page' => 'Page publique',
         'all_teams' => 'Toutes les équipes',
         'all_phases' => 'Toutes les phases',
         'all_statuses' => 'Tous les statuts',

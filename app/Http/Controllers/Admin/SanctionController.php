@@ -50,13 +50,13 @@ class SanctionController extends Controller
     public function store(Request $request, SanctionService $sanctions): RedirectResponse
     {
         $validated = $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'username' => ['required', 'string', 'exists:users,username'],
             'type' => ['required', 'string', Rule::in(self::TYPES)],
             'reason' => ['required', 'string', 'max:2000'],
             'ends_at' => ['nullable', 'date', 'after:now'],
         ]);
 
-        $user = User::findOrFail($validated['user_id']);
+        $user = User::where('username', $validated['username'])->firstOrFail();
 
         $sanctions->issue($user, $request->user(), [
             'type' => $validated['type'],

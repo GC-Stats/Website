@@ -14,7 +14,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 w-full">
 
                 <div class="flex items-center md:items-center gap-4 md:gap-5 w-full flex-1 min-w-0">
-                    <a href="{{ isset($previewCode) ? route('tournament.preview', $previewCode) : route('tournaments.show', [$tournament['id'], str($tournament['name'] ?? '')->slug()]) }}" class="flex items-center gap-4 md:gap-5 flex-1 min-w-0">
+                    <a href="{{ route('tournaments.show', [$tournament['id'], str($tournament['name'] ?? '')->slug()]) }}" class="flex items-center gap-4 md:gap-5 flex-1 min-w-0">
                         <div class="relative flex-shrink-0">
                             <img src="{{ $tournament['logo'] }}" alt="{{ $tournament['name'] }}"
                                  class="w-16 h-16 md:w-32 md:h-32 object-contain border border-white/10 rounded-lg bg-black/40 p-2">
@@ -88,16 +88,13 @@
         <nav aria-label="{{ __('tournament.nav.aria_label') }}" class="bg-black/20 border-t border-white/5 overflow-x-auto no-scrollbar">
             <div class="flex justify-start md:justify-center min-w-max md:min-w-0">
                 @php
-                    $isPreview = isset($previewCode);
                     $tournamentParam = [$tournament['id'] ?? null, Str::routeSlug($tournament['name'] ?? '', $tournament['id'] ?? null)];
                     $navItems = [
-                        ['route' => $isPreview ? 'tournament.preview' : 'tournaments.show', 'param' => $isPreview ? $previewCode : $tournamentParam, 'label' => __('tournament.nav.overview')],
-                        ['route' => $isPreview ? 'tournament.preview.matches' : 'tournaments.matches', 'param' => $isPreview ? $previewCode : $tournamentParam, 'label' => __('tournament.nav.matches')],
+                        ['route' => 'tournaments.show', 'param' => $tournamentParam, 'label' => __('tournament.nav.overview')],
+                        ['route' => 'tournaments.matches', 'param' => $tournamentParam, 'label' => __('tournament.nav.matches')],
+                        ['route' => 'tournaments.stats', 'param' => $tournamentParam, 'label' => __('tournament.nav.stats')],
+                        ['route' => 'tournaments.maps', 'param' => $tournamentParam, 'label' => __('tournament.nav.maps')],
                     ];
-                    if (! $isPreview) {
-                        $navItems[] = ['route' => 'tournaments.stats', 'param' => $tournamentParam, 'label' => __('tournament.nav.stats')];
-                        $navItems[] = ['route' => 'tournaments.maps', 'param' => $tournamentParam, 'label' => __('tournament.nav.maps')];
-                    }
                 @endphp
 
                 @foreach($navItems as $item)

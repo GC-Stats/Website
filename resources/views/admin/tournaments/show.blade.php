@@ -22,9 +22,16 @@
 @section('title', $tournament->name)
 
 @section('content')
-    <a href="{{ route('admin.tournaments.index') }}" class="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-white transition mb-6">
-        &larr; {{ __('admin.tournaments.title') }}
-    </a>
+    <div class="flex items-center justify-between gap-4 mb-6">
+        <a href="{{ route('admin.tournaments.index') }}" class="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-white transition">
+            &larr; {{ __('admin.tournaments.title') }}
+        </a>
+
+        <a href="{{ route('tournaments.show', [$tournament->id, str($tournament->name)->slug()]) }}" target="_blank" rel="noopener"
+           class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
+            {{ __('admin.tournaments.public_page') }}
+        </a>
+    </div>
 
     <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4 shadow-xl mb-6">
         <div class="flex flex-col md:flex-row gap-4 md:items-center">

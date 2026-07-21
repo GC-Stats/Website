@@ -86,11 +86,23 @@
                 return row.type === 'pick' || row.type === 'decider';
             },
 
+            oppositeTeam(row) {
+                if (row.team === 'none' || ! row.team) return '';
+                return row.team === this.teamAId ? this.teamBId : this.teamAId;
+            },
+
+            defaultSidePickedBy(row) {
+                if (this.canPickSide(row) && ! row.side_picked_by) {
+                    row.side_picked_by = this.oppositeTeam(row);
+                }
+            },
+
             applyFirstTeam() {
                 if (! this.firstTeam) return;
                 const other = this.firstTeam === this.teamAId ? this.teamBId : this.teamAId;
                 this.rows.forEach((row, i) => {
                     row.team = (i % 2 === 0) ? this.firstTeam : other;
+                    this.defaultSidePickedBy(row);
                 });
             },
         }"
@@ -126,7 +138,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] gap-3 items-start">
                             <span class="text-xs font-black uppercase tracking-tight text-white pt-2.5" x-text="'{{ __('admin.matches.veto.map_label') }} ' + (index + 1)"></span>
 
-                            <select :name="`maps[${index}][team]`" x-model="row.team"
+                            <select :name="`maps[${index}][team]`" x-model="row.team" @change="defaultSidePickedBy(row)"
                                     class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                                 <option value="none">{{ __('admin.matches.veto.select_team') }}</option>
                                 @if ($match->teamA)
@@ -163,7 +175,7 @@
                                 </div>
                             </div>
 
-                            <select :name="`maps[${index}][type]`" x-model="row.type"
+                            <select :name="`maps[${index}][type]`" x-model="row.type" @change="defaultSidePickedBy(row)"
                                     class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                                 <option value="none">{{ __('admin.matches.veto.select_type') }}</option>
                                 <option value="ban">{{ __('admin.matches.veto.ban') }}</option>

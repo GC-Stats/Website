@@ -95,7 +95,33 @@ class TeamController extends Controller
             'search' => $search ?? '',
             'sort' => $sort,
             'activeWithin' => $activeWithin ?? '',
+            'countries' => app(Countries::class)->list(),
         ]);
+    }
+
+    /**
+     * Quick creation from the admin teams list — only the name is
+     * required, country/VLR ID can be filled in later from the team's
+     * own edit page.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:teams,name'],
+            'country_code' => ['nullable', 'string', 'max:5'],
+            'vlr_id' => ['nullable', 'integer'],
+        ]);
+
+        $team = Team::create([
+            'name' => $validated['name'],
+            'country_code' => $validated['country_code'] ?? null,
+            'vlr_id' => $validated['vlr_id'] ?? null,
+            'is_active' => true,
+        ]);
+
+        activity('team')->performedOn($team)->causedBy($request->user())->log('team.created');
+
+        return redirect()->route('admin.teams.index')->with('status', 'team-created')->with('created_team', $team->id);
     }
 
     public function show(Request $request, Team $team, TeamRoleService $teamRoles, RosterService $rosterService, TeamMergeService $mergeService): View

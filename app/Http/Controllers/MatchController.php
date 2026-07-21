@@ -26,27 +26,38 @@ class MatchController extends Controller
         $cacheKey = "match_{$id}";
         $tag = "match_{$id}";
 
-        $cached = Cache::tags([$tag])->get($cacheKey);
-        if ($cached) {
-            $ttl = match ($cached['match']['status']) {
-                'finished' => 86400 * 30,
-                'upcoming' => 86400,
-                'live' => 60,
-                default => 3600,
-            };
+        $meta = DB::table('matches')
+            ->join('tournaments', 'tournaments.id', '=', 'matches.tournament_id')
+            ->where('matches.id', $id)
+            ->select('matches.status', 'tournaments.active as tournament_active')
+            ->first();
 
-            return response()
-                ->view('match', $cached)
-                ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
-                ->header('Vary', 'Accept-Language');
+        abort_unless($meta, 404);
+
+        if (! $meta->tournament_active) {
+            abort_unless(auth()->user()?->can('tournaments.view'), 404);
         }
 
-        $status = Matchs::where('id', $id)->value('status');
-        if (! $status) {
-            abort(404);
+        if ($meta->tournament_active) {
+            $cached = Cache::tags([$tag])->get($cacheKey);
+            if ($cached) {
+                $ttl = match ($cached['match']['status']) {
+                    'finished' => 86400 * 30,
+                    'upcoming' => 86400,
+                    'live' => 60,
+                    default => 3600,
+                };
+
+                return response()
+                    ->view('match', $cached)
+                    ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
+                    ->header('Vary', 'Accept-Language');
+            }
         }
 
-        $matchData = Cache::remember($cacheKey, CacheTtl::forMatch($status), function () use ($id) {
+        $status = $meta->status;
+
+        $buildMatchData = function () use ($id) {
             $match = Matchs::with([
                 'tournament:id,name',
                 'tournamentPhase:id,name',
@@ -311,7 +322,18 @@ class MatchController extends Controller
                 'totalEcoSummary' => $totalEcoSummary,
                 'totalPerformance' => $totalPerformance,
             ];
-        });
+        };
+
+        if (! $meta->tournament_active) {
+            $matchData = $buildMatchData();
+
+            return response()
+                ->view('match', array_merge($matchData, ['inactive_access' => true]))
+                ->header('Cache-Control', 'private, no-store')
+                ->header('Vary', 'Accept-Language');
+        }
+
+        $matchData = Cache::remember($cacheKey, CacheTtl::forMatch($status), $buildMatchData);
 
         $ttl = match ($matchData['match']['status']) {
             'finished' => 86400 * 30,

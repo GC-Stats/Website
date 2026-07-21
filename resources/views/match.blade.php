@@ -39,6 +39,12 @@
 
 @section('content')
     <section class="mx-auto w-full max-w-7xl py-8 px-4">
+        @if($inactive_access ?? false)
+            <div class="mb-6 bg-gc-yellow/10 border border-gc-yellow/40 rounded-lg px-4 py-3 text-xs text-gc-yellow">
+                {{ __('tournament.inactive_access') }}
+            </div>
+        @endif
+
         <div class="relative mb-6 flex flex-col items-center">
             <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>

@@ -135,7 +135,7 @@
                                 <td class="px-4 py-3 text-xs uppercase text-gray-500" x-text="match.round_name"></td>
                                 <td class="px-4 py-3 text-white font-semibold" x-text="match.team"></td>
                                 <td class="px-4 py-3">
-                                    <span class="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg"
+                                    <span class="whitespace-nowrap text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg"
                                           :class="match.status === 'finished' ? 'bg-white/5 text-gray-400' : (match.status === 'live' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400')"
                                           x-text="match.status_label">
                                     </span>

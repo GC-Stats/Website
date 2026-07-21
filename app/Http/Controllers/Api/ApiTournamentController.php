@@ -20,9 +20,7 @@ use App\Models\TournamentPhase;
 use App\Models\TournamentTeam;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class ApiTournamentController extends Controller
 {
@@ -188,21 +186,6 @@ class ApiTournamentController extends Controller
         $tournament->touch();
 
         return response()->json(['success' => true]);
-    }
-
-    public function preview(int $id): JsonResponse
-    {
-        Tournament::findOrFail($id);
-
-        $code = Str::random(12);
-
-        Cache::put("tournament_preview_{$code}", $id, now()->addHour());
-
-        return response()->json([
-            'url' => route('tournament.preview', ['code' => $code]),
-            'code' => $code,
-            'expires_at' => now()->addHour()->toIso8601String(),
-        ]);
     }
 
     private function validateTournament(Request $request, bool $isUpdate = false): array
