@@ -25,12 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('app:sync-page-views')->hourly();
         $schedule->command('sitemap:generate')->daily();
         $schedule->command('data:export-public')->dailyAt('03:00');
-        // Matches the default reveal TTL (config('api_keys.reveal_ttl_minutes'))
-        // so expired-but-still-encrypted key blobs don't linger far past
-        // their own expiry.
+
         $schedule->command('app:prune-api-key-reveals')->everyFifteenMinutes();
         $schedule->command('discord:sync-roles')->everyFifteenMinutes();
+
         $schedule->command('matches:activate-live')->everyMinute();
+        $schedule->command('tournaments:activate-live')->daily();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(LogPageView::class);
