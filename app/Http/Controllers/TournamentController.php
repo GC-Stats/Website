@@ -85,9 +85,7 @@ class TournamentController extends Controller
             'destination_type' => $rule->destination_type,
             'placement' => $rule->placement,
             'points' => $rule->points,
-            'cash_prize' => $rule->cash_prize_amount !== null
-                ? number_format((float) $rule->cash_prize_amount, 2).' '.$rule->cash_prize_currency
-                : null,
+            'cash_prize' => $rule->formattedCashPrize(),
             'label' => $rule->destination_type === 'phase'
                 ? ($rule->destinationPhase?->tournament?->name.' — '.$rule->destinationPhase?->name)
                 : ($rule->placement_label ?: '#'.$rule->placement),

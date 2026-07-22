@@ -41,8 +41,13 @@
                 'cash_prize' => $rule['cash_prize'] ?? null,
                 'destination_label' => $isAdvancement ? $rule['label'] : null,
                 'destination_url' => $isAdvancement ? $rule['url'] : null,
+                'has_rule' => (bool) $rule,
             ];
-        });
+        })
+            // Only ranks that actually earn something (points, cash, or advancement) belong on
+            // the leaderboard — the rest are already visible in the standings table above it.
+            ->filter(fn ($row) => $row['has_rule'] && ($row['points'] || $row['cash_prize'] || $row['destination_label']))
+            ->values();
     } elseif ($format === 'bracket') {
         $rows = collect($phase['matches'] ?? [])
             ->flatMap(fn ($match) => collect($match['qualifications'] ?? [])
@@ -117,15 +122,15 @@
                     </div>
 
                     <div class="flex items-center gap-3 md:gap-6 shrink-0">
-                        <div class="text-center min-w-[36px]">
-                            <div class="text-[11px] md:text-xs font-black text-white">{{ $row['points'] ?? '—' }}</div>
+                        <div class="text-center w-9 shrink-0">
+                            <div class="text-[11px] md:text-xs font-black text-white truncate">{{ $row['points'] ?? '—' }}</div>
                             <div class="text-[7px] md:text-[8px] font-bold uppercase tracking-widest text-gray-500">{{ __('tournament.leaderboard.points') }}</div>
                         </div>
-                        <div class="text-center min-w-[60px]">
-                            <div class="text-[11px] md:text-xs font-black text-white">{{ $row['cash_prize'] ?? '—' }}</div>
+                        <div class="text-center w-16 shrink-0">
+                            <div class="text-[11px] md:text-xs font-black text-white truncate">{{ $row['cash_prize'] ?? '—' }}</div>
                             <div class="text-[7px] md:text-[8px] font-bold uppercase tracking-widest text-gray-500">{{ __('tournament.leaderboard.cash_prize') }}</div>
                         </div>
-                        <div class="text-right min-w-[70px] md:min-w-[100px]">
+                        <div class="text-right w-[70px] md:w-[100px] shrink-0">
                             @if ($row['destination_url'] ?? null)
                                 <a href="{{ $row['destination_url'] }}" class="text-[10px] md:text-[11px] font-bold uppercase text-gc-yellow hover:underline">{{ $row['destination_label'] }}</a>
                             @elseif ($row['destination_label'] ?? null)
@@ -162,15 +167,15 @@
                         </div>
 
                         <div class="flex items-center gap-3 md:gap-6 shrink-0">
-                            <div class="text-center min-w-[36px]">
-                                <div class="text-[11px] md:text-xs font-black text-gray-300">{{ $row['points'] ?? '—' }}</div>
+                            <div class="text-center w-9 shrink-0">
+                                <div class="text-[11px] md:text-xs font-black text-gray-300 truncate">{{ $row['points'] ?? '—' }}</div>
                                 <div class="text-[7px] md:text-[8px] font-bold uppercase tracking-widest text-gray-600">{{ __('tournament.leaderboard.points') }}</div>
                             </div>
-                            <div class="text-center min-w-[60px]">
-                                <div class="text-[11px] md:text-xs font-black text-gray-300">{{ $row['cash_prize'] ?? '—' }}</div>
+                            <div class="text-center w-16 shrink-0">
+                                <div class="text-[11px] md:text-xs font-black text-gray-300 truncate">{{ $row['cash_prize'] ?? '—' }}</div>
                                 <div class="text-[7px] md:text-[8px] font-bold uppercase tracking-widest text-gray-600">{{ __('tournament.leaderboard.cash_prize') }}</div>
                             </div>
-                            <div class="text-right min-w-[70px] md:min-w-[100px]">
+                            <div class="text-right w-[70px] md:w-[100px] shrink-0">
                                 @if ($row['destination_url'] ?? null)
                                     <a href="{{ $row['destination_url'] }}" class="text-[10px] md:text-[11px] font-bold uppercase text-gc-yellow hover:underline">{{ $row['destination_label'] }}</a>
                                 @elseif ($row['destination_label'] ?? null)

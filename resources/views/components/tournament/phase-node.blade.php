@@ -38,11 +38,13 @@
             </div>
         </x-tournament.pan-zoom-bracket>
 
-        <div class="flex flex-col gap-8">
-            @foreach($children as $child)
-                <x-tournament.leaderboard :phase="$child" :teams="$teams" />
-            @endforeach
-        </div>
+        @php
+            $combinedPhase = [
+                'format' => 'bracket',
+                'matches' => $childrenColl->flatMap(fn ($c) => $c['matches'] ?? [])->all(),
+            ];
+        @endphp
+        <x-tournament.leaderboard :phase="$combinedPhase" :teams="$teams" />
     @else
         <div class="flex flex-col gap-12">
             @foreach($children as $child)

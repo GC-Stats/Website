@@ -60,4 +60,21 @@ class PhaseQualification extends Model
     {
         return $this->hasMany(PhaseQualificationResult::class);
     }
+
+    /**
+     * "250 EUR" for whole amounts, "250.50 EUR" when there are cents — cash
+     * prizes are rarely fractional, so forcing ".00" on every row just adds
+     * noise. Currency defaults to EUR since it's the only one in use so far.
+     */
+    public function formattedCashPrize(): ?string
+    {
+        if ($this->cash_prize_amount === null) {
+            return null;
+        }
+
+        $amount = (float) $this->cash_prize_amount;
+        $decimals = fmod($amount, 1.0) !== 0.0 ? 2 : 0;
+
+        return number_format($amount, $decimals).' '.($this->cash_prize_currency ?: 'EUR');
+    }
 }

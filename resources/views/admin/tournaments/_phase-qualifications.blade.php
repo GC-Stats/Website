@@ -27,7 +27,7 @@
                         <span class="text-gray-500">
                             ({{ collect([
                                 $rule->points ? $rule->points.' pts' : null,
-                                $rule->cash_prize_amount ? number_format($rule->cash_prize_amount, 2).' '.$rule->cash_prize_currency : null,
+                                $rule->formattedCashPrize(),
                             ])->filter()->implode(' · ') }})
                         </span>
                     @endif
