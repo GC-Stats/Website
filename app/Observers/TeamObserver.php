@@ -22,29 +22,43 @@ class TeamObserver
 {
     public function saved(Team $team): void
     {
-        app(BunnyCache::class)->purgeUrls([
-            $this->url("/teams/{$team->id}"),
-        ]);
+        app(BunnyCache::class)->purgeUrls($this->teamUrls($team));
 
         Cache::tags(["team_{$team->id}"])->flush();
     }
 
     public function updated(Team $team)
     {
-        app(BunnyCache::class)->purgeUrls([
-            $this->url("/teams/{$team->id}"),
-        ]);
+        app(BunnyCache::class)->purgeUrls($this->teamUrls($team));
 
         Cache::tags(["team_{$team->id}"])->flush();
     }
 
     public function deleted(Team $team)
     {
-        app(BunnyCache::class)->purgeUrls([
-            $this->url("/teams/{$team->id}"),
-        ]);
+        app(BunnyCache::class)->purgeUrls($this->teamUrls($team));
 
         Cache::tags(["team_{$team->id}"])->flush();
+    }
+
+    /**
+     * Every cached page URL for this team — the real route is singular
+     * `/team/{id}/{slug}` (not `/teams/{id}`), and the profile, history,
+     * matches and maps pages are each cached separately, so all four must
+     * be purged, not just the profile page.
+     *
+     * @return list<string>
+     */
+    private function teamUrls(Team $team): array
+    {
+        $slug = $team->routeSlug();
+
+        return [
+            $this->url("/team/{$team->id}/{$slug}"),
+            $this->url("/team/{$team->id}/{$slug}/history"),
+            $this->url("/team/{$team->id}/{$slug}/matches"),
+            $this->url("/team/{$team->id}/{$slug}/maps"),
+        ];
     }
 
     private function url(string $path): string

@@ -180,7 +180,14 @@ class TeamMergeService
      * For each selected tournament: re-point $source's tournament_teams
      * row to $target (dropping it instead if $target already has one for
      * that tournament), and move every one of $source's matches within
-     * that tournament over to $target.
+     * that tournament over to $target — along with every other column that
+     * references the team on a per-match/per-map basis (match_vetos.team_id
+     * and side_picked_by, game_player_stats.team_id, game_map_rounds.
+     * winning_team). Those aren't reachable through the moved match's own
+     * team_a_id/team_b_id, so leaving them pointed at $source would strand
+     * historical veto/stat/round data on it — and since winning_team
+     * cascades on delete, a later deletion of $source would silently wipe
+     * those round rows instead of merely being blocked.
      *
      * @param  list<int>  $tournamentIds
      */
@@ -196,8 +203,25 @@ class TeamMergeService
             ->whereIn('tournament_id', $tournamentIds)->whereNotIn('tournament_id', $targetTournamentIds)
             ->update(['team_id' => $target->id]);
 
+        $matchIds = DB::table('matches')->whereIn('tournament_id', $tournamentIds)
+            ->where(function ($query) use ($source) {
+                $query->where('team_a_id', $source->id)->orWhere('team_b_id', $source->id);
+            })->pluck('id');
+
         DB::table('matches')->where('team_a_id', $source->id)->whereIn('tournament_id', $tournamentIds)->update(['team_a_id' => $target->id]);
         DB::table('matches')->where('team_b_id', $source->id)->whereIn('tournament_id', $tournamentIds)->update(['team_b_id' => $target->id]);
+
+        if ($matchIds->isEmpty()) {
+            return;
+        }
+
+        DB::table('match_vetos')->where('team_id', $source->id)->whereIn('match_id', $matchIds)->update(['team_id' => $target->id]);
+        DB::table('match_vetos')->where('side_picked_by', $source->id)->whereIn('match_id', $matchIds)->update(['side_picked_by' => $target->id]);
+        DB::table('game_player_stats')->where('team_id', $source->id)->whereIn('match_id', $matchIds)->update(['team_id' => $target->id]);
+
+        $mapIds = DB::table('game_maps')->whereIn('match_id', $matchIds)->pluck('id');
+
+        DB::table('game_map_rounds')->where('winning_team', $source->id)->whereIn('game_map_id', $mapIds)->update(['winning_team' => $target->id]);
     }
 
     /**
