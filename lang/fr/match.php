@@ -16,6 +16,11 @@ return [
         'live' => 'Match en direct : :teamA :scoreA – :scoreB :teamB',
         'upcoming' => 'Match à venir : :teamA vs :teamB',
     ],
+    'status' => [
+        'upcoming' => 'À venir',
+        'live' => 'En direct',
+        'finished' => 'Terminé',
+    ],
     'stats' => [
         'acs' => 'ACS',
         'acs_full' => 'Score de combat moyen',

@@ -124,6 +124,27 @@
                         @forelse($matches as $m)
                             <a href="{{ route('match.show', $m['id']) }}" class="group block mb-2">
                                 <div class="tournament-card bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
+                                    <div class="flex justify-center mb-2">
+                                        @if($m['status'] == 'live')
+                                            <div class="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-full" role="status" aria-live="polite">
+                                                <span class="relative flex h-1.5 w-1.5" aria-hidden="true">
+                                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                                                </span>
+                                                <span class="text-[8px] font-black text-red-500 uppercase tracking-widest">{{ __('index.live') }}</span>
+                                            </div>
+                                        @elseif($m['status'] == 'upcoming')
+                                            <div class="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
+                                                <span class="text-[8px] font-black text-green-500 uppercase tracking-widest">{{ __('match.status.upcoming') }}</span>
+                                            </div>
+                                        @else
+                                            <div class="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 border border-white/10 rounded-full">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-gray-500" aria-hidden="true"></span>
+                                                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">{{ __('match.status.finished') }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
                                     <div class="flex items-center gap-4">
                                         <div class="relative shrink-0 flex flex-1 flex-col items-center min-w-0">
                                             <div class="relative shrink-0">

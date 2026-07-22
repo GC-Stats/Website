@@ -17,6 +17,11 @@ return [
         'live' => 'Live match: :teamA :scoreA – :scoreB :teamB',
         'upcoming' => 'Upcoming match: :teamA vs :teamB',
     ],
+    'status' => [
+        'upcoming' => 'Upcoming',
+        'live' => 'Live',
+        'finished' => 'Finished',
+    ],
     'stats' => [
         'acs' => 'ACS',
         'acs_full' => 'Average Combat Score',
