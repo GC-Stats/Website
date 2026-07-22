@@ -70,7 +70,19 @@ class PlayerController extends Controller
             ->join('tournaments as t', 'matches.tournament_id', '=', 't.id')
             ->where('gps.player_id', $id)
             ->where('t.active', true)
-            ->groupBy('matches.id', 'gps.team_id')
+            ->groupBy([
+                'matches.id',
+                'matches.status',
+                'matches.round_name',
+                'matches.scheduled_at',
+                'matches.team_a_score',
+                'matches.team_b_score',
+                'matches.team_a_id',
+                'matches.team_b_id',
+                'matches.tournament_id',
+                'matches.phase_id',
+                'gps.team_id',
+            ])
             ->with([
                 'teamA:id,name',
                 'teamB:id,name',
