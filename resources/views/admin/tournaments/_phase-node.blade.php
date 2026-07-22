@@ -19,6 +19,17 @@
 
 <div class="bg-white/5 border border-white/10 rounded-lg p-3">
     <div class="text-[10px] font-black uppercase text-blue-400 mb-1">{{ $phase->name }}</div>
+    @if ($phase->start_date || $phase->end_date)
+        <div class="text-[10px] font-semibold text-gray-500 mb-1">
+            @if ($phase->start_date && $phase->end_date)
+                {{ $phase->start_date->format('d M Y') }} &ndash; {{ $phase->end_date->format('d M Y') }}
+            @elseif ($phase->start_date)
+                {{ $phase->start_date->format('d M Y') }}
+            @else
+                {{ $phase->end_date->format('d M Y') }}
+            @endif
+        </div>
+    @endif
     @if ($phase->format)
         <div class="text-xs font-bold uppercase text-gray-300">{{ $formatLabels[$phase->format] ?? $phase->format }}</div>
         @include('admin.tournaments._phase-qualifications', ['phase' => $phase, 'tournament' => $tournament])

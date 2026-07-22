@@ -64,10 +64,25 @@
                                 <div :class="activePhase === {{ $phase['id'] }} ? 'bg-black' : 'bg-gray-600 group-hover:bg-[var(--brand-yellow)]'"
                                      class="w-1.5 h-1.5 rounded-full transition-all duration-500"></div>
 
-                                <span :class="activePhase === {{ $phase['id'] }} ? 'text-black font-black' : 'text-gray-400 font-bold group-hover:text-white'"
-                                      class="text-[10px] uppercase tracking-[0.15em] transition-colors">
-                                    {{ $phase['name'] }}
-                                </span>
+                                <div class="flex flex-col items-start">
+                                    <span :class="activePhase === {{ $phase['id'] }} ? 'text-black font-black' : 'text-gray-400 font-bold group-hover:text-white'"
+                                          class="text-[10px] uppercase tracking-[0.15em] transition-colors">
+                                        {{ $phase['name'] }}
+                                    </span>
+
+                                    @if ($phase['start_date'] ?? $phase['end_date'] ?? null)
+                                        <span :class="activePhase === {{ $phase['id'] }} ? 'text-black/60' : 'text-gray-500'"
+                                              class="text-[9px] font-semibold tracking-wide transition-colors">
+                                            @if (($phase['start_date'] ?? null) && ($phase['end_date'] ?? null))
+                                                {{ \Carbon\Carbon::parse($phase['start_date'])->format('d M') }} &ndash; {{ \Carbon\Carbon::parse($phase['end_date'])->format('d M Y') }}
+                                            @elseif ($phase['start_date'] ?? null)
+                                                {{ \Carbon\Carbon::parse($phase['start_date'])->format('d M Y') }}
+                                            @else
+                                                {{ \Carbon\Carbon::parse($phase['end_date'])->format('d M Y') }}
+                                            @endif
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
 
                             <div x-show="activePhase === {{ $phase['id'] }}"

@@ -283,6 +283,8 @@ class TournamentController extends Controller
                     'id' => $phase['id'],
                     'name' => $phase['name'],
                     'format' => $phase['format'],
+                    'start_date' => $phase['start_date'],
+                    'end_date' => $phase['end_date'],
                     'qualifications' => $qualificationsByPhase->get($phase['id'], []),
                 ];
 

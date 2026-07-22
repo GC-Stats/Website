@@ -428,6 +428,8 @@ return [
             'name' => 'Name',
             'format' => 'Format',
             'order' => 'Order',
+            'start_date' => 'Start',
+            'end_date' => 'End',
             'add' => 'Add phase',
             'remove' => 'Remove',
             'indent' => 'Nest under previous phase',

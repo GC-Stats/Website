@@ -166,10 +166,65 @@ class GameMapController extends Controller
 
         $map->update($validated);
 
+        $this->recomputeMatchScore($match);
+
         activity('tournament')->causedBy($request->user())
             ->performedOn($map)->log('map.updated');
 
         return redirect()->route('admin.matches.maps.show', [$tournament, $match, $map])->with('status', 'map-updated');
+    }
+
+    /**
+     * Recompute the match's team_a_score/team_b_score from its game maps,
+     * then, once the series is decided, auto-skip any remaining unplayed
+     * maps and flip the match to finished. Lives here rather than the
+     * deprecated Api\ApiGameMapController: manual "basic info" edits are
+     * the surviving way to record a map's score once the Riot relay fetch
+     * is retired.
+     *
+     * BO1: decided once the single map is complete. BOx: decided once one
+     * side reaches the majority of maps (2 for BO3, 3 for BO5). Skipped
+     * maps get score -1/-1 + completed, mirroring
+     * MatchController::importWikicode()'s manual "skip" convention.
+     */
+    private function recomputeMatchScore(Matchs $match): void
+    {
+        $maps = $match->game_maps()->orderBy('order')->get();
+
+        if ($match->best_of <= 1) {
+            $map = $maps->first();
+            $scoreA = $map->team_a_score ?? 0;
+            $scoreB = $map->team_b_score ?? 0;
+        } else {
+            $scoreA = $maps->filter(fn ($m) => ! is_null($m->team_a_score) && ! is_null($m->team_b_score) && $m->team_a_score > $m->team_b_score)->count();
+            $scoreB = $maps->filter(fn ($m) => ! is_null($m->team_a_score) && ! is_null($m->team_b_score) && $m->team_b_score > $m->team_a_score)->count();
+        }
+
+        $match->update([
+            'team_a_score' => $scoreA,
+            'team_b_score' => $scoreB,
+        ]);
+
+        $requiredWins = intdiv(max((int) $match->best_of, 1), 2) + 1;
+
+        $decided = $match->best_of <= 1
+            ? (bool) optional($maps->first())->is_completed
+            : ($scoreA >= $requiredWins || $scoreB >= $requiredWins);
+
+        if (! $decided) {
+            return;
+        }
+
+        $maps->reject(fn ($m) => $m->is_completed)
+            ->each(fn ($m) => $m->update([
+                'team_a_score' => -1,
+                'team_b_score' => -1,
+                'is_completed' => true,
+            ]));
+
+        if ($match->status !== 'finished') {
+            $match->update(['status' => 'finished']);
+        }
     }
 
     /**
@@ -186,19 +241,24 @@ class GameMapController extends Controller
 
         $response = $api->fetch($map->id, $request);
         $status = $response->getStatusCode();
+        $succeeded = $status >= 200 && $status < 300;
+
+        if ($succeeded) {
+            $this->recomputeMatchScore($match);
+        }
 
         activity('tournament')->causedBy($request->user())
             ->performedOn($map)->log('map.fetched');
 
         if ($request->wantsJson()) {
-            if ($status >= 200 && $status < 300) {
+            if ($succeeded) {
                 return response()->json(['success' => true]);
             }
 
             return response()->json(json_decode($response->getContent(), true) ?? [], $status);
         }
 
-        if ($status >= 200 && $status < 300) {
+        if ($succeeded) {
             return redirect()->route('admin.matches.maps.show', [$tournament, $match, $map])->with('status', 'map-fetched');
         }
 

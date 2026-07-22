@@ -29,6 +29,13 @@ class TournamentPhase extends Model
         'format',
         'order',
         'parent_id',
+        'start_date',
+        'end_date',
+    ];
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 
     public function tournament(): BelongsTo

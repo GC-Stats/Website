@@ -155,6 +155,18 @@
 
                     <h3 class="text-sm font-black uppercase tracking-tight text-white">{{ $phase->name }}</h3>
 
+                    @if ($phase->start_date || $phase->end_date)
+                        <p class="text-[10px] font-semibold text-gray-500 mt-0.5">
+                            @if ($phase->start_date && $phase->end_date)
+                                {{ $phase->start_date->format('d M Y') }} &ndash; {{ $phase->end_date->format('d M Y') }}
+                            @elseif ($phase->start_date)
+                                {{ $phase->start_date->format('d M Y') }}
+                            @else
+                                {{ $phase->end_date->format('d M Y') }}
+                            @endif
+                        </p>
+                    @endif
+
                     @if ($phase->children->isNotEmpty())
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                             @foreach ($phase->children as $child)

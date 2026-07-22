@@ -236,6 +236,8 @@ class TournamentController extends Controller
             'phases.*.format' => ['sometimes', 'nullable', 'string', 'max:100'],
             'phases.*.parent_id' => ['sometimes', 'nullable', 'integer'],
             'phases.*.order' => ['sometimes', 'integer'],
+            'phases.*.start_date' => ['sometimes', 'nullable', 'date'],
+            'phases.*.end_date' => ['sometimes', 'nullable', 'date'],
         ]);
     }
 
@@ -276,6 +278,12 @@ class TournamentController extends Controller
         $idMap = [];
 
         foreach ($phases as $index => $phase) {
+            $isChild = ! empty($phase['parent_id'] ?? null);
+            $dates = [
+                'start_date' => $isChild ? null : ($phase['start_date'] ?? null),
+                'end_date' => $isChild ? null : ($phase['end_date'] ?? null),
+            ];
+
             if (! empty($phase['id'])) {
                 $model = TournamentPhase::where('tournament_id', $tournament->id)->find($phase['id']);
 
@@ -284,6 +292,7 @@ class TournamentController extends Controller
                         'name' => $phase['name'],
                         'format' => $phase['format'] ?? null,
                         'order' => $phase['order'] ?? 1,
+                        ...$dates,
                     ]);
                     $idMap[$index] = $model->id;
                     $keptIds[] = $model->id;
@@ -298,6 +307,7 @@ class TournamentController extends Controller
                 'format' => $phase['format'] ?? null,
                 'order' => $phase['order'] ?? 1,
                 'parent_id' => null,
+                ...$dates,
             ]);
 
             $idMap[$index] = $model->id;

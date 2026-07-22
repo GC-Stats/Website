@@ -426,6 +426,8 @@ return [
             'name' => 'Nom',
             'format' => 'Format',
             'order' => 'Ordre',
+            'start_date' => 'Début',
+            'end_date' => 'Fin',
             'add' => 'Ajouter une phase',
             'remove' => 'Retirer',
             'indent' => 'Imbriquer sous la phase précédente',

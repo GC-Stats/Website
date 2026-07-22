@@ -21,6 +21,8 @@
                     'name' => $phase->name,
                     'format' => $phase->format,
                     'order' => $phase->order,
+                    'start_date' => optional($phase->start_date)->format('Y-m-d'),
+                    'end_date' => optional($phase->end_date)->format('Y-m-d'),
                 ]);
                 $walk($phase->children, $tempId);
             }
@@ -164,7 +166,7 @@
                 }
                 return end;
             },
-            add() { this.phases.push({ id: null, temp_id: 'new_' + Date.now() + Math.random(), parent_id: null, name: '', format: '', order: this.phases.length + 1 }); },
+            add() { this.phases.push({ id: null, temp_id: 'new_' + Date.now() + Math.random(), parent_id: null, name: '', format: '', order: this.phases.length + 1, start_date: '', end_date: '' }); },
             remove(index) {
                 const phase = this.phases[index];
                 const toRemove = new Set([phase.temp_id]);
@@ -244,6 +246,16 @@
                         <button type="button" @click="remove(index)" title="{{ __('admin.tournaments.phases.remove') }}"
                                 class="w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10">&times;</button>
                     </div>
+                </div>
+
+                <div class="flex items-center gap-2 mt-2 pl-8" x-show="!phase.parent_id" x-cloak>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('admin.tournaments.phases.start_date') }}</span>
+                    <input type="date" :name="'phases['+index+'][start_date]'" x-model="phase.start_date" :disabled="!!phase.parent_id"
+                           class="w-36 bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
+
+                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('admin.tournaments.phases.end_date') }}</span>
+                    <input type="date" :name="'phases['+index+'][end_date]'" x-model="phase.end_date" :disabled="!!phase.parent_id"
+                           class="w-36 bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                 </div>
             </div>
         </template>
