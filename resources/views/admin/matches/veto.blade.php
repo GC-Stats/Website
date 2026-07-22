@@ -150,8 +150,8 @@
                                 @endif
                             </select>
 
-                            <div class="relative">
-                                <button type="button" @click="openMap(row); $nextTick(() => $el.parentElement.querySelector('[x-ref=mapSearch]').focus())" @click.outside="row.mapOpen = false"
+                            <div class="relative" @click.outside="row.mapOpen = false">
+                                <button type="button" @click="openMap(row); $nextTick(() => $el.parentElement.querySelector('[x-ref=mapSearch]').focus())"
                                         class="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                                     <span x-text="row.map_name === 'none' ? '{{ __('admin.matches.veto.select_map') }}' : row.map_name" class="truncate"></span>
                                     <svg class="w-3 h-3 text-gray-500 shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

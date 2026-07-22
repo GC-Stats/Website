@@ -254,8 +254,8 @@ class MatchController extends Controller
                 'team_id' => (int) $row['team'],
                 'map_name' => $row['map_name'],
                 'type' => $row['type'],
-                'side' => $row['side'] ?: null,
-                'side_picked_by' => $row['side_picked_by'] ? (int) $row['side_picked_by'] : null,
+                'side' => ($row['side'] ?? null) ?: null,
+                'side_picked_by' => ($row['side_picked_by'] ?? null) ? (int) $row['side_picked_by'] : null,
                 'order' => $index + 1,
             ];
         }
