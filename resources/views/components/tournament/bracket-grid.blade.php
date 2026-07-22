@@ -20,33 +20,32 @@
             ->toArray();
 
         $lastRoundMatches = $roundsArray[count($roundsArray) - 1] ?? collect();
-        $qualifierSlots = collect($lastRoundMatches)->map(function ($match) {
+        $qualifierSlots = collect($lastRoundMatches)->flatMap(function ($match) {
             $winnerIsA = ! is_null($match['team_a_score']) && ! is_null($match['team_b_score']) && $match['team_a_score'] > $match['team_b_score'];
             $winnerIsB = ! is_null($match['team_a_score']) && ! is_null($match['team_b_score']) && $match['team_b_score'] > $match['team_a_score'];
 
-            $qualification = collect($match['qualifications'] ?? [])->first(fn ($q) => $q['destination_type'] === 'phase');
+            $qualifications = collect($match['qualifications'] ?? [])->filter(fn ($q) => $q['destination_type'] === 'phase');
 
-            if (! $qualification) {
-                return null;
-            }
+            return $qualifications->map(function ($qualification) use ($match, $winnerIsA, $winnerIsB) {
+                $qualifiedIsA = ($qualification['outcome'] === 'winner' && $winnerIsA) || ($qualification['outcome'] === 'loser' && $winnerIsB);
+                $qualifiedIsB = ($qualification['outcome'] === 'winner' && $winnerIsB) || ($qualification['outcome'] === 'loser' && $winnerIsA);
+                $qualifiedName = $qualifiedIsA ? ($match['team_a_name'] ?? null) : ($qualifiedIsB ? ($match['team_b_name'] ?? null) : null);
 
-            $qualifiedIsA = ($qualification['outcome'] === 'winner' && $winnerIsA) || ($qualification['outcome'] === 'loser' && $winnerIsB);
-            $qualifiedIsB = ($qualification['outcome'] === 'winner' && $winnerIsB) || ($qualification['outcome'] === 'loser' && $winnerIsA);
-            $qualifiedName = $qualifiedIsA ? ($match['team_a_name'] ?? null) : ($qualifiedIsB ? ($match['team_b_name'] ?? null) : null);
+                if (! $qualifiedName) {
+                    return null;
+                }
 
-            if (! $qualifiedName) {
-                return null;
-            }
+                return [
+                    'name' => $qualifiedName,
+                    'logo' => $qualifiedIsA ? ($match['team_a_logo'] ?? null) : ($match['team_b_logo'] ?? null),
+                    'url' => $qualification['url'] ?? '#',
+                    'label' => $qualification['label'],
+                    'source_match_id' => $match['id'],
+                ];
+            });
+        })->filter()->values();
 
-            return [
-                'name' => $qualifiedName,
-                'logo' => $qualifiedIsA ? ($match['team_a_logo'] ?? null) : ($match['team_b_logo'] ?? null),
-                'url' => $qualification['url'] ?? '#',
-                'label' => $qualification['label'],
-            ];
-        });
-
-        if ($qualifierSlots->filter()->isNotEmpty()) {
+        if ($qualifierSlots->isNotEmpty()) {
             $roundsArray[] = $qualifierSlots;
             $roundKeys[] = 'qualifiers';
         }
@@ -61,7 +60,7 @@
         @endphp
 
         <div class="flex items-stretch">
-            <div class="flex flex-col py-4 min-w-[220px] px-4">
+            <div class="flex flex-col py-4 min-w-[220px] px-4" @if($isQualifierRound) data-round-type="qualifiers" @endif>
                 <div class="text-center mb-4">
                     <span class="text-[9px] font-black text-gc-yellow/80 uppercase tracking-widest">
                         {{ $isQualifierRound ? __('tournament.bracket.qualifiers_column') : (collect($matches)->first()['round_name'] ?? 'Round ' . $roundKeys[$roundIndex]) }}
@@ -71,33 +70,21 @@
                 <div class="flex-1 flex flex-col justify-around gap-2">
                     @if($isQualifierRound)
                         @foreach($matches as $slot)
-                            <div class="bracket-match" @if($slot) data-match-id="qualifier-{{ $loop->index }}" @endif>
-                                @if($slot)
-                                    <a href="{{ $slot['url'] }}"
-                                       draggable="false"
-                                       title="{{ __('tournament.bracket.qualified_tooltip', ['team' => $slot['name'], 'destination' => $slot['label']]) }}"
-                                       class="block bg-bg-card border border-green-500/30 rounded-sm shadow-md overflow-hidden hover:border-green-500/60 transition-all group active:scale-[0.98]">
-                                        <div class="flex items-center justify-between p-2">
-                                            <div class="flex items-center gap-2">
-                                                <img src="{{ $slot['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0 logo-filter" draggable="false">
-                                                <span class="text-[10px] font-black italic uppercase text-white truncate">
-                                                    {{ Str::limit($slot['name'], 20) }}
-                                                </span>
-                                            </div>
-                                            @svg('fas-flag-checkered', 'w-3 h-3 text-green-400 flex-shrink-0')
-                                        </div>
-                                    </a>
-                                @else
-                                    {{-- Invisible placeholder: keeps this column's match count equal to the
-                                         previous round's, so the connector script's straight 1:1 pairing
-                                         still lines up with the real matches that do have a qualifier. --}}
-                                    <div class="invisible bg-bg-card border border-border-subtle rounded-sm p-2">
+                            <div class="bracket-match" data-source-match-id="{{ $slot['source_match_id'] }}">
+                                <a href="{{ $slot['url'] }}"
+                                   draggable="false"
+                                   title="{{ __('tournament.bracket.qualified_tooltip', ['team' => $slot['name'], 'destination' => $slot['label']]) }}"
+                                   class="block bg-bg-card border border-green-500/30 rounded-sm shadow-md overflow-hidden hover:border-green-500/60 transition-all group active:scale-[0.98]">
+                                    <div class="flex items-center justify-between p-2">
                                         <div class="flex items-center gap-2">
-                                            <div class="w-4 h-4"></div>
-                                            <span class="text-[10px]">&nbsp;</span>
+                                            <img src="{{ $slot['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0 logo-filter" draggable="false">
+                                            <span class="text-[10px] font-black italic uppercase text-white truncate">
+                                                {{ Str::limit($slot['name'], 20) }}
+                                            </span>
                                         </div>
+                                        @svg('fas-flag-checkered', 'w-3 h-3 text-green-400 flex-shrink-0')
                                     </div>
-                                @endif
+                                </a>
                             </div>
                         @endforeach
                     @else
@@ -184,6 +171,27 @@
                 return (r.top + r.height / 2 - transformedRect.top) / scale
                     - (svgRect.top - transformedRect.top) / scale;
             };
+
+            if (nextCol.dataset.roundType === 'qualifiers') {
+                nextMatches.forEach(target => {
+                    const source = Array.from(currentMatches)
+                        .find(m => m.dataset.matchId === target.dataset.sourceMatchId);
+                    if (!source) return;
+
+                    const yA = Math.round(relY(source));
+                    const yT = Math.round(relY(target));
+
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', `M 0 ${yA} H 16 V ${yT} H 32`);
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('stroke', 'rgba(255,255,255,0.35)');
+                    path.setAttribute('stroke-width', '1');
+                    path.setAttribute('stroke-linecap', 'round');
+                    path.setAttribute('stroke-linejoin', 'round');
+                    svg.appendChild(path);
+                });
+                return;
+            }
 
             const isStraight = currentMatches.length === nextMatches.length;
 
