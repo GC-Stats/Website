@@ -164,22 +164,73 @@ class PlayerMergeService
     }
 
     /**
-     * Moves each selected `game_player_stats` row from $source to $target.
-     * A stat row is keyed one-per-(match, player), so a selected row whose
-     * match $target already has a stat row for is skipped rather than
-     * moved — same dedup-by-target pattern as mergeNews().
+     * Moves each selected `game_player_stats` row from $source to $target,
+     * along with every other per-map/per-round table keyed on the same
+     * (game_map_id, player) pair — game_player_advanced_stats,
+     * game_map_round_player_stats, game_map_round_kills (killer, victim and
+     * the assistant_player_ids json list) and game_map_round_damages
+     * (attacker, receiver). A stat row is keyed one-per-(map, player,
+     * agent), so dedup against $target must happen at that granularity —
+     * checking only match_id would skip an entire BO3 (all of its maps)
+     * whenever $target already had a row for just one map of it.
      *
      * @param  list<int>  $statIds
      */
     private function mergeStats(Player $source, Player $target, array $statIds): void
     {
-        $sourceStats = DB::table('game_player_stats')->where('player_id', $source->id)->whereIn('id', $statIds)->get(['id', 'match_id']);
+        $sourceStats = DB::table('game_player_stats')->where('player_id', $source->id)
+            ->whereIn('id', $statIds)->get(['id', 'game_map_id', 'agent_name']);
 
-        $targetMatchIds = DB::table('game_player_stats')->where('player_id', $target->id)
-            ->whereIn('match_id', $sourceStats->pluck('match_id'))->pluck('match_id');
+        if ($sourceStats->isEmpty()) {
+            return;
+        }
 
-        $movableIds = $sourceStats->whereNotIn('match_id', $targetMatchIds)->pluck('id');
+        $targetMapAgents = DB::table('game_player_stats')->where('player_id', $target->id)
+            ->whereIn('game_map_id', $sourceStats->pluck('game_map_id')->unique())
+            ->get(['game_map_id', 'agent_name'])
+            ->map(fn ($row) => "{$row->game_map_id}|{$row->agent_name}");
 
-        DB::table('game_player_stats')->whereIn('id', $movableIds)->update(['player_id' => $target->id]);
+        $movable = $sourceStats->reject(fn ($row) => $targetMapAgents->contains("{$row->game_map_id}|{$row->agent_name}"));
+
+        if ($movable->isEmpty()) {
+            return;
+        }
+
+        $mapIds = $movable->pluck('game_map_id')->unique()->values();
+
+        DB::table('game_player_stats')->whereIn('id', $movable->pluck('id'))->update(['player_id' => $target->id]);
+
+        DB::table('game_player_advanced_stats')->where('player_id', $source->id)
+            ->whereIn('game_map_id', $mapIds)->update(['player_id' => $target->id]);
+
+        $roundIds = DB::table('game_map_rounds')->whereIn('game_map_id', $mapIds)->pluck('id');
+
+        DB::table('game_map_round_player_stats')->where('player_id', $source->id)
+            ->whereIn('game_map_round_id', $roundIds)->update(['player_id' => $target->id]);
+
+        DB::table('game_map_round_kills')->where('killer_player_id', $source->id)
+            ->whereIn('game_map_round_id', $roundIds)->update(['killer_player_id' => $target->id]);
+
+        DB::table('game_map_round_kills')->where('victim_player_id', $source->id)
+            ->whereIn('game_map_round_id', $roundIds)->update(['victim_player_id' => $target->id]);
+
+        DB::table('game_map_round_damages')->where('attacker_player_id', $source->id)
+            ->whereIn('game_map_round_id', $roundIds)->update(['attacker_player_id' => $target->id]);
+
+        DB::table('game_map_round_damages')->where('receiver_player_id', $source->id)
+            ->whereIn('game_map_round_id', $roundIds)->update(['receiver_player_id' => $target->id]);
+
+        $assistRows = DB::table('game_map_round_kills')
+            ->whereIn('game_map_round_id', $roundIds)
+            ->whereJsonContains('assistant_player_ids', $source->id)
+            ->get(['id', 'assistant_player_ids']);
+
+        foreach ($assistRows as $row) {
+            $ids = collect(json_decode($row->assistant_player_ids, true))
+                ->map(fn ($id) => $id === $source->id ? $target->id : $id)
+                ->unique()->values()->all();
+
+            DB::table('game_map_round_kills')->where('id', $row->id)->update(['assistant_player_ids' => json_encode($ids)]);
+        }
     }
 }
