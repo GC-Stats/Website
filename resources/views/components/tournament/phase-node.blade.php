@@ -33,11 +33,16 @@
                             {{ $child['name'] }}
                         </h3>
                         <x-tournament.bracket-grid :matches="$child['matches'] ?? []" />
-                        <x-tournament.leaderboard :phase="$child" :teams="$teams" />
                     </div>
                 @endforeach
             </div>
         </x-tournament.pan-zoom-bracket>
+
+        <div class="flex flex-col gap-8">
+            @foreach($children as $child)
+                <x-tournament.leaderboard :phase="$child" :teams="$teams" />
+            @endforeach
+        </div>
     @else
         <div class="flex flex-col gap-12">
             @foreach($children as $child)
