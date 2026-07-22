@@ -785,6 +785,8 @@ return [
         'about-project-created' => 'Project added.',
         'about-project-updated' => 'Project updated.',
         'about-project-deleted' => 'Project removed.',
+        'phase-qualification-created' => 'Qualification created.',
+        'phase-qualification-deleted' => 'Qualification deleted.',
     ],
 
     'news' => [

@@ -731,6 +731,8 @@ return [
         'about-project-created' => 'Projet ajouté.',
         'about-project-updated' => 'Projet mis à jour.',
         'about-project-deleted' => 'Projet retiré.',
+        'phase-qualification-created' => 'Qualification créée.',
+        'phase-qualification-deleted' => 'Qualification supprimée.',
     ],
 
     'news' => [
