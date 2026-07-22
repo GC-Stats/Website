@@ -31,13 +31,31 @@ class ReportController extends Controller
         UserReport::STATUS_DISMISSED,
     ];
 
+    private const SORTABLE = ['reported_user', 'reporter', 'category', 'team', 'submitted_at'];
+
     public function index(Request $request): View
     {
         $status = $request->get('status', UserReport::STATUS_PENDING);
 
+        [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'submitted_at', 'desc');
+
         $reports = UserReport::with(['reporter:id,name,username', 'reportedUser:id,name,username', 'team:id,name'])
             ->when(in_array($status, self::STATUSES, true), fn ($query) => $query->where('status', $status))
-            ->latest()
+            ->when($sort === 'reported_user', fn ($query) => $query
+                ->select('user_reports.*')
+                ->leftJoin('users as reported_users', 'reported_users.id', '=', 'user_reports.reported_user_id')
+                ->orderBy('reported_users.name', $direction))
+            ->when($sort === 'reporter', fn ($query) => $query
+                ->select('user_reports.*')
+                ->leftJoin('users as reporters', 'reporters.id', '=', 'user_reports.reporter_id')
+                ->orderBy('reporters.name', $direction))
+            ->when($sort === 'category', fn ($query) => $query->orderBy('category', $direction))
+            ->when($sort === 'team', fn ($query) => $query
+                ->select('user_reports.*')
+                ->leftJoin('teams', 'teams.id', '=', 'user_reports.team_id')
+                ->orderBy('teams.name', $direction))
+            ->when($sort === 'submitted_at', fn ($query) => $query->orderBy('created_at', $direction))
+            ->orderByDesc('user_reports.id')
             ->paginate(25)
             ->withQueryString();
 
@@ -45,6 +63,8 @@ class ReportController extends Controller
             'reports' => $reports,
             'status' => $status,
             'statuses' => self::STATUSES,
+            'sort' => $sort,
+            'direction' => $direction,
         ]);
     }
 

@@ -30,6 +30,8 @@ class TournamentController extends Controller
 {
     public const CATEGORIES = ['Championship', 'Regional', 'Open Qualifier', 'Cash Cups', 'Showmatch', 'Unofficial tournament'];
 
+    private const SORTABLE = ['name', 'start_date', 'region', 'status', 'teams_count'];
+
     public function index(Request $request): View
     {
         $search = $request->get('q');
@@ -37,7 +39,16 @@ class TournamentController extends Controller
         $category = $request->get('category');
         $status = $request->get('status');
         $active = $request->get('active');
-        $sort = $request->get('sort', 'start_date');
+        $sort = $request->query('sort', 'start_date');
+        if (! in_array($sort, self::SORTABLE, true)) {
+            $sort = 'start_date';
+        }
+
+        $defaultDirection = $sort === 'name' ? 'asc' : 'desc';
+        $direction = $request->query('direction', $defaultDirection);
+        if (! in_array($direction, ['asc', 'desc'], true)) {
+            $direction = $defaultDirection;
+        }
 
         $tournaments = Tournament::query()
             ->withCount('teams')
@@ -47,8 +58,12 @@ class TournamentController extends Controller
             ->when($category && $category !== '__custom__', fn ($query) => $query->where('category', $category))
             ->when($status, fn ($query) => $query->where('status', $status))
             ->when($active !== null && $active !== '', fn ($query) => $query->where('active', $active === '1'))
-            ->when($sort === 'name', fn ($query) => $query->orderBy('name'))
-            ->when($sort === 'start_date', fn ($query) => $query->orderByDesc('start_date'))
+            ->when($sort === 'name', fn ($query) => $query->orderBy('name', $direction))
+            ->when($sort === 'region', fn ($query) => $query->orderBy('region', $direction))
+            ->when($sort === 'status', fn ($query) => $query->orderBy('status', $direction))
+            ->when($sort === 'teams_count', fn ($query) => $query->orderBy('teams_count', $direction))
+            ->when($sort === 'start_date', fn ($query) => $query->orderBy('start_date', $direction))
+            ->orderByDesc('id')
             ->paginate(25)
             ->withQueryString();
 
@@ -60,6 +75,7 @@ class TournamentController extends Controller
             'status' => $status ?? '',
             'active' => $active ?? '',
             'sort' => $sort,
+            'direction' => $direction,
             'regions' => array_keys(config('regions.riot_api')),
             'categories' => self::CATEGORIES,
         ]);

@@ -36,15 +36,22 @@ class FinanceController extends Controller
 
     public const CURRENCIES = ['EUR', 'USD'];
 
+    private const SORTABLE = ['date', 'label', 'category', 'amount'];
+
     public function index(Request $request): View
     {
         $search = $request->get('q');
         $type = $request->get('type');
 
+        [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'date', 'desc');
+
         $entries = FinanceEntry::query()
             ->when($search, fn ($query) => $query->where('label', 'like', '%'.$this->escapeLike($search).'%'))
             ->when($type, fn ($query) => $query->where('type', $type))
-            ->orderByDesc('entry_date')
+            ->when($sort === 'label', fn ($query) => $query->orderBy('label', $direction))
+            ->when($sort === 'category', fn ($query) => $query->orderBy('category', $direction))
+            ->when($sort === 'amount', fn ($query) => $query->orderBy('amount_eur', $direction))
+            ->when($sort === 'date', fn ($query) => $query->orderBy('entry_date', $direction))
             ->orderByDesc('id')
             ->paginate(25)
             ->withQueryString();
@@ -53,6 +60,8 @@ class FinanceController extends Controller
             'entries' => $entries,
             'search' => $search ?? '',
             'type' => $type ?? '',
+            'sort' => $sort,
+            'direction' => $direction,
             'categories' => self::CATEGORIES,
             'currencies' => self::CURRENCIES,
         ]);

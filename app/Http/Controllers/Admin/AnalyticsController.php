@@ -27,8 +27,12 @@ class AnalyticsController extends Controller
 {
     private const REGIONS = ['EURO', 'AMER', 'APAC', 'OTHE'];
 
+    private const SORTABLE = ['page', 'views'];
+
     public function index(Request $request): View
     {
+        [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'views', 'desc');
+
         $uniqueDays = max(
             DB::table('page_views')->select(DB::raw('DATE(viewed_at) as date'))->distinct()->get()->count(),
             1
@@ -49,7 +53,8 @@ class AnalyticsController extends Controller
             ->select('uri', DB::raw('SUM(count) as total_count'))
             ->where('viewed_at', '>=', now()->subDays(30)->startOfDay())
             ->groupBy('uri')
-            ->orderByDesc('total_count')
+            ->when($sort === 'page', fn ($query) => $query->orderBy('uri', $direction))
+            ->when($sort === 'views', fn ($query) => $query->orderBy('total_count', $direction)->orderBy('uri'))
             ->paginate(30)
             ->withQueryString();
 
@@ -59,6 +64,8 @@ class AnalyticsController extends Controller
             'dailyAverages' => $dailyAverages,
             'hourly' => $hourly,
             'topPages' => $topPages,
+            'sort' => $sort,
+            'direction' => $direction,
         ]);
     }
 

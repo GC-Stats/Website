@@ -35,11 +35,15 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    private const SORTABLE = ['user', 'sanctions', 'joined'];
+
     public function index(Request $request): View
     {
         $search = $request->get('q');
         $roleFilter = $request->get('role');
         $publisherFilter = $request->get('publisher');
+
+        [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'user', 'asc');
 
         $userIds = null;
 
@@ -53,7 +57,10 @@ class UserController extends Controller
             ->when($search, fn ($query) => $query->matching($search))
             ->when($roleFilter, fn ($query) => $query->whereHas('roles', fn ($q) => $q->where('name', $roleFilter)))
             ->when($userIds !== null, fn ($query) => $query->whereIn('id', $userIds))
-            ->orderBy('name')
+            ->when($sort === 'sanctions', fn ($query) => $query->orderBy('active_sanctions_count', $direction))
+            ->when($sort === 'joined', fn ($query) => $query->orderBy('created_at', $direction))
+            ->when($sort === 'user', fn ($query) => $query->orderBy('name', $direction))
+            ->orderByDesc('id')
             ->paginate(25)
             ->withQueryString();
 
@@ -64,6 +71,8 @@ class UserController extends Controller
             'search' => $search ?? '',
             'roleFilter' => $roleFilter ?? '',
             'publisherFilter' => $publisherFilter ?? '',
+            'sort' => $sort,
+            'direction' => $direction,
             'roles' => Role::where('team_id', PermissionTeam::GLOBAL_ID)->orderBy('name')->get(),
             'publishers' => $publishers,
             'publisherNamesByUserId' => $this->publisherNamesByUserId($users->pluck('id'), $publishers),

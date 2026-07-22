@@ -12,33 +12,26 @@
 @section('content')
     <div class="flex flex-wrap gap-2 mb-6">
         @foreach ($statuses as $option)
-            <a href="{{ route('admin.reports.index', ['status' => $option]) }}"
+            <a href="{{ route('admin.reports.index', ['status' => $option, 'sort' => $sort, 'direction' => $direction]) }}"
                class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all {{ $status === $option ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
                 {{ __('admin.reports.status.'.$option) }}
             </a>
         @endforeach
     </div>
 
-    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
-         x-data="GCS.sortableTable('submitted_at', false)">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead>
                 <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
                     @foreach ([['reported_user', 'admin.reports.reported_user'], ['reporter', 'admin.reports.reporter'], ['category', 'admin.reports.category_column'], ['team', 'admin.reports.team'], ['submitted_at', 'admin.reports.submitted_at']] as [$col, $label])
-                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
-                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
-                                {{ __($label) }}
-                                @include('admin.partials.sort-arrows', ['col' => $col])
-                            </span>
-                        </th>
+                        <x-admin.sortable-th :col="$col" :sort="$sort" :direction="$direction">{{ __($label) }}</x-admin.sortable-th>
                     @endforeach
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
-            <tbody x-ref="tbody">
+            <tbody>
                 @forelse ($reports as $report)
-                    <tr data-row data-reported_user="{{ $report->reportedUser?->name ?? '' }}" data-reporter="{{ $report->reporter?->name ?? '' }}" data-category="{{ __('admin.reports.category.'.$report->category) }}" data-team="{{ $report->team?->name ?? '' }}" data-submitted_at="{{ $report->created_at->timestamp }}"
-                        class="border-b border-white/10 last:border-0">
+                    <tr class="border-b border-white/10 last:border-0">
                         <td class="px-4 py-3 text-white font-semibold">
                             {{ $report->reportedUser?->name ?? '—' }}
                             @if ($report->reportedUser?->username)

@@ -32,11 +32,27 @@ class SanctionController extends Controller
         Sanction::TYPE_BAN,
     ];
 
+    private const SORTABLE = ['user', 'type', 'reason', 'ends_at', 'issued_by'];
+
     public function index(Request $request): View
     {
+        [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'created_at', 'desc');
+
         $sanctions = Sanction::with(['user:id,name', 'issuedBy:id,name', 'team:id,name'])
             ->when(! $request->boolean('all'), fn ($query) => $query->active())
-            ->latest()
+            ->when($sort === 'user', fn ($query) => $query
+                ->select('sanctions.*')
+                ->leftJoin('users as sanctioned_users', 'sanctioned_users.id', '=', 'sanctions.user_id')
+                ->orderBy('sanctioned_users.name', $direction))
+            ->when($sort === 'issued_by', fn ($query) => $query
+                ->select('sanctions.*')
+                ->leftJoin('users as issuers', 'issuers.id', '=', 'sanctions.issued_by')
+                ->orderBy('issuers.name', $direction))
+            ->when($sort === 'type', fn ($query) => $query->orderBy('type', $direction))
+            ->when($sort === 'reason', fn ($query) => $query->orderBy('reason', $direction))
+            ->when($sort === 'ends_at', fn ($query) => $query->orderBy('ends_at', $direction))
+            ->when($sort === 'created_at', fn ($query) => $query->orderByDesc('created_at'))
+            ->orderByDesc('sanctions.id')
             ->paginate(25)
             ->withQueryString();
 
@@ -44,6 +60,8 @@ class SanctionController extends Controller
             'sanctions' => $sanctions,
             'showAll' => $request->boolean('all'),
             'types' => self::TYPES,
+            'sort' => $sort,
+            'direction' => $direction,
         ]);
     }
 

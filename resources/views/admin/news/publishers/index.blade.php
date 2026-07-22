@@ -12,6 +12,8 @@
 @section('content')
     <div class="flex items-center justify-between gap-4 mb-6">
         <form method="GET" action="{{ route('admin.news.publishers.index') }}" class="flex flex-wrap gap-2">
+            <input type="hidden" name="sort" value="{{ $sort }}">
+            <input type="hidden" name="direction" value="{{ $direction }}">
             <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.news.publishers.search_placeholder') }}"
                    class="flex-1 max-w-sm bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
             <button type="submit"
@@ -50,28 +52,18 @@
         @endcan
     </div>
 
-    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
-         x-data="GCS.sortableTable()">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead>
                 <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    <th class="px-4 py-3" @click="sortBy('name')">
-                        <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
-                            {{ __('admin.news.publishers.title') }}
-                            @include('admin.partials.sort-arrows', ['col' => 'name'])
-                        </span>
-                    </th>
-                    <th class="px-4 py-3" @click="sortBy('count')">
-                        <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
-                            @include('admin.partials.sort-arrows', ['col' => 'count'])
-                        </span>
-                    </th>
+                    <x-admin.sortable-th col="name" :sort="$sort" :direction="$direction">{{ __('admin.news.publishers.title') }}</x-admin.sortable-th>
+                    <x-admin.sortable-th col="count" :sort="$sort" :direction="$direction"></x-admin.sortable-th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
-            <tbody x-ref="tbody">
+            <tbody>
                 @forelse ($publishers as $publisher)
-                    <tr data-row data-name="{{ $publisher->name }}" data-count="{{ $publisher->news_count }}" class="border-b border-white/10 last:border-0">
+                    <tr class="border-b border-white/10 last:border-0">
                         <td class="px-4 py-3 text-white font-semibold">{{ $publisher->name }}</td>
                         <td class="px-4 py-3 text-gray-500 text-xs">{{ trans_choice('admin.news.publishers.articles_count', $publisher->news_count, ['count' => $publisher->news_count]) }}</td>
                         <td class="px-4 py-3 text-right">

@@ -27,6 +27,8 @@
 
     <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <form method="GET" class="flex-1 min-w-[200px] max-w-sm">
+            <input type="hidden" name="sort" value="{{ $sort }}">
+            <input type="hidden" name="direction" value="{{ $direction }}">
             <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.api_keys.search_placeholder') }}"
                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
         </form>
@@ -73,26 +75,19 @@
         @endcan
     </div>
 
-    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
-         x-data="GCS.sortableTable()">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead>
                 <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
                     @foreach ([['client_name', 'admin.api_keys.client_name'], ['rate_limit', 'admin.api_keys.rate_limit'], ['status', 'admin.api_keys.status']] as [$col, $label])
-                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
-                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
-                                {{ __($label) }}
-                                @include('admin.partials.sort-arrows', ['col' => $col])
-                            </span>
-                        </th>
+                        <x-admin.sortable-th :col="$col" :sort="$sort" :direction="$direction">{{ __($label) }}</x-admin.sortable-th>
                     @endforeach
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
-            <tbody x-ref="tbody">
+            <tbody>
                 @forelse ($keys as $key)
-                    <tr data-row data-client_name="{{ $key->client_name }}" data-rate_limit="{{ $key->rate_limit }}" data-status="{{ $key->is_active ? 1 : 0 }}"
-                        class="border-b border-white/10 last:border-0">
+                    <tr class="border-b border-white/10 last:border-0">
                         <td class="px-4 py-3 text-white font-semibold">{{ $key->client_name }}</td>
                         <td class="px-4 py-3 text-gray-400">{{ $key->rate_limit }}</td>
                         <td class="px-4 py-3">

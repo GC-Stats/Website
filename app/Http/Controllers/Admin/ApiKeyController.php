@@ -27,19 +27,29 @@ use Illuminate\Support\Str;
 
 class ApiKeyController extends Controller
 {
+    private const SORTABLE = ['client_name', 'rate_limit', 'status'];
+
     public function index(Request $request): View
     {
         $search = $request->get('q');
 
+        [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'created_at', 'asc');
+
         $keys = ApiKey::query()
             ->when($search, fn ($query) => $query->where('client_name', 'like', '%'.$this->escapeLike($search).'%'))
-            ->latest()
+            ->when($sort === 'client_name', fn ($query) => $query->orderBy('client_name', $direction))
+            ->when($sort === 'rate_limit', fn ($query) => $query->orderBy('rate_limit', $direction))
+            ->when($sort === 'status', fn ($query) => $query->orderBy('is_active', $direction))
+            ->when($sort === 'created_at', fn ($query) => $query->orderByDesc('created_at'))
+            ->orderByDesc('id')
             ->paginate(25)
             ->withQueryString();
 
         return view('admin.api-keys.index', [
             'keys' => $keys,
             'search' => $search ?? '',
+            'sort' => $sort,
+            'direction' => $direction,
         ]);
     }
 

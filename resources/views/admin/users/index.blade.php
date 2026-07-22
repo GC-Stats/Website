@@ -11,6 +11,8 @@
 
 @section('content')
     <form method="GET" class="mb-6 flex flex-wrap gap-3">
+        <input type="hidden" name="sort" value="{{ $sort }}">
+        <input type="hidden" name="direction" value="{{ $direction }}">
         <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.users.search_placeholder') }}"
                class="flex-1 min-w-[200px] max-w-sm bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
@@ -38,29 +40,20 @@
         @endif
     </form>
 
-    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
-         x-data="GCS.sortableTable()">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead>
                 <tr class="border-b border-b-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    @foreach ([['user', 'admin.users.user'], ['sanctions', 'admin.users.sanctions'], ['joined', 'admin.users.joined']] as [$col, $label])
-                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
-                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
-                                {{ __($label) }}
-                                @include('admin.partials.sort-arrows', ['col' => $col])
-                            </span>
-                        </th>
-                        @if ($col === 'user')
-                            <th class="px-4 py-3">{{ __('admin.users.roles') }}</th>
-                            <th class="px-4 py-3">{{ __('admin.users.publishers') }}</th>
-                        @endif
-                    @endforeach
+                    <x-admin.sortable-th col="user" :sort="$sort" :direction="$direction">{{ __('admin.users.user') }}</x-admin.sortable-th>
+                    <th class="px-4 py-3">{{ __('admin.users.roles') }}</th>
+                    <th class="px-4 py-3">{{ __('admin.users.publishers') }}</th>
+                    <x-admin.sortable-th col="sanctions" :sort="$sort" :direction="$direction">{{ __('admin.users.sanctions') }}</x-admin.sortable-th>
+                    <x-admin.sortable-th col="joined" :sort="$sort" :direction="$direction">{{ __('admin.users.joined') }}</x-admin.sortable-th>
                 </tr>
             </thead>
-            <tbody x-ref="tbody">
+            <tbody>
                 @forelse ($users as $user)
-                    <tr data-row data-user="{{ $user->name }}" data-sanctions="{{ $user->active_sanctions_count }}" data-joined="{{ $user->created_at?->timestamp ?? 0 }}"
-                        class="border-b border-b-white/10 last:border-b-0 hover:bg-white/[0.02] transition">
+                    <tr class="border-b border-b-white/10 last:border-b-0 hover:bg-white/[0.02] transition">
                         <td class="px-4 py-3">
                             <a href="{{ route('admin.users.show', $user) }}" class="flex items-center gap-3">
                                 <div class="w-8 h-8 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase text-white">

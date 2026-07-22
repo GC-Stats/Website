@@ -12,6 +12,7 @@
 @section('content')
     <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <form method="GET" action="{{ route('admin.tournaments.index') }}" class="flex flex-wrap gap-2 flex-1 min-w-[200px]">
+            <input type="hidden" name="direction" value="{{ $direction }}">
             <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.tournaments.search_placeholder') }}"
                    class="flex-1 max-w-sm bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
@@ -67,27 +68,20 @@
         @endcan
     </div>
 
-    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
-         x-data="GCS.sortableTable()">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead>
                 <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
                     <th class="px-4 py-3"></th>
                     @foreach ([['name', 'admin.tournaments.name'], ['region', 'admin.tournaments.region'], ['status', 'admin.tournaments.status_column'], ['teams_count', 'admin.tournaments.teams_count']] as [$col, $label])
-                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
-                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
-                                {{ __($label) }}
-                                @include('admin.partials.sort-arrows', ['col' => $col])
-                            </span>
-                        </th>
+                        <x-admin.sortable-th :col="$col" :sort="$sort" :direction="$direction">{{ __($label) }}</x-admin.sortable-th>
                     @endforeach
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
-            <tbody x-ref="tbody">
+            <tbody>
                 @forelse ($tournaments as $tournament)
-                    <tr data-row data-name="{{ $tournament->name }}" data-region="{{ $tournament->region }}" data-status="{{ $tournament->status }}" data-teams_count="{{ $tournament->teams_count }}"
-                        class="border-b border-b-white/10 last:border-b-0 border-l-2 {{ $tournament->active ? 'border-l-green-500/60' : 'border-l-red-500/60' }}">
+                    <tr class="border-b border-b-white/10 last:border-b-0 border-l-2 {{ $tournament->active ? 'border-l-green-500/60' : 'border-l-red-500/60' }}">
                         <td class="px-4 py-3">
                             <img src="{{ $tournament->logo }}" alt="" class="w-8 h-8 rounded-lg object-cover bg-black/30">
                         </td>

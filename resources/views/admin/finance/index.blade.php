@@ -12,6 +12,8 @@
 @section('content')
     <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <form method="GET" class="flex gap-2 flex-1 min-w-[200px] max-w-lg">
+            <input type="hidden" name="sort" value="{{ $sort }}">
+            <input type="hidden" name="direction" value="{{ $direction }}">
             <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.finance.search_placeholder') }}"
                    class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
             <select name="type" onchange="this.form.submit()"
@@ -36,27 +38,20 @@
         @endcan
     </div>
 
-    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
-         x-data="GCS.sortableTable('date', false)">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead>
                 <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
                     @foreach ([['date', 'admin.finance.date'], ['label', 'admin.finance.label'], ['category', 'admin.finance.category_column'], ['amount', 'admin.finance.amount']] as [$col, $label])
-                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
-                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
-                                {{ __($label) }}
-                                @include('admin.partials.sort-arrows', ['col' => $col])
-                            </span>
-                        </th>
+                        <x-admin.sortable-th :col="$col" :sort="$sort" :direction="$direction">{{ __($label) }}</x-admin.sortable-th>
                     @endforeach
                     <th class="px-4 py-3">{{ __('admin.finance.source') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
-            <tbody x-ref="tbody">
+            <tbody>
                 @forelse ($entries as $entry)
-                    <tr data-row data-date="{{ $entry->entry_date->timestamp }}" data-label="{{ $entry->label }}" data-category="{{ $entry->category }}" data-amount="{{ $entry->amount_eur }}"
-                        class="border-b border-b-white/10 last:border-b-0 border-l-2 {{ $entry->type === 'income' ? 'border-l-green-500/60' : 'border-l-red-500/60' }}">
+                    <tr class="border-b border-b-white/10 last:border-b-0 border-l-2 {{ $entry->type === 'income' ? 'border-l-green-500/60' : 'border-l-red-500/60' }}">
                         <td class="px-4 py-3 text-gray-400 text-xs">{{ $entry->entry_date->format('Y-m-d') }}</td>
                         <td class="px-4 py-3 text-white font-semibold">{{ $entry->label }}</td>
                         <td class="px-4 py-3 text-gray-400">{{ $entry->category }}</td>

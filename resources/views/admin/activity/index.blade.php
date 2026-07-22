@@ -11,12 +11,12 @@
 
 @section('content')
     <div class="flex flex-wrap gap-2 mb-4">
-        <a href="{{ route('admin.activity.index') }}"
+        <a href="{{ route('admin.activity.index', array_filter(['sort' => $sort, 'direction' => $direction, 'event' => $event, 'causer_name' => $causerName, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}"
            class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all {{ ! $logName ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
             {{ __('admin.activity.all_logs') }}
         </a>
         @foreach ($logNames as $name)
-            <a href="{{ route('admin.activity.index', array_filter(['log' => $name, 'event' => $event, 'causer_name' => $causerName, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}"
+            <a href="{{ route('admin.activity.index', array_filter(['log' => $name, 'sort' => $sort, 'direction' => $direction, 'event' => $event, 'causer_name' => $causerName, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}"
                class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all {{ $logName === $name ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
                 {{ ucfirst($name) }}
             </a>
@@ -24,6 +24,8 @@
     </div>
 
     <form method="GET" action="{{ route('admin.activity.index') }}" class="flex flex-wrap items-end gap-2 mb-6">
+        <input type="hidden" name="sort" value="{{ $sort }}">
+        <input type="hidden" name="direction" value="{{ $direction }}">
         @if ($logName)
             <input type="hidden" name="log" value="{{ $logName }}">
         @endif
@@ -69,25 +71,18 @@
         @endif
     </form>
 
-    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
-         x-data="GCS.sortableTable()">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead>
                 <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
                     @foreach ([['when', 'admin.activity.when'], ['causer', 'admin.activity.causer'], ['description', 'admin.activity.description'], ['subject', 'admin.activity.subject']] as [$col, $label])
-                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
-                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
-                                {{ __($label) }}
-                                @include('admin.partials.sort-arrows', ['col' => $col])
-                            </span>
-                        </th>
+                        <x-admin.sortable-th :col="$col" :sort="$sort" :direction="$direction">{{ __($label) }}</x-admin.sortable-th>
                     @endforeach
                 </tr>
             </thead>
-            <tbody x-ref="tbody">
+            <tbody>
                 @forelse ($activities as $activity)
-                    <tr data-row data-when="{{ $activity->created_at->timestamp }}" data-causer="{{ $activity->causer->name ?? __('admin.activity.system') }}" data-description="{{ $activity->description }}" data-subject="{{ $activity->subject ? class_basename($activity->subject_type).' #'.$activity->subject_id : '' }}"
-                        class="border-b border-white/10 last:border-0 align-top">
+                    <tr class="border-b border-white/10 last:border-0 align-top">
                         <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{{ $activity->created_at->format('Y-m-d H:i') }}</td>
                         <td class="px-4 py-3 text-white">
                             @if ($activity->causer)

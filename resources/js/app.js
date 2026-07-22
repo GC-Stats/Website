@@ -148,46 +148,6 @@ window.GCS.getTimezones = function () {
 };
 
 /**
- * Admin: generic sortable table
- *
- * Sorts the existing `<tr data-row>` DOM nodes inside `$refs.tbody` in
- * place, reading the column's value from `data-<col>` on each row — rows
- * keep their fully server-rendered markup (forms, modals, CSRF tokens),
- * only their order in the DOM changes. Used by admin index tables that
- * need real per-row actions, unlike the simpler Alpine `x-for` sort used
- * where rows are plain data (e.g. tournament stats, admin matches list).
- */
-window.GCS.sortableTable = function (defaultCol = null, defaultAsc = true) {
-    return {
-        sortCol: defaultCol,
-        sortAsc: defaultAsc,
-
-        sortBy(col) {
-            if (this.sortCol === col) this.sortAsc = !this.sortAsc;
-            else { this.sortCol = col; this.sortAsc = true; }
-
-            const tbody = this.$refs.tbody;
-            const rows = Array.from(tbody.querySelectorAll(':scope > tr[data-row]'));
-
-            rows.sort((a, b) => {
-                const valA = a.dataset[this.sortCol] ?? '';
-                const valB = b.dataset[this.sortCol] ?? '';
-                const numA = parseFloat(valA);
-                const numB = parseFloat(valB);
-
-                if (valA !== '' && valB !== '' && !isNaN(numA) && !isNaN(numB)) {
-                    return this.sortAsc ? numA - numB : numB - numA;
-                }
-
-                return this.sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-            });
-
-            rows.forEach((row) => tbody.appendChild(row));
-        },
-    };
-};
-
-/**
  * Admin: manual map stat entry
  *
  * Lets an admin type in a map's player stats (and, optionally, per-round

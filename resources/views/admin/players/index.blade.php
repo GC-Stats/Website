@@ -135,24 +135,18 @@
         @endcan
     </div>
 
-    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
-         x-data="GCS.sortableTable()">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead>
                 <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                    <th class="px-4 py-3" @click="sortBy('handle')">
-                        <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
-                            {{ __('admin.players.title') }}
-                            @include('admin.partials.sort-arrows', ['col' => 'handle'])
-                        </span>
-                    </th>
+                    <th class="px-4 py-3">{{ __('admin.players.title') }}</th>
                     <th class="px-4 py-3"></th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
-            <tbody x-ref="tbody">
+            <tbody>
                 @forelse ($players as $player)
-                    <tr data-row data-handle="{{ $player->handle }}" class="border-b border-white/10 last:border-0">
+                    <tr class="border-b border-white/10 last:border-0">
                         <td class="px-4 py-3 text-white font-semibold">{{ $player->handle }}</td>
                         <td class="px-4 py-3 text-right">
                             <a href="{{ route('players.show', [$player->id, str($player->handle)->slug()]) }}" target="_blank" rel="noopener"

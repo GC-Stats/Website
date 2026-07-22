@@ -44,16 +44,22 @@ class NewsAuthorController extends Controller
 
         $search = $request->get('q');
 
+        [$sort, $direction] = $this->resolveSort($request, ['name', 'count'], 'name', 'asc');
+
         $authors = NewsAuthor::query()
             ->withCount('news')
             ->when($search, fn ($query) => $query->where('name', 'like', '%'.$this->escapeLike($search).'%'))
-            ->orderBy('name')
+            ->when($sort === 'count', fn ($query) => $query->orderBy('news_count', $direction))
+            ->when($sort === 'name', fn ($query) => $query->orderBy('name', $direction))
+            ->orderByDesc('id')
             ->paginate(25)
             ->withQueryString();
 
         return view('admin.news.authors.index', [
             'authors' => $authors,
             'search' => $search ?? '',
+            'sort' => $sort,
+            'direction' => $direction,
         ]);
     }
 

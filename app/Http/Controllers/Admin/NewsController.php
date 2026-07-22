@@ -52,6 +52,8 @@ class NewsController extends Controller
 {
     use ManagesPublisherScopedNews;
 
+    private const SORTABLE = ['title', 'author', 'publisher', 'status'];
+
     public function index(Request $request): View
     {
         $user = $request->user();
@@ -65,6 +67,8 @@ class NewsController extends Controller
         $publisherId = $request->get('publisher_id');
         $authorId = $request->get('author_id');
 
+        [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'published_at', 'asc');
+
         $news = News::query()
             ->with(['author', 'publisher'])
             ->when($allowedPublisherIds !== null, fn ($query) => $query->whereIn('publisher_id', $allowedPublisherIds))
@@ -74,8 +78,18 @@ class NewsController extends Controller
             ->when($lang, fn ($query) => $query->where('lang', $lang))
             ->when($publisherId, fn ($query) => $query->where('publisher_id', $publisherId))
             ->when($authorId, fn ($query) => $query->where('author_id', $authorId))
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
+            ->when($sort === 'title', fn ($query) => $query->orderBy('title', $direction))
+            ->when($sort === 'author', fn ($query) => $query
+                ->select('news.*')
+                ->leftJoin('news_authors', 'news_authors.id', '=', 'news.author_id')
+                ->orderBy('news_authors.name', $direction))
+            ->when($sort === 'publisher', fn ($query) => $query
+                ->select('news.*')
+                ->leftJoin('news_publishers', 'news_publishers.id', '=', 'news.publisher_id')
+                ->orderBy('news_publishers.name', $direction))
+            ->when($sort === 'status', fn ($query) => $query->orderBy('status', $direction))
+            ->when($sort === 'published_at', fn ($query) => $query->orderByDesc('published_at'))
+            ->orderByDesc('news.id')
             ->paginate(25)
             ->withQueryString();
 
@@ -84,6 +98,8 @@ class NewsController extends Controller
             'search' => $search ?? '',
             'status' => $status ?? '',
             'lang' => $lang ?? '',
+            'sort' => $sort ?? 'published_at',
+            'direction' => $direction,
             'editablePublisherIds' => $user->can('news.edit') ? collect() : $this->allowedPublisherIds($request, 'publisher.news.edit'),
             'publishers' => NewsPublisher::orderBy('name')->get(['id', 'name']),
             'authors' => NewsAuthor::orderBy('name')->get(['id', 'name']),

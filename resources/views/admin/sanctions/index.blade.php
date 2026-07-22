@@ -12,11 +12,11 @@
 @section('content')
     <div class="flex items-center justify-between mb-6">
         <div class="flex gap-2">
-            <a href="{{ route('admin.sanctions.index') }}"
+            <a href="{{ route('admin.sanctions.index', ['sort' => $sort, 'direction' => $direction]) }}"
                class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all {{ ! $showAll ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
                 {{ __('admin.sanctions.active_only') }}
             </a>
-            <a href="{{ route('admin.sanctions.index', ['all' => 1]) }}"
+            <a href="{{ route('admin.sanctions.index', ['all' => 1, 'sort' => $sort, 'direction' => $direction]) }}"
                class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all {{ $showAll ? 'bg-gc-yellow text-black' : 'text-gray-400 bg-white/5 hover:text-white' }}">
                 {{ __('admin.sanctions.show_all') }}
             </a>
@@ -35,26 +35,19 @@
         @endcan
     </div>
 
-    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto"
-         x-data="GCS.sortableTable()">
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto">
         <table class="w-full text-sm text-left">
             <thead>
                 <tr class="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
                     @foreach ([['user', 'admin.sanctions.user'], ['type', 'admin.sanctions.type_column'], ['reason', 'admin.sanctions.reason'], ['ends_at', 'admin.sanctions.ends_at'], ['issued_by', 'admin.sanctions.issued_by']] as [$col, $label])
-                        <th class="px-4 py-3" @click="sortBy('{{ $col }}')">
-                            <span class="group inline-flex items-center gap-1 hover:text-white transition cursor-pointer select-none">
-                                {{ __($label) }}
-                                @include('admin.partials.sort-arrows', ['col' => $col])
-                            </span>
-                        </th>
+                        <x-admin.sortable-th :col="$col" :sort="$sort" :direction="$direction">{{ __($label) }}</x-admin.sortable-th>
                     @endforeach
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
-            <tbody x-ref="tbody">
+            <tbody>
                 @forelse ($sanctions as $sanction)
-                    <tr data-row data-user="{{ $sanction->user?->name ?? '' }}" data-type="{{ __('admin.sanctions.type.'.$sanction->type) }}" data-reason="{{ $sanction->reason }}" data-ends_at="{{ $sanction->ends_at?->timestamp ?? PHP_INT_MAX }}" data-issued_by="{{ $sanction->issuedBy?->name ?? '' }}"
-                        class="border-b border-white/10 last:border-0">
+                    <tr class="border-b border-white/10 last:border-0">
                         <td class="px-4 py-3 text-white font-semibold">{{ $sanction->user?->name ?? '—' }}</td>
                         <td class="px-4 py-3 text-gray-400">{{ __('admin.sanctions.type.'.$sanction->type) }}</td>
                         <td class="px-4 py-3 text-gray-400 max-w-xs truncate" title="{{ $sanction->reason }}">{{ $sanction->reason }}</td>
