@@ -148,8 +148,10 @@ class RoleController extends Controller
         $this->ensureGlobal($role);
         $this->ensureEditable($role);
 
+        $existingMapping = DiscordRoleMapping::where('team_id', null)->where('app_role', $role->name)->first();
+
         $validated = $request->validate([
-            'discord_role_id' => ['required', 'string', 'max:32'],
+            'discord_role_id' => ['required', 'string', 'max:32', Rule::unique('discord_role_mappings', 'discord_role_id')->ignore($existingMapping?->id)],
             'discord_role_name' => ['nullable', 'string', 'max:100'],
         ]);
 

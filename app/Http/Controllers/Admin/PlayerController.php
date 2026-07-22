@@ -29,6 +29,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class PlayerController extends Controller
@@ -182,8 +183,11 @@ class PlayerController extends Controller
     public function updateIdentifiers(Request $request, Player $player, PlayerProfileService $service): RedirectResponse
     {
         $validated = $request->validate([
-            'val_id' => ['nullable', 'string', 'max:255'],
-            'discord_id' => ['nullable', 'string', 'max:255'],
+            'val_id' => ['nullable', 'string', 'max:255', Rule::unique('players', 'val_id')->ignore($player->id)],
+            'discord_id' => ['nullable', 'string', 'max:255', Rule::unique('players', 'discord_id')->ignore($player->id)],
+        ], [
+            'val_id.unique' => __('admin.players.identifiers.val_id_duplicate'),
+            'discord_id.unique' => __('admin.players.identifiers.discord_id_duplicate'),
         ]);
 
         $service->updateIdentifiers($player, $validated, $request->user());

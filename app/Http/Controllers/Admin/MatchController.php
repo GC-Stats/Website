@@ -344,6 +344,14 @@ class MatchController extends Controller
             }
 
             if (! empty($data['matchid'])) {
+                $conflict = GameMap::where('api_match_id', $data['matchid'])
+                    ->where('id', '!=', $gameMap->id)
+                    ->exists();
+
+                if ($conflict) {
+                    return back()->with('error', 'match-import-duplicate-match-id')->withInput();
+                }
+
                 $gameMap->update(['api_match_id' => $data['matchid']]);
             }
         }

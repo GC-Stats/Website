@@ -34,6 +34,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\Rule;
 
 class GameMapController extends Controller
 {
@@ -156,12 +157,14 @@ class GameMapController extends Controller
         $this->requireEditable($request, $tournament, $match, 'maps.edit', $map);
 
         $validated = $request->validate([
-            'api_match_id' => ['sometimes', 'nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9_-]+$/'],
+            'api_match_id' => ['sometimes', 'nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9_-]+$/', Rule::unique('game_maps', 'api_match_id')->ignore($map->id)],
             'map_name' => ['sometimes', 'string', 'max:50'],
             'team_a_score' => ['sometimes', 'nullable', 'integer'],
             'team_b_score' => ['sometimes', 'nullable', 'integer'],
             'order' => ['sometimes', 'integer'],
             'is_completed' => ['sometimes', 'boolean'],
+        ], [
+            'api_match_id.unique' => __('admin.matches.maps.api_match_id_duplicate'),
         ]);
 
         $map->update($validated);
