@@ -134,7 +134,8 @@
                 @method('PUT')
 
                 <template x-for="(row, index) in rows" :key="index">
-                    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4">
+                    <div class="relative bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4"
+                         :class="row.mapOpen ? 'z-20' : 'z-0'">
                         <div class="grid grid-cols-1 md:grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] gap-3 items-start">
                             <span class="text-xs font-black uppercase tracking-tight text-white pt-2.5" x-text="'{{ __('admin.matches.veto.map_label') }} ' + (index + 1)"></span>
 
@@ -150,7 +151,7 @@
                             </select>
 
                             <div class="relative">
-                                <button type="button" @click="openMap(row)" @click.outside="row.mapOpen = false"
+                                <button type="button" @click="openMap(row); $nextTick(() => $el.parentElement.querySelector('[x-ref=mapSearch]').focus())" @click.outside="row.mapOpen = false"
                                         class="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                                     <span x-text="row.map_name === 'none' ? '{{ __('admin.matches.veto.select_map') }}' : row.map_name" class="truncate"></span>
                                     <svg class="w-3 h-3 text-gray-500 shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -161,7 +162,7 @@
 
                                 <div x-show="row.mapOpen" x-cloak
                                      class="absolute z-10 mt-1 w-full bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-hidden">
-                                    <input type="text" x-model="row.mapQuery" placeholder="{{ __('admin.matches.timezone_search') }}" x-ref="mapSearch"
+                                    <input type="text" x-model="row.mapQuery" placeholder="{{ __('admin.matches.veto.map_search') }}" x-ref="mapSearch"
                                            class="w-full bg-white/5 border-b border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
                                     <div class="max-h-40 overflow-y-auto">
                                         <button type="button" @click="selectMap(row, 'none')"
@@ -186,8 +187,8 @@
                             <select :name="`maps[${index}][side]`" x-model="row.side" :disabled="! canPickSide(row)"
                                     class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition disabled:opacity-40 [color-scheme:dark]">
                                 <option value="">{{ __('admin.matches.veto.select_side') }}</option>
-                                <option value="ATK">{{ __('admin.matches.veto.atk') }}</option>
-                                <option value="DEF">{{ __('admin.matches.veto.def') }}</option>
+                                <option value="atk">{{ __('admin.matches.veto.atk') }}</option>
+                                <option value="def">{{ __('admin.matches.veto.def') }}</option>
                             </select>
 
                             <select :name="`maps[${index}][side_picked_by]`" x-model="row.side_picked_by" :disabled="! canPickSide(row)"

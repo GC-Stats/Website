@@ -44,8 +44,8 @@ class GameMapController extends Controller
         $match->load(['teamA', 'teamB']);
         $map->load(['playerStats.player:id,handle', 'rounds.playerStats']);
 
-        $teamAPlayers = $match->teamA?->currentPlayers()->get(['players.id', 'players.handle']) ?? collect();
-        $teamBPlayers = $match->teamB?->currentPlayers()->get(['players.id', 'players.handle']) ?? collect();
+        $teamAPlayers = $match->teamA?->currentPlayers()->get(['players.id', 'players.handle', 'players.country_code']) ?? collect();
+        $teamBPlayers = $match->teamB?->currentPlayers()->get(['players.id', 'players.handle', 'players.country_code']) ?? collect();
 
         $rosterPlayers = $teamAPlayers->concat($teamBPlayers)->unique('id')->values();
 

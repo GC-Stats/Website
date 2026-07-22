@@ -17,6 +17,7 @@ namespace App\Models;
 use App\Models\Concerns\HasLogo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
@@ -39,6 +40,7 @@ class Tournament extends Model
         'status',
         'active',
         'liquipedia_link',
+        'point_type_id',
     ];
 
     protected $casts = [
@@ -75,6 +77,11 @@ class Tournament extends Model
     public function matches(): HasMany
     {
         return $this->hasMany(Matchs::class);
+    }
+
+    public function pointType(): BelongsTo
+    {
+        return $this->belongsTo(PointType::class);
     }
 
     public function logos(): MorphMany

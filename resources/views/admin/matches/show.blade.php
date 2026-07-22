@@ -179,5 +179,7 @@
                 @endforelse
             </div>
         </div>
+
+        @include('admin.matches._qualifications', ['tournament' => $tournament, 'match' => $match])
     </div>
 @endsection

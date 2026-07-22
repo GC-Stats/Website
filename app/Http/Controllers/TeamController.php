@@ -18,6 +18,7 @@ use App\Models\GameMap;
 use App\Models\Matchs;
 use App\Models\News;
 use App\Models\Team;
+use App\Support\Achievements;
 use App\Support\MatchPresenter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -98,6 +99,7 @@ class TeamController extends Controller
                 'currentRoster' => $currentRoster,
                 'pastPlayers' => $pastPlayers,
                 'matches' => $processedMatches,
+                'achievements' => Achievements::forEntity($team),
             ];
         });
 

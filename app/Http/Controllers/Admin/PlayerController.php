@@ -25,6 +25,7 @@ use App\Services\PlayerProfileService;
 use App\Services\RosterService;
 use App\Support\Countries;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -89,6 +90,34 @@ class PlayerController extends Controller
             'countries' => app(Countries::class)->list(),
             'teamOptions' => Team::orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    /**
+     * Free-text player lookup (handle, or exact id/vlr_id when the query is
+     * numeric) for JS-driven pickers, e.g. the map fetch page's searchable
+     * player dropdown — mirrors index()'s search matching above.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'q' => ['required', 'string', 'min:1', 'max:100'],
+        ]);
+
+        $search = $validated['q'];
+
+        $players = Player::query()
+            ->where(function ($query) use ($search) {
+                $query->where('handle', 'like', '%'.$this->escapeLike($search).'%');
+
+                if (ctype_digit($search)) {
+                    $query->orWhere('id', (int) $search)->orWhere('vlr_id', (int) $search);
+                }
+            })
+            ->orderBy('handle')
+            ->limit(20)
+            ->get(['id', 'handle', 'country_code']);
+
+        return response()->json($players);
     }
 
     /**

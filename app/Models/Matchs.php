@@ -91,4 +91,10 @@ class Matchs extends Model
     {
         return $this->hasMany(GamePlayerStat::class, 'match_id');
     }
+
+    /** Winner/loser qualification rules attached to this bracket match. */
+    public function qualifications(): HasMany
+    {
+        return $this->hasMany(PhaseQualification::class, 'source_match_id');
+    }
 }

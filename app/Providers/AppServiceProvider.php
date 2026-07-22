@@ -20,12 +20,16 @@ use App\Models\Matchs;
 use App\Models\News;
 use App\Models\NewsAuthor;
 use App\Models\NewsPublisher;
+use App\Models\PhaseQualification;
+use App\Models\PhaseQualificationResult;
 use App\Models\Player;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Observers\LogoObserver;
 use App\Observers\MatchObserver;
 use App\Observers\NewsObserver;
+use App\Observers\PhaseQualificationObserver;
+use App\Observers\PhaseQualificationResultObserver;
 use App\Observers\PlayerObserver;
 use App\Observers\TeamObserver;
 use App\Observers\TournamentObserver;
@@ -113,6 +117,8 @@ class AppServiceProvider extends ServiceProvider
         Tournament::observe(TournamentObserver::class);
         Logo::observe(LogoObserver::class);
         News::observe(NewsObserver::class);
+        PhaseQualification::observe(PhaseQualificationObserver::class);
+        PhaseQualificationResult::observe(PhaseQualificationResultObserver::class);
 
         if (config('app.env') == 'production' || request()->header('X-Forwarded-Proto') === 'https') {
             URL::forceRootUrl(config('app.url'));

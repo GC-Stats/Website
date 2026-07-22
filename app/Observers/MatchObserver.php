@@ -16,6 +16,7 @@ namespace App\Observers;
 
 use App\Models\Matchs;
 use App\Services\BunnyCache;
+use App\Services\PhaseQualificationResolver;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -54,6 +55,11 @@ class MatchObserver
         Cache::forget('home_page');
         Cache::forget("match_{$match->id}");
 
+        // This match may itself carry a bracket qualification rule, and/or its score
+        // affects its phase's swiss/round_robin standings (and any rank-based rule on them).
+        $resolver = app(PhaseQualificationResolver::class);
+        $resolver->resolveForMatch($match->id);
+        $resolver->resolveForPhase($match->phase_id);
     }
 
     public function deleted(Matchs $match)
@@ -71,6 +77,11 @@ class MatchObserver
         Cache::tags(["tournament_{$match->tournament_id}"])->flush();
         Cache::forget('home_page');
         Cache::forget("match_{$match->id}");
+
+        // The deleted match's own qualification rules (if any) already cascade-deleted
+        // at the DB level, but its phase's standings — and any rank-based rule on them —
+        // may have shifted now that this match is gone.
+        app(PhaseQualificationResolver::class)->resolveForPhase($match->phase_id);
     }
 
     /**

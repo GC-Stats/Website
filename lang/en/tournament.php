@@ -51,6 +51,8 @@ return [
         'matches' => 'Matches (W-L)',
         'maps' => 'Maps (W-L)',
         'rounds' => 'Round Diff (+/-)',
+        'qualification_single' => 'The top :rank is qualified for :destination.',
+        'qualification_range' => 'The top :from-:to are qualified for :destination.',
     ],
     'nav' => [
         'aria_label' => 'Tournament navigation',
@@ -62,6 +64,16 @@ return [
 
     'bracket' => [
         'label' => 'Tournament bracket (pannable and zoomable)',
+        'qualified_tooltip' => ':team is qualified for :destination',
+        'qualifiers_column' => 'Qualified',
+    ],
+
+    'leaderboard' => [
+        'title' => 'Results',
+        'team' => 'Team',
+        'points' => 'Points',
+        'cash_prize' => 'Cash prize',
+        'destination' => 'Qualified for',
     ],
 
     'stats' => [

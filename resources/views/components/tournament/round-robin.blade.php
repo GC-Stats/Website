@@ -11,77 +11,10 @@
 @props(['matches' => [], 'phase' => null, 'teams' => []])
 
 @php
-    $matchesColl = collect($matches);
-    $allTeamsColl = collect($teams);
-    $standings = collect();
+    $standings = \App\Support\TournamentStandings::compute($matches, $teams);
 
-    $teamIdsInPhase = $matchesColl->flatMap(function($m) {
-        return [(string)($m['team_a_id'] ?? ''), (string)($m['team_b_id'] ?? '')];
-    })->filter()->unique()->toArray();
-
-    $phaseTeams = $allTeamsColl->filter(function($t) use ($teamIdsInPhase) {
-        return in_array((string)($t['id'] ?? ''), $teamIdsInPhase);
-    });
-
-    foreach($phaseTeams as $team) {
-        $teamId = (string)$team['id'];
-
-        $teamMatches = $matchesColl->filter(function($m) use ($teamId) {
-            return (string)($m['team_a_id'] ?? '') === $teamId
-                || (string)($m['team_b_id'] ?? '') === $teamId;
-        });
-
-        $wins = 0; $losses = 0; $mapWins = 0; $mapLosses = 0; $roundWins = 0; $roundLosses = 0;
-
-        foreach($teamMatches as $m) {
-            $scoreA = $m['team_a_score'] ?? null;
-            $scoreB = $m['team_b_score'] ?? null;
-
-            if ($scoreA === null || $scoreB === null) continue;
-
-            $isTeamA  = (string)($m['team_a_id'] ?? '') === $teamId;
-            $myScore    = $isTeamA ? $scoreA : $scoreB;
-            $theirScore = $isTeamA ? $scoreB : $scoreA;
-
-            if ($myScore > $theirScore) $wins++;
-            elseif ($myScore < $theirScore) $losses++;
-
-            foreach (($m['game_maps'] ?? []) as $map) {
-                $mapScoreA = $map['team_a_score'] ?? null;
-                $mapScoreB = $map['team_b_score'] ?? null;
-
-                if ($mapScoreA === null || $mapScoreB === null) continue;
-
-                $myMapScore    = $isTeamA ? $mapScoreA : $mapScoreB;
-                $theirMapScore = $isTeamA ? $mapScoreB : $mapScoreA;
-
-                if ($myMapScore > $theirMapScore) $mapWins++;
-                elseif ($myMapScore < $theirMapScore) $mapLosses++;
-
-                $roundWins   += $myMapScore;
-                $roundLosses += $theirMapScore;
-            }
-        }
-
-        $standings->push([
-            'team'         => $team,
-            'wins'         => $wins,
-            'losses'       => $losses,
-            'match_diff'   => $wins - $losses,
-            'map_wins'     => $mapWins,
-            'map_losses'   => $mapLosses,
-            'map_diff'     => $mapWins - $mapLosses,
-            'round_wins'   => $roundWins,
-            'round_losses' => $roundLosses,
-            'round_diff'   => $roundWins - $roundLosses,
-        ]);
-    }
-
-    $standings = $standings->sortBy([
-        ['match_diff', 'desc'],
-        ['map_diff', 'desc'],
-        ['round_diff', 'desc'],
-    ])->values();
+    $advancementRules = collect($phase['qualifications'] ?? [])->where('destination_type', 'phase')->values();
+    $hasQualificationRules = $advancementRules->isNotEmpty();
 @endphp
 
 <div class="border border-border-subtle rounded-sm w-full bg-bg-card overflow-hidden">
@@ -97,7 +30,12 @@
         </thead>
         <tbody class="text-[10px] md:text-[12px] font-bold uppercase italic">
         @foreach($standings as $index => $row)
-            <tr class="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
+            @php
+                $rank = $index + 1;
+                $qualificationRule = $advancementRules
+                    ->first(fn($r) => $rank >= $r['rank_from'] && $rank <= $r['rank_to']);
+            @endphp
+            <tr class="border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors border-l-2 {{ ! $hasQualificationRules ? 'border-l-transparent' : ($qualificationRule ? 'border-l-green-500/60' : 'border-l-red-500/60') }}">
                 <td class="p-2 md:p-4 text-gray-600 text-center font-mono">{{ $index + 1 }}</td>
 
                 <td class="p-2 md:p-4">
@@ -137,4 +75,6 @@
         @endforeach
         </tbody>
     </table>
+
+    <x-tournament.qualification-legend :qualifications="$advancementRules" />
 </div>

@@ -36,6 +36,8 @@
 
     <div class="grid grid-cols-12 gap-6">
         <aside class="col-span-12 lg:col-span-3 space-y-2">
+            <x-achievements-panel :achievements="$achievements ?? []" />
+
             @include('news._sidebar', ['news' => $news, 'sectionTitle' => __('news.press_section')])
         </aside>
 

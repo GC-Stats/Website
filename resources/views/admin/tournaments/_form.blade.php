@@ -113,6 +113,17 @@
                       class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">{{ old('description', $tournament->description ?? '') }}</textarea>
         </label>
 
+        <label class="block">
+            <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.point_type') }}</span>
+            <select name="point_type_id"
+                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
+                <option value="">{{ __('admin.tournaments.point_type_none') }}</option>
+                @foreach ($pointTypes as $pointType)
+                    <option value="{{ $pointType->id }}" @selected((int) old('point_type_id', $tournament->point_type_id ?? '') === $pointType->id)>{{ $pointType->name }}</option>
+                @endforeach
+            </select>
+        </label>
+
         @if ($tournament ?? null)
             <label class="block">
                 <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.status_column') }}</span>

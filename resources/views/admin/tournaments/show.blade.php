@@ -158,11 +158,12 @@
                     @if ($phase->children->isNotEmpty())
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                             @foreach ($phase->children as $child)
-                                @include('admin.tournaments._phase-node', ['phase' => $child])
+                                @include('admin.tournaments._phase-node', ['phase' => $child, 'tournament' => $tournament])
                             @endforeach
                         </div>
                     @elseif ($phase->format)
                         <p class="text-xs font-bold uppercase text-gray-500 mt-1">{{ $phase->format }}</p>
+                        @include('admin.tournaments._phase-qualifications', ['phase' => $phase, 'tournament' => $tournament])
                     @endif
                 </div>
             @empty

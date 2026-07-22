@@ -18,6 +18,7 @@ use App\Models\Concerns\HasLogo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 
@@ -93,6 +94,18 @@ class Team extends Model
     public function logos(): MorphMany
     {
         return $this->morphMany(Logo::class, 'entity');
+    }
+
+    /** Every qualification/placement this team has ever satisfied — see PhaseQualificationResult. */
+    public function qualificationResults(): MorphMany
+    {
+        return $this->morphMany(PhaseQualificationResult::class, 'entity');
+    }
+
+    /** This team's point ledger (signed entries) — see PointEntry. */
+    public function pointEntries(): HasMany
+    {
+        return $this->hasMany(PointEntry::class);
     }
 
     public function getLogoAttribute(): string

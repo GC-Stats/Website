@@ -20,6 +20,7 @@ use App\Models\GameMap;
 use App\Models\GamePlayerStat;
 use App\Models\Matchs;
 use App\Models\News;
+use App\Models\PhaseQualification;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
@@ -47,6 +48,54 @@ class TournamentController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * The public page's phase tabs only recognize root-level phase ids in
+     * ?phase= (see tournament/show.blade.php's activePhase/setPhase), so a
+     * qualification pointing at a nested phase (e.g. a swiss group under
+     * "Group Stage") needs to link to its top-most ancestor for the tab
+     * switch to actually land on it.
+     */
+    private function rootPhaseId(int $phaseId): ?int
+    {
+        $current = TournamentPhase::select('id', 'parent_id')->find($phaseId);
+
+        while ($current?->parent_id) {
+            $current = TournamentPhase::select('id', 'parent_id')->find($current->parent_id);
+        }
+
+        return $current?->id;
+    }
+
+    /**
+     * Shared shape for a qualification rule as surfaced on the public page,
+     * whether it's rank-based (swiss/round_robin) or match-outcome-based
+     * (bracket) — used by the standings/leaderboard qualification badges
+     * and the bracket's "half-match" qualified-team card.
+     */
+    private function mapQualificationRule(PhaseQualification $rule): array
+    {
+        $destTournament = $rule->destination_type === 'phase' ? $rule->destinationPhase?->tournament : null;
+
+        return [
+            'rank_from' => $rule->rank_from,
+            'rank_to' => $rule->rank_to,
+            'outcome' => $rule->outcome,
+            'destination_type' => $rule->destination_type,
+            'placement' => $rule->placement,
+            'points' => $rule->points,
+            'cash_prize' => $rule->cash_prize_amount !== null
+                ? number_format((float) $rule->cash_prize_amount, 2).' '.$rule->cash_prize_currency
+                : null,
+            'label' => $rule->destination_type === 'phase'
+                ? ($rule->destinationPhase?->tournament?->name.' — '.$rule->destinationPhase?->name)
+                : ($rule->placement_label ?: '#'.$rule->placement),
+            'url' => $destTournament
+                ? route('tournaments.show', [$destTournament->id, Str::routeSlug($destTournament->name, $destTournament->id)])
+                    .'?phase='.$this->rootPhaseId($rule->destination_phase_id)
+                : null,
+        ];
     }
 
     public function index(Request $request)
@@ -212,11 +261,29 @@ class TournamentController extends Controller
                 $groupedPhases[$phase['parent_id']][] = $phase;
             }
 
-            $formatPhase = function ($phase) use (&$formatPhase, $groupedPhases) {
+            // Rank-based qualification rules (swiss/round_robin), grouped by source phase.
+            $qualificationsByPhase = PhaseQualification::whereIn('source_phase_id', $phaseIds)
+                ->whereNull('source_match_id')
+                ->with('destinationPhase.tournament:id,name')
+                ->get()
+                ->groupBy('source_phase_id')
+                ->map(fn ($rules) => $rules->map(fn ($rule) => $this->mapQualificationRule($rule))->values()->toArray());
+
+            // Match-outcome qualification rules (bracket phases), grouped by source match — shown as
+            // a "half-match" qualified-team card in bracket-grid.blade.php.
+            $qualificationsByMatch = PhaseQualification::whereIn('source_match_id', $matchIds)
+                ->whereNotNull('source_match_id')
+                ->with('destinationPhase.tournament:id,name')
+                ->get()
+                ->groupBy('source_match_id')
+                ->map(fn ($rules) => $rules->map(fn ($rule) => $this->mapQualificationRule($rule))->values()->toArray());
+
+            $formatPhase = function ($phase) use (&$formatPhase, $groupedPhases, $qualificationsByPhase, $qualificationsByMatch) {
                 $data = [
                     'id' => $phase['id'],
                     'name' => $phase['name'],
                     'format' => $phase['format'],
+                    'qualifications' => $qualificationsByPhase->get($phase['id'], []),
                 ];
 
                 $children = $groupedPhases[$phase['id']] ?? [];
@@ -224,7 +291,7 @@ class TournamentController extends Controller
                 if (! empty($children)) {
                     $data['children'] = array_map(fn ($c) => $formatPhase($c), $children);
                 } else {
-                    $data['matches'] = array_map(function ($m) {
+                    $data['matches'] = array_map(function ($m) use ($qualificationsByMatch) {
                         return [
                             'id' => $m['id'],
                             'round_name' => $m['round_name'],
@@ -242,6 +309,7 @@ class TournamentController extends Controller
                             'status' => $m['status'],
                             'scheduled_at' => $m['scheduled_at'] ? Carbon::parse($m['scheduled_at'])->toDateTimeString() : null,
                             'game_maps' => $m['game_maps'] ?? [],
+                            'qualifications' => $qualificationsByMatch->get($m['id'], []),
                         ];
                     }, $phase['matches'] ?? []);
                 }

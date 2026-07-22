@@ -18,62 +18,128 @@
             ->map(fn($roundMatches) => collect($roundMatches)->sortBy('match_order')->values())
             ->values()
             ->toArray();
+
+        $lastRoundMatches = $roundsArray[count($roundsArray) - 1] ?? collect();
+        $qualifierSlots = collect($lastRoundMatches)->map(function ($match) {
+            $winnerIsA = ! is_null($match['team_a_score']) && ! is_null($match['team_b_score']) && $match['team_a_score'] > $match['team_b_score'];
+            $winnerIsB = ! is_null($match['team_a_score']) && ! is_null($match['team_b_score']) && $match['team_b_score'] > $match['team_a_score'];
+
+            $qualification = collect($match['qualifications'] ?? [])->first(fn ($q) => $q['destination_type'] === 'phase');
+
+            if (! $qualification) {
+                return null;
+            }
+
+            $qualifiedIsA = ($qualification['outcome'] === 'winner' && $winnerIsA) || ($qualification['outcome'] === 'loser' && $winnerIsB);
+            $qualifiedIsB = ($qualification['outcome'] === 'winner' && $winnerIsB) || ($qualification['outcome'] === 'loser' && $winnerIsA);
+            $qualifiedName = $qualifiedIsA ? ($match['team_a_name'] ?? null) : ($qualifiedIsB ? ($match['team_b_name'] ?? null) : null);
+
+            if (! $qualifiedName) {
+                return null;
+            }
+
+            return [
+                'name' => $qualifiedName,
+                'logo' => $qualifiedIsA ? ($match['team_a_logo'] ?? null) : ($match['team_b_logo'] ?? null),
+                'url' => $qualification['url'] ?? '#',
+                'label' => $qualification['label'],
+            ];
+        });
+
+        if ($qualifierSlots->filter()->isNotEmpty()) {
+            $roundsArray[] = $qualifierSlots;
+            $roundKeys[] = 'qualifiers';
+        }
+
         $totalRounds = count($roundsArray);
     @endphp
 
     @foreach($roundsArray as $roundIndex => $matches)
         @php
-            $isLast  = $roundIndex === $totalRounds - 1;
-            $roundKey = $roundKeys[$roundIndex];
+            $isLast = $roundIndex === $totalRounds - 1;
+            $isQualifierRound = $roundKeys[$roundIndex] === 'qualifiers';
         @endphp
 
         <div class="flex items-stretch">
             <div class="flex flex-col py-4 min-w-[220px] px-4">
                 <div class="text-center mb-4">
                     <span class="text-[9px] font-black text-gc-yellow/80 uppercase tracking-widest">
-                        {{ collect($matches)->first()['round_name'] ?? 'Round ' . $roundKey }}
+                        {{ $isQualifierRound ? __('tournament.bracket.qualifiers_column') : (collect($matches)->first()['round_name'] ?? 'Round ' . $roundKeys[$roundIndex]) }}
                     </span>
                 </div>
 
                 <div class="flex-1 flex flex-col justify-around gap-2">
-                    @foreach($matches as $match)
-                        <div class="bracket-match" data-match-id="{{ $match['id'] }}">
-                            <a href="{{ route('match.show', $match['id']) }}"
-                               draggable="false"
-                               class="block bg-bg-card border border-border-subtle rounded-sm shadow-md overflow-hidden hover:border-gc-yellow/50 transition-all group active:scale-[0.98]">
-
-                                {{-- Team A --}}
-                                <div class="flex items-center justify-between p-2 border-b border-white/5 {{ !is_null($match['team_a_score']) && $match['team_a_score'] > $match['team_b_score'] ? 'bg-gc-yellow/5' : '' }}">
-                                    <div class="flex items-center gap-2">
-                                        @if(!empty($match['team_a_name']))
-                                            <img src="{{ $match['team_a_logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0 logo-filter" draggable="false">
-                                            <span class="text-[10px] font-black italic uppercase group-hover:text-white transition-colors {{ !is_null($match['team_a_score']) && $match['team_a_score'] > $match['team_b_score'] ? 'text-white' : 'text-gray-400' }}">
-                                                {{ Str::limit($match['team_a_name'], 10) }}
-                                            </span>
-                                        @else
-                                            <span class="text-[10px] font-black italic uppercase text-gray-600">{{ $match["status"] == "finished" ? 'BYE' : ($match["status"] == "upcoming" ? 'TBD' : '-') }}</span>
-                                        @endif
+                    @if($isQualifierRound)
+                        @foreach($matches as $slot)
+                            <div class="bracket-match" @if($slot) data-match-id="qualifier-{{ $loop->index }}" @endif>
+                                @if($slot)
+                                    <a href="{{ $slot['url'] }}"
+                                       draggable="false"
+                                       title="{{ __('tournament.bracket.qualified_tooltip', ['team' => $slot['name'], 'destination' => $slot['label']]) }}"
+                                       class="block bg-bg-card border border-green-500/30 rounded-sm shadow-md overflow-hidden hover:border-green-500/60 transition-all group active:scale-[0.98]">
+                                        <div class="flex items-center justify-between p-2">
+                                            <div class="flex items-center gap-2">
+                                                <img src="{{ $slot['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0 logo-filter" draggable="false">
+                                                <span class="text-[10px] font-black italic uppercase text-white truncate">
+                                                    {{ Str::limit($slot['name'], 20) }}
+                                                </span>
+                                            </div>
+                                            @svg('fas-flag-checkered', 'w-3 h-3 text-green-400 flex-shrink-0')
+                                        </div>
+                                    </a>
+                                @else
+                                    {{-- Invisible placeholder: keeps this column's match count equal to the
+                                         previous round's, so the connector script's straight 1:1 pairing
+                                         still lines up with the real matches that do have a qualifier. --}}
+                                    <div class="invisible bg-bg-card border border-border-subtle rounded-sm p-2">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-4 h-4"></div>
+                                            <span class="text-[10px]">&nbsp;</span>
+                                        </div>
                                     </div>
-                                    <span class="font-mono text-xs text-white">{{ $match['team_a_score'] == -1 ? 'FF' : ($match['team_a_score'] ?? '-') }}</span>
-                                </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    @else
+                        @foreach($matches as $match)
+                            <div class="bracket-match" data-match-id="{{ $match['id'] }}">
+                                <a href="{{ route('match.show', $match['id']) }}"
+                                   draggable="false"
+                                   class="block bg-bg-card border border-border-subtle rounded-sm shadow-md overflow-hidden hover:border-gc-yellow/50 transition-all group active:scale-[0.98]">
 
-                                {{-- Team B --}}
-                                <div class="flex items-center justify-between p-2 {{ !is_null($match['team_b_score']) && $match['team_b_score'] > $match['team_a_score'] ? 'bg-gc-yellow/5' : '' }}">
-                                    <div class="flex items-center gap-2">
-                                        @if(!empty($match['team_b_name']))
-                                            <img src="{{ $match['team_b_logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0 logo-filter" draggable="false">
-                                            <span class="text-[10px] font-black italic uppercase group-hover:text-white transition-colors {{ !is_null($match['team_b_score']) && $match['team_b_score'] > $match['team_a_score'] ? 'text-white' : 'text-gray-400' }}">
-                                                {{ Str::limit($match['team_b_name'], 10) }}
-                                            </span>
-                                        @else
-                                            <span class="text-[10px] font-black italic uppercase text-gray-600">{{ $match["status"] == "finished" ? 'BYE' : ($match["status"] == "upcoming" ? 'TBD' : '-') }}</span>
-                                        @endif
+                                    {{-- Team A --}}
+                                    <div class="flex items-center justify-between p-2 border-b border-white/5 {{ !is_null($match['team_a_score']) && $match['team_a_score'] > $match['team_b_score'] ? 'bg-gc-yellow/5' : '' }}">
+                                        <div class="flex items-center gap-2">
+                                            @if(!empty($match['team_a_name']))
+                                                <img src="{{ $match['team_a_logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0 logo-filter" draggable="false">
+                                                <span class="text-[10px] font-black italic uppercase group-hover:text-white transition-colors {{ !is_null($match['team_a_score']) && $match['team_a_score'] > $match['team_b_score'] ? 'text-white' : 'text-gray-400' }}">
+                                                    {{ Str::limit($match['team_a_name'], 20) }}
+                                                </span>
+                                            @else
+                                                <span class="text-[10px] font-black italic uppercase text-gray-600">{{ $match["status"] == "finished" ? 'BYE' : ($match["status"] == "upcoming" ? 'TBD' : '-') }}</span>
+                                            @endif
+                                        </div>
+                                        <span class="font-mono text-xs text-white">{{ $match['team_a_score'] == -1 ? 'FF' : ($match['team_a_score'] ?? '-') }}</span>
                                     </div>
-                                    <span class="font-mono text-xs text-white">{{ $match['team_b_score'] == -1 ? 'FF' : ($match['team_b_score'] ?? '-') }}</span>
-                                </div>
-                            </a>
-                        </div>
-                    @endforeach
+
+                                    {{-- Team B --}}
+                                    <div class="flex items-center justify-between p-2 {{ !is_null($match['team_b_score']) && $match['team_b_score'] > $match['team_a_score'] ? 'bg-gc-yellow/5' : '' }}">
+                                        <div class="flex items-center gap-2">
+                                            @if(!empty($match['team_b_name']))
+                                                <img src="{{ $match['team_b_logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0 logo-filter" draggable="false">
+                                                <span class="text-[10px] font-black italic uppercase group-hover:text-white transition-colors {{ !is_null($match['team_b_score']) && $match['team_b_score'] > $match['team_a_score'] ? 'text-white' : 'text-gray-400' }}">
+                                                    {{ Str::limit($match['team_b_name'], 20) }}
+                                                </span>
+                                            @else
+                                                <span class="text-[10px] font-black italic uppercase text-gray-600">{{ $match["status"] == "finished" ? 'BYE' : ($match["status"] == "upcoming" ? 'TBD' : '-') }}</span>
+                                            @endif
+                                        </div>
+                                        <span class="font-mono text-xs text-white">{{ $match['team_b_score'] == -1 ? 'FF' : ($match['team_b_score'] ?? '-') }}</span>
+                                    </div>
+                                </a>
+                            </div>
+                        @endforeach
+                    @endif
                 </div>
             </div>
 

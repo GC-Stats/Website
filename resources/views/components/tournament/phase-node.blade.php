@@ -33,6 +33,7 @@
                             {{ $child['name'] }}
                         </h3>
                         <x-tournament.bracket-grid :matches="$child['matches'] ?? []" />
+                        <x-tournament.leaderboard :phase="$child" :teams="$teams" />
                     </div>
                 @endforeach
             </div>
@@ -56,12 +57,14 @@
         :phase="$node"
         :teams="$teams"
     />
+    <x-tournament.leaderboard :phase="$node" :teams="$teams" />
 @elseif(($node['format'] ?? '') === 'round_robin')
     <x-tournament.round-robin
         :matches="$node['matches'] ?? []"
         :phase="$node"
         :teams="$teams"
     />
+    <x-tournament.leaderboard :phase="$node" :teams="$teams" />
 @else
     <x-tournament.pan-zoom-bracket>
         @if($showHeading)
@@ -77,4 +80,5 @@
             <x-tournament.bracket-grid :matches="$node['matches'] ?? []" />
         @endif
     </x-tournament.pan-zoom-bracket>
+    <x-tournament.leaderboard :phase="$node" :teams="$teams" />
 @endif

@@ -18,6 +18,7 @@ use App\Models\GamePlayerStat;
 use App\Models\Matchs;
 use App\Models\News;
 use App\Models\Player;
+use App\Support\Achievements;
 use App\Support\MatchPresenter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -164,6 +165,7 @@ class PlayerController extends Controller
                 'upcomingMatches' => $processMatches($upcomingMatchesRaw),
                 'pastMatches' => $processMatches($pastMatchesRaw),
                 'history' => $history,
+                'achievements' => Achievements::forEntity($player),
             ];
         });
 

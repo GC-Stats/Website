@@ -75,6 +75,12 @@ class Player extends Model
         return $this->morphMany(Logo::class, 'entity');
     }
 
+    /** Every qualification/placement this player has ever satisfied — see PhaseQualificationResult. */
+    public function qualificationResults(): MorphMany
+    {
+        return $this->morphMany(PhaseQualificationResult::class, 'entity');
+    }
+
     public function getProfilePhotoAttribute(): string
     {
         return $this->resolveLogoUrl();

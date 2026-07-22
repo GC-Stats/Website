@@ -43,12 +43,6 @@ class TournamentPhase extends Model
 
     public function children(): HasMany
     {
-        // Intentionally no ->with(['children', 'matches']) here: eager-loading
-        // the relation recursively inside its own definition causes unbounded
-        // N+1 loading as soon as children is traversed more than once in a
-        // deep bracket tree. Callers that need the phase tree must load it
-        // explicitly with a bounded depth, e.g.
-        // TournamentPhase::with(['children.matches', 'children.children.matches'])->...
         return $this->hasMany(TournamentPhase::class, 'parent_id')
             ->orderBy('order');
     }
@@ -56,5 +50,18 @@ class TournamentPhase extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(TournamentPhase::class, 'parent_id');
+    }
+
+    /** Rank-range qualification rules sourced from this phase (swiss/round_robin). */
+    public function qualifications(): HasMany
+    {
+        return $this->hasMany(PhaseQualification::class, 'source_phase_id')
+            ->orderBy('rank_from');
+    }
+
+    /** Qualification rules that send teams into this phase from elsewhere. */
+    public function incomingQualifications(): HasMany
+    {
+        return $this->hasMany(PhaseQualification::class, 'destination_phase_id');
     }
 }

@@ -25,7 +25,9 @@ use App\Http\Controllers\Admin\NewsAuthorController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\NewsMediaController;
 use App\Http\Controllers\Admin\NewsPublisherController;
+use App\Http\Controllers\Admin\PhaseQualificationController;
 use App\Http\Controllers\Admin\PlayerController;
+use App\Http\Controllers\Admin\PointTypeController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
@@ -101,6 +103,11 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
     });
 
     Route::prefix('players')->name('players.')->group(function () {
+        // No dedicated permission (like news.relations.search): a lightweight
+        // handle/id lookup used by pickers on pages gated by other
+        // permissions (e.g. maps.fetch), which may not imply players.view.
+        Route::get('/search', [PlayerController::class, 'search'])->name('search');
+
         Route::middleware(['can:players.view'])->group(function () {
             Route::get('/', [PlayerController::class, 'index'])->name('index');
             Route::get('/{player}', [PlayerController::class, 'show'])->name('show');
@@ -154,6 +161,29 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             Route::post('/{tournament}/teams/quick-create', [TournamentController::class, 'quickCreateTeam'])->name('teams.quick-create');
             Route::delete('/{tournament}/teams/{team}', [TournamentController::class, 'detachTeam'])->name('teams.destroy');
         });
+
+        Route::get('/phases/search', [PhaseQualificationController::class, 'searchPhases'])
+            ->middleware('can:tournaments.edit')->name('phases.search');
+        Route::post('/{tournament}/phases/{phase}/qualifications', [PhaseQualificationController::class, 'store'])
+            ->middleware('can:tournaments.edit')->name('phases.qualifications.store');
+        // Shared by rank-based (phase) and match-outcome qualification rules — see
+        // PhaseQualificationController::destroy() for the per-rule permission check.
+        Route::delete('/{tournament}/qualifications/{qualification}', [PhaseQualificationController::class, 'destroy'])
+            ->name('qualifications.destroy');
+    });
+
+    Route::prefix('point-types')->name('point-types.')->group(function () {
+        Route::middleware(['can:tournaments.view'])->group(function () {
+            Route::get('/', [PointTypeController::class, 'index'])->name('index');
+            Route::get('/create', [PointTypeController::class, 'create'])->name('create');
+            Route::get('/{pointType}/edit', [PointTypeController::class, 'edit'])->name('edit');
+        });
+
+        Route::middleware(['can:tournaments.edit'])->group(function () {
+            Route::post('/', [PointTypeController::class, 'store'])->name('store');
+            Route::put('/{pointType}', [PointTypeController::class, 'update'])->name('update');
+            Route::delete('/{pointType}', [PointTypeController::class, 'destroy'])->name('destroy');
+        });
     });
 
     Route::prefix('tournaments/{tournament}/operations')->name('tournaments.operations.')->group(function () {
@@ -186,6 +216,8 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             ->middleware('can:maps.reset')->name('reset-maps');
         Route::post('/{match}/import-wikicode', [MatchController::class, 'importWikicode'])
             ->middleware('can:matches.import')->name('import-wikicode');
+        Route::post('/{match}/qualifications', [PhaseQualificationController::class, 'storeForMatch'])
+            ->middleware('can:matches.edit')->name('qualifications.store');
 
         Route::prefix('{match}/maps')->name('maps.')->group(function () {
             Route::get('/{map}', [GameMapController::class, 'show'])

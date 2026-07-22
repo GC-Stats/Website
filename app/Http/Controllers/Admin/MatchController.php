@@ -105,7 +105,10 @@ class MatchController extends Controller
     {
         $this->ensureBelongsToTournament($tournament, $match);
 
-        $match->load(['teamA', 'teamB', 'tournamentPhase', 'game_maps' => fn ($q) => $q->orderBy('order')]);
+        $match->load([
+            'teamA', 'teamB', 'tournamentPhase', 'game_maps' => fn ($q) => $q->orderBy('order'),
+            'qualifications.destinationPhase.tournament',
+        ]);
 
         return view('admin.matches.show', [
             'tournament' => $tournament,

@@ -23,6 +23,7 @@ return [
         'about' => 'About',
         'users' => 'Users',
         'tournaments' => 'Tournaments',
+        'point_types' => 'Point Types',
         'back_to_site' => 'Back to site',
     ],
 
@@ -391,6 +392,8 @@ return [
         'location' => 'Location',
         'prize_pool' => 'Prize pool',
         'liquipedia_link' => 'Liquipedia link',
+        'point_type' => 'Point type',
+        'point_type_none' => 'No point type',
         'description' => 'Description',
         'active' => 'Active (shown on the public site)',
         'inactive' => 'Inactive',
@@ -453,6 +456,48 @@ return [
             'create_name_label' => 'Team name',
             'create_submit' => 'Create & add',
         ],
+        'qualifications' => [
+            'title' => 'Qualifications',
+            'add' => 'Add rule',
+            'empty' => 'No qualification rule yet.',
+            'delete_confirm' => 'Delete this qualification rule?',
+            'rank_from' => 'Rank from',
+            'rank_to' => 'Rank to',
+            'rank_range' => 'Rank :from-:to',
+            'destination_phase' => 'Phase',
+            'destination_placement' => 'Placement',
+            'placement_sort' => 'Sort order (e.g. 1, 3, 5)',
+            'placement_label' => 'Label (e.g. Champion, 3-4)',
+            'points' => 'Points',
+            'cash_prize_amount' => 'Cash prize amount',
+            'cash_prize_currency' => 'Currency (e.g. USD)',
+            'phase_search_placeholder' => 'Search a tournament phase…',
+            'bracket_hint' => 'Bracket qualification rules are set per match — open a match and use its winner/loser destination.',
+        ],
+    ],
+
+    'point_types' => [
+        'title' => 'Point Types',
+        'name' => 'Name',
+        'label' => 'Label',
+        'label_placeholder' => 'e.g. 2026',
+        'start_date' => 'Start date',
+        'end_date' => 'End date',
+        'manage' => 'Manage',
+        'create' => [
+            'title' => 'New point type',
+            'submit' => 'Create point type',
+        ],
+        'edit' => [
+            'title' => 'Edit point type',
+            'submit' => 'Save changes',
+        ],
+        'delete' => [
+            'title' => 'Delete point type',
+            'trigger' => 'Delete',
+            'confirm_body' => 'Delete :name (:label)? Tournaments bound to it will keep their result but lose the point-type link. This cannot be undone.',
+        ],
+        'empty' => 'No point types yet.',
     ],
 
     'matches' => [
@@ -509,6 +554,7 @@ return [
             'map_label' => 'Map',
             'select_team' => 'Team',
             'select_map' => 'Map',
+            'map_search' => 'Search map',
             'select_type' => 'Type',
             'select_side' => 'Side',
             'side_picked_by' => 'Side picked by',
@@ -521,6 +567,16 @@ return [
         ],
         'info' => [
             'title' => 'Information',
+        ],
+        'qualifications' => [
+            'title' => 'Qualification',
+            'add' => 'Add rule',
+            'empty' => 'No qualification rule yet.',
+            'delete_confirm' => 'Delete this qualification rule?',
+            'outcome' => [
+                'winner' => 'Winner',
+                'loser' => 'Loser',
+            ],
         ],
         'import' => [
             'title' => 'Import from wikicode',

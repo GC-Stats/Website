@@ -23,6 +23,7 @@ return [
         'about' => 'À propos',
         'users' => 'Utilisateurs',
         'tournaments' => 'Tournois',
+        'point_types' => 'Types de points',
         'back_to_site' => 'Retour au site',
     ],
 
@@ -509,6 +510,7 @@ return [
             'map_label' => 'Map',
             'select_team' => 'Équipe',
             'select_map' => 'Map',
+            'map_search' => 'Rechercher une map',
             'select_type' => 'Type',
             'select_side' => 'Side',
             'side_picked_by' => 'Side choisi par',

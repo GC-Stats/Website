@@ -16,6 +16,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\PointType;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
@@ -69,12 +70,17 @@ class TournamentController extends Controller
         return view('admin.tournaments.create', [
             'regions' => array_keys(config('regions.riot_api')),
             'categories' => self::CATEGORIES,
+            'pointTypes' => PointType::orderBy('name')->get(),
         ]);
     }
 
     public function show(Tournament $tournament): View
     {
-        $tournament->load(['rootPhases.children']);
+        $tournament->load([
+            'rootPhases.children',
+            'rootPhases.qualifications.destinationPhase.tournament',
+            'rootPhases.children.qualifications.destinationPhase.tournament',
+        ]);
 
         $teams = $tournament->teams()->orderBy('name')->paginate(15, ['*'], 'teams_page')->withQueryString();
 
@@ -98,6 +104,7 @@ class TournamentController extends Controller
             'tournament' => $tournament,
             'regions' => array_keys(config('regions.riot_api')),
             'categories' => self::CATEGORIES,
+            'pointTypes' => PointType::orderBy('name')->get(),
         ]);
     }
 
@@ -207,6 +214,8 @@ class TournamentController extends Controller
     {
         $rule = $isUpdate ? 'sometimes' : 'required';
 
+        $request->merge(['point_type_id' => $request->input('point_type_id') ?: null]);
+
         return $request->validate([
             'name' => [$rule, 'string', 'max:255'],
             'region' => [$rule, 'string', 'max:50'],
@@ -220,6 +229,7 @@ class TournamentController extends Controller
             'liquipedia_link' => ['sometimes', 'nullable', 'url', 'max:255'],
             'status' => ['sometimes', 'string', 'in:upcoming,live,finished'],
             'active' => ['sometimes', 'boolean'],
+            'point_type_id' => ['sometimes', 'nullable', 'integer', 'exists:point_types,id'],
             'phases' => ['sometimes', 'array'],
             'phases.*.id' => ['sometimes', 'nullable', 'integer', 'exists:tournament_phases,id'],
             'phases.*.name' => ['required_with:phases', 'string', 'max:255'],
@@ -247,7 +257,7 @@ class TournamentController extends Controller
 
     private function coreColumns(array $validated): array
     {
-        $columns = ['name', 'region', 'category', 'start_date', 'end_date', 'location', 'prize_pool', 'description', 'liquipedia_link', 'status', 'active'];
+        $columns = ['name', 'region', 'category', 'start_date', 'end_date', 'location', 'prize_pool', 'description', 'liquipedia_link', 'status', 'active', 'point_type_id'];
 
         return array_intersect_key($validated, array_flip($columns));
     }

@@ -142,8 +142,9 @@
                 missingValIds: null,
                 isEsportEndpoint: false,
                 teamColorOptions: null,
+                teamColorPlayers: null,
                 puuidMapping: {},
-                rosterPlayers: {{ \Illuminate\Support\Js::from($rosterPlayers->map(fn ($p) => ['id' => $p->id, 'handle' => $p->handle])) }},
+                rosterPlayers: {{ \Illuminate\Support\Js::from($rosterPlayers->map(fn ($p) => ['id' => $p->id, 'handle' => $p->handle, 'country_code' => $p->country_code])) }},
 
                 fetchMap(extra = {}) {
                     this.loading = true;
@@ -171,6 +172,7 @@
                             this.missingValIds = data.missing_val_ids ?? null;
                             this.isEsportEndpoint = !! data.is_esport_endpoint;
                             this.teamColorOptions = data.available_colors ?? null;
+                            this.teamColorPlayers = data.players ?? null;
 
                             if (this.missingValIds) {
                                 this.puuidMapping = {};
@@ -228,13 +230,33 @@
                                 <p class="text-sm text-white font-bold truncate" x-text="p.name"></p>
                                 <p class="text-xs text-gray-500" x-text="(p.agent ?? '—') + ' — ' + (p.team ?? '—')"></p>
                             </div>
-                            <select x-model="puuidMapping[p.puuid]"
-                                    class="w-48 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                <option value="">{{ __('admin.matches.maps.select_player') }}</option>
-                                <template x-for="rp in rosterPlayers" :key="rp.id">
-                                    <option :value="rp.id" x-text="rp.handle"></option>
-                                </template>
-                            </select>
+                            <div class="relative w-48"
+                                 x-data="GCS.playerSearchPicker({
+                                    searchUrl: {{ \Illuminate\Support\Js::from(route('admin.players.search')) }},
+                                    internationalCode: {{ \Illuminate\Support\Js::from(\App\Support\Countries::INTERNATIONAL) }},
+                                    initial: rosterPlayers,
+                                    onPick: (player) => { puuidMapping[p.puuid] = player.id; },
+                                 })"
+                                 @click.outside="open = false">
+                                <input type="text"
+                                       x-model="query"
+                                       @focus="open = true"
+                                       @input.debounce.300ms="search()"
+                                       placeholder="{{ __('admin.matches.maps.select_player') }}"
+                                       autocomplete="off"
+                                       class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+
+                                <div x-show="open && results.length" x-cloak
+                                     class="absolute z-10 mt-1 w-48 bg-bg-card border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                    <template x-for="rp in results" :key="rp.id">
+                                        <button type="button" @click="pick(rp)"
+                                                class="flex w-full items-center gap-2 text-left px-3 py-2 text-xs text-white hover:bg-white/5 transition">
+                                            <span class="fi shadow-sm flex-shrink-0" :class="'fi-' + flagClass(rp.country_code)"></span>
+                                            <span class="truncate" x-text="rp.handle + ' (' + rp.id + ')'"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </template>
                     <button type="button" @click="submitPlayerMapping()" :disabled="loading"
@@ -245,6 +267,16 @@
 
                 <div x-show="teamColorOptions && teamColorOptions.length" x-cloak class="mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 space-y-3">
                     <p class="text-xs text-yellow-400">{{ __('admin.matches.maps.team_color_help', ['team' => \App\Support\MatchDisplay::teamName($match->teamA, $match->status)]) }}</p>
+
+                    <div x-show="(teamColorPlayers || []).length" x-cloak class="grid grid-cols-2 gap-x-4 gap-y-1">
+                        <template x-for="p in (teamColorPlayers || [])" :key="p.puuid">
+                            <div class="flex items-center justify-between gap-2 text-xs">
+                                <span class="truncate text-white font-semibold" x-text="p.name"></span>
+                                <span class="shrink-0 text-[10px] font-black uppercase tracking-widest text-gray-500" x-text="p.team"></span>
+                            </div>
+                        </template>
+                    </div>
+
                     <div class="flex gap-2">
                         <template x-for="color in (teamColorOptions || [])" :key="color">
                             <button type="button" @click="chooseColor(color)" :disabled="loading" x-text="color"
