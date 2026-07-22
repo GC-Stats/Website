@@ -50,7 +50,7 @@
     ])->values();
 @endphp
 
-@section('title', ' - '.\App\Support\MatchDisplay::teamShortName($match->teamA, $match->status).' vs '.\App\Support\MatchDisplay::teamShortName($match->teamB, $match->status).$map->map_name)
+@section('title', \App\Support\MatchDisplay::teamShortName($match->teamA, $match->status).' vs '.\App\Support\MatchDisplay::teamShortName($match->teamB, $match->status).$map->map_name)
 
 @section('content')
     <a href="{{ route('admin.matches.show', [$tournament, $match]) }}" class="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-white transition mb-6">
