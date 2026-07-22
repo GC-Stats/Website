@@ -612,6 +612,7 @@ return [
             'reset_map' => 'Reset map',
             'fetch' => 'Fetch',
             'fetching' => 'Fetching…',
+            'fetching_in_progress' => 'Fetching match data, please wait...',
             'missing_val_ids_help' => 'These Riot accounts could not be matched to a roster player — pick the right player for each, then retry.',
             'select_player' => 'Select a player',
             'save_and_retry' => 'Save & retry fetch',

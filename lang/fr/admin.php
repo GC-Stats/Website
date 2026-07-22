@@ -558,6 +558,7 @@ return [
             'reset_map' => 'Réinitialiser la map',
             'fetch' => 'Récupérer',
             'fetching' => 'Récupération…',
+            'fetching_in_progress' => 'Récupération des données du match, merci de patienter...',
             'missing_val_ids_help' => "Ces comptes Riot n'ont pas pu être associés à une joueuse du roster — choisis la bonne joueuse pour chacun, puis réessaie.",
             'select_player' => 'Sélectionner une joueuse',
             'save_and_retry' => 'Enregistrer et réessayer',

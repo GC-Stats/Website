@@ -195,9 +195,22 @@
                 chooseColor(color) {
                     this.fetchMap({ team_a_color: color });
                 },
+
+                sortedColors() {
+                    return [...(this.teamColorOptions || [])].sort((a, b) => (a === 'Red' ? -1 : b === 'Red' ? 1 : 0));
+                },
              }"
              @endcan
         >
+            <div x-show="loading" x-cloak class="flex items-center justify-center gap-3 py-10">
+                <svg class="animate-spin h-5 w-5 text-gc-yellow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span class="text-xs font-black uppercase tracking-widest text-gray-400">{{ __('admin.matches.maps.fetching_in_progress') }}</span>
+            </div>
+
+            <div x-show="!loading">
             <div class="flex items-center justify-between mb-4 gap-2 flex-wrap">
                 <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.matches.maps.info_title') }}</h2>
                 <div class="flex gap-2">
@@ -268,23 +281,26 @@
                 <div x-show="teamColorOptions && teamColorOptions.length" x-cloak class="mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 space-y-3">
                     <p class="text-xs text-yellow-400">{{ __('admin.matches.maps.team_color_help', ['team' => \App\Support\MatchDisplay::teamName($match->teamA, $match->status)]) }}</p>
 
-                    <div x-show="(teamColorPlayers || []).length" x-cloak class="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <template x-for="p in (teamColorPlayers || [])" :key="p.puuid">
-                            <div class="flex items-center justify-between gap-2 text-xs">
-                                <span class="truncate text-white font-semibold" x-text="p.name"></span>
-                                <span class="shrink-0 text-[10px] font-black uppercase tracking-widest text-gray-500" x-text="p.team"></span>
+                    <div x-show="(teamColorPlayers || []).length" x-cloak class="grid grid-cols-2 gap-x-4 gap-y-2">
+                        <template x-for="color in sortedColors()" :key="color">
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-gray-500" x-text="color"></p>
+                                <template x-for="p in (teamColorPlayers || []).filter((pl) => pl.team === color)" :key="p.puuid">
+                                    <div class="text-xs truncate text-white font-semibold" x-text="p.name"></div>
+                                </template>
                             </div>
                         </template>
                     </div>
 
                     <div class="flex gap-2">
-                        <template x-for="color in (teamColorOptions || [])" :key="color">
+                        <template x-for="color in sortedColors()" :key="color">
                             <button type="button" @click="chooseColor(color)" :disabled="loading" x-text="color"
                                     class="flex-1 font-bold uppercase text-xs tracking-widest py-2.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10"></button>
                         </template>
                     </div>
                 </div>
             @endcan
+            </div>
 
             <div class="grid grid-cols-[1fr_auto_1fr] gap-6">
                 <div>
