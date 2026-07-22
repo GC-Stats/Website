@@ -8,10 +8,10 @@
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
-@props(['matches' => [], 'phase' => null, 'teams' => []])
+@props(['matches' => [], 'phase' => null, 'teams' => [], 'showBuchholz' => false])
 
 @php
-    $standings = \App\Support\TournamentStandings::compute($matches, $teams);
+    $standings = \App\Support\TournamentStandings::compute($matches, $teams, $showBuchholz);
 
     $advancementRules = collect($phase['qualifications'] ?? [])->where('destination_type', 'phase')->values();
     $hasQualificationRules = $advancementRules->isNotEmpty();
@@ -25,6 +25,9 @@
             <th class="p-2 md:p-4 border-b border-border-subtle">{{ __("tournament.swiss_stage.team") }}</th>
             <th class="p-2 md:p-4 border-b border-border-subtle text-center w-16 md:w-48">{{ __("tournament.swiss_stage.matches") }}</th>
             <th class="p-2 md:p-4 border-b border-border-subtle text-center w-16 md:w-48">{{ __("tournament.swiss_stage.maps") }}</th>
+            @if($showBuchholz)
+                <th class="p-2 md:p-4 border-b border-border-subtle text-center w-16 md:w-32">{{ __("tournament.swiss_stage.buchholz") }}</th>
+            @endif
             <th class="p-2 md:p-4 border-b border-border-subtle text-right w-24 md:w-64">{{ __("tournament.swiss_stage.rounds") }}</th>
         </tr>
         </thead>
@@ -60,6 +63,12 @@
                         {{ $row['map_wins'] }} - {{ $row['map_losses'] }}
                     </div>
                 </td>
+
+                @if($showBuchholz)
+                    <td class="p-2 md:p-4 text-center font-mono text-white">
+                        {{ $row['buchholz'] }}
+                    </td>
+                @endif
 
                 <td class="p-2 md:p-4 text-right font-mono">
                     <div class="flex flex-col md:flex-row items-end md:items-center justify-end md:gap-4">

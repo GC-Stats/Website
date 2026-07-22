@@ -487,7 +487,7 @@ class TournamentController extends Controller
                 ->all();
 
             $rounds = Matchs::where('tournament_id', $id)
-                ->whereIn('phase_id', $phases->whereIn('format', ['swiss', 'round_robin'])->pluck('id'))
+                ->whereIn('phase_id', $phases->whereIn('format', TournamentPhase::RANK_BASED_FORMATS)->pluck('id'))
                 ->whereNotNull('round_name')
                 ->select('phase_id', 'round_name')
                 ->distinct()

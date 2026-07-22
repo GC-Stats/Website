@@ -181,7 +181,7 @@
                         </div>
                     </div>
 
-                    @if($selectedPhase && in_array($selectedPhase['format'], ['swiss', 'round_robin']) && !empty($availableRounds))
+                    @if($selectedPhase && in_array($selectedPhase['format'], \App\Models\TournamentPhase::RANK_BASED_FORMATS) && !empty($availableRounds))
                         <div class="flex items-center gap-4 flex-wrap">
                             <span class="text-[9px] uppercase font-black text-gray-500 tracking-[0.2em] shrink-0">
                                 {{ __("tournament.filters.round") }}

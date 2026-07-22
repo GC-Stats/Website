@@ -14,6 +14,7 @@
         'bracket' => __('admin.tournaments.phases.format_options.bracket'),
         'round_robin' => __('admin.tournaments.phases.format_options.round_robin'),
         'swiss' => __('admin.tournaments.phases.format_options.swiss'),
+        'swiss_buchholz' => __('admin.tournaments.phases.format_options.swiss_buchholz'),
     ];
 @endphp
 

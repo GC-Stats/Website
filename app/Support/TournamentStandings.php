@@ -22,8 +22,11 @@ class TournamentStandings
     /**
      * @param  array<int, array<string, mixed>>  $matches
      * @param  array<int, array<string, mixed>>  $teams
+     * @param  bool  $useBuchholz  Whether to insert the Buchholz score (sum of each opponent's
+     *                             total wins) as the tie-break right after match differential —
+     *                             used by the swiss_buchholz format.
      */
-    public static function compute(array $matches, array $teams): Collection
+    public static function compute(array $matches, array $teams, bool $useBuchholz = false): Collection
     {
         $matchesColl = collect($matches);
         $allTeamsColl = collect($teams);
@@ -36,6 +39,9 @@ class TournamentStandings
         $phaseTeams = $allTeamsColl->filter(function ($t) use ($teamIdsInPhase) {
             return in_array((string) ($t['id'] ?? ''), $teamIdsInPhase);
         });
+
+        $winsByTeamId = [];
+        $opponentIdsByTeamId = [];
 
         foreach ($phaseTeams as $team) {
             $teamId = (string) $team['id'];
@@ -51,6 +57,7 @@ class TournamentStandings
             $mapLosses = 0;
             $roundWins = 0;
             $roundLosses = 0;
+            $opponentIds = [];
 
             foreach ($teamMatches as $m) {
                 $scoreA = $m['team_a_score'] ?? null;
@@ -63,6 +70,7 @@ class TournamentStandings
                 $isTeamA = (string) ($m['team_a_id'] ?? '') === $teamId;
                 $myScore = $isTeamA ? $scoreA : $scoreB;
                 $theirScore = $isTeamA ? $scoreB : $scoreA;
+                $opponentIds[] = (string) ($isTeamA ? ($m['team_b_id'] ?? '') : ($m['team_a_id'] ?? ''));
 
                 if ($myScore > $theirScore) {
                     $wins++;
@@ -92,6 +100,9 @@ class TournamentStandings
                 }
             }
 
+            $winsByTeamId[$teamId] = $wins;
+            $opponentIdsByTeamId[$teamId] = $opponentIds;
+
             $standings->push([
                 'team' => $team,
                 'wins' => $wins,
@@ -106,7 +117,22 @@ class TournamentStandings
             ]);
         }
 
-        return $standings->sortBy([
+        $standings = $standings->map(function ($row) use ($winsByTeamId, $opponentIdsByTeamId) {
+            $teamId = (string) $row['team']['id'];
+            $row['buchholz'] = array_sum(array_map(
+                fn ($opponentId) => $winsByTeamId[$opponentId] ?? 0,
+                $opponentIdsByTeamId[$teamId] ?? []
+            ));
+
+            return $row;
+        });
+
+        return $standings->sortBy($useBuchholz ? [
+            ['match_diff', 'desc'],
+            ['buchholz', 'desc'],
+            ['map_diff', 'desc'],
+            ['round_diff', 'desc'],
+        ] : [
             ['match_diff', 'desc'],
             ['map_diff', 'desc'],
             ['round_diff', 'desc'],

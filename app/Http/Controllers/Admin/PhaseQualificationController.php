@@ -36,7 +36,7 @@ class PhaseQualificationController extends Controller
     public function store(Request $request, Tournament $tournament, TournamentPhase $phase): RedirectResponse
     {
         abort_unless($phase->tournament_id === $tournament->id, 404);
-        abort_unless(in_array($phase->format, ['swiss', 'round_robin'], true), 422, 'Rank-based qualification rules only apply to swiss/round_robin phases.');
+        abort_unless(in_array($phase->format, TournamentPhase::RANK_BASED_FORMATS, true), 422, 'Rank-based qualification rules only apply to swiss/round_robin phases.');
 
         $validated = $this->validateRule($request, $phase->id, [
             'rank_from' => ['required', 'integer', 'min:1'],

@@ -56,11 +56,12 @@
             @endforeach
         </div>
     @endif
-@elseif(($node['format'] ?? '') === 'swiss')
+@elseif(in_array($node['format'] ?? '', ['swiss', 'swiss_buchholz'], true))
     <x-tournament.swiss-standings
         :matches="$node['matches'] ?? []"
         :phase="$node"
         :teams="$teams"
+        :show-buchholz="($node['format'] ?? '') === 'swiss_buchholz'"
     />
     <x-tournament.leaderboard :phase="$node" :teams="$teams" />
 @elseif(($node['format'] ?? '') === 'round_robin')

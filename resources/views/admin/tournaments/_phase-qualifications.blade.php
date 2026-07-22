@@ -9,7 +9,7 @@
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
-@if (in_array($phase->format, ['swiss', 'round_robin'], true))
+@if (in_array($phase->format, \App\Models\TournamentPhase::RANK_BASED_FORMATS, true))
     <div class="mt-2 space-y-2">
         <p class="text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('admin.tournaments.qualifications.title') }}</p>
 

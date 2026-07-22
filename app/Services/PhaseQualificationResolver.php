@@ -79,6 +79,8 @@ class PhaseQualificationResolver
             return;
         }
 
+        $phaseFormat = TournamentPhase::where('id', $phaseId)->value('format');
+
         $matches = Matchs::where('phase_id', $phaseId)->with('game_maps')->get()->map(fn ($m) => [
             'team_a_id' => $m->team_a_id,
             'team_b_id' => $m->team_b_id,
@@ -93,7 +95,7 @@ class PhaseQualificationResolver
         $teamIds = collect($matches)->flatMap(fn ($m) => [$m['team_a_id'], $m['team_b_id']])->filter()->unique()->values();
         $teams = $teamIds->map(fn ($id) => ['id' => $id])->all();
 
-        $standings = TournamentStandings::compute($matches, $teams)->values();
+        $standings = TournamentStandings::compute($matches, $teams, $phaseFormat === 'swiss_buchholz')->values();
 
         foreach ($rules as $rule) {
             $teamsWithRank = [];

@@ -441,6 +441,7 @@ return [
                 'bracket' => 'Élimination directe',
                 'round_robin' => 'Round Robin',
                 'swiss' => 'Système suisse',
+                'swiss_buchholz' => 'Système suisse (Buchholz)',
             ],
         ],
         'teams' => [

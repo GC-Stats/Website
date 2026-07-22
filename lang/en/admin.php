@@ -443,6 +443,7 @@ return [
                 'bracket' => 'Bracket',
                 'round_robin' => 'Round Robin',
                 'swiss' => 'Swiss',
+                'swiss_buchholz' => 'Swiss (Buchholz)',
             ],
         ],
         'teams' => [

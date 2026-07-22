@@ -232,6 +232,7 @@
                         <option value="bracket">{{ __('admin.tournaments.phases.format_options.bracket') }}</option>
                         <option value="round_robin">{{ __('admin.tournaments.phases.format_options.round_robin') }}</option>
                         <option value="swiss">{{ __('admin.tournaments.phases.format_options.swiss') }}</option>
+                        <option value="swiss_buchholz">{{ __('admin.tournaments.phases.format_options.swiss_buchholz') }}</option>
                     </select>
 
                     <div class="flex shrink-0 gap-0.5">

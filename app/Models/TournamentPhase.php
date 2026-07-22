@@ -23,6 +23,9 @@ class TournamentPhase extends Model
 {
     use HasFactory;
 
+    /** Formats whose standings are ranked (not bracket-based) and support rank-range qualification rules. */
+    public const RANK_BASED_FORMATS = ['swiss', 'round_robin', 'swiss_buchholz'];
+
     protected $fillable = [
         'tournament_id',
         'name',

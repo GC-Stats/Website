@@ -50,6 +50,7 @@ return [
         'team' => 'Équipes',
         'matches' => 'Matchs (W-L)',
         'maps' => 'Maps (W-L)',
+        'buchholz' => 'Buchholz',
         'rounds' => 'Diff. Rounds (+/-)',
         'qualification_single' => 'Le top :rank est qualifié pour :destination.',
         'qualification_range' => 'Les top :from-:to sont qualifiés pour :destination.',

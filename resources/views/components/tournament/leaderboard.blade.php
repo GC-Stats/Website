@@ -22,9 +22,9 @@
     $format = $phase['format'] ?? null;
     $rows = collect();
 
-    if (in_array($format, ['swiss', 'round_robin'], true) && ! empty($phase['qualifications'])) {
-        $standings = \App\Support\TournamentStandings::compute($phase['matches'] ?? [], $teams);
-        $qualifications = collect($phase['qualifications']);
+    if (in_array($format, \App\Models\TournamentPhase::RANK_BASED_FORMATS, true)) {
+        $standings = \App\Support\TournamentStandings::compute($phase['matches'] ?? [], $teams, $format === 'swiss_buchholz');
+        $qualifications = collect($phase['qualifications'] ?? []);
 
         $rows = $standings->values()->map(function ($row, $index) use ($qualifications) {
             $rank = $index + 1;
