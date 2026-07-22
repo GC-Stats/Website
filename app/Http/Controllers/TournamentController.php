@@ -443,6 +443,7 @@ class TournamentController extends Controller
         $phaseId = $request->get('phase_id');
         $teamId = $request->get('team_id');
         $roundName = $request->get('round');
+        $statusFilter = $request->get('status');
 
         $tag = "tournament_{$id}";
 
@@ -502,7 +503,7 @@ class TournamentController extends Controller
             ];
         };
 
-        $buildPage = function () use ($id, $phaseId, $teamId, $roundName) {
+        $buildPage = function () use ($id, $phaseId, $teamId, $roundName, $statusFilter) {
             $tournament = Tournament::findOrFail($id);
             $tournamentArray = $tournament->toArray();
 
@@ -539,12 +540,20 @@ class TournamentController extends Controller
                     $query->where('team_a_id', $teamId)->orWhere('team_b_id', $teamId);
                 }))
                 ->when($roundName, fn ($query) => $query->where('round_name', $roundName))
+                ->when($statusFilter, fn ($query) => $query->where('status', $statusFilter))
                 ->with([
                     'teamA:id,name',
                     'teamB:id,name',
                     'tournamentPhase:id,name',
                 ])
-                ->orderBy('scheduled_at', 'desc')
+                // Live first, then recently finished (< 24h), then upcoming, then older finished.
+                ->orderByRaw("CASE
+                    WHEN status = 'live' THEN 0
+                    WHEN status = 'finished' AND scheduled_at >= NOW() - INTERVAL 1 DAY THEN 1
+                    WHEN status = 'upcoming' THEN 2
+                    ELSE 3
+                END")
+                ->orderByRaw("CASE WHEN status = 'upcoming' THEN UNIX_TIMESTAMP(scheduled_at) ELSE -UNIX_TIMESTAMP(scheduled_at) END")
                 ->orderBy('match_order', 'asc')
                 ->paginate(10);
 
@@ -602,6 +611,7 @@ class TournamentController extends Controller
                     'phaseId' => $phaseId,
                     'teamId' => $teamId,
                     'roundName' => $roundName,
+                    'status' => $statusFilter,
                     'inactive_access' => true,
                 ])
                 ->header('Cache-Control', 'private, no-store')
@@ -610,7 +620,7 @@ class TournamentController extends Controller
 
         $filters = Cache::tags([$tag])->remember("tournament_matches_filters_{$id}", $ttl, $buildFilters);
 
-        $filterKey = ($phaseId ?: 'all').'_'.($teamId ?: 'all').'_'.($roundName ?: 'all');
+        $filterKey = ($phaseId ?: 'all').'_'.($teamId ?: 'all').'_'.($roundName ?: 'all').'_'.($statusFilter ?: 'all');
         $cacheKey = "tournament_page_matches_{$id}_page_{$page}_{$filterKey}";
 
         $cached = Cache::tags([$tag])->get($cacheKey);
@@ -631,6 +641,7 @@ class TournamentController extends Controller
                     'phaseId' => $phaseId,
                     'teamId' => $teamId,
                     'roundName' => $roundName,
+                    'status' => $statusFilter,
                 ])
                 ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
                 ->header('Vary', 'Accept-Language');
@@ -654,6 +665,7 @@ class TournamentController extends Controller
                 'phaseId' => $phaseId,
                 'teamId' => $teamId,
                 'roundName' => $roundName,
+                'status' => $statusFilter,
             ])
             ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
             ->header('Vary', 'Accept-Language');

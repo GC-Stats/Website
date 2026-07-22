@@ -159,6 +159,28 @@
                         @endif
                     </div>
 
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <span class="text-[9px] uppercase font-black text-gray-500 tracking-[0.2em] shrink-0">
+                            {{ __("tournament.filters.status") }}
+                        </span>
+
+                        <div class="flex flex-wrap bg-white/[0.03] p-1 rounded-lg border border-white/5 gap-1">
+                            <a href="{{ request()->fullUrlWithQuery(['status' => null, 'page' => null]) }}"
+                               class="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all duration-300
+                           {{ !$status ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-500 hover:text-white hover:bg-white/5' }}">
+                                {{ __("tournament.filters.all_statuses") }}
+                            </a>
+
+                            @foreach(['live' => 'match.status.live', 'upcoming' => 'match.status.upcoming', 'finished' => 'match.status.finished'] as $statusOption => $statusLabel)
+                                <a href="{{ request()->fullUrlWithQuery(['status' => $statusOption, 'page' => null]) }}"
+                                   class="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all duration-300
+                               {{ $status === $statusOption ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-500 hover:text-white hover:bg-white/5' }}">
+                                    {{ __($statusLabel) }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+
                     @if($selectedPhase && in_array($selectedPhase['format'], ['swiss', 'round_robin']) && !empty($availableRounds))
                         <div class="flex items-center gap-4 flex-wrap">
                             <span class="text-[9px] uppercase font-black text-gray-500 tracking-[0.2em] shrink-0">

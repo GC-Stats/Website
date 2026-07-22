@@ -93,6 +93,8 @@ return [
         'search_team' => 'Rechercher une équipe...',
         'round' => 'Round : ',
         'all_rounds' => 'Tous les rounds',
+        'status' => 'Statut : ',
+        'all_statuses' => 'Tous les statuts',
     ],
 
     'maps' => [
