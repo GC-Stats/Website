@@ -18,7 +18,7 @@
  * @link      https://github.com/GC-Stats/Website
  */
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\ScheduledCommand;
 
 use App\Models\FinanceEntry;
 use App\Models\GameMap;

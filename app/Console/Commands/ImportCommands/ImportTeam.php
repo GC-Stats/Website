@@ -13,7 +13,7 @@
  * @link      https://github.com/GC-Stats/Website
  */
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\ImportCommands;
 
 use App\Http\Controllers\Api\ApiTeamLogoController;
 use App\Models\Player;

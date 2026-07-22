@@ -15,7 +15,7 @@
  * @link      https://github.com/GC-Stats/Website
  */
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\ScheduledCommand;
 
 use App\Models\News;
 use App\Models\Player;

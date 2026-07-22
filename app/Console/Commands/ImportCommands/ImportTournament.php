@@ -14,7 +14,7 @@
  * @link      https://github.com/GC-Stats/Website
  */
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\ImportCommands;
 
 use App\Models\GameMap;
 use App\Models\GamePlayerStat;
