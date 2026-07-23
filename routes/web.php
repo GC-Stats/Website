@@ -22,8 +22,8 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TournamentController;
-use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\TransparencyController;
+use App\Http\Controllers\UserProfileController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';

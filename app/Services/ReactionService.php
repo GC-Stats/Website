@@ -15,6 +15,7 @@
 
 namespace App\Services;
 
+use App\Models\Concerns\HasReactions;
 use App\Models\Emote;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 class ReactionService
 {
     /**
-     * @param  Model&\App\Models\Concerns\HasReactions  $reactable
+     * @param  Model&HasReactions  $reactable
      * @return bool true if the reaction was added, false if it was removed
      */
     public function toggle(Model $reactable, User $user, Emote $emote): bool

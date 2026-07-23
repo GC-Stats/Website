@@ -23,6 +23,7 @@ use App\Support\PublisherPermissions;
 use App\Support\UserRoleSummary;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class UserProfileController extends Controller
 {
@@ -65,7 +66,7 @@ class UserProfileController extends Controller
     }
 
     /**
-     * @return array{profileUser: User, publishers: \Illuminate\Support\Collection}
+     * @return array{profileUser: User, publishers: Collection}
      */
     private function sharedData(User $user): array
     {
