@@ -41,7 +41,7 @@ class TournamentOperationController extends Controller
 
         return view('admin.tournaments.operations', [
             'tournament' => $tournament,
-            'phases' => $tournament->phases,
+            'phases' => $tournament->orderedPhases(),
             'riotRegions' => collect(config('regions.riot_api'))->unique()->values()->push('esports')->values(),
         ]);
     }

@@ -68,6 +68,27 @@ class Tournament extends Model
         return $this->hasMany(TournamentPhase::class);
     }
 
+    /**
+     * Every phase, flattened depth-first so each phase is immediately
+     * followed by its own children (recursively) rather than in raw id
+     * order — the ordering admin phase dropdowns need to display child
+     * options directly under their parent, as in the tournament edit form.
+     */
+    public function orderedPhases()
+    {
+        $byParent = $this->tournamentPhases()
+            ->orderBy('order')
+            ->get()
+            ->groupBy(fn ($phase) => $phase->parent_id ?: 0);
+
+        $walk = function ($parentId) use (&$walk, $byParent) {
+            return ($byParent->get($parentId) ?? collect())
+                ->flatMap(fn ($phase) => collect([$phase])->merge($walk($phase->id)));
+        };
+
+        return $walk(0);
+    }
+
     public function teams()
     {
         return $this->belongsToMany(Team::class, 'tournament_teams')

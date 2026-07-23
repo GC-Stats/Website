@@ -95,7 +95,7 @@ class MatchController extends Controller
             'date' => $request->get('date', ''),
             'sort' => $sort,
             'direction' => $direction,
-            'phases' => $tournament->phases,
+            'phases' => $tournament->orderedPhases(),
             'teams' => $tournament->teams,
             'sticky' => session('matches.sticky.'.$tournament->id, []),
         ]);
@@ -123,7 +123,7 @@ class MatchController extends Controller
         return view('admin.matches.edit', [
             'tournament' => $tournament,
             'match' => $match,
-            'phases' => $tournament->phases,
+            'phases' => $tournament->orderedPhases(),
             'teams' => $tournament->teams,
             'importResults' => session('importResults', []),
         ]);
@@ -412,6 +412,8 @@ class MatchController extends Controller
         $params = $this->parseWikicodeTemplateParams($template);
         $types = array_filter(array_map('trim', explode(',', $params['types'] ?? '')));
 
+        $firstPickTeam = ($params['firstpick'] ?? '1') === '2' ? $teamBId : $teamAId;
+
         $rows = [];
         $n = 0;
         $lastTeam = null;
@@ -433,14 +435,15 @@ class MatchController extends Controller
             $t1 = $params["t1map{$n}"] ?? '-';
             $t2 = $params["t2map{$n}"] ?? '-';
 
-            if ($t1 !== '-' && $t1 !== '') {
-                $rows[] = ['team_id' => $teamAId, 'map_name' => $t1, 'type' => $type];
-                $lastTeam = $teamAId;
-            }
+            $entries = $firstPickTeam === $teamAId
+                ? [[$teamAId, $t1], [$teamBId, $t2]]
+                : [[$teamBId, $t2], [$teamAId, $t1]];
 
-            if ($t2 !== '-' && $t2 !== '') {
-                $rows[] = ['team_id' => $teamBId, 'map_name' => $t2, 'type' => $type];
-                $lastTeam = $teamBId;
+            foreach ($entries as [$teamId, $map]) {
+                if ($map !== '-' && $map !== '') {
+                    $rows[] = ['team_id' => $teamId, 'map_name' => $map, 'type' => $type];
+                    $lastTeam = $teamId;
+                }
             }
         }
 
