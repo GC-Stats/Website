@@ -21,6 +21,7 @@ use App\Http\Controllers\Controller;
 use App\Models\GameMap;
 use App\Models\Matchs;
 use App\Models\Tournament;
+use App\Models\TournamentPhase;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,7 +64,8 @@ class MatchController extends Controller
             $query->where(fn ($q) => $q->where('team_a_id', $team)->orWhere('team_b_id', $team));
         }
         if ($request->filled('phase')) {
-            $query->where('phase_id', $request->input('phase'));
+            $phase = TournamentPhase::find($request->input('phase'));
+            $query->whereIn('phase_id', $phase ? $phase->selfAndDescendantIds() : [$request->input('phase')]);
         }
         if ($request->filled('round_name')) {
             $query->where('round_name', 'like', '%'.$this->escapeLike($request->input('round_name')).'%');
@@ -150,7 +152,7 @@ class MatchController extends Controller
         activity('tournament')->causedBy($request->user())
             ->performedOn($match)->log('match.created');
 
-        return redirect()->route('admin.matches.index', $tournament)->with('status', 'match-created');
+        return redirect()->back()->with('status', 'match-created');
     }
 
     public function update(Request $request, Tournament $tournament, Matchs $match): RedirectResponse
