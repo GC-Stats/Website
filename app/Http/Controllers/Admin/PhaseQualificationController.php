@@ -101,14 +101,17 @@ class PhaseQualificationController extends Controller
             'q' => ['required', 'string', 'min:2', 'max:100'],
         ]);
 
-        $term = '%'.$this->escapeLike($validated['q']).'%';
+        $words = array_filter(preg_split('/\s+/', trim($validated['q'])));
 
-        $phases = TournamentPhase::query()
-            ->with('tournament:id,name')
-            ->where('name', 'like', $term)
-            ->orWhereHas('tournament', fn ($q) => $q->where('name', 'like', $term))
-            ->limit(10)
-            ->get(['id', 'tournament_id', 'name']);
+        $phasesQuery = TournamentPhase::query()->with('tournament:id,name');
+
+        foreach ($words as $word) {
+            $wordTerm = '%'.$this->escapeLike($word).'%';
+            $phasesQuery->where(fn ($q) => $q->where('name', 'like', $wordTerm)
+                ->orWhereHas('tournament', fn ($t) => $t->where('name', 'like', $wordTerm)));
+        }
+
+        $phases = $phasesQuery->limit(10)->get(['id', 'tournament_id', 'name']);
 
         return response()->json($phases->map(fn ($phase) => [
             'id' => $phase->id,
