@@ -57,7 +57,17 @@ class Emote extends Model
      */
     public static function active(): Collection
     {
-        return Cache::rememberForever(self::ACTIVE_CACHE_KEY, fn () => static::where('is_active', true)->orderBy('name')->get());
+        $cached = Cache::rememberForever(self::ACTIVE_CACHE_KEY, fn () => static::where('is_active', true)->orderBy('name')->get());
+
+        // "forever" cache entries outlive deploys; a stale Redis entry can unserialize
+        // as __PHP_Incomplete_Class if the class definition shifted underneath it.
+        if (! $cached instanceof Collection) {
+            self::forgetActiveCache();
+
+            return static::where('is_active', true)->orderBy('name')->get();
+        }
+
+        return $cached;
     }
 
     /**
@@ -69,7 +79,15 @@ class Emote extends Model
      */
     public static function sources(): Collection
     {
-        return Cache::rememberForever(self::SOURCES_CACHE_KEY, fn () => static::query()->distinct()->orderBy('source')->pluck('source'));
+        $cached = Cache::rememberForever(self::SOURCES_CACHE_KEY, fn () => static::query()->distinct()->orderBy('source')->pluck('source'));
+
+        if (! $cached instanceof Collection) {
+            self::forgetSourcesCache();
+
+            return static::query()->distinct()->orderBy('source')->pluck('source');
+        }
+
+        return $cached;
     }
 
     public static function forgetActiveCache(): void
