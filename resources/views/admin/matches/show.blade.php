@@ -112,7 +112,16 @@
                     </tr>
                     <tr class="border-b border-white/10">
                         <td class="py-2.5 pr-4 text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">{{ __('admin.matches.scheduled_at') }}</td>
-                        <td class="py-2.5 text-white font-bold">{{ \App\Support\MatchDisplay::scheduledAt($match->scheduled_at) }}</td>
+                        <td class="py-2.5 text-white font-bold">
+                            @if (\App\Support\MatchDisplay::isUnknownDate($match->scheduled_at))
+                                {{ __('admin.matches.unknown_date') }}
+                            @else
+                                <span data-utc-datetime="{{ $match->scheduled_at->copy()->utc()->toIso8601String() }}">
+                                    <span class="js-match-date">{{ $match->scheduled_at->format('Y-m-d') }}</span>
+                                    <span class="js-match-time">{{ $match->scheduled_at->format('H:i') }}</span>
+                                </span>
+                            @endif
+                        </td>
                     </tr>
                     <tr class="border-b border-white/10">
                         <td class="py-2.5 pr-4 text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">{{ __('admin.matches.best_of') }}</td>

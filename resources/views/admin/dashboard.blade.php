@@ -125,7 +125,16 @@
                             <span class="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded {{ $match->status === 'live' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400' }}">
                                 {{ __('admin.matches.status.'.$match->status) }}
                             </span>
-                            <span class="text-[10px] text-gray-500">{{ \App\Support\MatchDisplay::scheduledAt($match->scheduled_at) }}</span>
+                            <span class="text-[10px] text-gray-500">
+                                @if (\App\Support\MatchDisplay::isUnknownDate($match->scheduled_at))
+                                    {{ __('admin.matches.unknown_date') }}
+                                @else
+                                    <span data-utc-datetime="{{ $match->scheduled_at->copy()->utc()->toIso8601String() }}">
+                                        <span class="js-match-date">{{ $match->scheduled_at->format('Y-m-d') }}</span>
+                                        <span class="js-match-time">{{ $match->scheduled_at->format('H:i') }}</span>
+                                    </span>
+                                @endif
+                            </span>
                         </div>
                     </a>
                 @empty

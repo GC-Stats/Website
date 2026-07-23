@@ -44,9 +44,23 @@ class MatchDisplay
         return $status === 'finished' ? __('admin.matches.bye_team') : __('admin.matches.unknown_team');
     }
 
+    public static function isUnknownDate(?CarbonInterface $date): bool
+    {
+        return ! $date || $date->copy()->utc()->format('Y-m-d') === self::UNKNOWN_DATE;
+    }
+
+    /**
+     * Raw UTC formatting only — callers that render to a browser should
+     * instead emit a `data-utc-datetime` element (see resources/views/
+     * components/match.blade.php) so app.js's localizeMatchTimes() can
+     * convert it to the viewer's own timezone, the same way the public
+     * site does. Using this directly leaves the admin UI showing bare UTC
+     * next to a public page showing local time, which reads as the two
+     * disagreeing about the match's date/time.
+     */
     public static function scheduledAt(?CarbonInterface $date): string
     {
-        if (! $date || $date->copy()->utc()->format('Y-m-d') === self::UNKNOWN_DATE) {
+        if (self::isUnknownDate($date)) {
             return __('admin.matches.unknown_date');
         }
 

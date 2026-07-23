@@ -90,7 +90,16 @@
                                         {{ __('admin.matches.status.'.$match->status) }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-gray-400 text-xs">{{ \App\Support\MatchDisplay::scheduledAt($match->scheduled_at) }}</td>
+                                <td class="px-4 py-3 text-gray-400 text-xs">
+                                    @if (\App\Support\MatchDisplay::isUnknownDate($match->scheduled_at))
+                                        {{ __('admin.matches.unknown_date') }}
+                                    @else
+                                        <span data-utc-datetime="{{ $match->scheduled_at->copy()->utc()->toIso8601String() }}">
+                                            <span class="js-match-date">{{ $match->scheduled_at->format('Y-m-d') }}</span>
+                                            <span class="js-match-time">{{ $match->scheduled_at->format('H:i') }}</span>
+                                        </span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 text-right">
                                     <a href="{{ route('admin.matches.show', [$tournament, $match]) }}"
                                        class="font-bold uppercase text-xs tracking-widest px-5 py-3 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10 inline-block">
