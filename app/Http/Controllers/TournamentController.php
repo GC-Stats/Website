@@ -69,6 +69,30 @@ class TournamentController extends Controller
     }
 
     /**
+     * Picks the root phase to show by default on the public tournament page:
+     * the one currently in progress (now between its start_date and
+     * end_date). Falls back to null (caller defaults to the first phase)
+     * when no phase has dates or none is currently active, preserving the
+     * previous behavior.
+     */
+    private function currentRootPhaseId(array $rootPhases): ?int
+    {
+        $now = Carbon::now();
+
+        foreach ($rootPhases as $phase) {
+            if (! $phase['start_date'] || ! $phase['end_date']) {
+                continue;
+            }
+
+            if ($now->between(Carbon::parse($phase['start_date']), Carbon::parse($phase['end_date']))) {
+                return $phase['id'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Shared shape for a qualification rule as surfaced on the public page,
      * whether it's rank-based (swiss/round_robin) or match-outcome-based
      * (bracket) — used by the standings/leaderboard qualification badges
@@ -87,7 +111,7 @@ class TournamentController extends Controller
             'points' => $rule->points,
             'cash_prize' => $rule->formattedCashPrize(),
             'label' => $rule->destination_type === 'phase'
-                ? ($rule->destinationPhase?->tournament?->name.' — '.$rule->destinationPhase?->name)
+                ? (preg_replace('/^Game Changers\b/i', 'GC', $rule->destinationPhase?->tournament?->name ?? '').' — '.$rule->destinationPhase?->name)
                 : ($rule->placement_label ?: '#'.$rule->placement),
             'url' => $destTournament
                 ? route('tournaments.show', [$destTournament->id, Str::routeSlug($destTournament->name, $destTournament->id)])
@@ -167,7 +191,10 @@ class TournamentController extends Controller
                 };
 
                 return response()
-                    ->view('tournament.show', array_merge($cached, ['news' => $news]))
+                    ->view('tournament.show', array_merge($cached, [
+                        'news' => $news,
+                        'default_phase_id' => $this->currentRootPhaseId($cached['root_phases']),
+                    ]))
                     ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
                     ->header('Vary', 'Accept-Language');
             }
@@ -411,7 +438,11 @@ class TournamentController extends Controller
             $data = $buildData();
 
             return response()
-                ->view('tournament.show', array_merge($data, ['news' => $news, 'inactive_access' => true]))
+                ->view('tournament.show', array_merge($data, [
+                    'news' => $news,
+                    'inactive_access' => true,
+                    'default_phase_id' => $this->currentRootPhaseId($data['root_phases']),
+                ]))
                 ->header('Cache-Control', 'private, no-store')
                 ->header('Vary', 'Accept-Language');
         }
@@ -426,7 +457,10 @@ class TournamentController extends Controller
         };
 
         return response()
-            ->view('tournament.show', array_merge($data, ['news' => $news]))
+            ->view('tournament.show', array_merge($data, [
+                'news' => $news,
+                'default_phase_id' => $this->currentRootPhaseId($data['root_phases']),
+            ]))
             ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
             ->header('Vary', 'Accept-Language');
     }

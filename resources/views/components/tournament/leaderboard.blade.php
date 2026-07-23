@@ -89,6 +89,11 @@
         2 => ['badge' => 'bg-slate-300/15 text-slate-200', 'row' => 'from-slate-300/[0.08] border-slate-300/25'],
         3 => ['badge' => 'bg-orange-600/20 text-orange-400', 'row' => 'from-orange-600/[0.08] border-orange-600/25'],
     ];
+
+    // Every row reserves the same width for the destination column — sized to the
+    // longest label in this leaderboard — so points/cash prize line up across rows
+    // whether or not that row has a destination to show.
+    $destinationColumnWidth = $rows->map(fn ($row) => mb_strlen($row['destination_label'] ?? ''))->max() ?: 0;
 @endphp
 
 @if ($rows->isNotEmpty())
@@ -130,11 +135,11 @@
                             <div class="text-[11px] md:text-xs font-black text-white truncate">{{ $row['cash_prize'] ?? '—' }}</div>
                             <div class="text-[7px] md:text-[8px] font-bold uppercase tracking-widest text-gray-500">{{ __('tournament.leaderboard.cash_prize') }}</div>
                         </div>
-                        <div class="text-right w-[70px] md:w-[100px] shrink-0">
+                        <div class="text-right shrink-0" style="min-width: {{ $destinationColumnWidth }}ch">
                             @if ($row['destination_url'] ?? null)
-                                <a href="{{ $row['destination_url'] }}" class="text-[10px] md:text-[11px] font-bold uppercase text-gc-yellow hover:underline">{{ $row['destination_label'] }}</a>
+                                <a href="{{ $row['destination_url'] }}" class="block whitespace-nowrap text-[10px] md:text-[11px] font-bold uppercase text-gc-yellow hover:underline">{{ $row['destination_label'] }}</a>
                             @elseif ($row['destination_label'] ?? null)
-                                <span class="text-[10px] md:text-[11px] font-bold uppercase text-gray-400">{{ $row['destination_label'] }}</span>
+                                <span class="block whitespace-nowrap text-[10px] md:text-[11px] font-bold uppercase text-gray-400">{{ $row['destination_label'] }}</span>
                             @else
                                 <span class="text-gray-600">—</span>
                             @endif
@@ -175,11 +180,11 @@
                                 <div class="text-[11px] md:text-xs font-black text-gray-300 truncate">{{ $row['cash_prize'] ?? '—' }}</div>
                                 <div class="text-[7px] md:text-[8px] font-bold uppercase tracking-widest text-gray-600">{{ __('tournament.leaderboard.cash_prize') }}</div>
                             </div>
-                            <div class="text-right w-[70px] md:w-[100px] shrink-0">
+                            <div class="text-right shrink-0" style="min-width: {{ $destinationColumnWidth }}ch">
                                 @if ($row['destination_url'] ?? null)
-                                    <a href="{{ $row['destination_url'] }}" class="text-[10px] md:text-[11px] font-bold uppercase text-gc-yellow hover:underline">{{ $row['destination_label'] }}</a>
+                                    <a href="{{ $row['destination_url'] }}" class="block whitespace-nowrap text-[10px] md:text-[11px] font-bold uppercase text-gc-yellow hover:underline">{{ $row['destination_label'] }}</a>
                                 @elseif ($row['destination_label'] ?? null)
-                                    <span class="text-[10px] md:text-[11px] font-bold uppercase text-gray-500">{{ $row['destination_label'] }}</span>
+                                    <span class="block whitespace-nowrap text-[10px] md:text-[11px] font-bold uppercase text-gray-500">{{ $row['destination_label'] }}</span>
                                 @else
                                     <span class="text-gray-600">—</span>
                                 @endif

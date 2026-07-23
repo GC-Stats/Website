@@ -35,7 +35,7 @@
             const params = new URLSearchParams(window.location.search);
             const fromUrl = parseInt(params.get('phase'));
             const valid = [{{ implode(',', array_column($root_phases, 'id')) }}];
-            return fromUrl && valid.includes(fromUrl) ? fromUrl : {{ $root_phases[0]['id'] ?? 0 }};
+            return fromUrl && valid.includes(fromUrl) ? fromUrl : {{ $default_phase_id ?? $root_phases[0]['id'] ?? 0 }};
         })(),
         setPhase(id) {
             this.activePhase = id;
