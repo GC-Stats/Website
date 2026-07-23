@@ -205,4 +205,64 @@ class SearchService
             'players' => $players->toArray(),
         ];
     }
+
+    /**
+     * Teams-only search, same typo-tolerant matching + scoring as search()
+     * (exact-prefix/substring/length-proximity/popularity) — used by the
+     * team-fan-picker Livewire component, kept separate since it has no use
+     * for tournament/player candidates.
+     *
+     * @return list<array{id: int, name: string, country_code: ?string, logo: string, tags: list<string>, score: int}>
+     */
+    public function searchTeams(string $term, int $limit = 8, int $candidateLimit = 15): array
+    {
+        $term = strtolower(trim($term));
+        $variants = $this->typoVariants($term);
+        $term = $variants[0];
+        $termLen = mb_strlen($term);
+
+        $prefixFirst = fn ($v) => "CASE WHEN LOWER({$v}) LIKE ? THEN 0 WHEN LOWER({$v}) LIKE ? THEN 1 ELSE 2 END";
+
+        $teamCandidates = Team::where(function ($q) use ($variants) {
+            foreach ($variants as $v) {
+                $q->orWhereRaw('LOWER(name) LIKE ?', ["%{$v}%"])
+                    ->orWhereRaw('LOWER(short_name) LIKE ?', ["%{$v}%"]);
+            }
+        })
+            ->orderByRaw($prefixFirst('name'), ["{$term}%", "%{$term}%"])
+            ->limit($candidateLimit)
+            ->get();
+
+        $pageViews = DB::table('page_views')
+            ->whereIn('uri', $teamCandidates->map(fn ($t) => "/teams/{$t->id}")->all())
+            ->where('viewed_at', '>=', now()->subDays(30))
+            ->select('uri', DB::raw('SUM(count) as total'))
+            ->groupBy('uri')
+            ->pluck('total', 'uri');
+
+        $score = function (string $name, int $id) use ($term, $termLen, $pageViews) {
+            $lower = $this->stripAccents(strtolower($name));
+            $diff = abs(mb_strlen($name) - $termLen);
+            $containsExact = str_contains($lower, $term);
+
+            return (str_starts_with($lower, $term) ? 1000 : 0)
+                + ($containsExact ? 75 : 0)
+                + max(0, 100 - $diff * 10)
+                + min((int) ($pageViews->get("/teams/{$id}", 0) / 10), 200);
+        };
+
+        return $teamCandidates
+            ->sortByDesc(fn ($t) => $score($t->name, $t->id))
+            ->take($limit)
+            ->map(fn ($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'country_code' => $t->country_code,
+                'logo' => $t->logo,
+                'tags' => $t->fanTags(),
+                'score' => $score($t->name, $t->id),
+            ])
+            ->values()
+            ->toArray();
+    }
 }

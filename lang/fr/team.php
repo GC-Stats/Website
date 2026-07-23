@@ -98,6 +98,15 @@ return [
             'title' => 'Profil',
             'submit' => 'Enregistrer',
         ],
+        'tags' => [
+            'title' => 'Tags fan',
+            'body' => "Les fans peuvent choisir un de ces tags dans les paramètres de leur compte pour afficher qu'ils sont \"fan de\" cette équipe sur leur profil public (ex: \"G2WIN\").",
+            'placeholder' => 'ex: G2WIN',
+            'add' => 'Ajouter un tag',
+            'remove' => 'Supprimer',
+            'submit' => 'Enregistrer les tags',
+            'empty' => 'Aucun tag fan pour le moment.',
+        ],
         'fields' => [
             'name' => "Nom de l'équipe",
             'short_name' => 'Nom court',
@@ -120,6 +129,7 @@ return [
             'logo-history-added' => "Logo ajouté à l'historique.",
             'logo-history-updated' => "Entrée de l'historique du logo mise à jour.",
             'logo-history-removed' => "Entrée de l'historique du logo supprimée.",
+            'tags-updated' => 'Tags fan mis à jour.',
         ],
     ],
 

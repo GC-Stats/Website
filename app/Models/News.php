@@ -14,6 +14,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasReactions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class News extends Model
 {
+    use HasReactions;
+
     protected $fillable = [
         'author_id',
         'publisher_id',

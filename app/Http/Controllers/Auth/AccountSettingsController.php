@@ -17,6 +17,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Exceptions\LastAuthMethodException;
 use App\Http\Controllers\Controller;
+use App\Models\Team;
 use App\Services\AccountSecurityService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -37,6 +38,37 @@ class AccountSettingsController extends Controller
             'user' => $user,
             'linkedProviders' => $user->socialAccounts->pluck('provider')->all(),
         ]);
+    }
+
+    public function updateFanTeam(Request $request): RedirectResponse
+    {
+        // The picker's hidden inputs are always present, empty string when
+        // unset — normalize to null so `nullable` actually short-circuits
+        // `exists` instead of validating an empty string against it.
+        $request->merge([
+            'team_id' => $request->filled('team_id') ? $request->input('team_id') : null,
+            'team_tag' => $request->filled('team_tag') ? $request->input('team_tag') : null,
+        ]);
+
+        $validated = $request->validate([
+            'team_id' => ['nullable', 'exists:teams,id'],
+            'team_tag' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $team = ! empty($validated['team_id']) ? Team::find($validated['team_id']) : null;
+
+        if ($team && ! empty($validated['team_tag']) && ! in_array($validated['team_tag'], $team->fanTags(), true)) {
+            throw ValidationException::withMessages([
+                'team_tag' => __('account.errors.invalid_team_tag'),
+            ]);
+        }
+
+        $request->user()->update([
+            'team_id' => $team?->id,
+            'team_tag' => $team ? ($validated['team_tag'] ?? null) : null,
+        ]);
+
+        return back()->with('status', 'team-tag-updated');
     }
 
     public function setPassword(Request $request, AccountSecurityService $accountSecurity): RedirectResponse

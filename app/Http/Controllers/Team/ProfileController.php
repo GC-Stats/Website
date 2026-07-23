@@ -6,8 +6,9 @@
  * Team-owner-facing entry point for App\Services\TeamProfileService — the
  * update logic itself is shared and will be reused from the admin panel
  * once site editors can edit any team from there too. Profile fields need
- * `team.profile.edit`, the logo needs `team.logo.upload` (checked
- * per-action; the edit page itself just needs either one to view).
+ * `team.profile.edit`, the logo needs `team.logo.upload`, the fan tags list
+ * needs `team.tags.manage` (checked per-action; the edit page itself just
+ * needs any one of them to view).
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -34,6 +35,7 @@ class ProfileController extends Controller
         abort_unless(
             $request->user()->can('team.profile.edit')
                 || $request->user()->can('team.logo.upload')
+                || $request->user()->can('team.tags.manage')
                 || $request->user()->can('team.roles.manage')
                 || $request->user()->can('team.roster.manage'),
             403
@@ -73,6 +75,18 @@ class ProfileController extends Controller
         $service->updateProfile($team, $validated, $request->user());
 
         return back()->with('status', 'profile-updated');
+    }
+
+    public function updateTags(Request $request, Team $team, TeamProfileService $service): RedirectResponse
+    {
+        $validated = $request->validate([
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $service->updateTags($team, $validated['tags'] ?? [], $request->user());
+
+        return back()->with('status', 'tags-updated');
     }
 
     public function updateLogo(Request $request, Team $team, TeamProfileService $service): RedirectResponse

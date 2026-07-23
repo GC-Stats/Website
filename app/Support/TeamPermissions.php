@@ -27,7 +27,7 @@ class TeamPermissions extends PermissionCatalog
     public static function grouped(): array
     {
         return [
-            'profile' => ['team.profile.edit', 'team.logo.upload'],
+            'profile' => ['team.profile.edit', 'team.logo.upload', 'team.tags.manage'],
             'roster' => ['team.roster.manage'],
             'roles' => ['team.roles.manage'],
         ];

@@ -27,10 +27,10 @@ use App\Services\TeamRoleService;
 use App\Support\PermissionTeam;
 use App\Support\PublisherPermissions;
 use App\Support\PublisherScope;
+use App\Support\UserRoleSummary;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -96,37 +96,13 @@ class UserController extends Controller
 
         return view('admin.users.show', [
             'user' => $user,
-            'teamRoles' => $this->rolesGroupedByTeam($user->id, 'web', TeamRoleService::ROLE_OWNER, TeamRoleService::ROLE_MANAGER, TeamRoleService::ROLE_EDITOR)
+            'teamRoles' => UserRoleSummary::rolesGroupedByTeam($user->id, 'web', TeamRoleService::ROLE_OWNER, TeamRoleService::ROLE_MANAGER, TeamRoleService::ROLE_EDITOR)
                 ->map(fn ($roleNames, $teamId) => ['name' => $teamNames[$teamId] ?? "#{$teamId}", 'id' => $teamId, 'roles' => $roleNames]),
-            'publisherRoles' => $this->rolesGroupedByTeam($user->id, PublisherPermissions::GUARD)
+            'publisherRoles' => UserRoleSummary::rolesGroupedByTeam($user->id, PublisherPermissions::GUARD)
                 ->map(fn ($roleNames, $publisherId) => ['name' => $publisherNames[$publisherId] ?? "#{$publisherId}", 'id' => $publisherId, 'roles' => $roleNames]),
             'player' => $player,
             'sanctions' => $sanctions,
         ]);
-    }
-
-    /**
-     * Every role this user holds under the given guard, excluding the
-     * global context (team_id 0 — see PermissionTeam), grouped by the
-     * team/publisher id it's scoped to. Optionally narrowed to specific
-     * role names (used to pick out just the fixed team_owner/manager/editor
-     * trio and ignore anything else that might share the guard).
-     *
-     * @return Collection<int, list<string>>
-     */
-    private function rolesGroupedByTeam(int $userId, string $guard, string ...$roleNames): Collection
-    {
-        return DB::table('model_has_roles')
-            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
-            ->where('model_has_roles.model_id', $userId)
-            ->where('model_has_roles.model_type', User::class)
-            ->where('roles.guard_name', $guard)
-            ->where('model_has_roles.team_id', '!=', PermissionTeam::GLOBAL_ID)
-            ->when($roleNames !== [], fn ($query) => $query->whereIn('roles.name', $roleNames))
-            ->select('model_has_roles.team_id', 'roles.name')
-            ->get()
-            ->groupBy('team_id')
-            ->map(fn ($rows) => $rows->pluck('name')->all());
     }
 
     /**

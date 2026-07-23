@@ -22,6 +22,7 @@ use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TournamentController;
+use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\TransparencyController;
 use Illuminate\Support\Facades\Route;
 
@@ -90,6 +91,9 @@ Route::get('/team/{id}/{slug}/matches', [TeamController::class, 'matches'])->nam
 Route::get('/team/{id}/maps', [TeamController::class, 'maps']);
 Route::get('/team/{id}/{slug}/maps', [TeamController::class, 'maps'])->name('teams.maps');
 Route::get('/team/{id}/{slug?}', [TeamController::class, 'index'])->name('teams.show');
+
+Route::get('/user/{user:username}', [UserProfileController::class, 'show'])->name('users.show');
+Route::get('/user/{user:username}/news', [UserProfileController::class, 'news'])->name('users.news');
 
 Route::get('/match/{id}', [MatchController::class, 'index'])->name('match.show');
 

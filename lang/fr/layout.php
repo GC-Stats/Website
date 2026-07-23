@@ -17,6 +17,7 @@ return [
     'account' => [
         'menu_label' => 'Menu du compte',
         'login' => 'Connexion',
+        'profile' => 'Voir le profil',
         'settings' => 'Paramètres du compte',
         'admin' => 'Panneau admin',
         'no_admin_section' => "Votre rôle a des permissions admin, mais aucune section du dashboard n'est encore construite pour celle-ci.",

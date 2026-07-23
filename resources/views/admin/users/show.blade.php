@@ -16,9 +16,7 @@
     </a>
 
     <div class="flex items-center gap-4 mb-8">
-        <div class="w-14 h-14 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-sm font-black uppercase text-white">
-            {{ $user->initials() }}
-        </div>
+        <x-user-avatar :user="$user" class="w-14 h-14 rounded-lg bg-white/5 border border-white/10 text-sm" />
         <div class="min-w-0">
             <h2 class="text-lg font-black text-white truncate">{{ $user->name }}</h2>
             @if ($user->username)

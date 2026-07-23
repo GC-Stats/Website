@@ -183,6 +183,18 @@ class TeamController extends Controller
         return back()->with('status', 'profile-updated');
     }
 
+    public function updateTags(Request $request, Team $team, TeamProfileService $service): RedirectResponse
+    {
+        $validated = $request->validate([
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $service->updateTags($team, $validated['tags'] ?? [], $request->user());
+
+        return back()->with('status', 'tags-updated');
+    }
+
     public function updateLogo(Request $request, Team $team, TeamProfileService $service): RedirectResponse
     {
         $validated = $request->validate([

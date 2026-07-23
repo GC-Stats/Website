@@ -39,6 +39,7 @@ class AdminPermissions extends PermissionCatalog
             'users' => ['users.view'],
             'finance' => ['finance.view', 'finance.manage'],
             'about' => ['about.view', 'about.manage'],
+            'emotes' => ['emotes.view', 'emotes.create', 'emotes.edit', 'emotes.delete'],
             'tournaments' => [
                 'tournaments.view', 'tournaments.create', 'tournaments.edit', 'tournaments.delete',
                 'tournaments.teams.manage', 'tournaments.finished.edit', 'tournaments.activate',

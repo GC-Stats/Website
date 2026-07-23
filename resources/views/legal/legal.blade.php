@@ -122,6 +122,15 @@
                     </h2>
                     <p class="text-xs text-gray-400">{{ __('legal.cookies.text') }}</p>
                 </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-4 border-b border-border-subtle pb-2 flex items-center gap-2">
+                        <span class="text-gc-yellow">07.</span> {{ __('legal.credits.title') }}
+                    </h2>
+                    <p class="text-xs text-gray-400">
+                        {!! __('legal.credits.emotes', ['link' => '<a href="https://github.com/jdecked/twemoji" target="_blank" rel="noopener noreferrer" class="text-white underline decoration-gc-yellow hover:text-gc-yellow transition-colors">Twemoji</a>']) !!}
+                    </p>
+                </div>
             </div>
         </section>
     </div>

@@ -16,6 +16,9 @@ This repository contains the main component of GC Stats, our website
 
 It's designed to give you the most informations as possible, in a simple & comprehensive way
 
+## 🙏 Credits
+- Emote graphics are based on [Twemoji](https://github.com/jdecked/twemoji), licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). Copyright 2020 Twitter, Inc and other contributors.
+
 ## 🤝 License
 License: This project is licensed under the GC-Stats License v1.0 - see the [LICENSE](https://github.com/GC-Stats/Website/blob/main/LICENSE) file for details.
 

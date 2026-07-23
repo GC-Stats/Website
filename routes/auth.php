@@ -41,6 +41,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/settings/account/password', [AccountSettingsController::class, 'destroyPassword'])
             ->name('account.password.destroy');
 
+        Route::put('/settings/account/team', [AccountSettingsController::class, 'updateFanTeam'])
+            ->name('account.team.update');
+
         Route::post('/users/{user}/report', [UserReportController::class, 'store'])
             ->middleware('throttle:15,60')
             ->name('users.report');

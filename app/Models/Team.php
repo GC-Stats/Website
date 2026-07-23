@@ -31,7 +31,7 @@ class Team extends Model
     protected $fillable = [
         'name',
         'country_code',
-        'socials', 'bio',
+        'socials', 'tags', 'bio',
         'website',
         'short_name',
         'vlr_id',
@@ -42,8 +42,20 @@ class Team extends Model
 
     protected $casts = [
         'socials' => 'array',
+        'tags' => 'array',
         'max_permissions' => 'array',
     ];
+
+    /**
+     * Fan tags (e.g. "G2WIN") a user can pick to show off this team as
+     * their "fan of" pick — see App\Models\User::team_tag.
+     *
+     * @return list<string>
+     */
+    public function fanTags(): array
+    {
+        return $this->tags ?? [];
+    }
 
     /**
      * The ceiling of App\Support\TeamPermissions this team's own roles can

@@ -15,6 +15,23 @@ return [
             'submit' => 'Enregistrer',
             'saved' => 'Profil mis à jour.',
         ],
+        'avatar' => [
+            'title' => 'Avatar',
+            'body' => "Votre avatar provient de Gravatar, basé sur l'adresse email de votre compte. Créez ou modifiez-le sur",
+            'link_label' => 'gravatar.com',
+        ],
+        'team' => [
+            'title' => "Équipe favorite",
+            'body' => "Affichez une équipe que vous soutenez sur votre profil public, avec un des tags fan de cette équipe.",
+            'search_placeholder' => 'Rechercher une équipe…',
+            'search_empty' => 'Aucune équipe trouvée.',
+            'remove' => 'Retirer',
+            'tag_label' => 'Tag fan',
+            'tag_none' => 'Aucun',
+            'no_tags' => "Cette équipe n'a pas encore de tag fan.",
+            'submit' => 'Enregistrer',
+            'saved' => "Équipe favorite mise à jour.",
+        ],
         'password' => [
             'title' => 'Mot de passe',
             'none_set' => 'Aucun mot de passe défini — vous vous connectez actuellement via un compte lié.',
@@ -92,5 +109,6 @@ return [
         'sanctioned_global' => "Votre compte fait l'objet d'une sanction active : :reason",
         'sanctioned_team' => "Vous faites l'objet d'une sanction active sur cette équipe : :reason",
         'cannot_report_user' => "Vous ne pouvez pas vous signaler vous-même.",
+        'invalid_team_tag' => "Ce tag n'appartient pas à l'équipe sélectionnée.",
     ],
 ];

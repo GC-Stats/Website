@@ -3,9 +3,13 @@
 /**
  * GC-Stats — News controller
  *
- * Handles the public news article page, the author profile page (listing
- * all published articles by that author) and the publisher page (listing
- * all published articles from that outlet).
+ * Handles the public news article page and the publisher page (listing all
+ * published articles from that outlet). An author's own published articles
+ * are listed on their linked user profile's "News" tab instead of a
+ * standalone page — see UserProfileController::news() — but authors with no
+ * linked User account (still a supported NewsAuthor state, see
+ * Admin\NewsAuthorController) have no profile to redirect to, so author()
+ * below keeps serving them their own page.
  *
  * Only published articles are ever shown publicly.
  *
@@ -29,12 +33,13 @@ class NewsController extends Controller
         $locale = app()->getLocale();
 
         $data = Cache::remember("news_show_{$slug}_{$locale}", now()->addHours(6), function () use ($slug) {
-            $news = News::with(['author.currentLogo', 'publisher.currentLogo', 'players', 'teams', 'tournaments'])
+            $news = News::with(['author.currentLogo', 'author.user:id,username', 'publisher.currentLogo', 'players', 'teams', 'tournaments'])
                 ->where('slug', $slug)
                 ->where('status', 'published')
                 ->firstOrFail();
 
             return [
+                'id' => $news->id,
                 'title' => $news->title,
                 'lang' => $news->lang,
                 'excerpt' => $news->excerpt,
@@ -44,6 +49,7 @@ class NewsController extends Controller
                 'author' => $news->author ? [
                     'name' => $news->author->name,
                     'slug' => $news->author->slug,
+                    'username' => $news->author->user?->username,
                     'bio' => $news->author->bio,
                     'logo' => $news->author->currentLogo
                         ? asset('storage/authors/'.$news->author->currentLogo->id.'/200x200.webp')
@@ -70,22 +76,30 @@ class NewsController extends Controller
             ->header('Vary', 'Accept-Language');
     }
 
+    /**
+     * Authors with a linked User account are canonically addressed at their
+     * user profile now — redirect there. Authors with none (still a valid
+     * NewsAuthor state) keep their own page, since they have nowhere else
+     * to point to.
+     */
     public function author(string $slug)
     {
-        $author = Cache::remember("news_author_{$slug}", now()->addDay(), function () use ($slug) {
-            $model = NewsAuthor::with('currentLogo')->where('slug', $slug)->firstOrFail();
+        $model = NewsAuthor::with(['currentLogo', 'user:id,username'])->where('slug', $slug)->firstOrFail();
 
-            return [
-                'id' => $model->id,
-                'name' => $model->name,
-                'slug' => $model->slug,
-                'bio' => $model->bio,
-                'logo' => $model->currentLogo
-                    ? asset('storage/authors/'.$model->currentLogo->id.'/200x200.webp')
-                    : null,
-                'socials' => $model->socials,
-            ];
-        });
+        if ($model->user) {
+            return redirect()->route('users.news', $model->user->username, 301);
+        }
+
+        $author = Cache::remember("news_author_{$slug}", now()->addDay(), fn () => [
+            'id' => $model->id,
+            'name' => $model->name,
+            'slug' => $model->slug,
+            'bio' => $model->bio,
+            'logo' => $model->currentLogo
+                ? asset('storage/authors/'.$model->currentLogo->id.'/200x200.webp')
+                : null,
+            'socials' => $model->socials,
+        ]);
 
         $articles = News::with(['publisher.currentLogo', 'author.currentLogo'])
             ->where('author_id', $author['id'])

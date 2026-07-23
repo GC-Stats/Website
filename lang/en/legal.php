@@ -55,4 +55,8 @@ return [
         'title' => 'Cookies',
         'text' => 'This site uses only technical cookies necessary for session functionality and user security. No data is resold to third parties.',
     ],
+    'credits' => [
+        'title' => 'Credits',
+        'emotes' => 'Reaction emote graphics are based on :link, licensed under CC-BY 4.0. Copyright 2020 Twitter, Inc and other contributors.',
+    ],
 ];

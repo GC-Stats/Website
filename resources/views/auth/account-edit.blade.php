@@ -53,6 +53,7 @@
                     'password-updated' => 'account.edit.password.updated',
                     'password-removed' => 'account.edit.password.removed',
                     'provider-unlinked' => 'account.edit.connected.unlinked',
+                    'team-tag-updated' => 'account.edit.team.saved',
                     default => null,
                 };
             @endphp
@@ -108,6 +109,46 @@
                     <button type="submit"
                             class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
                         {{ __('account.edit.profile.submit') }}
+                    </button>
+                </form>
+            </div>
+
+            {{-- Avatar --}}
+            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('account.edit.avatar.title') }}</h2>
+
+                <div class="flex items-center gap-4">
+                    <x-user-avatar :user="$user" class="w-16 h-16 rounded-lg bg-white/5 border border-border-subtle text-base" />
+                    <p class="text-xs text-gray-500">
+                        {{ __('account.edit.avatar.body') }}
+                        <a href="https://gravatar.com" target="_blank" rel="noopener noreferrer" class="text-gc-yellow hover:underline">
+                            {{ __('account.edit.avatar.link_label') }}
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            {{-- Team fan tag --}}
+            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('account.edit.team.title') }}</h2>
+                <p class="text-xs text-gray-500">{{ __('account.edit.team.body') }}</p>
+
+                <form method="POST" action="{{ route('account.team.update') }}" class="space-y-4">
+                    @csrf
+                    @method('PUT')
+
+                    @livewire('team-fan-picker', ['initialTeamId' => $user->team_id, 'initialTeamTag' => $user->team_tag])
+
+                    @error('team_id')
+                        <p class="text-xs text-red-400">{{ $message }}</p>
+                    @enderror
+                    @error('team_tag')
+                        <p class="text-xs text-red-400">{{ $message }}</p>
+                    @enderror
+
+                    <button type="submit"
+                            class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                        {{ __('account.edit.team.submit') }}
                     </button>
                 </form>
             </div>

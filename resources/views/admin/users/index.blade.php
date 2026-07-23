@@ -56,9 +56,7 @@
                     <tr class="border-b border-b-white/10 last:border-b-0 hover:bg-white/[0.02] transition">
                         <td class="px-4 py-3">
                             <a href="{{ route('admin.users.show', $user) }}" class="flex items-center gap-3">
-                                <div class="w-8 h-8 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase text-white">
-                                    {{ $user->initials() }}
-                                </div>
+                                <x-user-avatar :user="$user" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-[10px]" />
                                 <div class="min-w-0">
                                     <p class="text-white font-semibold truncate hover:underline">{{ $user->name }}</p>
                                     @if ($user->username)

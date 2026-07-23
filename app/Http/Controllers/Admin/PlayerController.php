@@ -20,6 +20,7 @@ use App\Exceptions\PlayerHasMatchesException;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Models\Team;
+use App\Models\User;
 use App\Services\PlayerMergeService;
 use App\Services\PlayerProfileService;
 use App\Services\RosterService;
@@ -152,12 +153,37 @@ class PlayerController extends Controller
         return redirect()->route('admin.players.index')->with('status', 'player-created')->with('created_player', $player->id);
     }
 
-    public function show(Player $player): View
+    public function show(Request $request, Player $player): View
     {
+        $userSearch = $request->get('user_q');
+        $linkedUserIds = Player::whereNotNull('user_id')->where('id', '!=', $player->id)->pluck('user_id');
+
         return view('admin.players.show', [
             'player' => $player,
             'countries' => app(Countries::class)->list(),
+            'userSearch' => $userSearch ?? '',
+            'userSearchResults' => $userSearch
+                ? User::matching($userSearch)->whereNotIn('id', $linkedUserIds)->limit(10)->get()
+                : collect(),
         ]);
+    }
+
+    public function linkUser(Request $request, Player $player, PlayerProfileService $service): RedirectResponse
+    {
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id', Rule::unique('players', 'user_id')->ignore($player->id)],
+        ]);
+
+        $service->linkUser($player, (int) $validated['user_id'], $request->user());
+
+        return back()->with('status', 'user-linked');
+    }
+
+    public function unlinkUser(Request $request, Player $player, PlayerProfileService $service): RedirectResponse
+    {
+        $service->unlinkUser($player, $request->user());
+
+        return back()->with('status', 'user-unlinked');
     }
 
     public function updateProfile(Request $request, Player $player, PlayerProfileService $service): RedirectResponse

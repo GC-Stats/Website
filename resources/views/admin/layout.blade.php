@@ -67,6 +67,7 @@
                     ['route' => 'admin.analytics.index', 'pattern' => 'admin.analytics.*', 'label' => __('admin.nav.analytics'), 'icon' => 'fas-chart-line', 'can' => 'analytics.view'],
                     ['route' => 'admin.finance.index', 'pattern' => 'admin.finance.*', 'label' => __('admin.nav.finance'), 'icon' => 'fas-sack-dollar', 'can' => 'finance.view'],
                     ['route' => 'admin.about.index', 'pattern' => 'admin.about.*', 'label' => __('admin.nav.about'), 'icon' => 'fas-circle-info', 'can' => 'about.view'],
+                    ['route' => 'admin.emotes.index', 'pattern' => 'admin.emotes.*', 'label' => __('admin.nav.emotes'), 'icon' => 'fas-face-smile', 'can' => 'emotes.view'],
                     ['route' => 'admin.api-keys.index', 'pattern' => 'admin.api-keys.*', 'label' => __('admin.nav.api_keys'), 'icon' => 'fas-key', 'can' => 'api-keys.view'],
                 ],
             ],

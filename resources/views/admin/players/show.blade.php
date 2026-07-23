@@ -161,6 +161,91 @@
                     @endcan
                 </div>
             @endcanany
+
+            <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.players.linked_user.title') }}</h2>
+                <p class="text-xs text-gray-500">{{ __('admin.players.linked_user.body') }}</p>
+
+                @if ($player->user)
+                    <div class="flex items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-lg px-4 py-3">
+                        <div>
+                            <p class="text-sm text-white font-semibold">
+                                {{ $player->user->name }}
+                                @if ($player->user->username)
+                                    <span class="text-gray-500 font-normal">{{ '@'.$player->user->username }}</span>
+                                @endif
+                            </p>
+                            <p class="text-xs text-gray-500">{{ $player->user->email }}</p>
+                        </div>
+                        @can('players.edit')
+                            <form method="POST" action="{{ route('admin.players.user.destroy', $player) }}">
+                                @csrf
+                                @method('DELETE')
+                                <x-confirm-modal
+                                    :title="__('admin.players.linked_user.remove')"
+                                    :body="__('admin.players.linked_user.remove_confirm', ['user' => $player->user->name, 'player' => $player->handle])"
+                                    :trigger-label="__('admin.players.linked_user.remove')"
+                                    :submit-label="__('admin.players.linked_user.remove')"
+                                    trigger-class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                                    submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
+                                />
+                            </form>
+                        @endcan
+                    </div>
+                @else
+                    <p class="text-xs text-gray-500">{{ __('admin.players.linked_user.no_user') }}</p>
+
+                    @can('players.edit')
+                        <x-modal :title="__('admin.players.linked_user.add')" :open-by-default="$userSearch !== ''">
+                            <x-slot:trigger>
+                                <button type="button"
+                                        class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
+                                    {{ __('admin.players.linked_user.add') }}
+                                </button>
+                            </x-slot:trigger>
+
+                            <form method="GET" action="{{ route('admin.players.show', $player) }}" class="flex gap-2">
+                                <input type="text" name="user_q" value="{{ $userSearch }}" placeholder="{{ __('admin.players.linked_user.search_placeholder') }}"
+                                       class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                                <button type="submit"
+                                        class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
+                                    {{ __('admin.players.linked_user.search_submit') }}
+                                </button>
+                            </form>
+
+                            @if ($userSearch)
+                                <div class="space-y-2 pt-4">
+                                    @forelse ($userSearchResults as $found)
+                                        <form method="POST" action="{{ route('admin.players.user.update', $player) }}" class="flex items-center justify-between gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="user_id" value="{{ $found->id }}">
+                                            <div>
+                                                <p class="text-xs text-white font-semibold">
+                                                    {{ $found->name }}
+                                                    @if ($found->username)
+                                                        <span class="text-gray-500 font-normal">{{ '@'.$found->username }}</span>
+                                                    @endif
+                                                </p>
+                                                <p class="text-[10px] text-gray-500">{{ $found->email }}</p>
+                                            </div>
+                                            <button type="submit"
+                                                    class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
+                                                {{ __('admin.players.linked_user.assign') }}
+                                            </button>
+                                        </form>
+                                    @empty
+                                        <p class="text-xs text-gray-500">{{ __('admin.players.linked_user.search_empty') }}</p>
+                                    @endforelse
+                                </div>
+                            @endif
+                        </x-modal>
+                        @error('user_id')
+                            <p class="text-xs text-red-400">{{ $message }}</p>
+                        @enderror
+                    @endcan
+                @endif
+            </div>
         </div>
     </div>
 @endsection

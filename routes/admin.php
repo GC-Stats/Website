@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EmoteController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\GameMapController;
 use App\Http\Controllers\Admin\MatchController;
@@ -79,6 +80,7 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
 
         Route::middleware(['can:teams.edit'])->group(function () {
             Route::put('/{team}', [TeamController::class, 'updateProfile'])->name('update');
+            Route::put('/{team}/tags', [TeamController::class, 'updateTags'])->name('tags.update');
             Route::prefix('{team}/logo')->name('logo.')->group(function () {
                 Route::post('/', [TeamController::class, 'updateLogo'])->name('update');
                 Route::post('/history', [TeamController::class, 'storeLogoHistory'])->name('history.store');
@@ -120,6 +122,8 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
 
         Route::middleware(['can:players.edit'])->group(function () {
             Route::put('/{player}', [PlayerController::class, 'updateProfile'])->name('update');
+            Route::put('/{player}/user', [PlayerController::class, 'linkUser'])->name('user.update');
+            Route::delete('/{player}/user', [PlayerController::class, 'unlinkUser'])->name('user.destroy');
             Route::delete('/{player}/val-id', [PlayerController::class, 'resetValId'])->name('val-id.destroy');
             Route::delete('/{player}/discord-id', [PlayerController::class, 'resetDiscordId'])->name('discord-id.destroy');
             Route::prefix('{player}/logo')->name('logo.')->group(function () {
@@ -184,6 +188,21 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             Route::put('/{pointType}', [PointTypeController::class, 'update'])->name('update');
             Route::delete('/{pointType}', [PointTypeController::class, 'destroy'])->name('destroy');
         });
+    });
+
+    Route::prefix('emotes')->name('emotes.')->group(function () {
+        Route::middleware(['can:emotes.view'])->group(function () {
+            Route::get('/', [EmoteController::class, 'index'])->name('index');
+            Route::get('/create', [EmoteController::class, 'create'])->name('create');
+            Route::get('/{emote}/edit', [EmoteController::class, 'edit'])->name('edit');
+        });
+
+        Route::post('/', [EmoteController::class, 'store'])
+            ->middleware('can:emotes.create')->name('store');
+        Route::put('/{emote}', [EmoteController::class, 'update'])
+            ->middleware('can:emotes.edit')->name('update');
+        Route::delete('/{emote}', [EmoteController::class, 'destroy'])
+            ->middleware('can:emotes.delete')->name('destroy');
     });
 
     Route::prefix('tournaments/{tournament}/operations')->name('tournaments.operations.')->group(function () {

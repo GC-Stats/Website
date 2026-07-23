@@ -74,4 +74,30 @@ class TournamentPhase extends Model
     {
         return $this->hasMany(PhaseQualification::class, 'destination_phase_id');
     }
+
+    /**
+     * This phase's id plus every descendant's, at any depth — used to scope
+     * "matches of this phase" filters so picking a parent phase also
+     * surfaces matches sitting on its sub-phases (and their own sub-phases).
+     */
+    public function selfAndDescendantIds(): array
+    {
+        $byParent = static::where('tournament_id', $this->tournament_id)
+            ->get(['id', 'parent_id'])
+            ->groupBy('parent_id');
+
+        $ids = [$this->id];
+        $queue = [$this->id];
+
+        while ($queue) {
+            $current = array_shift($queue);
+
+            foreach ($byParent->get($current) ?? [] as $child) {
+                $ids[] = $child->id;
+                $queue[] = $child->id;
+            }
+        }
+
+        return $ids;
+    }
 }

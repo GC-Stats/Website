@@ -113,14 +113,24 @@ class LogoUploadService
         return Storage::disk($disk)->url($path);
     }
 
+    /**
+     * The disk-relative path of a stored thumbnail — the read-side half of
+     * the "{folder}/{uuid}/200x200.webp" convention storeLogoPair() writes,
+     * so callers never need to hard-code it themselves.
+     */
+    public function thumbnailPath(string $folder, string $uuid): string
+    {
+        return "{$folder}/{$uuid}/200x200.webp";
+    }
+
     public function thumbnailExists(string $folder, string $uuid, string $disk = 'public'): bool
     {
-        return Storage::disk($disk)->exists("{$folder}/{$uuid}/200x200.webp");
+        return Storage::disk($disk)->exists($this->thumbnailPath($folder, $uuid));
     }
 
     public function thumbnailUrl(string $folder, string $uuid, string $disk = 'public'): string
     {
-        return Storage::disk($disk)->url("{$folder}/{$uuid}/200x200.webp");
+        return Storage::disk($disk)->url($this->thumbnailPath($folder, $uuid));
     }
 
     public function deleteFiles(string $folder, string $uuid, string $disk = 'public'): void

@@ -24,6 +24,7 @@ class ActivityDisplay
         'team.information_updated' => 'information',
         'team.profile_updated' => 'information',
         'team.socials_updated' => 'socials',
+        'team.tags_updated' => 'tags',
         'team.logo_updated' => 'logo',
         'team.logo_history_added' => 'logo',
         'team.logo_history_updated' => 'logo',
@@ -45,6 +46,8 @@ class ActivityDisplay
         'player.identifiers_updated' => 'identifiers',
         'player.val_id_reset' => 'identifiers',
         'player.discord_id_reset' => 'identifiers',
+        'player.user_linked' => 'linked_user',
+        'player.user_unlinked' => 'linked_user',
     ];
 
     public static function label(?string $description): string

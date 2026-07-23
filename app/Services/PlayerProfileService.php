@@ -71,6 +71,20 @@ class PlayerProfileService
         activity('player')->performedOn($player)->causedBy($actor)->log('player.identifiers_updated');
     }
 
+    public function linkUser(Player $player, int $userId, User $actor): void
+    {
+        $player->update(['user_id' => $userId]);
+
+        activity('player')->performedOn($player)->causedBy($actor)->log('player.user_linked');
+    }
+
+    public function unlinkUser(Player $player, User $actor): void
+    {
+        $player->update(['user_id' => null]);
+
+        activity('player')->performedOn($player)->causedBy($actor)->log('player.user_unlinked');
+    }
+
     public function resetValId(Player $player, User $actor): void
     {
         $player->update(['val_id' => null]);

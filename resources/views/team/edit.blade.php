@@ -85,6 +85,45 @@
                 </div>
             @endcan
 
+            @can('team.tags.manage')
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+                    <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('team.edit.tags.title') }}</h2>
+                    <p class="text-xs text-gray-500">{{ __('team.edit.tags.body') }}</p>
+
+                    <form method="POST" action="{{ route('teams.tags.update', $teamParams) }}" class="space-y-3"
+                          x-data="{ tags: @js(old('tags', $team->fanTags()) ?: ['']) }">
+                        @csrf
+                        @method('PUT')
+
+                        <template x-for="(tag, index) in tags" :key="index">
+                            <div class="flex items-center gap-2">
+                                <input type="text" :name="'tags[' + index + ']'" x-model="tags[index]"
+                                       placeholder="{{ __('team.edit.tags.placeholder') }}"
+                                       class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                                <button type="button" @click="tags.splice(index, 1)"
+                                        class="shrink-0 font-bold uppercase text-[10px] tracking-widest px-3 py-2.5 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10">
+                                    {{ __('team.edit.tags.remove') }}
+                                </button>
+                            </div>
+                        </template>
+
+                        <button type="button" @click="tags.push('')"
+                                class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                            {{ __('team.edit.tags.add') }}
+                        </button>
+
+                        @error('tags')
+                            <p class="text-xs text-red-400">{{ $message }}</p>
+                        @enderror
+
+                        <button type="submit"
+                                class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                            {{ __('team.edit.tags.submit') }}
+                        </button>
+                    </form>
+                </div>
+            @endcan
+
             @can('team.roster.manage')
                 <x-roster-panel
                     :current="$roster"

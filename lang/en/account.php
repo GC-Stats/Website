@@ -15,6 +15,23 @@ return [
             'submit' => 'Save changes',
             'saved' => 'Profile updated.',
         ],
+        'avatar' => [
+            'title' => 'Avatar',
+            'body' => 'Your avatar is pulled from Gravatar, based on your account email address. Create or update one at',
+            'link_label' => 'gravatar.com',
+        ],
+        'team' => [
+            'title' => 'Team fan',
+            'body' => 'Show off a team you support on your public profile, along with one of that team\'s fan tags.',
+            'search_placeholder' => 'Search for a team…',
+            'search_empty' => 'No teams found.',
+            'remove' => 'Remove',
+            'tag_label' => 'Fan tag',
+            'tag_none' => 'None',
+            'no_tags' => 'This team has no fan tags yet.',
+            'submit' => 'Save',
+            'saved' => 'Team fan pick updated.',
+        ],
         'password' => [
             'title' => 'Password',
             'none_set' => 'No password set — you currently sign in with a connected account.',
@@ -92,5 +109,6 @@ return [
         'sanctioned_global' => 'Your account is currently under an active sanction: :reason',
         'sanctioned_team' => 'You are currently under an active sanction on this team: :reason',
         'cannot_report_user' => 'You cannot report yourself.',
+        'invalid_team_tag' => 'This tag does not belong to the selected team.',
     ],
 ];

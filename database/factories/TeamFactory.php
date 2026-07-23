@@ -18,6 +18,7 @@ class TeamFactory extends Factory
             'socials' => [
                 'twitter' => 'https://twitter.com/'.$this->faker->userName(),
             ],
+            'tags' => [strtoupper($this->faker->lexify('????')).'WIN'],
             'bio' => $this->faker->paragraph(),
         ];
     }

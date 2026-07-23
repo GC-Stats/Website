@@ -52,6 +52,30 @@ class TeamProfileService
         }
     }
 
+    /**
+     * @param  list<string>  $tags
+     */
+    public function updateTags(Team $team, array $tags, User $actor): void
+    {
+        $newTags = array_values(array_filter(array_map('trim', $tags), fn ($tag) => $tag !== ''));
+
+        $team->update(['tags' => $newTags]);
+
+        if ($team->wasChanged('tags')) {
+            activity('team')->performedOn($team)->causedBy($actor)->log('team.tags_updated');
+
+            // A user's fan tag (App\Models\User::team_tag) is only ever
+            // validated against this list at pick time (see
+            // Auth\AccountSettingsController::updateFanTeam) — without this,
+            // removing a tag here would leave it permanently displayed on
+            // any profile that had already picked it.
+            User::where('team_id', $team->id)
+                ->whereNotIn('team_tag', $newTags)
+                ->whereNotNull('team_tag')
+                ->update(['team_tag' => null]);
+        }
+    }
+
     public function updateLogo(Team $team, UploadedFile $file, User $actor): void
     {
         $uuid = $this->logoUploadService->storeLogoPair($file, 'teams');

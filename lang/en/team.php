@@ -99,6 +99,15 @@ return [
             'title' => 'Profile',
             'submit' => 'Save changes',
         ],
+        'tags' => [
+            'title' => 'Fan tags',
+            'body' => 'Fans can pick one of these tags on their account settings to show off as "fan of" this team on their public profile (e.g. "G2WIN").',
+            'placeholder' => 'e.g. G2WIN',
+            'add' => 'Add a tag',
+            'remove' => 'Remove',
+            'submit' => 'Save tags',
+            'empty' => 'No fan tags yet.',
+        ],
         'fields' => [
             'name' => 'Team name',
             'short_name' => 'Short name',
@@ -121,6 +130,7 @@ return [
             'logo-history-added' => 'Logo added to history.',
             'logo-history-updated' => 'Logo history entry updated.',
             'logo-history-removed' => 'Logo history entry removed.',
+            'tags-updated' => 'Fan tags updated.',
         ],
     ],
 

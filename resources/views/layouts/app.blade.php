@@ -155,8 +155,8 @@
                                 aria-haspopup="true"
                                 :aria-expanded="accountOpen.toString()"
                                 aria-label="{{ __('layout.account.menu_label') }}"
-                                class="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--brand-yellow)]/50 transition-all text-[10px] font-black uppercase text-white">
-                                {{ auth()->user()->initials() }}
+                                class="flex-shrink-0 w-9 h-9 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--brand-yellow)]/50 transition-all">
+                                <x-user-avatar :user="auth()->user()" class="w-full h-full rounded-xl text-[10px]" />
                             </button>
 
                             <div x-show="accountOpen"
@@ -170,6 +170,11 @@
                                  class="absolute right-0 mt-2 w-52 bg-bg-main/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] z-50 overflow-hidden origin-top-right"
                                  x-cloak>
                                 <div class="py-1">
+                                    <a href="{{ route('users.show', auth()->user()->username) }}" role="menuitem"
+                                       class="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
+                                        <x-fas-id-card class="w-3.5 h-3.5" aria-hidden="true" />
+                                        {{ __('layout.account.profile') }}
+                                    </a>
                                     <a href="{{ route('account.edit') }}" role="menuitem"
                                        class="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
                                         <x-fas-user class="w-3.5 h-3.5" aria-hidden="true" />

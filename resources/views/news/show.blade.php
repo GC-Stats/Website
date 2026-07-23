@@ -41,6 +41,7 @@
 @php
     $authorName      = $author['name'] ?? 'GC-Stats';
     $authorLogo      = $author['logo'] ?? null;
+    $authorUsername  = $author['username'] ?? null;
     $authorSlug      = $author['slug'] ?? null;
     $authorBio       = $author['bio'] ?? null;
     $publisherName   = $publisher['name'] ?? null;
@@ -122,6 +123,11 @@
         {!! $content !!}
     </article>
 
+    {{-- ── Reactions ───────────────────────────────────────────────────── --}}
+    <div class="mb-8">
+        <livewire:reaction-bar lazy :reactable-type="\App\Models\News::class" :reactable-id="$id" />
+    </div>
+
     {{-- ── Related entities ────────────────────────────────────────────── --}}
     @if(!empty($players) || !empty($teams) || !empty($tournaments))
         <div class="mb-10 pt-6 border-t border-white/[0.06]">
@@ -165,10 +171,21 @@
                 @endif
                 <div class="flex-1 min-w-0">
                     <span class="text-[8px] font-black uppercase tracking-[0.25em] text-gray-600 block mb-1">{{ __('news.author') }}</span>
-                    <a href="{{ route('news.author', $authorSlug) }}"
-                       class="text-[13px] font-black uppercase tracking-tight text-white hover:text-[var(--brand-yellow)] transition-colors block truncate mb-1">
-                        {{ $authorName }}
-                    </a>
+                    @if ($authorUsername)
+                        <a href="{{ route('users.news', $authorUsername) }}"
+                           class="text-[13px] font-black uppercase tracking-tight text-white hover:text-[var(--brand-yellow)] transition-colors block truncate mb-1">
+                            {{ $authorName }}
+                        </a>
+                    @elseif ($authorSlug)
+                        <a href="{{ route('news.author', $authorSlug) }}"
+                           class="text-[13px] font-black uppercase tracking-tight text-white hover:text-[var(--brand-yellow)] transition-colors block truncate mb-1">
+                            {{ $authorName }}
+                        </a>
+                    @else
+                        <span class="text-[13px] font-black uppercase tracking-tight text-white block truncate mb-1">
+                            {{ $authorName }}
+                        </span>
+                    @endif
                     @if($authorBio)
                         <p class="text-[10px] text-gray-500 leading-relaxed line-clamp-2 mb-2">{{ $authorBio }}</p>
                     @endif

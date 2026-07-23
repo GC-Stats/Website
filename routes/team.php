@@ -30,6 +30,8 @@ Route::middleware(['auth', 'team.permission-context', 'not-sanctioned', 'not-san
         Route::get('/edit', [ProfileController::class, 'edit'])->name('teams.edit');
         Route::put('/edit', [ProfileController::class, 'update'])
             ->middleware('can:team.profile.edit')->name('teams.update');
+        Route::put('/edit/tags', [ProfileController::class, 'updateTags'])
+            ->middleware('can:team.tags.manage')->name('teams.tags.update');
         Route::prefix('edit/logo')->name('teams.logo.')->middleware('can:team.logo.upload')->group(function () {
             Route::post('/', [ProfileController::class, 'updateLogo'])->name('update');
             Route::post('/history', [ProfileController::class, 'storeLogoHistory'])->name('history.store');

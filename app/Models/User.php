@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -33,7 +34,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'username', 'email', 'password'])]
+#[Fillable(['name', 'username', 'email', 'password', 'team_id', 'team_tag'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -58,6 +59,12 @@ class User extends Authenticatable implements PasskeyUser
     public function player(): HasOne
     {
         return $this->hasOne(Player::class);
+    }
+
+    /** The team this user has picked to show as "fan of" on their public profile. */
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
     }
 
     public function newsAuthor(): HasOne
@@ -174,5 +181,27 @@ class User extends Authenticatable implements PasskeyUser
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
+    }
+
+    /**
+     * Gravatar URL for this user's email. Uses `d=404` so the caller can
+     * fall back to initials (e.g. via an `onerror` handler) when no
+     * Gravatar is registered for the address, rather than always showing
+     * Gravatar's generic placeholder image.
+     */
+    public function gravatarUrl(int $size = 128): string
+    {
+        $hash = hash('sha256', Str::lower(Str::trim($this->email)));
+
+        return "https://www.gravatar.com/avatar/{$hash}?s={$size}&d=404";
+    }
+
+    /**
+     * SEO-friendly URL segment for this user's public profile — not stored,
+     * derived from the name/username, matching Team::routeSlug()'s pattern.
+     */
+    public function routeSlug(): string
+    {
+        return Str::routeSlug($this->username ?: $this->name, $this->id);
     }
 }
