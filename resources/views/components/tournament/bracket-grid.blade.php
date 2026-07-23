@@ -77,7 +77,7 @@
                                    class="block bg-bg-card border border-green-500/30 rounded-sm shadow-md overflow-hidden hover:border-green-500/60 transition-all group active:scale-[0.98]">
                                     <div class="flex items-center justify-between p-2">
                                         <div class="flex items-center gap-2">
-                                            <img src="{{ $slot['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0 logo-filter" draggable="false">
+                                            <img src="{{ $slot['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0" draggable="false">
                                             <span class="text-[10px] font-black italic uppercase text-white truncate">
                                                 {{ Str::limit($slot['name'], 20) }}
                                             </span>
@@ -98,7 +98,7 @@
                                     <div class="flex items-center justify-between p-2 border-b border-white/5 {{ !is_null($match['team_a_score']) && $match['team_a_score'] > $match['team_b_score'] ? 'bg-gc-yellow/5' : '' }}">
                                         <div class="flex items-center gap-2">
                                             @if(!empty($match['team_a_name']))
-                                                <img src="{{ $match['team_a_logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0 logo-filter" draggable="false">
+                                                <img src="{{ $match['team_a_logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0" draggable="false">
                                                 <span class="text-[10px] font-black italic uppercase group-hover:text-white transition-colors {{ !is_null($match['team_a_score']) && $match['team_a_score'] > $match['team_b_score'] ? 'text-white' : 'text-gray-400' }}">
                                                     {{ Str::limit($match['team_a_name'], 20) }}
                                                 </span>
@@ -113,7 +113,7 @@
                                     <div class="flex items-center justify-between p-2 {{ !is_null($match['team_b_score']) && $match['team_b_score'] > $match['team_a_score'] ? 'bg-gc-yellow/5' : '' }}">
                                         <div class="flex items-center gap-2">
                                             @if(!empty($match['team_b_name']))
-                                                <img src="{{ $match['team_b_logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0 logo-filter" draggable="false">
+                                                <img src="{{ $match['team_b_logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0" draggable="false">
                                                 <span class="text-[10px] font-black italic uppercase group-hover:text-white transition-colors {{ !is_null($match['team_b_score']) && $match['team_b_score'] > $match['team_a_score'] ? 'text-white' : 'text-gray-400' }}">
                                                     {{ Str::limit($match['team_b_name'], 20) }}
                                                 </span>

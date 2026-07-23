@@ -69,7 +69,7 @@
                 </span>
                 <div class="relative shrink-0">
                     <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-xl transition-opacity"></div>
-                    <img src="{{ $teamALogo }}" class="w-6 h-6 md:w-16 md:h-16 object-contain relative z-10 filter drop-shadow-2xl logo-filter" alt="{{ $teamA }}">
+                    <img src="{{ $teamALogo }}" class="w-6 h-6 md:w-16 md:h-16 object-contain relative z-10 filter drop-shadow-2xl" alt="{{ $teamA }}">
                 </div>
             </div>
 

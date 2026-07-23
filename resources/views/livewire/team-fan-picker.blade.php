@@ -96,7 +96,7 @@ new class extends Component {
             <div class="flex items-center gap-3 min-w-0">
                 <div class="flex-shrink-0 w-8 h-5 flex items-center justify-center">
                     @if ($selectedTeamLogo && $selectedTeamLogo !== asset('storage/images/default-team.webp'))
-                        <img src="{{ $selectedTeamLogo }}" class="w-full h-full object-contain logo-filter" alt="{{ $selectedTeamName }}">
+                        <img src="{{ $selectedTeamLogo }}" class="w-full h-full object-contain" alt="{{ $selectedTeamName }}">
                     @else
                         <span class="fi fi-{{ strtolower($selectedTeamCountryCode ?? 'un') }} fis rounded-[2px] shadow-sm" aria-label="{{ $selectedTeamCountryCode }}"></span>
                     @endif
@@ -151,7 +151,7 @@ new class extends Component {
                                 class="w-full flex items-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-l-2 border-transparent text-gray-400 hover:bg-white/[0.03] hover:border-gc-yellow hover:text-white transition-all">
                             <div class="flex-shrink-0 w-8 h-5 flex items-center justify-center mr-3">
                                 @if ($item['logo'] !== asset('storage/images/default-team.webp'))
-                                    <img src="{{ $item['logo'] }}" class="w-full h-full object-contain logo-filter" alt="{{ $item['name'] }}">
+                                    <img src="{{ $item['logo'] }}" class="w-full h-full object-contain" alt="{{ $item['name'] }}">
                                 @else
                                     <span class="fi fi-{{ strtolower($item['country_code'] ?? 'un') }} fis rounded-[2px] shadow-sm" aria-label="{{ $item['country_code'] }}"></span>
                                 @endif

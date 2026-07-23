@@ -77,7 +77,7 @@
                         @if($item['type'] === 'tournaments')
                             <img src="{{ $item['logo'] }}" alt="{{ $item['name'] }}" class="w-full h-full object-contain p-2 opacity-80 group-hover:opacity-100 transition-opacity">
                         @elseif($item['type'] === 'teams')
-                            <img src="{{ $item['logo'] }}" alt="{{ $item['name'] }}" class="w-full h-full object-contain p-2 logo-filter">
+                            <img src="{{ $item['logo'] }}" alt="{{ $item['name'] }}" class="w-full h-full object-contain p-2">
                         @else
                             <img src="{{ $item['photo'] }}" alt="{{ $item['handle'] }}" class="w-full h-full object-cover">
                         @endif

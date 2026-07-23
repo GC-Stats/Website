@@ -34,6 +34,12 @@ use App\Http\Controllers\Api\ApiTeamLogoController;
 use App\Http\Controllers\Api\ApiTournamentController;
 use App\Http\Controllers\Api\ApiTournamentLogoController;
 
+/**
+ * DEPRECATED
+ *
+ * This API was used by our dedicated Dashboard, with the arrival of the account system & admin part of the website, the dashboard is deprecated
+ * The API and Dashboard are still in place in case of problem with the new admin dashboard
+ */
 Route::prefix('internal')
     ->middleware(['internal.service'])
     ->group(function () {

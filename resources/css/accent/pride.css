@@ -91,3 +91,7 @@
     background: linear-gradient(90deg, #e40303, #ff8c00, #ffed00, #008026, #004dff, #750787);
     z-index: 1;
 }
+
+.pride-flag-badge {
+    display: none;
+}

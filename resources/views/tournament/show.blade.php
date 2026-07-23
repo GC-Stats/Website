@@ -219,7 +219,7 @@
                         <div class="flex-1 flex items-center justify-center w-full">
                             <a href="{{ route('teams.show', [$team['id'], str($team['name'] ?? '')->slug()]) }}" x-show="!(showAllRosters ? !showRoster : showRoster)" class="group relative shrink-0 w-16 h-16 flex items-center justify-center p-2 group-hover:scale-110 transition-transform">
                                 <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
-                                <img class="max-w-full max-h-full object-contain logo-filter" src="{{ $team['logo'] ?? asset('storage/images/default-team.webp') }}" alt="" loading="lazy">
+                                <img class="max-w-full max-h-full object-contain" src="{{ $team['logo'] ?? asset('storage/images/default-team.webp') }}" alt="" loading="lazy">
                             </a>
 
                             @if(!empty($team['roster']))

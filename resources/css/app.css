@@ -16,13 +16,15 @@
 @import 'tailwindcss';
 @import 'flag-icons/css/flag-icons.min.css';
 
-@source '../views';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-
 @import './theme/dark.css';
 @import './theme/white.css';
 
 @import './accent/pride.css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
@@ -34,7 +36,25 @@
     }
 }
 
-/* News article content */
+body {
+    background-color: var(--color-bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+}
+
+.bg-bg-card {
+    @apply bg-[#0A0A0A] border border-white/5 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,0,0,0.5)];
+}
+
+.tournament-card {
+    @apply bg-[#0A0A0A] border border-white/5 transition-all duration-300 hover:border-[var(--brand-yellow)]/80 hover:shadow-[0_0_30px_rgba(0,0,0,0.5)];
+}
+
+/*
+ * NEWS
+ */
+
 .news-content h2 {
     font-size: 1.25rem;
     text-transform: none;
@@ -86,32 +106,11 @@
     margin-bottom: 2.5rem;
 }
 
-.logo-filter {
-    filter: drop-shadow(0 0 2px rgba(255,255,255,0.2)) brightness(1.2);
-}
+/*
+ * SCROLLBAR
+ */
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--color-bg-main); }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-gc-yellow); }
-
-body {
-    background-color: var(--color-bg-main);
-    color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-}
-
-.bg-bg-card {
-    @apply bg-[#0A0A0A] border border-white/5 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,0,0,0.5)];
-}
-
-.tournament-card {
-    @apply bg-[#0A0A0A] border border-white/5 transition-all duration-300 hover:border-[var(--brand-yellow)]/80 hover:shadow-[0_0_30px_rgba(0,0,0,0.5)];
-}
-
-/* Small pride-flag swatch shown next to the GCSTATS wordmark in the navbar;
-   made visible by the active accent's own stylesheet (see ./accent). */
-.pride-flag-badge {
-    display: none;
-}

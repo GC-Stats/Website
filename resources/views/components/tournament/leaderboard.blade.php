@@ -118,7 +118,7 @@
                         @if ($row['team']['id'] ?? null)
                             <a href="{{ route('teams.show', [$row['team']['id'], str($row['team']['name'] ?? '')->slug()]) }}" class="flex items-center gap-2 group">
                                 <img src="{{ $row['team']['logo'] ?? asset('storage/images/default-team.webp') }}"
-                                     class="w-5 h-5 object-contain flex-shrink-0 transition-transform group-hover:scale-110 logo-filter" alt="">
+                                     class="w-5 h-5 object-contain flex-shrink-0 transition-transform group-hover:scale-110" alt="">
                                 <span class="text-[11px] md:text-xs font-bold uppercase text-white truncate group-hover:text-gc-yellow transition-colors">{{ $row['team']['name'] }}</span>
                             </a>
                         @else
@@ -163,7 +163,7 @@
                             @if ($row['team']['id'] ?? null)
                                 <a href="{{ route('teams.show', [$row['team']['id'], str($row['team']['name'] ?? '')->slug()]) }}" class="flex items-center gap-2 group">
                                     <img src="{{ $row['team']['logo'] ?? asset('storage/images/default-team.webp') }}"
-                                         class="w-5 h-5 object-contain flex-shrink-0 transition-transform group-hover:scale-110 logo-filter" alt="">
+                                         class="w-5 h-5 object-contain flex-shrink-0 transition-transform group-hover:scale-110" alt="">
                                     <span class="text-[11px] md:text-xs font-bold uppercase text-gray-300 truncate group-hover:text-gc-yellow transition-colors">{{ $row['team']['name'] }}</span>
                                 </a>
                             @else

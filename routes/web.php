@@ -18,7 +18,6 @@ use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\NewsController;
-use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TournamentController;
@@ -76,41 +75,35 @@ Route::middleware(['static.cache:300'])->group(function () {
     Route::get('/finance', [FinanceController::class, 'index'])->name('finance');
 });
 
-Route::get('/player/{id}/history', [PlayerController::class, 'history']);
-Route::get('/player/{id}/{slug}/history', [PlayerController::class, 'history'])->name('players.history');
-Route::get('/player/{id}/matches', [PlayerController::class, 'matches']);
-Route::get('/player/{id}/{slug}/matches', [PlayerController::class, 'matches'])->name('players.matches');
-Route::get('/player/{id}/stats', [PlayerController::class, 'stats']);
-Route::get('/player/{id}/{slug}/stats', [PlayerController::class, 'stats'])->name('players.stats');
-Route::get('/player/{id}/{slug?}', [PlayerController::class, 'index'])->name('players.show');
+Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
+Route::prefix('/tournaments/{tournament}/{slug}')->name('tournaments.')->group(function () {
+    Route::get('/', [TournamentController::class, 'show'])->name('show');
+    Route::get('/matches', [TournamentController::class, 'matches'])->name('matches');
+    Route::get('/stats', [TournamentController::class, 'stats'])->name('stats');
+    Route::get('/maps', [TournamentController::class, 'maps'])->name('maps');
+});
 
-Route::get('/team/{id}/history', [TeamController::class, 'history']);
-Route::get('/team/{id}/{slug}/history', [TeamController::class, 'history'])->name('teams.history');
-Route::get('/team/{id}/matches', [TeamController::class, 'matches']);
-Route::get('/team/{id}/{slug}/matches', [TeamController::class, 'matches'])->name('teams.matches');
-Route::get('/team/{id}/maps', [TeamController::class, 'maps']);
-Route::get('/team/{id}/{slug}/maps', [TeamController::class, 'maps'])->name('teams.maps');
-Route::get('/team/{id}/{slug?}', [TeamController::class, 'index'])->name('teams.show');
+Route::prefix('/team/{team}/{slug}')->name('teams.')->group(function () {
+    Route::get('//history', [TeamController::class, 'history'])->name('history');
+    Route::get('/matches', [TeamController::class, 'matches'])->name('matches');
+    Route::get('/maps', [TeamController::class, 'maps'])->name('maps');
+    Route::get('/', [TeamController::class, 'index'])->name('show');
+});
 
-Route::get('/user/{user:username}', [UserProfileController::class, 'show'])->name('users.show');
-Route::get('/user/{user:username}/news', [UserProfileController::class, 'news'])->name('users.news');
+Route::prefix('/user/{user:username}')->name('users.')->group(function () {
+    Route::get('/', [UserProfileController::class, 'show'])->name('show');
+    Route::get('/news', [UserProfileController::class, 'news'])->name('news');
+});
 
 Route::get('/match/{id}', [MatchController::class, 'index'])->name('match.show');
 
 Route::get('/search', [SearchController::class, 'index'])->name('search.results');
 
-Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
-Route::get('/news/author/{slug}', [NewsController::class, 'author'])->name('news.author');
-Route::get('/news/publisher/{slug}', [NewsController::class, 'publisher'])->name('news.publisher');
-
-Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
-Route::get('/tournaments/{tournament}/matches', [TournamentController::class, 'matches']);
-Route::get('/tournaments/{tournament}/{slug}/matches', [TournamentController::class, 'matches'])->name('tournaments.matches');
-Route::get('/tournaments/{id}/stats', [TournamentController::class, 'stats']);
-Route::get('/tournaments/{id}/{slug}/stats', [TournamentController::class, 'stats'])->name('tournaments.stats');
-Route::get('/tournaments/{id}/maps', [TournamentController::class, 'maps']);
-Route::get('/tournaments/{id}/{slug}/maps', [TournamentController::class, 'maps'])->name('tournaments.maps');
-Route::get('/tournaments/{tournament}/{slug?}', [TournamentController::class, 'show'])->name('tournaments.show');
+Route::prefix('/news')->name('news.')->group(function () {
+    Route::get('/{slug}', [NewsController::class, 'show'])->name('show');
+    Route::get('/author/{slug}', [NewsController::class, 'author'])->name('author');
+    Route::get('/publisher/{slug}', [NewsController::class, 'publisher'])->name('publisher');
+});
 
 Route::middleware(['throttle:30,1'])->group(function () {
     Route::get('/api-keys/reveal/{token}', [ApiKeyRevealController::class, 'show'])->name('api-keys.reveal');

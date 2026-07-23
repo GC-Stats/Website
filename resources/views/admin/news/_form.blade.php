@@ -54,7 +54,7 @@
 </div>
 
 @push('scripts')
-    @vite('resources/js/admin-news-editor.js')
+    @vite('resources/js/admin/news/editor.js')
 @endpush
 
 <div class="flex items-center gap-6">
