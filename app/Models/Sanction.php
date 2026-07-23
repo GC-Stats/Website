@@ -34,6 +34,16 @@ class Sanction extends Model
 
     public const TYPE_BAN = 'ban';
 
+    public const TYPE_NOTE = 'note';
+
+    public const TYPES = [
+        self::TYPE_NOTE,
+        self::TYPE_WARNING,
+        self::TYPE_MUTE,
+        self::TYPE_SUSPENSION,
+        self::TYPE_BAN,
+    ];
+
     protected $fillable = [
         'user_id',
         'team_id',

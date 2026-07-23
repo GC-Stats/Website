@@ -7,15 +7,6 @@
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
 --}}
-@php
-    $sanctionTypes = [
-        \App\Models\Sanction::TYPE_WARNING,
-        \App\Models\Sanction::TYPE_MUTE,
-        \App\Models\Sanction::TYPE_SUSPENSION,
-        \App\Models\Sanction::TYPE_BAN,
-    ];
-@endphp
-
 <form method="POST" action="{{ route('admin.sanctions.store') }}" class="space-y-4">
     @csrf
 
@@ -46,7 +37,7 @@
         </label>
         <select name="type" required
                 class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            @foreach ($sanctionTypes as $type)
+            @foreach (\App\Models\Sanction::TYPES as $type)
                 <option value="{{ $type }}">{{ __('admin.sanctions.type.'.$type) }}</option>
             @endforeach
         </select>

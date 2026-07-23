@@ -16,7 +16,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Sanction;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,12 +27,7 @@ class EnsureAccountIsNotSanctioned
         $user = $request->user();
 
         if ($user) {
-            $sanction = $user->sanctions()
-                ->active()
-                ->whereNull('team_id')
-                ->whereIn('type', [Sanction::TYPE_SUSPENSION, Sanction::TYPE_BAN])
-                ->latest('starts_at')
-                ->first();
+            $sanction = $user->activeGlobalBlockingSanction();
 
             if ($sanction) {
                 abort(403, __('account.errors.sanctioned_global', ['reason' => $sanction->reason]));

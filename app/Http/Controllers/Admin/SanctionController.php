@@ -25,13 +25,6 @@ use Illuminate\Validation\Rule;
 
 class SanctionController extends Controller
 {
-    private const TYPES = [
-        Sanction::TYPE_WARNING,
-        Sanction::TYPE_MUTE,
-        Sanction::TYPE_SUSPENSION,
-        Sanction::TYPE_BAN,
-    ];
-
     private const SORTABLE = ['user', 'type', 'reason', 'ends_at', 'issued_by'];
 
     public function index(Request $request): View
@@ -59,7 +52,7 @@ class SanctionController extends Controller
         return view('admin.sanctions.index', [
             'sanctions' => $sanctions,
             'showAll' => $request->boolean('all'),
-            'types' => self::TYPES,
+            'types' => Sanction::TYPES,
             'sort' => $sort,
             'direction' => $direction,
         ]);
@@ -69,7 +62,7 @@ class SanctionController extends Controller
     {
         $validated = $request->validate([
             'username' => ['required', 'string', 'exists:users,username'],
-            'type' => ['required', 'string', Rule::in(self::TYPES)],
+            'type' => ['required', 'string', Rule::in(Sanction::TYPES)],
             'reason' => ['required', 'string', 'max:2000'],
             'ends_at' => ['nullable', 'date', 'after:now'],
         ]);

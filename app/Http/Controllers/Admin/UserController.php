@@ -79,29 +79,67 @@ class UserController extends Controller
         ]);
     }
 
-    public function show(User $user): View
+    public function show(Request $request, User $user): View
     {
-        $user->load(['roles:id,name', 'socialAccounts', 'passkeys']);
+        $viewer = $request->user();
 
-        $teamNames = Team::pluck('name', 'id');
-        $publisherNames = NewsPublisher::pluck('name', 'id');
+        $teamRoles = collect();
+        $publisherRoles = collect();
+        $player = null;
+        $sanctions = collect();
+        $reportsReceived = collect();
+        $reportsSubmitted = collect();
 
-        $player = $user->player?->load(['teams' => fn ($query) => $query->wherePivotNull('left_at')]);
+        if ($viewer->can('users.view.details')) {
+            $user->load(['roles:id,name', 'socialAccounts', 'passkeys']);
 
-        $sanctions = $user->sanctions()
-            ->with(['issuedBy:id,name', 'team:id,name'])
-            ->latest()
-            ->limit(15)
-            ->get();
+            $publisherNames = NewsPublisher::pluck('name', 'id');
+
+            $publisherRoles = UserRoleSummary::rolesGroupedByTeam($user->id, PublisherPermissions::GUARD)
+                ->map(fn ($roleNames, $publisherId) => ['name' => $publisherNames[$publisherId] ?? "#{$publisherId}", 'id' => $publisherId, 'roles' => $roleNames]);
+        }
+
+        if ($viewer->can('teams.view')) {
+            $teamNames = Team::pluck('name', 'id');
+
+            $teamRoles = UserRoleSummary::rolesGroupedByTeam($user->id, 'web', TeamRoleService::ROLE_OWNER, TeamRoleService::ROLE_MANAGER, TeamRoleService::ROLE_EDITOR)
+                ->map(fn ($roleNames, $teamId) => ['name' => $teamNames[$teamId] ?? "#{$teamId}", 'id' => $teamId, 'roles' => $roleNames]);
+        }
+
+        if ($viewer->can('players.view')) {
+            $player = $user->player?->load(['teams' => fn ($query) => $query->wherePivotNull('left_at')]);
+        }
+
+        if ($viewer->can('sanctions.view')) {
+            $sanctions = $user->sanctions()
+                ->with(['issuedBy:id,name', 'team:id,name'])
+                ->latest()
+                ->limit(15)
+                ->get();
+        }
+
+        if ($viewer->can('reports.view')) {
+            $reportsReceived = $user->reportsReceived()
+                ->with(['team:id,name', 'reviewedBy:id,name'])
+                ->latest()
+                ->limit(15)
+                ->get();
+
+            $reportsSubmitted = $user->reportsSubmitted()
+                ->with(['reportedUser:id,name,username', 'team:id,name'])
+                ->latest()
+                ->limit(15)
+                ->get();
+        }
 
         return view('admin.users.show', [
             'user' => $user,
-            'teamRoles' => UserRoleSummary::rolesGroupedByTeam($user->id, 'web', TeamRoleService::ROLE_OWNER, TeamRoleService::ROLE_MANAGER, TeamRoleService::ROLE_EDITOR)
-                ->map(fn ($roleNames, $teamId) => ['name' => $teamNames[$teamId] ?? "#{$teamId}", 'id' => $teamId, 'roles' => $roleNames]),
-            'publisherRoles' => UserRoleSummary::rolesGroupedByTeam($user->id, PublisherPermissions::GUARD)
-                ->map(fn ($roleNames, $publisherId) => ['name' => $publisherNames[$publisherId] ?? "#{$publisherId}", 'id' => $publisherId, 'roles' => $roleNames]),
+            'teamRoles' => $teamRoles,
+            'publisherRoles' => $publisherRoles,
             'player' => $player,
             'sanctions' => $sanctions,
+            'reportsReceived' => $reportsReceived,
+            'reportsSubmitted' => $reportsSubmitted,
         ]);
     }
 

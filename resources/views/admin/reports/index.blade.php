@@ -33,9 +33,19 @@
                 @forelse ($reports as $report)
                     <tr class="border-b border-white/10 last:border-0">
                         <td class="px-4 py-3 text-white font-semibold">
-                            {{ $report->reportedUser?->name ?? '—' }}
-                            @if ($report->reportedUser?->username)
-                                <span class="text-gray-500 font-normal">{{ '@'.$report->reportedUser->username }}</span>
+                            @if ($report->isReactionReport())
+                                <span class="inline-flex items-center gap-1.5">
+                                    <img src="{{ $report->emote->image_url }}" alt="{{ $report->emote->name }}" class="w-4 h-4 object-contain">
+                                    {{ $report->emote->name }}
+                                </span>
+                                @if ($report->reactable instanceof \App\Models\News)
+                                    <span class="text-gray-500 font-normal block text-xs truncate max-w-[16rem]">{{ $report->reactable->title }}</span>
+                                @endif
+                            @else
+                                {{ $report->reportedUser?->name ?? '—' }}
+                                @if ($report->reportedUser?->username)
+                                    <span class="text-gray-500 font-normal">{{ '@'.$report->reportedUser->username }}</span>
+                                @endif
                             @endif
                         </td>
                         <td class="px-4 py-3 text-gray-400">

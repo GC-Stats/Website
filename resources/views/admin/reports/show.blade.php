@@ -28,16 +28,31 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('admin.reports.reported_user') }}</p>
-                        <p class="text-white font-semibold">
-                            {{ $report->reportedUser?->name ?? '—' }}
-                            @if ($report->reportedUser?->username)
-                                <span class="text-gray-500 font-normal">{{ '@'.$report->reportedUser->username }}</span>
+                    @if ($report->isReactionReport())
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('admin.reports.reaction') }}</p>
+                            <p class="text-white font-semibold flex items-center gap-1.5">
+                                <img src="{{ $report->emote->image_url }}" alt="{{ $report->emote->name }}" class="w-4 h-4 object-contain">
+                                {{ $report->emote->name }}
+                            </p>
+                            @if ($report->reactable instanceof \App\Models\News)
+                                <a href="{{ route('news.show', $report->reactable->slug) }}" target="_blank" rel="noopener" class="text-gray-500 text-xs hover:text-gc-yellow transition truncate">
+                                    {{ $report->reactable->title }}
+                                </a>
                             @endif
-                        </p>
-                        <p class="text-gray-500 text-xs">{{ $report->reportedUser?->email }}</p>
-                    </div>
+                        </div>
+                    @else
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('admin.reports.reported_user') }}</p>
+                            <p class="text-white font-semibold">
+                                {{ $report->reportedUser?->name ?? '—' }}
+                                @if ($report->reportedUser?->username)
+                                    <span class="text-gray-500 font-normal">{{ '@'.$report->reportedUser->username }}</span>
+                                @endif
+                            </p>
+                            <p class="text-gray-500 text-xs">{{ $report->reportedUser?->email }}</p>
+                        </div>
+                    @endif
                     <div>
                         <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('admin.reports.reporter') }}</p>
                         <p class="text-white font-semibold">
@@ -113,6 +128,29 @@
         </div>
 
         <div class="space-y-6">
+            @if ($report->isReactionReport())
+                <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
+                    <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.reports.reactors_title') }}</h2>
+
+                    <div class="space-y-1 max-h-96 overflow-y-auto">
+                        @forelse ($report->reactingUsers() as $reaction)
+                            <div class="flex items-center justify-between gap-2 py-1.5 border-b border-b-white/10 last:border-b-0">
+                                <span class="text-sm text-white truncate">{{ $reaction->user->name }}</span>
+                                @can('sanctions.create')
+                                    <x-sanction-modal :user="$reaction->user">
+                                        <button type="button" class="text-gray-500 hover:text-gc-yellow transition shrink-0" title="{{ __('admin.reports.issue_sanction') }}">
+                                            @svg('fas-gavel', 'w-3 h-3', ['aria-hidden' => 'true'])
+                                        </button>
+                                    </x-sanction-modal>
+                                @endcan
+                            </div>
+                        @empty
+                            <p class="text-xs text-gray-500">{{ __('admin.reports.no_reactors') }}</p>
+                        @endforelse
+                    </div>
+                </div>
+            @endif
+
             @if ($report->reportedUser)
                 <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                     <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.reports.reported_user_history') }}</h2>
@@ -136,15 +174,12 @@
                     </div>
 
                     @can('sanctions.create')
-                        <x-modal :title="__('admin.reports.issue_sanction')">
-                            <x-slot:trigger>
-                                <button type="button"
-                                        class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20">
-                                    {{ __('admin.reports.issue_sanction') }}
-                                </button>
-                            </x-slot:trigger>
-                            @include('admin.sanctions._form', ['user' => $report->reportedUser])
-                        </x-modal>
+                        <x-sanction-modal :user="$report->reportedUser">
+                            <button type="button"
+                                    class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20">
+                                {{ __('admin.reports.issue_sanction') }}
+                            </button>
+                        </x-sanction-modal>
                     @endcan
                 </div>
             @endif

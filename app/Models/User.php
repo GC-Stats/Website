@@ -82,6 +82,22 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasMany(Sanction::class);
     }
 
+    /**
+     * Active global (not team-scoped) suspension or ban, if any — the same
+     * check EnsureAccountIsNotSanctioned enforces at the route level, reused
+     * here for actions that have no dedicated route to attach middleware to
+     * (e.g. Livewire component methods).
+     */
+    public function activeGlobalBlockingSanction(): ?Sanction
+    {
+        return $this->sanctions()
+            ->active()
+            ->whereNull('team_id')
+            ->whereIn('type', [Sanction::TYPE_SUSPENSION, Sanction::TYPE_BAN])
+            ->latest('starts_at')
+            ->first();
+    }
+
     public function reportsReceived(): HasMany
     {
         return $this->hasMany(UserReport::class, 'reported_user_id');

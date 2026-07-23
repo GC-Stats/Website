@@ -46,17 +46,5 @@ class RoleSeeder extends Seeder
         Permission::where('guard_name', PublisherPermissions::GUARD)->whereNotIn('name', $publisherCatalog)->get()->each->delete();
 
         Role::findOrCreate('super-admin');
-
-        Role::findOrCreate('moderator')->syncPermissions([
-            'reports.view', 'reports.resolve',
-            'sanctions.view', 'sanctions.create', 'sanctions.revoke',
-            'activity.moderation',
-        ]);
-
-        Role::findOrCreate('editor')->syncPermissions([
-            'news.view', 'news.create', 'news.edit', 'news.publish',
-            'teams.view', 'teams.create', 'teams.edit', 'players.view', 'players.create', 'players.edit',
-            'tournaments.view', 'tournaments.edit', 'matches.view', 'matches.edit',
-        ]);
     }
 }

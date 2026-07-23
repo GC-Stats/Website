@@ -55,7 +55,7 @@ class DashboardController extends Controller
                     'matches' => $canViewMatches ? Matchs::count() : null,
                 ],
                 'recentMatches' => $canViewMatches
-                    ? Matchs::with(['teamA', 'teamB'])
+                    ? Matchs::with(['teamA', 'teamB', 'tournament'])
                         ->whereIn('status', ['live', 'upcoming'])
                         ->whereNotNull('scheduled_at')
                         ->whereDate('scheduled_at', '!=', MatchDisplay::UNKNOWN_DATE)

@@ -104,7 +104,7 @@
                 </div>
 
                 @forelse ($recentMatches as $match)
-                    <a href="{{ route('match.show', $match->id) }}"
+                    <a href="{{ route('admin.matches.show', [$match->tournament, $match]) }}"
                        class="block px-4 py-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition">
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-1.5 min-w-0">

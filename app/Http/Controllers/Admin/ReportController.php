@@ -39,7 +39,7 @@ class ReportController extends Controller
 
         [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'submitted_at', 'desc');
 
-        $reports = UserReport::with(['reporter:id,name,username', 'reportedUser:id,name,username', 'team:id,name'])
+        $reports = UserReport::with(['reporter:id,name,username', 'reportedUser:id,name,username', 'team:id,name', 'emote', 'reactable'])
             ->when(in_array($status, self::STATUSES, true), fn ($query) => $query->where('status', $status))
             ->when($sort === 'reported_user', fn ($query) => $query
                 ->select('user_reports.*')
@@ -70,7 +70,7 @@ class ReportController extends Controller
 
     public function show(UserReport $userReport): View
     {
-        $userReport->load(['reporter:id,name,username,email', 'reportedUser.socialAccounts', 'reportedUser.sanctions', 'team:id,name', 'reviewedBy:id,name,username']);
+        $userReport->load(['reporter:id,name,username,email', 'reportedUser.socialAccounts', 'reportedUser.sanctions', 'team:id,name', 'reviewedBy:id,name,username', 'emote', 'reactable']);
 
         return view('admin.reports.show', [
             'report' => $userReport,

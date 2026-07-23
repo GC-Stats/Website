@@ -62,4 +62,17 @@ trait HasReactions
             ])
             ->values();
     }
+
+    /**
+     * Individual reactions for a single emote, with the reacting user eager
+     * loaded — backs the "who reacted" panel gated by the reaction.view
+     * permission (see resources/views/livewire/reaction-bar.blade.php),
+     * unlike reactionSummary() which only aggregates counts.
+     *
+     * @return Collection<int, Reaction>
+     */
+    public function reactionsForEmote(int $emoteId): Collection
+    {
+        return $this->reactions()->with('user')->where('emote_id', $emoteId)->latest()->get();
+    }
 }

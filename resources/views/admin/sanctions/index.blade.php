@@ -23,15 +23,12 @@
         </div>
 
         @can('sanctions.create')
-            <x-modal :title="__('admin.sanctions.issue.title')">
-                <x-slot:trigger>
-                    <button type="button"
-                            class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
-                        {{ __('admin.sanctions.issue.title') }}
-                    </button>
-                </x-slot:trigger>
-                @include('admin.sanctions._form')
-            </x-modal>
+            <x-sanction-modal>
+                <button type="button"
+                        class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
+                    {{ __('admin.sanctions.issue.title') }}
+                </button>
+            </x-sanction-modal>
         @endcan
     </div>
 
