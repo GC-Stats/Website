@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'failed' => 'These credentials do not match our records.',
+    'password' => 'The provided password is incorrect.',
+    'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
     'login' => [
         'title' => 'Sign in',
         'subtitle' => 'Sign in to your GC Stats account',
@@ -18,6 +21,7 @@ return [
         'register_prompt' => "Don't have an account?",
         'register_link' => 'Create one',
         'forgot_password' => 'Forgot your password?',
+        'resend_verification_link' => "Haven't verified your email yet?",
         'passkey_submit' => 'Sign in with a passkey',
         'passkey_unsupported' => 'Passkeys are not supported on this device or browser.',
         'passkey_error' => 'Could not sign in with this passkey.',
@@ -64,5 +68,30 @@ return [
         'submit' => 'Verify',
         'toggle_to_recovery' => 'Use a recovery code instead',
         'toggle_to_code' => 'Use an authentication code instead',
+    ],
+    'resend_verification' => [
+        'title' => 'Verify your email',
+        'subtitle' => "Enter your email address and we'll send you a new verification link.",
+        'email_label' => 'Email address',
+        'submit' => 'Send verification link',
+    ],
+    'verify_email' => [
+        'title' => 'Verify your email address',
+        'subtitle' => "Thanks for signing up! Before getting started, please confirm your email address by clicking the link we just emailed you.",
+        'sent' => 'A new verification link has been sent to the email address you provided during registration.',
+        'banner_message' => 'Please verify your email address.',
+        'resend_prompt' => "Didn't receive the email?",
+        'resend_submit' => 'Resend verification email',
+        'logout' => 'Log out',
+        'mail' => [
+            'subject' => 'Verify your email address',
+            'eyebrow' => 'One last step',
+            'heading' => 'Welcome, :name',
+            'body' => 'Confirm this is really you by verifying your email address — it only takes one click.',
+            'action' => 'Verify email address',
+            'expires' => 'This link expires in :minutes minutes.',
+            'fallback_link' => "If the button doesn't work, copy and paste this link into your browser:",
+            'ignore' => "If you didn't create a GC Stats account, you can safely ignore this email.",
+        ],
     ],
 ];

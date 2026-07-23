@@ -13,6 +13,7 @@
  */
 
 use App\Http\Controllers\Auth\AccountSettingsController;
+use App\Http\Controllers\Auth\ResendVerificationController;
 use App\Http\Controllers\Auth\SocialAccountController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\UserReportController;
@@ -23,6 +24,16 @@ Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
     ->middleware(['not-sanctioned'])
     ->name('social.callback');
+
+// Reachable both logged out (a password-only account can't log in until
+// verified — see FortifyServiceProvider::authenticateUsing) and logged in
+// (e.g. an already-authenticated but unverified user landing here directly
+// instead of via the verify-email notice page's own resend button).
+Route::get('/email/verify/resend', [ResendVerificationController::class, 'create'])
+    ->name('verification.resend');
+Route::post('/email/verify/resend', [ResendVerificationController::class, 'store'])
+    ->middleware(['throttle:5,1'])
+    ->name('verification.resend.send');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/settings/account', [AccountSettingsController::class, 'edit'])

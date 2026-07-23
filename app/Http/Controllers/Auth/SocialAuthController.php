@@ -126,6 +126,12 @@ class SocialAuthController extends Controller
             'password' => null,
         ]);
 
+        if ($email !== null) {
+            // The provider already confirmed this address (see VerifiedEmail) —
+            // no need to make the user re-verify it over email too.
+            $user->forceFill(['email_verified_at' => now()])->save();
+        }
+
         try {
             $accountSecurity->linkProvider($user, $provider, $this->providerPayload($provider, $socialiteUser));
         } catch (SocialAccountAlreadyLinkedException $e) {

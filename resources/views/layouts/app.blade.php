@@ -61,6 +61,8 @@
         {{ __('layout.skip_to_content') }}
     </a>
 
+    <x-verify-email-banner />
+
     @php
         $locales = collect(config('locales.supported'))->mapWithKeys(function ($name, $code) {
             return [$code => [

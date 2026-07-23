@@ -107,6 +107,10 @@
                     {{ __('auth.login.register_prompt') }}
                     <a href="{{ route('register') }}" class="text-gc-yellow font-semibold hover:underline">{{ __('auth.login.register_link') }}</a>
                 </p>
+
+                <p class="text-xs text-gray-500 text-center">
+                    <a href="{{ route('verification.resend') }}" class="hover:underline">{{ __('auth.login.resend_verification_link') }}</a>
+                </p>
             </div>
         </section>
     </div>

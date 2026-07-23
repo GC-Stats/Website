@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'failed' => 'Ces identifiants ne correspondent pas à nos enregistrements.',
+    'password' => 'Le mot de passe fourni est incorrect.',
+    'throttle' => 'Trop de tentatives de connexion. Veuillez réessayer dans :seconds secondes.',
     'login' => [
         'title' => 'Connexion',
         'subtitle' => 'Connectez-vous à votre compte GC Stats',
@@ -18,6 +21,7 @@ return [
         'register_prompt' => "Pas encore de compte ?",
         'register_link' => 'Créer un compte',
         'forgot_password' => 'Mot de passe oublié ?',
+        'resend_verification_link' => "Vous n'avez pas encore vérifié votre email ?",
         'passkey_submit' => 'Se connecter avec une clé d\'accès',
         'passkey_unsupported' => "Les clés d'accès ne sont pas prises en charge sur cet appareil ou ce navigateur.",
         'passkey_error' => 'Impossible de se connecter avec cette clé d\'accès.',
@@ -64,5 +68,30 @@ return [
         'submit' => 'Vérifier',
         'toggle_to_recovery' => 'Utiliser un code de récupération à la place',
         'toggle_to_code' => "Utiliser un code d'authentification à la place",
+    ],
+    'resend_verification' => [
+        'title' => 'Vérifiez votre email',
+        'subtitle' => "Entrez votre adresse email et nous vous enverrons un nouveau lien de vérification.",
+        'email_label' => 'Adresse email',
+        'submit' => 'Envoyer le lien de vérification',
+    ],
+    'verify_email' => [
+        'title' => 'Vérifiez votre adresse email',
+        'subtitle' => "Merci de votre inscription ! Avant de commencer, veuillez confirmer votre adresse email en cliquant sur le lien que nous venons de vous envoyer.",
+        'sent' => "Un nouveau lien de vérification a été envoyé à l'adresse email fournie lors de votre inscription.",
+        'banner_message' => 'Veuillez vérifier votre adresse email.',
+        'resend_prompt' => "Vous n'avez pas reçu l'email ?",
+        'resend_submit' => "Renvoyer l'email de vérification",
+        'logout' => 'Se déconnecter',
+        'mail' => [
+            'subject' => 'Vérifiez votre adresse email',
+            'eyebrow' => 'Dernière étape',
+            'heading' => 'Bienvenue, :name',
+            'body' => "Confirmez que c'est bien vous en vérifiant votre adresse email — un seul clic suffit.",
+            'action' => 'Vérifier mon adresse email',
+            'expires' => 'Ce lien expire dans :minutes minutes.',
+            'fallback_link' => "Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :",
+            'ignore' => "Si vous n'avez pas créé de compte GC Stats, vous pouvez ignorer cet email sans risque.",
+        ],
     ],
 ];

@@ -16,6 +16,8 @@ namespace App\Models;
 
 use App\Support\PermissionTeam;
 use Database\Factories\UserFactory;
+use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,10 +38,10 @@ use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'username', 'email', 'password', 'team_id', 'team_tag'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
-class User extends Authenticatable implements PasskeyUser
+class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, HasRoles, MustVerifyEmail, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.

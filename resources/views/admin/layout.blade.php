@@ -31,6 +31,8 @@
 </head>
 <body class="min-h-screen bg-bg-main text-white" x-data="{ sidebarOpen: false }">
 
+    <x-verify-email-banner />
+
     @php
         $navGroups = [
             [
