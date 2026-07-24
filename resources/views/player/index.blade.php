@@ -60,29 +60,31 @@
                     <span class="text-[9px] font-black uppercase tracking-[0.25em] text-white/60 shrink-0">{{ __("player.current_team") }}</span>
                     <div class="h-px flex-grow" style="background: linear-gradient(90deg, rgba(228,174,34,0.5) 0%, rgba(228,174,34,0.05) 60%, transparent 100%)"></div>
                 </div>
-                @if($currentTeam)
-                    <a href="{{ route('teams.show', [$currentTeam['id'], str($currentTeam['name'] ?? '')->slug()]) }}" class="group block mb-2">
-                        <div class="tournament-card bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
-                            <div class="flex items-center gap-4">
-                                <div class="relative shrink-0">
-                                    <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
-                                    <img class="w-10 h-10 object-contain" src="{{ $currentTeam['logo'] ?? asset('storage/images/default-team.webp') }}" alt="">
-                                </div>
+                @if(count($currentTeams) > 0)
+                    @foreach($currentTeams as $currentTeam)
+                        <a href="{{ route('teams.show', [$currentTeam['id'], str($currentTeam['name'] ?? '')->slug()]) }}" class="group block mb-2">
+                            <div class="tournament-card bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
+                                <div class="flex items-center gap-4">
+                                    <div class="relative shrink-0">
+                                        <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
+                                        <img class="w-10 h-10 object-contain" src="{{ $currentTeam['logo'] ?? asset('storage/images/default-team.webp') }}" alt="">
+                                    </div>
 
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-black uppercase tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
-                                        {{ $currentTeam['name'] }}
-                                    </p>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-black tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                            {{ $currentTeam['name'] }}
+                                        </p>
 
-                                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                        {{ \App\Helpers\RosterRole::label($currentTeam['pivot']['role'] ?? null) }}
-                                        <span class="w-1 h-1 bg-white/10 rounded-full"></span>
-                                        Since {{ \App\Helpers\PivotDate::format($currentTeam['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
-                                    </p>
+                                        <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                                            {{ \App\Helpers\RosterRole::label($currentTeam['pivot']['role'] ?? null) }}
+                                            <span class="w-1 h-1 bg-white/10 rounded-full"></span>
+                                            Since {{ \App\Helpers\PivotDate::format($currentTeam['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </a>
+                        </a>
+                    @endforeach
                 @else
                     <p class="text-xs font-bold text-gray-500">{{ __("player.no_team") }}</p>
                 @endif
@@ -110,7 +112,7 @@
                                         </div>
 
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-black uppercase tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                            <p class="text-sm font-black tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
                                                 {{ $oldTeam['name'] }}
                                             </p>
 

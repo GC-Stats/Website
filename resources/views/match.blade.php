@@ -76,7 +76,7 @@
                    class="flex flex-col md:flex-row items-center gap-4 md:gap-6 flex-1 min-w-0 group justify-center md:justify-end">
 
                     <div class="relative order-2 md:order-1 text-center md:text-right min-w-0">
-                        <h3 class="font-black text-xl md:text-2xl uppercase italic text-white group-hover:text-[var(--brand-yellow)] transition-colors tracking-tight leading-none truncate">
+                        <h3 class="font-black text-xl md:text-2xl italic text-white group-hover:text-[var(--brand-yellow)] transition-colors tracking-tight leading-none truncate">
                             {{ $teamAName }}
                         </h3>
                     </div>
@@ -150,7 +150,7 @@
                     </div>
 
                     <div class="text-center md:text-left min-w-0">
-                        <h3 class="font-black text-xl md:text-2xl uppercase italic text-white group-hover:text-[var(--brand-yellow)] transition-colors tracking-tight leading-none truncate">
+                        <h3 class="font-black text-xl md:text-2xl italic text-white group-hover:text-[var(--brand-yellow)] transition-colors tracking-tight leading-none truncate">
                             {{ $teamBName }}
                         </h3>
                     </div>

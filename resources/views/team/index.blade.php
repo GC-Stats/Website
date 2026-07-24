@@ -65,7 +65,7 @@
                                     </div>
 
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-black uppercase tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                        <p class="text-sm font-black tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
                                             {{ $player['handle'] }}
                                         </p>
 
@@ -122,7 +122,7 @@
                                 </div>
 
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-black uppercase tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                    <p class="text-sm font-black tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
                                         {{ $player['handle'] }}
                                     </p>
 

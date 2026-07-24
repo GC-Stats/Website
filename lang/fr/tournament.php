@@ -65,6 +65,10 @@ return [
 
     'bracket' => [
         'label' => 'Bracket du tournoi (déplaçable et zoomable)',
+        'qualified_tooltip_unknown-team' => [
+            'winner' => 'L\'équipe gagnante est qualifiée pour :destination',
+            'loser' => 'L\'équipe perdante est qualifiée pour :destination',
+        ],
         'qualified_tooltip' => ':team est qualifié pour :destination',
         'qualifiers_column' => 'Qualifiés',
     ],

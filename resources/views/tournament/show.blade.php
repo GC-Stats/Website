@@ -124,42 +124,18 @@
                         @forelse($matches as $m)
                             <a href="{{ route('match.show', $m['id']) }}" class="group block mb-2">
                                 <div class="tournament-card bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
-                                    <div class="flex justify-center mb-2">
-                                        @if($m['status'] == 'live')
-                                            <div class="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-full" role="status" aria-live="polite">
-                                                <span class="relative flex h-1.5 w-1.5" aria-hidden="true">
-                                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
-                                                </span>
-                                                <span class="text-[8px] font-black text-red-500 uppercase tracking-widest">{{ __('index.live') }}</span>
-                                            </div>
-                                        @elseif($m['status'] == 'upcoming')
-                                            <div class="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full">
-                                                <span class="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
-                                                <span class="text-[8px] font-black text-green-500 uppercase tracking-widest">{{ __('match.status.upcoming') }}</span>
-                                            </div>
-                                        @else
-                                            <div class="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 border border-white/10 rounded-full">
-                                                <span class="h-1.5 w-1.5 rounded-full bg-gray-500" aria-hidden="true"></span>
-                                                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">{{ __('match.status.finished') }}</span>
-                                            </div>
-                                        @endif
-                                    </div>
                                     <div class="flex items-center gap-4">
                                         <div class="relative shrink-0 flex flex-1 flex-col items-center min-w-0">
                                             <div class="relative shrink-0">
                                                 <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
                                                 <img src="{{ $m['team_a']['logo'] ?? asset('storage/images/default-team.webp') }}" class="relative w-8 h-8 object-contain mb-1" alt="">
                                             </div>
-                                            <span class="text-[9px] font-black text-white uppercase truncate w-full text-center">
+                                            <span class="text-[9px] font-black text-white truncate w-full text-center">
                                                 {{ $m['team_a']['short_name'] ?? ($m['team_a']['name'] ?? ($m['status'] == 'finished' ? 'BYE' : 'TBD')) }}
                                             </span>
                                         </div>
 
                                         <div class="flex flex-col items-center px-4 shrink-0">
-                                            <span class="text-base font-black text-white italic">
-                                                {{ $m['team_a_score'] == -1 ? 'FF' : ($m['team_a_score'] ?? 0) }} - {{ $m['team_b_score'] == -1 ? 'FF' : ($m['team_b_score'] ?? 0) }}
-                                            </span>
                                             @if(\App\Helpers\PivotDate::isUnknown($m['scheduled_at'] ?? null))
                                                 <span class="text-[8px] font-bold text-gray-500 uppercase mt-1">
                                                     {{ __('match.unknown_date') }}
@@ -170,6 +146,32 @@
                                                     <span class="js-match-time">{{ \Carbon\Carbon::parse($m['scheduled_at'])->translatedFormat('H:i') }}</span>
                                                 </span>
                                             @endif
+
+                                            <span class="text-base font-black text-white">
+                                                {{ $m['team_a_score'] == -1 ? 'FF' : ($m['team_a_score'] ?? 0) }} - {{ $m['team_b_score'] == -1 ? 'FF' : ($m['team_b_score'] ?? 0) }}
+                                            </span>
+
+                                            <div class="flex justify-center mt-2">
+                                                @if($m['status'] == 'live')
+                                                    <div class="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-full" role="status" aria-live="polite">
+                                                <span class="relative flex h-1.5 w-1.5" aria-hidden="true">
+                                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                                                </span>
+                                                        <span class="text-[8px] font-black text-red-500 uppercase tracking-widest">{{ __('index.live') }}</span>
+                                                    </div>
+                                                @elseif($m['status'] == 'upcoming')
+                                                    <div class="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full">
+                                                        <span class="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
+                                                        <span class="text-[8px] font-black text-green-500 uppercase tracking-widest">{{ __('match.status.upcoming') }}</span>
+                                                    </div>
+                                                @else
+                                                    <div class="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 border border-white/10 rounded-full">
+                                                        <span class="h-1.5 w-1.5 rounded-full bg-gray-500" aria-hidden="true"></span>
+                                                        <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">{{ __('match.status.finished') }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </div>
 
                                         <div class="relative shrink-0 flex flex-1 flex-col items-center min-w-0">
@@ -177,7 +179,7 @@
                                                 <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
                                                 <img src="{{ $m['team_b']['logo'] ?? asset('storage/images/default-team.webp') }}" class="relative w-8 h-8 object-contain mb-1" alt="">
                                             </div>
-                                            <span class="text-[9px] font-black text-white uppercase truncate w-full text-center">
+                                            <span class="text-[9px] font-black text-white truncate w-full text-center">
                                                 {{ $m['team_b']['short_name'] ?? ($m['team_b']['name'] ?? ($m['status'] == 'finished' ? 'BYE' : 'TBD')) }}
                                             </span>
                                         </div>
@@ -211,7 +213,7 @@
                 @foreach($teams as $team)
                     <div x-data="{ showRoster: false }" x-init="$watch('showAllRosters', () => showRoster = false)" class="relative flex flex-col items-center text-center tournament-card bg-[#050505] border border-white/5 rounded-sm p-3 transition-all duration-300 shadow-lg h-full" ::class="(showAllRosters ? !showRoster : showRoster) ? '!border-white/5' : 'hover:bg-bg-main hover:border-[var(--brand-yellow)]/30'">
                         <a href="{{ route('teams.show', [$team['id'], str($team['name'] ?? '')->slug()]) }}" class="group flex flex-col items-center w-full">
-                            <span class="text-[10px] font-black text-white uppercase italic tracking-tight truncate w-full">
+                            <span class="text-[10px] font-black text-white italic tracking-tight truncate w-full">
                                 {{ $team['name'] }}
                             </span>
                         </a>
@@ -225,7 +227,7 @@
                             @if(!empty($team['roster']))
                                 <div x-show="showAllRosters ? !showRoster : showRoster" x-cloak class="w-full flex flex-col items-center justify-center gap-1 bg-[#0A0A0A] rounded-sm py-3 px-1">
                                     @foreach($team['roster'] as $player)
-                                        <div class="text-[10px] font-bold text-gray-200 uppercase truncate w-full leading-tight">{{ $player['handle'] }}</div>
+                                        <div class="text-[10px] font-bold text-gray-200 truncate w-full leading-tight">{{ $player['handle'] }}</div>
                                     @endforeach
                                 </div>
                             @endif

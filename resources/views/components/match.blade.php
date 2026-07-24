@@ -64,7 +64,7 @@
 
         <div class="flex flex-row items-center p-2 md:p-5 relative">
             <div class="flex items-center gap-1.5 md:gap-4 flex-1 w-full min-w-0 justify-end group/teamA">
-                <span class="font-black text-[10px] md:text-[15px] uppercase text-white transition-all group-hover/teamA:text-[var(--brand-yellow)] text-right truncate">
+                <span class="font-black text-[10px] md:text-[15px] text-white transition-all group-hover/teamA:text-[var(--brand-yellow)] text-right truncate">
                     {{ $teamA }}
                 </span>
                 <div class="relative shrink-0">
@@ -108,7 +108,7 @@
                     <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-xl transition-opacity"></div>
                     <img src="{{ $teamBLogo }}" class="w-6 h-6 md:w-16 md:h-16 object-contain relative z-10 filter drop-shadow-2xl drop-shadow-[0_0_8px_color-mix(in_srgb,var(--brand-yellow),transparent_95%)]" alt="{{ $teamB }}">
                 </div>
-                <span class="font-black text-[10px] md:text-[15px] uppercase text-white transition-all group-hover/teamB:text-[var(--brand-yellow)] text-left truncate">
+                <span class="font-black text-[10px] md:text-[15px] text-white transition-all group-hover/teamB:text-[var(--brand-yellow)] text-left truncate">
                     {{ $teamB }}
                 </span>
             </div>

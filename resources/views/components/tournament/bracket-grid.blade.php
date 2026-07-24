@@ -29,17 +29,14 @@
             return $qualifications->map(function ($qualification) use ($match, $winnerIsA, $winnerIsB) {
                 $qualifiedIsA = ($qualification['outcome'] === 'winner' && $winnerIsA) || ($qualification['outcome'] === 'loser' && $winnerIsB);
                 $qualifiedIsB = ($qualification['outcome'] === 'winner' && $winnerIsB) || ($qualification['outcome'] === 'loser' && $winnerIsA);
-                $qualifiedName = $qualifiedIsA ? ($match['team_a_name'] ?? null) : ($qualifiedIsB ? ($match['team_b_name'] ?? null) : null);
-
-                if (! $qualifiedName) {
-                    return null;
-                }
+                $qualifiedName = ($qualifiedIsA ? ($match['team_a_name'] ?? null) : ($qualifiedIsB ? ($match['team_b_name'] ?? null) : null)) ?? null;
 
                 return [
                     'name' => $qualifiedName,
-                    'logo' => $qualifiedIsA ? ($match['team_a_logo'] ?? null) : ($match['team_b_logo'] ?? null),
+                    'logo' => ($qualifiedIsA ? ($match['team_a_logo'] ?? null) : ($qualifiedIsB ? ($match['team_b_logo'] ?? null) : null)) ?? null,
                     'url' => $qualification['url'] ?? '#',
                     'label' => $qualification['label'],
+                    'outcome' => $qualification['outcome'],
                     'source_match_id' => $match['id'],
                 ];
             });
@@ -70,19 +67,41 @@
                 <div class="flex-1 flex flex-col justify-around gap-2">
                     @if($isQualifierRound)
                         @foreach($matches as $slot)
-                            <div class="bracket-match" data-source-match-id="{{ $slot['source_match_id'] }}">
+                            <div class="bracket-match relative" data-source-match-id="{{ $slot['source_match_id'] }}">
                                 <a href="{{ $slot['url'] }}"
                                    draggable="false"
-                                   title="{{ __('tournament.bracket.qualified_tooltip', ['team' => $slot['name'], 'destination' => $slot['label']]) }}"
-                                   class="block bg-bg-card border border-green-500/30 rounded-sm shadow-md overflow-hidden hover:border-green-500/60 transition-all group active:scale-[0.98]">
+                                   class="block bg-bg-card border border-green-500/30 rounded-sm shadow-md overflow-visible hover:border-green-500/60 transition-all group active:scale-[0.98]">
+
                                     <div class="flex items-center justify-between p-2">
                                         <div class="flex items-center gap-2">
-                                            <img src="{{ $slot['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0" draggable="false">
-                                            <span class="text-[10px] font-black italic uppercase text-white truncate">
-                                                {{ Str::limit($slot['name'], 20) }}
+                                            <img src="{{ $slot['logo'] ?? asset('storage/images/default-team.webp') }}"
+                                                 class="w-4 h-4 object-contain flex-shrink-0"
+                                                 draggable="false">
+
+                                            <span class="text-[10px] font-black italic uppercase {{ $slot['name'] ? "text-white" : "text-gray-400" }}">
+                                                {{ Str::limit($slot['name'], 20) ?? "TBD" }}
                                             </span>
                                         </div>
-                                        @svg('fas-flag-checkered', 'w-3 h-3 text-green-400 flex-shrink-0')
+
+                                        @if($slot['name'])
+                                            @svg('fas-flag-checkered', 'w-3 h-3 text-green-400 flex-shrink-0')
+                                        @endif
+                                    </div>
+
+                                    {{-- Tooltip --}}
+                                    <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 opacity-0 scale-95 transition-all duration-200 group-hover:opacity-100 group-hover:scale-100">
+                                        <div class="rounded bg-white/[0.02]  border border-white/5 px-3 py-2 text-xs text-white shadow-lg whitespace-nowrap">
+                                            @if($slot['name'])
+                                                {{ __('tournament.bracket.qualified_tooltip', [
+                                                    'team' => $slot['name'],
+                                                    'destination' => $slot['label']
+                                                ]) }}
+                                            @else
+                                                {{ __('tournament.bracket.qualified_tooltip_unknown-team.'.$slot['outcome'], [
+                                                    'destination' => $slot['label']
+                                                ]) }}
+                                            @endif
+                                        </div>
                                     </div>
                                 </a>
                             </div>
@@ -99,11 +118,11 @@
                                         <div class="flex items-center gap-2">
                                             @if(!empty($match['team_a_name']))
                                                 <img src="{{ $match['team_a_logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0" draggable="false">
-                                                <span class="text-[10px] font-black italic uppercase group-hover:text-white transition-colors {{ !is_null($match['team_a_score']) && $match['team_a_score'] > $match['team_b_score'] ? 'text-white' : 'text-gray-400' }}">
+                                                <span class="text-[10px] font-black italic group-hover:text-white transition-colors {{ !is_null($match['team_a_score']) && $match['team_a_score'] > $match['team_b_score'] ? 'text-white' : 'text-gray-400' }}">
                                                     {{ Str::limit($match['team_a_name'], 20) }}
                                                 </span>
                                             @else
-                                                <span class="text-[10px] font-black italic uppercase text-gray-600">{{ $match["status"] == "finished" ? 'BYE' : ($match["status"] == "upcoming" ? 'TBD' : '-') }}</span>
+                                                <span class="text-[10px] font-black italic text-gray-600">{{ $match["status"] == "finished" ? 'BYE' : ($match["status"] == "upcoming" ? 'TBD' : '-') }}</span>
                                             @endif
                                         </div>
                                         <span class="font-mono text-xs text-white">{{ $match['team_a_score'] == -1 ? 'FF' : ($match['team_a_score'] ?? '-') }}</span>
@@ -114,11 +133,11 @@
                                         <div class="flex items-center gap-2">
                                             @if(!empty($match['team_b_name']))
                                                 <img src="{{ $match['team_b_logo'] ?? asset('storage/images/default-team.webp') }}" class="w-4 h-4 object-contain flex-shrink-0" draggable="false">
-                                                <span class="text-[10px] font-black italic uppercase group-hover:text-white transition-colors {{ !is_null($match['team_b_score']) && $match['team_b_score'] > $match['team_a_score'] ? 'text-white' : 'text-gray-400' }}">
+                                                <span class="text-[10px] font-black italic group-hover:text-white transition-colors {{ !is_null($match['team_b_score']) && $match['team_b_score'] > $match['team_a_score'] ? 'text-white' : 'text-gray-400' }}">
                                                     {{ Str::limit($match['team_b_name'], 20) }}
                                                 </span>
                                             @else
-                                                <span class="text-[10px] font-black italic uppercase text-gray-600">{{ $match["status"] == "finished" ? 'BYE' : ($match["status"] == "upcoming" ? 'TBD' : '-') }}</span>
+                                                <span class="text-[10px] font-black italic text-gray-600">{{ $match["status"] == "finished" ? 'BYE' : ($match["status"] == "upcoming" ? 'TBD' : '-') }}</span>
                                             @endif
                                         </div>
                                         <span class="font-mono text-xs text-white">{{ $match['team_b_score'] == -1 ? 'FF' : ($match['team_b_score'] ?? '-') }}</span>

@@ -28,7 +28,7 @@
                                 <span class="whitespace-nowrap">{{ \Carbon\Carbon::parse($tournament['end_date'])->format('d M Y') }}</span>
                             </div>
 
-                            <h1 class="text-xl md:text-4xl font-black text-white uppercase tracking-tight leading-none mb-2 truncate">
+                            <h1 class="text-xl md:text-4xl font-black text-white tracking-tight leading-none mb-2">
                                 {{ $tournament['name'] }}
                             </h1>
 

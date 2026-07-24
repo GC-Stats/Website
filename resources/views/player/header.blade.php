@@ -39,7 +39,7 @@
                                   aria-label="{{ $player['country_code'] ?? '' }}"
                                   role="img"></span>
 
-                            <h1 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tight leading-none group-hover:text-gc-yellow transition-colors truncate">
+                            <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight leading-none group-hover:text-gc-yellow transition-colors">
                                 {{ $player['handle'] }}
                             </h1>
                         </div>

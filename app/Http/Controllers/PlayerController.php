@@ -129,11 +129,14 @@ class PlayerController extends Controller
                 ],
             ];
 
+            // Showing all teams w/ a left_at, in theory, a player shoudn't have 2 teams in the same time
+            // but because of missing data, a lot of player have multiples teams w/ left_at
             $currentTeamModel = $player->teams()
                 ->select('teams.id', 'teams.name')
                 ->withPivot('role', 'joined_at', 'left_at')
                 ->wherePivotNull('left_at')
-                ->first();
+                ->limit(5)
+                ->get();
 
             $pastTeamsModels = $player->teams()
                 ->select('teams.id', 'teams.name')
@@ -142,11 +145,8 @@ class PlayerController extends Controller
                 ->limit(5)
                 ->get();
 
-            $currentTeam = $currentTeamModel ? $mapTeam($currentTeamModel) : null;
+            $currentTeams = $currentTeamModel->map($mapTeam)->all();
             $pastTeams = $pastTeamsModels->map($mapTeam)->all();
-            $history = $currentTeam
-                ? array_merge([$currentTeam], array_slice($pastTeams, 0, 4))
-                : array_slice($pastTeams, 0, 5);
 
             $baseMatchQuery = $this->playerMatchesQuery($id);
 
@@ -173,11 +173,10 @@ class PlayerController extends Controller
 
             return [
                 'player' => $player->makeHidden(['teams'])->toArray(),
-                'currentTeam' => $currentTeam,
+                'currentTeams' => $currentTeams,
                 'pastTeams' => $pastTeams,
                 'upcomingMatches' => $processMatches($upcomingMatchesRaw),
                 'pastMatches' => $processMatches($pastMatchesRaw),
-                'history' => $history,
                 'achievements' => Achievements::forEntity($player),
             ];
         });
