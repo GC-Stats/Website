@@ -32,7 +32,7 @@
                         @if ($profileUser->team)
                             <a href="{{ route('teams.show', [$profileUser->team->id, $profileUser->team->routeSlug()]) }}"
                                class="inline-flex items-center gap-2 self-start bg-white/5 border border-white/10 rounded-sm px-3 py-1.5 mt-2 hover:border-gc-yellow/50 transition">
-                                <img src="{{ $profileUser->team->logo }}" alt="{{ $profileUser->team->name }}" class="w-4 h-4 object-contain logo-filter">
+                                <img src="{{ $profileUser->team->logo }}" alt="{{ $profileUser->team->name }}" class="w-4 h-4 object-contain">
                                 @if ($profileUser->team_tag)
                                     <span class="text-[11px] font-black uppercase tracking-widest text-gc-yellow">
                                         {{ $profileUser->team_tag }}

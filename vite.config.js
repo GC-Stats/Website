@@ -7,7 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/admin-analytics.js', 'resources/js/admin-news-editor.js'],
+            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/admin/analytics/index.js', 'resources/js/admin/news/editor.js'],
             refresh: true,
         }),
         tailwindcss(),

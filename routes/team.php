@@ -41,8 +41,7 @@ Route::middleware(['auth', 'team.permission-context', 'not-sanctioned', 'not-san
 
         Route::prefix('roster')->name('teams.roster.')->middleware('can:team.roster.manage')->group(function () {
             Route::post('/', [RosterController::class, 'store'])->name('store');
-            Route::put('/{entry}', [RosterController::class, 'update'])->name('update');
-            Route::delete('/{entry}', [RosterController::class, 'destroy'])->name('destroy');
+            Route::put('/', [RosterController::class, 'sync'])->name('sync');
         });
 
         Route::prefix('roles')->name('teams.roles.')->group(function () {

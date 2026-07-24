@@ -58,6 +58,6 @@
     {{ $topPages->links() }}
 
     @push('scripts')
-        @vite('resources/js/admin-analytics.js')
+        @vite('resources/js/admin/analytics/index.js')
     @endpush
 @endsection

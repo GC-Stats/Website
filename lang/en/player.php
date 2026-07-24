@@ -75,5 +75,13 @@ return [
             'is_active' => 'Active player',
             'socials' => 'Social accounts',
         ],
+        'team_history' => [
+            'title' => 'Current team(s)',
+            'history_title' => 'Team history',
+            'add' => 'Add a team',
+            'remove_confirm' => 'Permanently remove this team-history entry for :team?',
+            'current_empty' => 'Not currently on a team.',
+            'history_empty' => 'No past teams.',
+        ],
     ],
 ];

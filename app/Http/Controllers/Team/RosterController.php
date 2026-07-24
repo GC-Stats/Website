@@ -36,29 +36,26 @@ class RosterController extends Controller
         return redirect()->route('teams.edit', [$team, $team->routeSlug()])->with('status', 'roster-member-added');
     }
 
-    public function update(Request $request, Team $team, string $slug, int $entry, RosterService $rosterService): RedirectResponse
+    public function sync(Request $request, Team $team, string $slug, RosterService $rosterService): RedirectResponse
     {
         $validated = $request->validate([
-            'role' => ['nullable', 'string', Rule::in(RosterService::ROLES)],
-            'joined_at' => ['required', 'date'],
-            'left_at' => ['nullable', 'date'],
+            'entries' => ['array'],
+            'entries.*.id' => ['nullable', 'integer', Rule::exists('player_team', 'id')->where('team_id', $team->id)],
+            'entries.*.player_id' => ['required', 'integer', 'exists:players,id'],
+            'entries.*.role' => ['nullable', 'string', Rule::in(RosterService::ROLES)],
+            'entries.*.joined_at' => ['required', 'date'],
+            'entries.*.left_at' => ['nullable', 'date'],
         ]);
 
-        $rosterService->updateEntry($team, $entry, $validated);
+        $entries = collect($validated['entries'] ?? [])
+            ->map(fn (array $entry) => [...$entry, 'team_id' => $team->id])
+            ->all();
+
+        $rosterService->save('team_id', $team->id, $entries);
 
         activity('team')->performedOn($team)->causedBy($request->user())
-            ->withProperties(['team_id' => $team->id, 'entry_id' => $entry])->log('team.roster.entry_updated');
+            ->withProperties(['team_id' => $team->id])->log('team.roster.synced');
 
-        return back()->with('status', 'roster-entry-updated');
-    }
-
-    public function destroy(Request $request, Team $team, string $slug, int $entry, RosterService $rosterService): RedirectResponse
-    {
-        $rosterService->deleteEntry($team, $entry);
-
-        activity('team')->performedOn($team)->causedBy($request->user())
-            ->withProperties(['team_id' => $team->id, 'entry_id' => $entry])->log('team.roster.entry_removed');
-
-        return back()->with('status', 'roster-entry-removed');
+        return back()->with('status', 'roster-synced');
     }
 }

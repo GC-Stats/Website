@@ -24,10 +24,14 @@
 
 namespace App\Services;
 
+use App\Models\Emote;
 use App\Models\Player;
 use App\Models\Team;
 use App\Models\Tournament;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 class SearchService
 {
@@ -264,5 +268,235 @@ class SearchService
             ])
             ->values()
             ->toArray();
+    }
+
+    /**
+     * Registry of entity types the generic entity-picker component
+     * (resources/views/livewire/entity-picker.blade.php) can browse/search —
+     * add a new key here to make a model pickable, no changes needed
+     * elsewhere. Each entry configures which columns are matched against
+     * the typed term, how a result is displayed, and which fields the "full
+     * info" modal shows.
+     *
+     * @return array{model: class-string<Model>, columns: list<string>, order: string, title: callable, subtitle?: callable, image?: callable, imageKind: string, countryCode?: callable, initials?: callable, route?: callable, load?: list<string>, fields?: callable}
+     */
+    private function entityConfig(string $type): array
+    {
+        $configs = [
+            'player' => [
+                'model' => Player::class,
+                'columns' => ['handle', 'first_name', 'last_name'],
+                'order' => 'handle',
+                'title' => fn (Player $m) => $m->handle,
+                'subtitle' => fn (Player $m) => trim("{$m->first_name} {$m->last_name}") ?: null,
+                'image' => fn (Player $m) => $m->profile_photo ?: null,
+                'imageKind' => 'photo',
+                'countryCode' => fn (Player $m) => $m->country_code,
+                'route' => fn (Player $m) => route('players.show', [$m->id, str($m->handle)->slug()]),
+                'load' => ['teams'],
+                'fields' => fn (Player $m) => [
+                    ['label' => 'Full name', 'value' => trim("{$m->first_name} {$m->last_name}") ?: null],
+                    ['label' => 'Country', 'value' => $m->country_code],
+                    ['label' => 'Bio', 'value' => $m->bio],
+                    ['label' => 'Current teams', 'value' => $m->teams->whereNull('pivot.left_at')->pluck('name')->implode(', ') ?: null],
+                    ['label' => 'VLR', 'value' => $m->vlr_id],
+                    ['label' => 'Liquipedia', 'value' => $m->liquipedia_link],
+                ],
+            ],
+            'team' => [
+                'model' => Team::class,
+                'columns' => ['name', 'short_name'],
+                'order' => 'name',
+                'title' => fn (Team $m) => $m->name,
+                'subtitle' => fn (Team $m) => $m->short_name,
+                'image' => fn (Team $m) => $m->logo,
+                'imageKind' => 'logo',
+                'countryCode' => fn (Team $m) => $m->country_code,
+                'route' => fn (Team $m) => route('teams.show', [$m->id, $m->routeSlug()]),
+                'load' => ['currentPlayers'],
+                'fields' => fn (Team $m) => [
+                    ['label' => 'Short name', 'value' => $m->short_name],
+                    ['label' => 'Country', 'value' => $m->country_code],
+                    ['label' => 'Website', 'value' => $m->website],
+                    ['label' => 'Roster size', 'value' => (string) $m->currentPlayers->count()],
+                    ['label' => 'Bio', 'value' => $m->bio],
+                ],
+            ],
+            'user' => [
+                'model' => User::class,
+                'columns' => ['name', 'username', 'email'],
+                'order' => 'name',
+                'title' => fn (User $m) => $m->name,
+                'subtitle' => fn (User $m) => $m->username ? "@{$m->username}" : null,
+                'image' => fn (User $m) => $m->gravatarUrl(96),
+                'imageKind' => 'avatar',
+                'initials' => fn (User $m) => $m->initials(),
+                'route' => fn (User $m) => $m->username ? route('users.show', $m->username) : null,
+                'fields' => fn (User $m) => [
+                    ['label' => 'Username', 'value' => $m->username],
+                    ['label' => 'Email', 'value' => $m->email],
+                    ['label' => 'Joined', 'value' => optional($m->created_at)->format('Y-m-d')],
+                    ['label' => 'Roles', 'value' => method_exists($m, 'getRoleNames') ? $m->getRoleNames()->implode(', ') : null],
+                ],
+            ],
+            'emote' => [
+                'model' => Emote::class,
+                'columns' => ['name'],
+                'order' => 'name',
+                'title' => fn (Emote $m) => $m->name,
+                'subtitle' => fn (Emote $m) => $m->source,
+                'image' => fn (Emote $m) => $m->image_url,
+                'imageKind' => 'emote',
+                'fields' => fn (Emote $m) => [
+                    ['label' => 'Source', 'value' => $m->source],
+                    ['label' => 'Active', 'value' => $m->is_active ? 'Yes' : 'No'],
+                ],
+            ],
+        ];
+
+        if (! isset($configs[$type])) {
+            throw new InvalidArgumentException("Unknown entity type [{$type}].");
+        }
+
+        return $configs[$type];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function entityTypes(): array
+    {
+        return ['player', 'team', 'user', 'emote'];
+    }
+
+    /**
+     * Generic, typo-tolerant, multi-column entity search backing the
+     * reusable entity-picker component — same prefix/substring/length-
+     * proximity scoring as search()/searchTeams(), minus popularity (most
+     * pickable types here, e.g. users/emotes, have no page-view history).
+     * An empty term browses the type alphabetically instead of scoring,
+     * so the dropdown never opens empty.
+     *
+     * `browseIds`, when non-empty, scopes the empty-term browse list to just
+     * those ids (e.g. a match's roster) instead of the whole table — a
+     * non-empty term still searches every row regardless, so typing always
+     * escapes the scoped list.
+     *
+     * @param  list<int>  $browseIds
+     * @return list<array{type: string, id: int, title: string, subtitle: ?string, image: ?string, image_kind: string, country_code: ?string, initials: ?string, url: ?string, score: ?int}>
+     */
+    public function searchEntities(string $type, string $term, int $limit = 8, int $candidateLimit = 20, array $browseIds = []): array
+    {
+        $config = $this->entityConfig($type);
+        $modelClass = $config['model'];
+        $term = strtolower(trim($term));
+
+        if ($term === '') {
+            return $modelClass::query()
+                ->when($browseIds !== [], fn ($q) => $q->whereIn('id', $browseIds))
+                ->orderBy($config['order'])
+                ->limit($limit)
+                ->get()
+                ->map(fn ($m) => $this->serializeEntity($type, $config, $m, null))
+                ->values()
+                ->toArray();
+        }
+
+        $variants = $this->typoVariants($term);
+        $term = $variants[0];
+        $termLen = mb_strlen($term);
+        $primaryColumn = $config['columns'][0];
+
+        $candidates = $modelClass::query()
+            ->where(function ($q) use ($variants, $config) {
+                foreach ($config['columns'] as $column) {
+                    foreach ($variants as $v) {
+                        $q->orWhereRaw("LOWER({$column}) LIKE ?", ["%{$v}%"]);
+                    }
+                }
+            })
+            ->orderByRaw(
+                "CASE WHEN LOWER({$primaryColumn}) LIKE ? THEN 0 WHEN LOWER({$primaryColumn}) LIKE ? THEN 1 ELSE 2 END",
+                ["{$term}%", "%{$term}%"]
+            )
+            ->limit($candidateLimit)
+            ->get();
+
+        $score = function (Model $model) use ($config, $term, $termLen) {
+            $best = 0;
+
+            foreach ($config['columns'] as $column) {
+                $value = (string) ($model->{$column} ?? '');
+                if ($value === '') {
+                    continue;
+                }
+
+                $lower = $this->stripAccents(strtolower($value));
+                $diff = abs(mb_strlen($value) - $termLen);
+
+                $best = max($best, (str_starts_with($lower, $term) ? 1000 : 0)
+                    + (str_contains($lower, $term) ? 75 : 0)
+                    + max(0, 100 - $diff * 10));
+            }
+
+            return $best;
+        };
+
+        return $candidates
+            ->sortByDesc($score)
+            ->take($limit)
+            ->map(fn ($m) => $this->serializeEntity($type, $config, $m, $score($m)))
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Full details for the entity-picker's fallback "info" modal (types with
+     * no public page to link to, e.g. emote) — same header shape as
+     * searchEntities() plus an ordered list of extra display fields, blank
+     * ones dropped so the modal never shows empty rows.
+     *
+     * @return array{type: string, id: int, title: string, subtitle: ?string, image: ?string, image_kind: string, country_code: ?string, initials: ?string, url: ?string, score: null, fields: list<array{label: string, value: string}>}|null
+     */
+    public function entityDetails(string $type, int|string $id): ?array
+    {
+        $config = $this->entityConfig($type);
+        $modelClass = $config['model'];
+
+        $query = $modelClass::query();
+        if (! empty($config['load'])) {
+            $query->with($config['load']);
+        }
+
+        $model = $query->find($id);
+        if ($model === null) {
+            return null;
+        }
+
+        $fields = isset($config['fields']) ? ($config['fields'])($model) : [];
+
+        return array_merge(
+            $this->serializeEntity($type, $config, $model, null),
+            ['fields' => array_values(array_filter($fields, fn ($f) => filled($f['value'])))]
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $config
+     */
+    private function serializeEntity(string $type, array $config, Model $model, ?int $score): array
+    {
+        return [
+            'type' => $type,
+            'id' => $model->id,
+            'title' => ($config['title'])($model),
+            'subtitle' => isset($config['subtitle']) ? ($config['subtitle'])($model) : null,
+            'image' => isset($config['image']) ? ($config['image'])($model) : null,
+            'image_kind' => $config['imageKind'] ?? 'none',
+            'country_code' => isset($config['countryCode']) ? ($config['countryCode'])($model) : null,
+            'initials' => isset($config['initials']) ? ($config['initials'])($model) : null,
+            'url' => isset($config['route']) ? ($config['route'])($model) : null,
+            'score' => $score,
+        ];
     }
 }

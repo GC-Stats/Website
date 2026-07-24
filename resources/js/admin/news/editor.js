@@ -23,15 +23,11 @@ import tinymce from 'tinymce/tinymce';
 import 'tinymce/icons/default';
 import 'tinymce/themes/silver';
 import 'tinymce/models/dom';
-// Only the `.tox-*` scoped UI chrome skin is safe to bundle as page-level
-// CSS. Everything below targeting bare `body`/`a`/`table` selectors is
-// meant for the editor's iframe document only, so it's passed as
-// `content_css` URLs (loaded *inside* the iframe by TinyMCE) rather than
-// imported directly, or it leaks out and restyles the whole admin page.
+
 import 'tinymce/skins/ui/oxide-dark/skin.css';
-import '../css/admin-news-editor-chrome.css';
+import '../../../css/admin/news/editor-chrome.css';
 import uiContentCss from 'tinymce/skins/ui/oxide-dark/content.css?url';
-import editorContentCss from '../css/admin-news-editor-content.css?url';
+import editorContentCss from '../../../css/admin/news/editor-content.css?url';
 import 'tinymce/plugins/lists';
 import 'tinymce/plugins/link';
 import 'tinymce/plugins/table';

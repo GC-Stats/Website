@@ -41,7 +41,7 @@
                 <td class="p-2 md:p-4">
                     <a href="{{ route('teams.show', [$row['team']['id'], str($row['team']['name'] ?? '')->slug()]) }}" class="flex items-center gap-3 group">
                         <img src="{{ $row['team']['logo'] ?? asset('storage/images/default-team.webp') }}"
-                             class="w-5 h-5 md:w-6 md:h-6 object-contain flex-shrink-0 transition-transform group-hover:scale-110 logo-filter"
+                             class="w-5 h-5 md:w-6 md:h-6 object-contain flex-shrink-0 transition-transform group-hover:scale-110"
                              alt="">
                         <span class="text-white truncate max-w-[120px] md:max-w-none group-hover:text-gc-yellow transition-colors">
                                 {{ $row['team']['name'] ?? 'Unknown' }}

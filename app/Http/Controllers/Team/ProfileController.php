@@ -19,7 +19,6 @@
 namespace App\Http\Controllers\Team;
 
 use App\Http\Controllers\Controller;
-use App\Models\Player;
 use App\Models\Team;
 use App\Services\RosterService;
 use App\Services\TeamProfileService;
@@ -42,19 +41,12 @@ class ProfileController extends Controller
         );
 
         $history = $rosterService->history($team->id);
-        $playerSearch = $request->get('player_q');
 
         return view('team.edit', [
             'team' => $team,
             'countries' => app(Countries::class)->list(),
             'roster' => $history->whereNull('left_at')->values(),
             'rosterHistory' => $history->whereNotNull('left_at')->values(),
-            'playerSearch' => $playerSearch ?? '',
-            'playerSearchResults' => $playerSearch
-                ? Player::where('handle', 'like', '%'.$this->escapeLike($playerSearch).'%')
-                    ->whereNotIn('id', $history->where('left_at', null)->pluck('player_id'))
-                    ->limit(10)->get()
-                : collect(),
         ]);
     }
 

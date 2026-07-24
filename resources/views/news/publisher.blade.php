@@ -31,7 +31,7 @@
                         @if($publisherLogo)
                             <div class="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center border border-white/10 rounded-lg bg-black/40 p-3">
                                 <img src="{{ $publisherLogo }}" alt="{{ $publisher['name'] }}"
-                                     class="w-full h-full object-contain logo-filter">
+                                     class="w-full h-full object-contain">
                             </div>
                         @else
                             <div class="w-16 h-16 md:w-32 md:h-32 flex items-center justify-center border border-white/10 rounded-lg bg-[var(--brand-yellow)]/10">

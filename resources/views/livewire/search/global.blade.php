@@ -260,7 +260,7 @@ new class extends Component {
                                     @elseif($type === 'teams')
                                         @if($item['logo'] != asset('storage/images/default-team.webp'))
                                             <img src="{{ $item['logo'] }}"
-                                                 class="w-full h-full object-contain logo-filter"
+                                                 class="w-full h-full object-contain"
                                                  alt="{{ $item['name'] }}">
                                         @else
                                             <span class="fi fi-{{ strtolower($item['country_code'] ?? 'un') }} fis rounded-[2px] opacity-80 group-hover:opacity-100 shadow-sm"

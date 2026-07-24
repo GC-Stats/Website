@@ -153,7 +153,6 @@ class AppServiceProvider extends ServiceProvider
             ->pluck('name')
             ->intersect(AdminPermissions::all())
             ->isNotEmpty()
-            || $user->newsAuthor()->exists()
             || PublisherScope::publisherIdsForUser($user->id)->isNotEmpty());
 
         Gate::define('activity.view', fn ($user) => collect(AdminPermissions::grouped()['activity'])

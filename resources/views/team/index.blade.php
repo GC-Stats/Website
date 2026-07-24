@@ -70,7 +70,7 @@
                                         </p>
 
                                         <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                            {{ $player['pivot']['role'] ?? '' }}
+                                            {{ \App\Helpers\RosterRole::label($player['pivot']['role'] ?? null) }}
                                             <span class="w-1 h-1 bg-white/10 rounded-full"></span>
                                             {{ \App\Helpers\PivotDate::format($player['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
                                             - {{ isset($player['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($player['pivot']['left_at'], 'm/Y') ?? 'Now') : 'Now' }}
@@ -127,7 +127,7 @@
                                     </p>
 
                                     <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                        {{ $player['pivot']['role'] ?? '' }}
+                                        {{ \App\Helpers\RosterRole::label($player['pivot']['role'] ?? null) }}
                                         <span class="w-1 h-1 bg-white/10 rounded-full"></span>
                                         Since {{ \App\Helpers\PivotDate::format($player['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
                                     </p>

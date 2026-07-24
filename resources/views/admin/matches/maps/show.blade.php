@@ -140,12 +140,10 @@
              x-data="{
                 loading: false,
                 error: null,
-                missingValIds: null,
+                missingValIdsHtml: null,
                 isEsportEndpoint: false,
                 teamColorOptions: null,
                 teamColorPlayers: null,
-                puuidMapping: {},
-                rosterPlayers: {{ \Illuminate\Support\Js::from($rosterPlayers->map(fn ($p) => ['id' => $p->id, 'handle' => $p->handle, 'country_code' => $p->country_code])) }},
 
                 fetchMap(extra = {}) {
                     this.loading = true;
@@ -170,15 +168,10 @@
                             }
 
                             this.error = data.error ?? null;
-                            this.missingValIds = data.missing_val_ids ?? null;
+                            this.missingValIdsHtml = data.missing_val_ids_html ?? null;
                             this.isEsportEndpoint = !! data.is_esport_endpoint;
                             this.teamColorOptions = data.available_colors ?? null;
                             this.teamColorPlayers = data.players ?? null;
-
-                            if (this.missingValIds) {
-                                this.puuidMapping = {};
-                                this.missingValIds.forEach((p) => { this.puuidMapping[p.puuid] = ''; });
-                            }
                         })
                         .finally(() => { this.loading = false; });
                 },
@@ -186,9 +179,10 @@
                 submitPlayerMapping() {
                     const mapping = {};
 
-                    for (const [puuid, playerId] of Object.entries(this.puuidMapping)) {
-                        if (playerId) mapping[puuid] = parseInt(playerId);
-                    }
+                    this.$refs.missingValIdsContainer.querySelectorAll('input').forEach((input) => {
+                        const match = input.name.match(/^puuid_mapping\[(.+)\]$/);
+                        if (match && input.value) mapping[match[1]] = parseInt(input.value, 10);
+                    });
 
                     this.fetchMap({ puuid_mapping: mapping });
                 },
@@ -236,43 +230,11 @@
             @can('maps.fetch')
                 <div x-show="error" x-cloak class="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-lg px-4 py-3" x-text="error"></div>
 
-                <div x-show="missingValIds && missingValIds.length" x-cloak class="mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 space-y-3">
+                <div x-show="missingValIdsHtml" x-cloak class="mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 space-y-3">
                     <p class="text-xs text-yellow-400">{{ __('admin.matches.maps.missing_val_ids_help') }}</p>
-                    <template x-for="p in (missingValIds || [])" :key="p.puuid">
-                        <div class="flex items-center gap-3">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm text-white font-bold truncate" x-text="p.name"></p>
-                                <p class="text-xs text-gray-500" x-text="(p.agent ?? '—') + ' — ' + (p.team ?? '—')"></p>
-                            </div>
-                            <div class="relative w-48"
-                                 x-data="GCS.playerSearchPicker({
-                                    searchUrl: {{ \Illuminate\Support\Js::from(route('admin.players.search')) }},
-                                    internationalCode: {{ \Illuminate\Support\Js::from(\App\Support\Countries::INTERNATIONAL) }},
-                                    initial: rosterPlayers,
-                                    onPick: (player) => { puuidMapping[p.puuid] = player.id; },
-                                 })"
-                                 @click.outside="open = false">
-                                <input type="text"
-                                       x-model="query"
-                                       @focus="open = true"
-                                       @input.debounce.300ms="search()"
-                                       placeholder="{{ __('admin.matches.maps.select_player') }}"
-                                       autocomplete="off"
-                                       class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
-                                <div x-show="open && results.length" x-cloak
-                                     class="absolute z-10 mt-1 w-48 bg-bg-card border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                                    <template x-for="rp in results" :key="rp.id">
-                                        <button type="button" @click="pick(rp)"
-                                                class="flex w-full items-center gap-2 text-left px-3 py-2 text-xs text-white hover:bg-white/5 transition">
-                                            <span class="fi shadow-sm flex-shrink-0" :class="'fi-' + flagClass(rp.country_code)"></span>
-                                            <span class="truncate" x-text="rp.handle + ' (' + rp.id + ')'"></span>
-                                        </button>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
+                    <div x-ref="missingValIdsContainer" x-html="missingValIdsHtml" class="space-y-3"></div>
+
                     <button type="button" @click="submitPlayerMapping()" :disabled="loading"
                             class="w-full font-bold uppercase text-xs tracking-widest py-2.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                         {{ __('admin.matches.maps.save_and_retry') }}

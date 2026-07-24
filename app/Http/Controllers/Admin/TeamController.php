@@ -18,7 +18,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exceptions\TeamHasMatchesException;
 use App\Http\Controllers\Controller;
-use App\Models\Player;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\RosterService;
@@ -134,7 +133,6 @@ class TeamController extends Controller
         PermissionTeam::global();
 
         $search = $request->get('q');
-        $playerSearch = $request->get('player_q');
         $history = $rosterService->history($team->id);
 
         $existingOwnerIds = $ownerRole
@@ -155,12 +153,6 @@ class TeamController extends Controller
                 : collect(),
             'roster' => $history->whereNull('left_at')->values(),
             'rosterHistory' => $history->whereNotNull('left_at')->values(),
-            'playerSearch' => $playerSearch ?? '',
-            'playerSearchResults' => $playerSearch
-                ? Player::where('handle', 'like', '%'.$this->escapeLike($playerSearch).'%')
-                    ->whereNotIn('id', $history->where('left_at', null)->pluck('player_id'))
-                    ->limit(10)->get()
-                : collect(),
         ]);
     }
 
@@ -254,30 +246,27 @@ class TeamController extends Controller
         return redirect()->route('admin.teams.show', $team)->with('status', 'roster-member-added');
     }
 
-    public function updateRosterMember(Request $request, Team $team, int $entry, RosterService $rosterService): RedirectResponse
+    public function syncRoster(Request $request, Team $team, RosterService $rosterService): RedirectResponse
     {
         $validated = $request->validate([
-            'role' => ['nullable', 'string', Rule::in(RosterService::ROLES)],
-            'joined_at' => ['required', 'date'],
-            'left_at' => ['nullable', 'date'],
+            'entries' => ['array'],
+            'entries.*.id' => ['nullable', 'integer', Rule::exists('player_team', 'id')->where('team_id', $team->id)],
+            'entries.*.player_id' => ['required', 'integer', 'exists:players,id'],
+            'entries.*.role' => ['nullable', 'string', Rule::in(RosterService::ROLES)],
+            'entries.*.joined_at' => ['required', 'date'],
+            'entries.*.left_at' => ['nullable', 'date'],
         ]);
 
-        $rosterService->updateEntry($team, $entry, $validated);
+        $entries = collect($validated['entries'] ?? [])
+            ->map(fn (array $entry) => [...$entry, 'team_id' => $team->id])
+            ->all();
+
+        $rosterService->save('team_id', $team->id, $entries);
 
         activity('team')->performedOn($team)->causedBy($request->user())
-            ->withProperties(['team_id' => $team->id, 'entry_id' => $entry])->log('team.roster.entry_updated');
+            ->withProperties(['team_id' => $team->id])->log('team.roster.synced');
 
-        return back()->with('status', 'roster-entry-updated');
-    }
-
-    public function destroyRosterMember(Request $request, Team $team, int $entry, RosterService $rosterService): RedirectResponse
-    {
-        $rosterService->deleteEntry($team, $entry);
-
-        activity('team')->performedOn($team)->causedBy($request->user())
-            ->withProperties(['team_id' => $team->id, 'entry_id' => $entry])->log('team.roster.entry_removed');
-
-        return back()->with('status', 'roster-entry-removed');
+        return back()->with('status', 'roster-synced');
     }
 
     public function updateMaxPermissions(Request $request, Team $team): RedirectResponse

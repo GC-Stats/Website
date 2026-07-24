@@ -75,5 +75,13 @@ return [
             'is_active' => 'Joueuse active',
             'socials' => 'Réseaux sociaux',
         ],
+        'team_history' => [
+            'title' => 'Équipe(s) actuelle(s)',
+            'history_title' => 'Historique des équipes',
+            'add' => 'Ajouter une équipe',
+            'remove_confirm' => "Supprimer définitivement cette entrée d'historique pour :team ?",
+            'current_empty' => "Pas d'équipe actuellement.",
+            'history_empty' => "Aucun historique d'équipe.",
+        ],
     ],
 ];

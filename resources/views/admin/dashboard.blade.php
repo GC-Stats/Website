@@ -26,8 +26,7 @@
         @endphp
 
         @foreach ($cards as $card)
-            @continue(is_null($stats[$card['key']]))
-            <a href="{{ route($card['route']) }}"
+            <a @can($card['key'].'.index') href="{{ route($card['route']) }}" @endcan
                class="group bg-bg-card border border-white/5 rounded-xl p-5 flex items-center gap-4 transition-all duration-300 hover:border-[var(--brand-yellow)]/40 hover:shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                 <div class="flex items-center justify-center w-11 h-11 rounded-lg bg-[var(--brand-yellow)]/10 text-[var(--brand-yellow)] shrink-0 group-hover:bg-[var(--brand-yellow)]/15 transition-colors">
                     @svg($card['icon'], 'w-4.5 h-4.5', ['aria-hidden' => 'true'])
@@ -47,21 +46,27 @@
                 // "Game Changers 2026" -> "GC 2026"
                 $shortTournamentName = fn (string $name) => preg_replace('/^Game Changers\b/i', 'GC', $name);
             @endphp
-            <div class="bg-bg-card border border-white/5 rounded-xl overflow-hidden" x-data="{ tab: '{{ request('tournaments_tab', 'live') }}' }">
+            <div class="bg-bg-card border border-white/5 rounded-xl overflow-hidden" x-data="{ tab: '{{ request('tournaments_tab', array_key_first($recentTournaments)) }}' }">
                 <div class="px-4 py-3 border-b border-white/5 flex items-center justify-between">
-                    @foreach (['live', 'upcoming', 'inactive'] as $tab)
-                        <button type="button" @click="tab = '{{ $tab }}'"
-                                class="text-[10px] font-black uppercase tracking-widest transition"
-                                :class="tab === '{{ $tab }}' ? 'text-[var(--brand-yellow)]' : 'text-gray-500 hover:text-gray-300'">
-                            {{ __('admin.dashboard.tournaments_widget.tabs.'.$tab) }}
+                    @foreach ($recentTournaments as $key => $value)
+                        <button
+                            type="button"
+                            @click="tab = '{{ $key }}'"
+                            class="text-[10px] font-black uppercase tracking-widest transition"
+                            :class="tab === '{{ $key }}'
+                                ? 'text-[var(--brand-yellow)]'
+                                : 'text-gray-500 hover:text-gray-300'">
+                            {{ __('admin.dashboard.tournaments_widget.tabs.'.$key) }}
                         </button>
                     @endforeach
                 </div>
 
-                @foreach (['live', 'upcoming', 'inactive'] as $tab)
-                    <div x-show="tab === '{{ $tab }}'" x-cloak>
-                        @forelse ($recentTournaments[$tab] as $tournament)
-                            <a href="{{ route('admin.tournaments.show', $tournament) }}"
+                @foreach ($recentTournaments as $key => $value)
+                    <div x-show="tab === '{{ $key }}'" x-cloak>
+                        @forelse ($recentTournaments[$key] as $tournament)
+                            <a href="{{ auth()->user()->can('tournaments.view')
+                                    ? route('admin.tournaments.show', $tournament)
+                                    : route('tournaments.show', $tournament) }}"
                                class="block px-4 py-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition">
                                 <div class="flex items-center justify-between gap-2 min-h-5">
                                     <span class="text-xs font-bold text-white truncate">{{ $shortTournamentName($tournament->name) }}</span>
@@ -83,7 +88,7 @@
                             <p class="px-4 py-6 text-center text-gray-500 text-xs">{{ __('admin.dashboard.tournaments_widget.empty') }}</p>
                         @endforelse
 
-                        @include('admin.partials.mini-pagination', ['paginator' => $recentTournaments[$tab]])
+                        @include('admin.partials.mini-pagination', ['paginator' => $recentTournaments[$key]])
                     </div>
                 @endforeach
             </div>
@@ -104,7 +109,9 @@
                 </div>
 
                 @forelse ($recentMatches as $match)
-                    <a href="{{ route('admin.matches.show', [$match->tournament, $match]) }}"
+                    <a href="{{ auth()->user()->can('matches.view')
+                            ? route('admin.matches.show', [$match->tournament, $match])
+                            : route('match.show', [$match]) }}"
                        class="block px-4 py-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition">
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-1.5 min-w-0">

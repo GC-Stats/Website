@@ -75,7 +75,7 @@
                                     </p>
 
                                     <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                        {{ $currentTeam['pivot']['role'] ?? '' }}
+                                        {{ \App\Helpers\RosterRole::label($currentTeam['pivot']['role'] ?? null) }}
                                         <span class="w-1 h-1 bg-white/10 rounded-full"></span>
                                         Since {{ \App\Helpers\PivotDate::format($currentTeam['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
                                     </p>
@@ -115,7 +115,7 @@
                                             </p>
 
                                             <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                                {{ $oldTeam['pivot']['role'] ?? '' }}
+                                                {{ \App\Helpers\RosterRole::label($oldTeam['pivot']['role'] ?? null) }}
                                                 <span class="w-1 h-1 bg-white/10 rounded-full"></span>
                                                 {{ \App\Helpers\PivotDate::format($oldTeam['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
                                                 - {{ isset($oldTeam['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($oldTeam['pivot']['left_at'], 'm/Y') ?? 'Now') : 'Now' }}

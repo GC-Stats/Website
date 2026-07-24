@@ -8,6 +8,7 @@
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>

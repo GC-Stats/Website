@@ -5,7 +5,7 @@
  *
  * Detects game maps that were already imported (have a linked Riot match)
  * but are missing the newer per-round detail (kills, damages, ATK/DEF
- * advanced stats) and re-fetches them via ApiGameMapController::fetch().
+ * advanced stats) and re-fetches them via Admin\GameMapController::fetchMapData().
  *
  * Historical maps were imported before val_id/team-side resolution existed,
  * so a plain re-fetch can fail with a 422 (ambiguous team side, or a player
@@ -22,7 +22,7 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\Api\ApiGameMapController;
+use App\Http\Controllers\Admin\GameMapController;
 use App\Models\GameMap;
 use App\Models\GamePlayerStat;
 use App\Models\Player;
@@ -40,7 +40,7 @@ class BackfillMapAdvancedStats extends Command
 
     protected $description = 'Re-fetch rounds/kills/damages/advanced stats for existing maps that are missing them';
 
-    public function handle(ApiGameMapController $controller): int
+    public function handle(GameMapController $controller): int
     {
         $query = GameMap::query()
             ->whereNotNull('api_match_id')
@@ -125,10 +125,10 @@ class BackfillMapAdvancedStats extends Command
     /**
      * @return array{0: int, 1: array|null}
      */
-    private function attemptFetch(ApiGameMapController $controller, GameMap $gameMap, array $params = []): array
+    private function attemptFetch(GameMapController $controller, GameMap $gameMap, array $params = []): array
     {
         $request = Request::create('/', 'GET', $params);
-        $response = $controller->fetch($gameMap->id, $request);
+        $response = $controller->fetchMapData($gameMap->id, $request);
 
         $body = $response instanceof JsonResponse ? $response->getData(true) : null;
 

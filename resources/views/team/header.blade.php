@@ -15,7 +15,7 @@
                 <div class="flex items-center gap-4 md:gap-5 w-full">
                     <div class="relative flex-shrink-0">
                         <img src="{{ $team['logo'] ?? asset('storage/images/default-team.webp') }}" alt="{{ $team['name'] }}"
-                             class="w-16 h-16 md:w-32 md:h-32 object-contain border border-white/10 rounded-lg bg-black/40 p-2 logo-filter">
+                             class="w-16 h-16 md:w-32 md:h-32 object-contain border border-white/10 rounded-lg bg-black/40 p-2">
                     </div>
 
                     <div class="flex flex-col justify-center min-w-0 flex-grow">

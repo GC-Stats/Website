@@ -44,7 +44,7 @@
                                 <div class="min-w-0">
                                     <p class="text-base font-bold text-white truncate">{{ $player['handle'] }}</p>
                                     <p class="text-xs text-gray-400 uppercase tracking-wide">
-                                        {{ $player['pivot']['role'] ?? 'Player' }}
+                                        {{ \App\Helpers\RosterRole::label($player['pivot']['role'] ?? null) ?? 'Player' }}
                                     </p>
                                 </div>
                             </div>

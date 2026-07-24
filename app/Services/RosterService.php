@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\DB;
 
 class RosterService
 {
-    public const ROLES = ['player', 'sub', 'manager', 'coach', 'assistant coach', 'analyst'];
+    public const ROLES = ['player-igl', 'player', 'sub', 'coach', 'assistant coach', 'analyst', 'manager'];
 
     public function history(int $teamId): Collection
     {
@@ -34,23 +34,24 @@ class RosterService
             ->get();
     }
 
+    /**
+     * The reverse of history() — every `player_team` row for a given
+     * player, for the admin player page's editable team-history panel.
+     */
+    public function teamHistory(int $playerId): Collection
+    {
+        return DB::table('player_team')
+            ->join('teams', 'teams.id', '=', 'player_team.team_id')
+            ->where('player_team.player_id', $playerId)
+            ->select('player_team.id', 'player_team.team_id', 'teams.name as team_name', 'player_team.role', 'player_team.joined_at', 'player_team.left_at')
+            ->orderByDesc('player_team.joined_at')
+            ->get();
+    }
+
     public function addMember(Team $team, int $playerId, ?string $role, string $joinedAt): void
     {
         $entries = $this->entriesFor($team->id);
         $entries[] = ['player_id' => $playerId, 'team_id' => $team->id, 'role' => $role ?: 'player', 'joined_at' => $joinedAt];
-
-        $this->save('team_id', $team->id, $entries);
-    }
-
-    public function updateEntry(Team $team, int $entryId, array $fields): void
-    {
-        $entries = $this->entriesFor($team->id);
-
-        foreach ($entries as &$entry) {
-            if ($entry['id'] === $entryId) {
-                $entry = array_merge($entry, $fields);
-            }
-        }
 
         $this->save('team_id', $team->id, $entries);
     }
