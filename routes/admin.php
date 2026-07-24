@@ -241,11 +241,13 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
 
         Route::prefix('{match}/streams')->name('streams.')->group(function () {
             Route::post('/', [MatchStreamController::class, 'store'])->name('store');
+            Route::put('/', [MatchStreamController::class, 'update'])->name('update');
             Route::delete('/{channel}', [MatchStreamController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('{match}/vods')->name('vods.')->group(function () {
             Route::post('/', [MatchVodController::class, 'store'])->name('store');
+            Route::put('/{vod}', [MatchVodController::class, 'update'])->name('update');
             Route::delete('/{vod}', [MatchVodController::class, 'destroy'])->name('destroy');
         });
 
@@ -294,9 +296,6 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         });
 
         Route::prefix('publishers')->name('publishers.')->group(function () {
-            // Site admins see the full list; a publisher-only member is
-            // self-redirected to their own publisher — see
-            // Admin\NewsPublisherController::index.
             Route::get('/', [NewsPublisherController::class, 'index'])->name('index');
 
             Route::middleware(['can:news.publishers.edit'])->group(function () {
@@ -362,9 +361,6 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::post('/link', [MatchStreamController::class, 'linkMany'])->name('link');
     });
 
-    // Same "liste tout" + wizard pattern as streams/matches above, for VODs
-    // (see Admin\MatchVodController) — no separate channel CRUD here since
-    // a VOD isn't a reusable entity (see App\Models\Vod's docblock).
     Route::prefix('vods')->name('vods.')->group(function () {
         Route::get('/', [MatchVodController::class, 'index'])->name('index');
         Route::get('/create', [MatchVodController::class, 'create'])->name('create');

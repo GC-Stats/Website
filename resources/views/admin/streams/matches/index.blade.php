@@ -41,6 +41,7 @@
                     <x-admin.sortable-th col="tournament" :sort="$sort" :direction="$direction">{{ __('admin.streams.matches.tournament') }}</x-admin.sortable-th>
                     <x-admin.sortable-th col="scheduled_at" :sort="$sort" :direction="$direction">{{ __('admin.matches.scheduled_at') }}</x-admin.sortable-th>
                     <th class="px-4 py-3">{{ __('admin.streams.matches.channels') }}</th>
+                    <th class="px-4 py-3"></th>
                     <th class="px-4 py-3 text-right"></th>
                 </tr>
             </thead>
@@ -69,15 +70,58 @@
                             @endif
                         </td>
                         <td class="px-4 py-3">
-                            <div class="flex flex-wrap gap-2">
+                            <div class="space-y-1.5">
                                 @foreach ($match->streams as $stream)
-                                    <span class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs text-white">
-                                        @svg($stream->icon(), 'w-3 h-3', ['aria-hidden' => 'true'])
-                                        <span class="fi fi-{{ $stream->language_code === \App\Support\Countries::INTERNATIONAL ? 'un' : $stream->language_code }}"></span>
-                                        {{ $stream->name }}
-                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-3 py-1 text-xs text-white min-w-0">
+                                            @svg($stream->icon(), 'w-3 h-3 flex-shrink-0', ['aria-hidden' => 'true'])
+                                            <span class="fi fi-{{ $stream->language_code === \App\Support\Countries::INTERNATIONAL ? 'un' : $stream->language_code }} flex-shrink-0"></span>
+                                            <span class="truncate">{{ $stream->name }}</span>
+                                        </span>
+
+                                        <form method="POST" action="{{ route('admin.matches.streams.destroy', [$match->tournament, $match, $stream]) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <x-confirm-modal
+                                                :title="__('admin.streams.matches.unlink_confirm_title')"
+                                                :body="__('admin.streams.matches.unlink_confirm_body', ['name' => $stream->name])"
+                                                :trigger-label="__('admin.streams.matches.unlink')"
+                                                :submit-label="__('admin.streams.matches.unlink')"
+                                                trigger-class="font-bold uppercase text-[10px] tracking-widest px-2.5 py-1.5 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                                                submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
+                                            />
+                                        </form>
+                                    </div>
                                 @endforeach
                             </div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <x-modal :title="__('admin.streams.matches.edit')">
+                                <x-slot:trigger>
+                                    <button type="button"
+                                            class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
+                                        {{ __('admin.streams.matches.edit') }}
+                                    </button>
+                                </x-slot:trigger>
+
+                                <form method="POST" action="{{ route('admin.matches.streams.update', [$match->tournament, $match]) }}" class="space-y-4">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <x-relation-picker
+                                        name="stream_channel_id"
+                                        type="streams"
+                                        :label="__('admin.streams.match.picker_label')"
+                                        :search-url="route('admin.matches.streams.search', ['match_id' => $match->id])"
+                                        :selected="$match->streams->map(fn ($s) => (object) ['id' => $s->id, 'label' => $s->name.' ('.ucfirst($s->platform).')'])->all()"
+                                    />
+
+                                    <button type="submit"
+                                            class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105">
+                                        {{ __('admin.streams.edit.submit') }}
+                                    </button>
+                                </form>
+                            </x-modal>
                         </td>
                         <td class="px-4 py-3 text-right whitespace-nowrap">
                             <a href="{{ route('match.show', $match->id) }}" target="_blank" rel="noopener noreferrer"
@@ -88,7 +132,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-gray-500 text-xs">{{ __('admin.streams.matches.empty') }}</td>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-500 text-xs">{{ __('admin.streams.matches.empty') }}</td>
                     </tr>
                 @endforelse
             </tbody>

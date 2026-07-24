@@ -26,6 +26,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\SearchesMatchesForLinking;
 use App\Http\Controllers\Controller;
 use App\Models\Matchs;
+use App\Models\NewsPublisher;
 use App\Models\Tournament;
 use App\Models\Vod;
 use App\Support\Countries;
@@ -65,6 +66,7 @@ class MatchVodController extends Controller
                 'teamA:id,name,short_name', 'teamB:id,name,short_name', 'tournament:id,name',
                 'tournamentPhase.parent.parent.parent.parent',
                 'vods' => fn ($query) => $this->scopeToAllowedPublishers($query, $allowedPublisherIds)->with(['publisher', 'gameMap']),
+                'game_maps' => fn ($query) => $query->orderBy('order'),
             ])
             ->when($sort === 'tournament', fn ($query) => $query
                 ->leftJoin('tournaments', 'tournaments.id', '=', 'matches.tournament_id')
@@ -73,7 +75,16 @@ class MatchVodController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return view('admin.vods.matches.index', ['matches' => $matches, 'sort' => $sort, 'direction' => $direction]);
+        return view('admin.vods.matches.index', [
+            'matches' => $matches,
+            'sort' => $sort,
+            'direction' => $direction,
+            'countries' => app(Countries::class)->list(),
+            'vodsRestricted' => $allowedPublisherIds !== null,
+            'vodPublishers' => NewsPublisher::query()
+                ->when($allowedPublisherIds !== null, fn ($query) => $query->whereIn('id', $allowedPublisherIds))
+                ->orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
     public function create(Request $request): View
@@ -137,6 +148,45 @@ class MatchVodController extends Controller
         $match->touch();
 
         return back()->with('status', 'vod-linked');
+    }
+
+    /** @see store() docblock — $tournament is unused but required for correct implicit binding of $match/$vod. */
+    public function update(Request $request, Tournament $tournament, Matchs $match, Vod $vod): RedirectResponse
+    {
+        abort_unless($vod->match_id === $match->id, 404);
+
+        $this->ensureCanManage($request, $vod);
+
+        $allowedPublisherIds = $this->allowedPublisherIds($request);
+
+        $validated = $request->validate([
+            'url' => ['required', 'url', 'max:2048'],
+            'language_code' => ['required', 'string', 'max:5', Rule::in(array_keys(app(Countries::class)->list()))],
+            'game_map_id' => ['nullable', 'integer', Rule::exists('game_maps', 'id')->where('match_id', $match->id)],
+            'publisher_id' => ['nullable', 'integer', 'exists:news_publishers,id'],
+        ]);
+
+        if ($allowedPublisherIds !== null) {
+            $publisherId = $validated['publisher_id'] ?? null;
+
+            if (! $publisherId) {
+                abort_unless($allowedPublisherIds->count() === 1, 422);
+                $validated['publisher_id'] = $allowedPublisherIds->first();
+            } else {
+                abort_unless($allowedPublisherIds->contains($publisherId), 403);
+            }
+        }
+
+        $vod->update([
+            'game_map_id' => $validated['game_map_id'] ?? null,
+            'publisher_id' => $validated['publisher_id'] ?? null,
+            'url' => $validated['url'],
+            'language_code' => $validated['language_code'],
+        ]);
+
+        $match->touch();
+
+        return back()->with('status', 'vod-updated');
     }
 
     /** @see store() docblock — $tournament is unused but required for correct implicit binding of $match/$vod. */

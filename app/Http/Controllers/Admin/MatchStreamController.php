@@ -215,6 +215,33 @@ class MatchStreamController extends Controller
         return redirect()->route('admin.streams.matches.index')->with('status', 'stream-linked');
     }
 
+    /**
+     * Global edit for a match's stream links: the picker is preselected
+     * with every channel currently linked, and submitting fully replaces
+     * that set (sync, not syncWithoutDetaching) — unlike store(), which
+     * only ever adds. Individual unlinking still goes through destroy().
+     *
+     * @see store() docblock — $tournament is unused but required for correct implicit binding of $match.
+     */
+    public function update(Request $request, Tournament $tournament, Matchs $match): RedirectResponse
+    {
+        $validated = $request->validate([
+            'stream_channel_id' => ['required', 'array', 'min:1'],
+            'stream_channel_id.*' => ['integer', 'exists:stream_channels,id'],
+        ]);
+
+        $channels = StreamChannel::whereIn('id', $validated['stream_channel_id'])->get();
+
+        foreach ($match->streams->merge($channels)->unique('id') as $affectedChannel) {
+            $this->ensureCanLink($request, $affectedChannel);
+        }
+
+        $match->streams()->sync($channels->pluck('id'));
+        $match->touch();
+
+        return back()->with('status', 'stream-updated');
+    }
+
     /** @see store() docblock — $tournament is unused but required for correct implicit binding of $match/$channel. */
     public function destroy(Request $request, Tournament $tournament, Matchs $match, StreamChannel $channel): RedirectResponse
     {
