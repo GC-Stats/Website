@@ -46,55 +46,81 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 space-y-6">
-            @can('players.edit')
-                <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
-                    <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('player.edit.logo.title') }}</h2>
+    <div class="space-y-6">
+        @can('players.edit')
+            <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('player.edit.logo.title') }}</h2>
 
-                    <x-logo-upload-form
-                        :current-url="$player->profile_photo"
-                        :action-url="route('admin.players.logo.update', $player)"
-                        :submit-label="__('player.edit.logo.submit')"
-                    />
-                    @error('logo')
-                        <p class="text-xs text-red-400">{{ $message }}</p>
-                    @enderror
+                <x-logo-upload-form
+                    :current-url="$player->profile_photo"
+                    :action-url="route('admin.players.logo.update', $player)"
+                    :submit-label="__('player.edit.logo.submit')"
+                />
+                @error('logo')
+                    <p class="text-xs text-red-400">{{ $message }}</p>
+                @enderror
 
-                    <x-logo-history
-                        :logos="$player->logos()->orderByDesc('from')->get()"
-                        folder="players"
-                        :add-url="route('admin.players.logo.history.store', $player)"
-                        :update-url="fn ($logo) => route('admin.players.logo.history.update', [$player, $logo->id])"
-                        :delete-url="fn ($logo) => route('admin.players.logo.history.destroy', [$player, $logo->id])"
-                        :title="__('player.edit.logo.history_title')"
-                        :from-label="__('player.edit.logo.history_from')"
-                        :until-label="__('player.edit.logo.history_until')"
-                        :save-label="__('team.roster.save')"
-                        :add-label="__('player.edit.logo.history_add')"
-                        :remove-label="__('team.roster.remove')"
-                        :remove-confirm-title="__('team.roster.remove')"
-                        :remove-confirm-body="fn ($logo) => __('player.edit.logo.history_remove_confirm')"
-                        :empty-label="__('player.edit.logo.history_empty')"
-                    />
-                </div>
+                <x-logo-history
+                    :logos="$player->logos()->orderByDesc('from')->get()"
+                    folder="players"
+                    :add-url="route('admin.players.logo.history.store', $player)"
+                    :update-url="fn ($logo) => route('admin.players.logo.history.update', [$player, $logo->id])"
+                    :delete-url="fn ($logo) => route('admin.players.logo.history.destroy', [$player, $logo->id])"
+                    :title="__('player.edit.logo.history_title')"
+                    :from-label="__('player.edit.logo.history_from')"
+                    :until-label="__('player.edit.logo.history_until')"
+                    :save-label="__('team.roster.save')"
+                    :add-label="__('player.edit.logo.history_add')"
+                    :remove-label="__('team.roster.remove')"
+                    :remove-confirm-title="__('team.roster.remove')"
+                    :remove-confirm-body="fn ($logo) => __('player.edit.logo.history_remove_confirm')"
+                    :empty-label="__('player.edit.logo.history_empty')"
+                />
+            </div>
 
-                <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-6">
-                    <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('player.edit.profile.title') }}</h2>
+            <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-6">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('player.edit.profile.title') }}</h2>
 
-                    <form method="POST" action="{{ route('admin.players.update', $player) }}" class="space-y-6">
-                        @csrf
-                        @method('PUT')
+                <form method="POST" action="{{ route('admin.players.update', $player) }}" class="space-y-6">
+                    @csrf
+                    @method('PUT')
 
-                        @include('player._profile-form', ['player' => $player])
+                    @include('player._profile-form', ['player' => $player])
 
-                        <button type="submit"
-                                class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
-                            {{ __('player.edit.profile.submit') }}
-                        </button>
-                    </form>
-                </div>
-            @endcan
+                    <button type="submit"
+                            class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
+                        {{ __('player.edit.profile.submit') }}
+                    </button>
+                </form>
+            </div>
+        @endcan
+
+    @can('players.edit')
+        <div class="mt-6">
+            <x-roster-panel
+                :current="$currentTeams"
+                :history="$teamHistory"
+                :add-url="route('admin.players.team-history.store', $player)"
+                :sync-url="route('admin.players.team-history.sync', $player)"
+                :roles="__('team.roster.roles')"
+                :title="__('player.edit.team_history.title')"
+                :history-title="__('player.edit.team_history.history_title')"
+                :add-label="__('player.edit.team_history.add')"
+                :role-label="__('team.roster.role')"
+                :joined-at-label="__('team.roster.joined_at')"
+                :left-at-label="__('team.roster.left_at')"
+                :save-label="__('team.roster.save')"
+                :assign-label="__('team.roster.assign')"
+                :remove-label="__('team.roster.remove')"
+                :remove-confirm-body="fn ($entry) => __('player.edit.team_history.remove_confirm', ['team' => $entry->team_name])"
+                :current-empty-label="__('player.edit.team_history.current_empty')"
+                :history-empty-label="__('player.edit.team_history.history_empty')"
+                heading-tag="h2"
+                picker-type="team"
+                pivot-field="team_id"
+            />
+        </div>
+    @endcan
 
             @canany(['players.edit', 'players.identifiers.manage'])
                 <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
@@ -111,7 +137,7 @@
                                 <input id="val_id" type="text" name="val_id" value="{{ old('val_id', $player->val_id) }}"
                                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                                 @error('val_id')
-                                    <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                                <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
@@ -121,7 +147,7 @@
                                 <input id="discord_id" type="text" name="discord_id" value="{{ old('discord_id', $player->discord_id) }}"
                                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                                 @error('discord_id')
-                                    <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                                <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
                                 @enderror
                             </div>
                             <button type="submit"
@@ -241,11 +267,10 @@
                             @endif
                         </x-modal>
                         @error('user_id')
-                            <p class="text-xs text-red-400">{{ $message }}</p>
+                        <p class="text-xs text-red-400">{{ $message }}</p>
                         @enderror
                     @endcan
                 @endif
             </div>
-        </div>
     </div>
 @endsection

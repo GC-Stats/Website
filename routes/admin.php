@@ -93,8 +93,7 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
 
             Route::prefix('{team}/roster')->name('roster.')->group(function () {
                 Route::post('/', [TeamController::class, 'storeRosterMember'])->name('store');
-                Route::put('/{entry}', [TeamController::class, 'updateRosterMember'])->name('update');
-                Route::delete('/{entry}', [TeamController::class, 'destroyRosterMember'])->name('destroy');
+                Route::put('/', [TeamController::class, 'syncRoster'])->name('sync');
             });
         });
 
@@ -131,6 +130,10 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
                 Route::post('/history', [PlayerController::class, 'storeLogoHistory'])->name('history.store');
                 Route::put('/history/{logo}', [PlayerController::class, 'updateLogoEntry'])->name('history.update');
                 Route::delete('/history/{logo}', [PlayerController::class, 'destroyLogoEntry'])->name('history.destroy');
+            });
+            Route::prefix('{player}/team-history')->name('team-history.')->group(function () {
+                Route::post('/', [PlayerController::class, 'storeTeamHistory'])->name('store');
+                Route::put('/', [PlayerController::class, 'syncTeamHistory'])->name('sync');
             });
         });
 

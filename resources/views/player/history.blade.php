@@ -35,7 +35,7 @@
                             <div class="min-w-0">
                                 <p class="text-base font-bold text-white truncate">{{ $team['name'] }}</p>
                                 <p class="text-xs text-gray-400 uppercase tracking-wide">
-                                    {{ $team['pivot']['role'] ?? 'Player' }}
+                                    {{ \App\Helpers\RosterRole::label($team['pivot']['role'] ?? null) ?? 'Player' }}
                                 </p>
                             </div>
                         </div>

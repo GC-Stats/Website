@@ -18,6 +18,7 @@ use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TournamentController;
@@ -76,18 +77,25 @@ Route::middleware(['static.cache:300'])->group(function () {
 });
 
 Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
-Route::prefix('/tournaments/{tournament}/{slug}')->name('tournaments.')->group(function () {
+Route::prefix('/tournaments/{tournament}/{slug?}')->name('tournaments.')->group(function () {
     Route::get('/', [TournamentController::class, 'show'])->name('show');
     Route::get('/matches', [TournamentController::class, 'matches'])->name('matches');
     Route::get('/stats', [TournamentController::class, 'stats'])->name('stats');
     Route::get('/maps', [TournamentController::class, 'maps'])->name('maps');
 });
 
-Route::prefix('/team/{team}/{slug}')->name('teams.')->group(function () {
-    Route::get('//history', [TeamController::class, 'history'])->name('history');
+Route::prefix('/team/{team}/{slug?}')->name('teams.')->group(function () {
+    Route::get('/history', [TeamController::class, 'history'])->name('history');
     Route::get('/matches', [TeamController::class, 'matches'])->name('matches');
     Route::get('/maps', [TeamController::class, 'maps'])->name('maps');
     Route::get('/', [TeamController::class, 'index'])->name('show');
+});
+
+Route::prefix('/player/{player}/{slug?}')->name('players.')->group(function () {
+    Route::get('/history', [PlayerController::class, 'history'])->name('history');
+    Route::get('/matches', [PlayerController::class, 'matches'])->name('matches');
+    Route::get('/stats', [PlayerController::class, 'stats'])->name('stats');
+    Route::get('/', [PlayerController::class, 'index'])->name('show');
 });
 
 Route::prefix('/user/{user:username}')->name('users.')->group(function () {

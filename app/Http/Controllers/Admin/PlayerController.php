@@ -153,10 +153,12 @@ class PlayerController extends Controller
         return redirect()->route('admin.players.index')->with('status', 'player-created')->with('created_player', $player->id);
     }
 
-    public function show(Request $request, Player $player): View
+    public function show(Request $request, Player $player, RosterService $rosterService): View
     {
         $userSearch = $request->get('user_q');
         $linkedUserIds = Player::whereNotNull('user_id')->where('id', '!=', $player->id)->pluck('user_id');
+
+        $teamHistory = $rosterService->teamHistory($player->id);
 
         return view('admin.players.show', [
             'player' => $player,
@@ -165,7 +167,56 @@ class PlayerController extends Controller
             'userSearchResults' => $userSearch
                 ? User::matching($userSearch)->whereNotIn('id', $linkedUserIds)->limit(10)->get()
                 : collect(),
+            'currentTeams' => $teamHistory->whereNull('left_at')->values(),
+            'teamHistory' => $teamHistory->whereNotNull('left_at')->values(),
         ]);
+    }
+
+    public function storeTeamHistory(Request $request, Player $player, RosterService $rosterService): RedirectResponse
+    {
+        $validated = $request->validate([
+            'team_id' => ['required', 'integer', 'exists:teams,id'],
+            'role' => ['nullable', 'string', Rule::in(RosterService::ROLES)],
+            'joined_at' => ['required', 'date'],
+        ]);
+
+        $rosterService->addMember(Team::findOrFail($validated['team_id']), $player->id, $validated['role'] ?? null, $validated['joined_at']);
+
+        activity('player')->performedOn($player)->causedBy($request->user())
+            ->withProperties(['player_id' => $player->id, 'team_id' => $validated['team_id']])->log('player.team_history.member_added');
+
+        return redirect()->route('admin.players.show', $player)->with('status', 'team-history-added');
+    }
+
+    public function syncTeamHistory(Request $request, Player $player, RosterService $rosterService): RedirectResponse
+    {
+        $validated = $request->validate([
+            'entries' => ['array'],
+            'entries.*.id' => ['nullable', 'integer', Rule::exists('player_team', 'id')->where('player_id', $player->id)],
+            'entries.*.team_id' => ['required', 'integer', 'exists:teams,id'],
+            'entries.*.role' => ['nullable', 'string', Rule::in(RosterService::ROLES)],
+            'entries.*.joined_at' => ['required', 'date'],
+            'entries.*.left_at' => ['nullable', 'date'],
+        ]);
+
+        $activeCount = collect($validated['entries'] ?? [])->filter(fn ($entry) => empty($entry['left_at']))->count();
+
+        if ($activeCount > 1) {
+            throw ValidationException::withMessages([
+                'entries' => __('player.errors.multiple_active_teams'),
+            ]);
+        }
+
+        $entries = collect($validated['entries'] ?? [])
+            ->map(fn (array $entry) => [...$entry, 'player_id' => $player->id])
+            ->all();
+
+        $rosterService->save('player_id', $player->id, $entries);
+
+        activity('player')->performedOn($player)->causedBy($request->user())
+            ->withProperties(['player_id' => $player->id])->log('player.team_history.synced');
+
+        return back()->with('status', 'team-history-synced');
     }
 
     public function linkUser(Request $request, Player $player, PlayerProfileService $service): RedirectResponse
