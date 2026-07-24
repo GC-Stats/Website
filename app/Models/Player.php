@@ -40,6 +40,7 @@ class Player extends Model
         'is_active',
         'vlr_id',
         'val_id',
+        'esports_val_id',
         'liquipedia_link',
     ];
 

@@ -4,8 +4,10 @@
  * GC-Stats — Admin: game maps
  *
  * Per-map actions nested under a match: basic field edits, live fetch from
- * the Riot relay (delegates to Api\ApiGameMapController — the stat
- * computation there is the single source of truth, not duplicated here),
+ * the Riot relay (fetchMapData() — transferred from the deprecated
+ * Api\ApiGameMapController, also reused by
+ * App\Console\Commands\BackfillMapAdvancedStats — this is now the single
+ * source of truth, not duplicated elsewhere),
  * cache renew (POST {relay}/match/{region}/{api_match_id}/renew, the
  * per-map equivalent of the `val:matches:renew` console command), reset,
  * and hard delete. Every mutating action requires the `.finished` sibling
@@ -25,19 +27,29 @@ use App\Http\Controllers\Controller;
 use App\Models\GameMap;
 use App\Models\GameMapRound;
 use App\Models\GameMapRoundPlayerStat;
+use App\Models\GamePlayerAdvancedStat;
 use App\Models\GamePlayerStat;
 use App\Models\Matchs;
+use App\Models\MatchVeto;
+use App\Models\Player;
 use App\Models\Tournament;
+use App\Services\MapStatsCalculator;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 
 class GameMapController extends Controller
 {
+    public function __construct(private readonly MapStatsCalculator $mapStats) {}
+
     public function show(Tournament $tournament, Matchs $match, GameMap $map): View
     {
         $this->ensureNesting($tournament, $match, $map);
@@ -180,8 +192,7 @@ class GameMapController extends Controller
     /**
      * Recompute the match's team_a_score/team_b_score from its game maps,
      * then, once the series is decided, auto-skip any remaining unplayed
-     * maps and flip the match to finished. Lives here rather than the
-     * deprecated Api\ApiGameMapController: manual "basic info" edits are
+     * maps and flip the match to finished. Manual "basic info" edits are
      * the surviving way to record a map's score once the Riot relay fetch
      * is retired.
      *
@@ -233,16 +244,16 @@ class GameMapController extends Controller
     /**
      * The map show page drives this via JS `fetch()` (Accept: application/json)
      * so that a 422 asking for more input (missing val_id / team-color
-     * ambiguity — see ApiGameMapController::fetch()) can be resolved inline
+     * ambiguity — see fetchMapData()) can be resolved inline
      * and resubmitted automatically, instead of a full page reload + the
      * operator having to manually re-click Fetch. A classic form POST
      * (no JS) still falls back to the redirect behavior below.
      */
-    public function fetch(Request $request, Tournament $tournament, Matchs $match, GameMap $map, ApiGameMapController $api): RedirectResponse|JsonResponse
+    public function fetch(Request $request, Tournament $tournament, Matchs $match, GameMap $map): RedirectResponse|JsonResponse
     {
         $this->requireEditable($request, $tournament, $match, 'maps.fetch', $map);
 
-        $response = $api->fetch($map->id, $request);
+        $response = $this->fetchMapData($map->id, $request);
         $status = $response->getStatusCode();
         $succeeded = $status >= 200 && $status < 300;
 
@@ -268,6 +279,436 @@ class GameMapController extends Controller
         $payload = json_decode($response->getContent(), true) ?? [];
 
         return back()->with('error', 'map-fetch-failed')->with('fetchError', $payload);
+    }
+
+    /**
+     * Fetches and computes detailed per-map statistics (rounds, trades,
+     * player stats) for a given game map by calling the Riot match API and
+     * processing the raw match data. Transferred from the deprecated
+     * Api\ApiGameMapController — this is now the single source of truth,
+     * also reused by App\Console\Commands\BackfillMapAdvancedStats.
+     */
+    public function fetchMapData(int $id, Request $request): Response|JsonResponse
+    {
+        $gameMap = GameMap::with(['match.tournament', 'match.teamA.players', 'match.teamB.players'])->find($id);
+
+        if (! $gameMap) {
+            return response()->json(['error' => 'Game map not found'], 404);
+        }
+
+        if (! $gameMap->api_match_id) {
+            return response()->json(['error' => 'This game map has no associated Riot match ID'], 422);
+        }
+
+        $region = config('regions.riot_api.'.$gameMap->match->tournament->region);
+        $isEsportEndpoint = false;
+        $relayUrl = rtrim(config('services.riot.relay_url'), '/');
+
+        $response = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
+            ->get("{$relayUrl}/match/{$region}/{$gameMap->api_match_id}");
+
+        if (! $response->successful()) {
+            $response = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
+                ->get("{$relayUrl}/match/esports/{$gameMap->api_match_id}");
+
+            if (! $response->successful()) {
+                return response()->json(['error' => 'Failed to fetch match data from the Riot API'], $response->status());
+            }
+
+            $isEsportEndpoint = true;
+        }
+
+        $validated = $request->validate([
+            'puuid_mapping' => ['sometimes', 'array'],
+            'puuid_mapping.*' => ['integer', 'exists:players,id'],
+        ]);
+
+        $puuidMapping = collect($validated['puuid_mapping'] ?? []);
+
+        $this->persistPuuidMapping($puuidMapping, $isEsportEndpoint);
+
+        $apiMatch = $response->json();
+        $content = $this->riotContent($region);
+
+        $gameMap->update([
+            'map_name' => $content['maps'][$apiMatch['matchInfo']['mapId']] ?? $gameMap->map_name,
+        ]);
+
+        $players = collect($apiMatch['players'])
+            ->filter(fn ($p) => ! ($p['isObserver'] ?? false) && $p['stats'] !== null)
+            ->values();
+
+        $missingPlayers = $this->missingValIdPlayers($gameMap, $players, $content, $puuidMapping, $isEsportEndpoint);
+
+        if ($missingPlayers->isNotEmpty()) {
+            return response()->json([
+                'error' => 'Some players could not be matched to a team roster (missing val_id)',
+                'missing_val_ids' => $missingPlayers,
+                'is_esport_endpoint' => $isEsportEndpoint,
+            ], 422);
+        }
+
+        $teams = collect($apiMatch['teams']);
+
+        $teamAColor = $request->input('team_a_color')
+            ?? $this->resolveTeamAColor($gameMap->match, $players, $teams, $isEsportEndpoint);
+
+        if (! $teamAColor) {
+            return response()->json([
+                'error' => 'Could not determine which team color corresponds to Team A/B',
+                'available_colors' => $teams->pluck('teamId')->unique()->values(),
+                'players' => $players->map(fn ($p) => [
+                    'puuid' => $p['puuid'],
+                    'name' => trim(($p['gameName'] ?? '').'#'.($p['tagLine'] ?? ''), '#'),
+                    'agent' => $content['agents'][strtolower($p['characterId'] ?? '')] ?? $p['characterId'],
+                    'team' => $p['teamId'],
+                ])->values(),
+            ], 422);
+        }
+
+        $this->storeMatchData($gameMap, $apiMatch, $region, $teamAColor, $puuidMapping, $isEsportEndpoint);
+
+        return response()->noContent($response->status());
+    }
+
+    /**
+     * Persist puuid => player_id assignments the operator resolved from the
+     * "missing val_id" form onto the matching Player column, so the next
+     * fetch (this map or any other) recognizes those players automatically
+     * instead of asking again. Uses esports_val_id for the esports endpoint
+     * since its puuids are distinct from the regular match API's.
+     */
+    private function persistPuuidMapping(Collection $puuidMapping, bool $isEsportEndpoint): void
+    {
+        if ($puuidMapping->isEmpty()) {
+            return;
+        }
+
+        $column = $isEsportEndpoint ? 'esports_val_id' : 'val_id';
+
+        foreach ($puuidMapping as $puuid => $playerId) {
+            try {
+                Player::where('id', $playerId)->whereNull($column)->update([$column => $puuid]);
+            } catch (QueryException $e) {
+                if ($e->getCode() !== '23000') {
+                    throw $e;
+                }
+            }
+        }
+    }
+
+    private function missingValIdPlayers(GameMap $gameMap, Collection $players, array $content, Collection $puuidMapping, bool $isEsportEndpoint): Collection
+    {
+        $column = $isEsportEndpoint ? 'esports_val_id' : 'val_id';
+        $match = $gameMap->match;
+
+        $teamAPuuids = $match->teamA->currentPlayers()->whereNotNull($column)->pluck($column)->toArray();
+        $assignedPuuids = Player::whereIn($column, $players->pluck('puuid'))->pluck($column)->toArray();
+        $assignedPuuids = array_merge($assignedPuuids, $puuidMapping->keys()->toArray());
+
+        $teamAColor = optional($players->first(fn ($p) => in_array($p['puuid'], $teamAPuuids)))['teamId'];
+
+        return $players
+            ->reject(fn ($p) => in_array($p['puuid'], $assignedPuuids))
+            ->map(fn ($p) => [
+                'puuid' => $p['puuid'],
+                'name' => trim(($p['gameName'] ?? '').'#'.($p['tagLine'] ?? ''), '#'),
+                'agent' => $content['agents'][strtolower($p['characterId'] ?? '')] ?? $p['characterId'],
+                'team' => match (true) {
+                    $teamAColor === null => $p['teamId'],
+                    $p['teamId'] === $teamAColor => $match->teamA->short_name,
+                    default => $match->teamB->short_name,
+                },
+            ])
+            ->values();
+    }
+
+    private function resolveTeamAColor($match, Collection $players, Collection $teams, bool $isEsportEndpoint): ?string
+    {
+        $column = $isEsportEndpoint ? 'esports_val_id' : 'val_id';
+
+        $teamAPuuids = $match->teamA->currentPlayers()->whereNotNull($column)->pluck($column)->toArray();
+        $teamAColor = optional($players->first(fn ($p) => in_array($p['puuid'], $teamAPuuids)))['teamId'];
+
+        if (! $teamAColor) {
+            $teamBPuuids = $match->teamB->currentPlayers()->whereNotNull($column)->pluck($column)->toArray();
+            $teamBColor = optional($players->first(fn ($p) => in_array($p['puuid'], $teamBPuuids)))['teamId'];
+            $teamAColor = $teamBColor ? $teams->pluck('teamId')->first(fn ($color) => $color !== $teamBColor) : null;
+        }
+
+        return $teamAColor;
+    }
+
+    private function storeMatchData(GameMap $gameMap, array $apiMatch, string $region, string $teamAColor, Collection $puuidMapping, bool $isEsportEndpoint): void
+    {
+        $match = $gameMap->match;
+        $matchInfo = $apiMatch['matchInfo'];
+        $players = collect($apiMatch['players'])
+            ->filter(fn ($p) => ! ($p['isObserver'] ?? false) && $p['stats'] !== null)
+            ->values();
+        $teams = collect($apiMatch['teams']);
+        $rounds = collect($apiMatch['roundResults']);
+        $totalRounds = $rounds->count();
+
+        $content = $this->riotContent($region);
+
+        $scoreA = 0;
+        $scoreB = 0;
+        foreach ($teams as $team) {
+            if ($team['teamId'] === $teamAColor) {
+                $scoreA = $team['roundsWon'];
+            } else {
+                $scoreB = $team['roundsWon'];
+            }
+        }
+
+        $gameMap->update([
+            'api_match_id' => $matchInfo['matchId'],
+            'map_name' => $content['maps'][$matchInfo['mapId']] ?? $gameMap->map_name,
+            'team_a_score' => $scoreA,
+            'team_b_score' => $scoreB,
+            'is_completed' => $matchInfo['isCompleted'] ?? true,
+        ]);
+
+        $this->backfillVetoSide($gameMap, $rounds, $players, $teamAColor);
+
+        $gameMap->rounds()->delete();
+        $gameMap->advancedStats()->delete();
+
+        $column = $isEsportEndpoint ? 'esports_val_id' : 'val_id';
+        $playerMapping = Player::whereIn($column, $players->pluck('puuid'))->pluck('id', $column)
+            ->union($puuidMapping);
+        $roundKills = $rounds->map(fn ($round) => $this->mapStats->extractKills($round));
+
+        foreach ($rounds as $index => $round) {
+            $isTeamAWinner = ($round['winningTeam'] === $teamAColor);
+
+            $gameMapRound = $gameMap->rounds()->create([
+                'round_number' => $round['roundNum'] + 1,
+                'winning_team' => $isTeamAWinner ? $match->team_a_id : $match->team_b_id,
+                'win_type' => $round['roundResult'],
+            ]);
+
+            $kills = $roundKills[$index];
+
+            $this->persistRoundKills($match, $gameMapRound, $kills, $playerMapping, $content);
+            $this->persistRoundDamages($match, $gameMapRound, $round, $playerMapping);
+
+            foreach ($round['playerStats'] as $pStat) {
+                $puuid = $pStat['puuid'];
+
+                if (! isset($playerMapping[$puuid])) {
+                    continue;
+                }
+
+                $economy = $pStat['economy'] ?? [];
+
+                $gameMapRound->playerStats()->create([
+                    'player_id' => $playerMapping[$puuid],
+                    'kills' => count($pStat['kills'] ?? []),
+                    'assists' => $kills->filter(fn ($k) => in_array($puuid, $k['assistants']))->count(),
+                    'score' => $pStat['score'] ?? 0,
+                    'loadout_value' => $economy['loadoutValue'] ?? 0,
+                    'economy_spent' => $economy['spent'] ?? 0,
+                    'economy_remaining' => $economy['remaining'] ?? 0,
+                    'weapon_id' => $content['equips'][strtolower($economy['weapon'] ?? '')] ?? 'None',
+                    'armor' => $content['equips'][strtolower($economy['armor'] ?? '')] ?? 'None',
+                ]);
+            }
+        }
+
+        $this->saveMatchPlayerStats($gameMap, $players, $rounds, $roundKills, $teamAColor, $totalRounds, $content, $playerMapping);
+        $this->computeAdvancedStats($gameMap, $players, $rounds, $roundKills, $teamAColor, $content, $playerMapping);
+    }
+
+    /**
+     * Bulk-insert the raw kill events of a round into game_map_round_kills.
+     */
+    private function persistRoundKills(Matchs $match, GameMapRound $gameMapRound, Collection $kills, Collection $playerMapping, array $content): void
+    {
+        $now = now();
+
+        $rows = $kills
+            ->map(function ($kill) use ($match, $gameMapRound, $playerMapping, $content, $now) {
+                $victimId = $playerMapping[$kill['victim']] ?? null;
+
+                if (! $victimId) {
+                    return null;
+                }
+
+                $assistantIds = collect($kill['assistants'])
+                    ->map(fn ($puuid) => $playerMapping[$puuid] ?? null)
+                    ->filter()
+                    ->values();
+
+                return [
+                    'tournament_id' => $match->tournament_id,
+                    'phase_id' => $match->phase_id,
+                    'match_id' => $match->id,
+                    'game_map_round_id' => $gameMapRound->id,
+                    'killer_player_id' => $kill['killer'] !== null ? ($playerMapping[$kill['killer']] ?? null) : null,
+                    'victim_player_id' => $victimId,
+                    'time_ms' => $kill['time'],
+                    'weapon' => $content['equips'][strtolower($kill['weapon'] ?? '')] ?? $kill['weapon'],
+                    'damage_type' => $kill['damage_type'],
+                    'is_secondary_fire' => $kill['is_secondary_fire'] ?? false,
+                    'assistant_player_ids' => json_encode($assistantIds->values()->all()),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            })
+            ->filter()
+            ->values();
+
+        if ($rows->isNotEmpty()) {
+            DB::table('game_map_round_kills')->insert($rows->toArray());
+        }
+    }
+
+    /**
+     * Bulk-insert the raw per-shot damage entries of a round into
+     * game_map_round_damages.
+     */
+    private function persistRoundDamages(Matchs $match, GameMapRound $gameMapRound, array $round, Collection $playerMapping): void
+    {
+        $now = now();
+        $rows = collect();
+
+        foreach ($round['playerStats'] ?? [] as $pStat) {
+            $attackerId = $playerMapping[$pStat['puuid']] ?? null;
+
+            foreach ($pStat['damage'] ?? [] as $damage) {
+                $receiverId = $playerMapping[$damage['receiver']] ?? null;
+
+                if (! $receiverId) {
+                    continue;
+                }
+
+                $rows->push([
+                    'tournament_id' => $match->tournament_id,
+                    'phase_id' => $match->phase_id,
+                    'match_id' => $match->id,
+                    'game_map_round_id' => $gameMapRound->id,
+                    'attacker_player_id' => $attackerId,
+                    'receiver_player_id' => $receiverId,
+                    'damage' => $damage['damage'] ?? 0,
+                    'headshots' => $damage['headshots'] ?? 0,
+                    'bodyshots' => $damage['bodyshots'] ?? 0,
+                    'legshots' => $damage['legshots'] ?? 0,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+
+        if ($rows->isNotEmpty()) {
+            DB::table('game_map_round_damages')->insert($rows->toArray());
+        }
+    }
+
+    /**
+     * Persist per-player KAST%/ACS/ADR/HS% for the map, computed by
+     * MapStatsCalculator::computeBasicStats().
+     */
+    private function saveMatchPlayerStats(GameMap $gameMap, Collection $players, Collection $rounds, Collection $roundKills, ?string $teamAColor, int $totalRounds, array $content, Collection $playerMapping): void
+    {
+        $match = $gameMap->match;
+        $basicStats = $this->mapStats->computeBasicStats($players, $rounds, $roundKills, $totalRounds);
+
+        foreach ($players as $p) {
+            $puuid = $p['puuid'];
+            $user = isset($playerMapping[$puuid]) ? Player::find($playerMapping[$puuid]) : null;
+            $teamId = ($p['teamId'] === $teamAColor) ? $match->team_a_id : $match->team_b_id;
+            $agentName = $content['agents'][strtolower($p['characterId'] ?? '')] ?? $p['characterId'];
+            $valName = trim(($p['gameName'] ?? '').'#'.($p['tagLine'] ?? ''), '#') ?: null;
+
+            GamePlayerStat::updateOrCreate(
+                ['game_map_id' => $gameMap->id, 'player_id' => $user?->id, 'agent_name' => $agentName],
+                array_merge([
+                    'match_id' => $match->id,
+                    'team_id' => $teamId,
+                    'player_id' => $user?->id,
+                    'agent_name' => $agentName,
+                    'val_name' => $valName,
+                ], $basicStats[$puuid])
+            );
+        }
+    }
+
+    /**
+     * Persist per-player advanced stats for the map (clutches, multi-kills,
+     * trades, economy round outcomes, plants/defuses/post-plant, ATK/DEF
+     * splits), computed by MapStatsCalculator::computeAdvancedStats().
+     */
+    private function computeAdvancedStats(GameMap $gameMap, Collection $players, Collection $rounds, Collection $roundKills, ?string $teamAColor, array $content, Collection $playerMapping): void
+    {
+        $match = $gameMap->match;
+        $agg = $this->mapStats->computeAdvancedStats($players, $rounds, $roundKills, $teamAColor);
+
+        foreach ($players as $p) {
+            $puuid = $p['puuid'];
+            $playerId = $playerMapping[$puuid] ?? null;
+            $agentName = $content['agents'][strtolower($p['characterId'] ?? '')] ?? $p['characterId'];
+
+            GamePlayerAdvancedStat::updateOrCreate(
+                ['game_map_id' => $gameMap->id, 'player_id' => $playerId, 'agent_name' => $agentName],
+                array_merge(['match_id' => $match->id], $agg[$puuid])
+            );
+        }
+    }
+
+    /**
+     * Determine the map's veto side (and who picked it) from the actual
+     * round data, for vetos saved without a side because the operator
+     * didn't enter one.
+     */
+    private function backfillVetoSide(GameMap $gameMap, Collection $rounds, Collection $players, ?string $teamAColor): void
+    {
+        if (! $teamAColor) {
+            return;
+        }
+
+        $match = $gameMap->match;
+
+        $veto = MatchVeto::where('match_id', $match->id)
+            ->where('map_name', $gameMap->map_name)
+            ->whereIn('type', ['pick', 'decider'])
+            ->whereNull('side')
+            ->first();
+
+        if (! $veto) {
+            return;
+        }
+
+        $attackerColor = $this->mapStats->firstHalfAttackerColor($rounds, $players);
+
+        if (! $attackerColor) {
+            return;
+        }
+
+        $attackingTeamId = $attackerColor === $teamAColor ? $match->team_a_id : $match->team_b_id;
+        $pickedById = $veto->team_id === $match->team_a_id ? $match->team_b_id : $match->team_a_id;
+
+        $veto->update([
+            'side' => $pickedById === $attackingTeamId ? 'atk' : 'def',
+            'side_picked_by' => $pickedById,
+        ]);
+    }
+
+    private function riotContent(string $region): array
+    {
+        return Cache::remember("riot_content_{$region}", now()->addDay(), function () use ($region) {
+            $response = Http::withHeaders(['X-Riot-Token' => config('services.riot.key')])
+                ->get("https://{$region}.api.riotgames.com/val/content/v1/contents", ['locale' => 'en-US']);
+
+            $data = $response->successful() ? $response->json() : [];
+
+            return [
+                'maps' => collect($data['maps'] ?? [])->pluck('name', 'assetPath')->toArray(),
+                'agents' => collect($data['characters'] ?? [])->mapWithKeys(fn ($c) => [strtolower($c['id']) => $c['name']])->toArray(),
+                'equips' => collect($data['equips'] ?? [])->mapWithKeys(fn ($c) => [strtolower($c['id']) => $c['name']])->toArray(),
+            ];
+        });
     }
 
     /**
