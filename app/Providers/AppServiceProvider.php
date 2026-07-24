@@ -176,6 +176,18 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('news.media.action.upload', fn ($user) => $user->can('news.media.upload')
             || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.media.upload')->isNotEmpty());
+
+        Gate::define('streams.nav.channels', fn ($user) => $user->can('streams.channels.view')
+            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.view')->isNotEmpty());
+
+        Gate::define('streams.action.create', fn ($user) => $user->can('streams.channels.create')
+            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.edit')->isNotEmpty());
+
+        Gate::define('streams.nav.matches', fn ($user) => $user->can('streams.matches.link')
+            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.link')->isNotEmpty());
+
+        Gate::define('vods.nav.matches', fn ($user) => $user->can('vods.matches.link')
+            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.vods.link')->isNotEmpty());
     }
 
     /**

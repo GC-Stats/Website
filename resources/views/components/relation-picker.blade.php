@@ -19,7 +19,8 @@
         async search() {
             if (this.query.length < 2) { this.results = []; return; }
             this.loading = true;
-            const response = await fetch(`{{ $searchUrl }}?type={{ $type }}&q=${encodeURIComponent(this.query)}`);
+            const separator = '{{ $searchUrl }}'.includes('?') ? '&' : '?';
+            const response = await fetch(`{{ $searchUrl }}${separator}type={{ $type }}&q=${encodeURIComponent(this.query)}`);
             const data = await response.json();
             this.loading = false;
             this.results = data.filter(item => !this.selected.some(s => s.id === item.id));

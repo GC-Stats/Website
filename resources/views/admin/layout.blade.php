@@ -59,6 +59,9 @@
                     ['route' => 'admin.news.publishers.index', 'pattern' => 'admin.news.publishers.*', 'label' => __('admin.nav.news_publishers'), 'icon' => 'fas-building', 'can' => 'news.nav.publishers'],
                     ['route' => 'admin.news.authors.index', 'pattern' => 'admin.news.authors.*', 'label' => __('admin.nav.news_authors'), 'icon' => 'fas-pen', 'can' => 'news.nav.authors'],
                     ['route' => 'admin.news.media.index', 'pattern' => 'admin.news.media.*', 'label' => __('admin.nav.news_media'), 'icon' => 'fas-images', 'can' => 'news.nav.media'],
+                    ['route' => 'admin.streams.index', 'pattern' => ['admin.streams.index', 'admin.streams.create', 'admin.streams.edit'], 'label' => __('admin.nav.streams'), 'icon' => 'fas-tower-broadcast', 'can' => 'streams.nav.channels'],
+                    ['route' => 'admin.streams.matches.index', 'pattern' => 'admin.streams.matches.*', 'label' => __('admin.nav.streams_matches'), 'icon' => 'fas-link', 'can' => 'streams.nav.matches'],
+                    ['route' => 'admin.vods.index', 'pattern' => 'admin.vods.*', 'label' => __('admin.nav.vods'), 'icon' => 'fas-film', 'can' => 'vods.nav.matches'],
                 ],
             ],
             [

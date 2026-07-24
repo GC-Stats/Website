@@ -42,4 +42,24 @@ return [
     'performance' => 'Résumé des performances',
     'economy' => 'Économie de :team',
     'veto' => 'Processus de veto',
+    'streams' => [
+        'title' => 'Streams',
+        'watch' => 'Regarder',
+        'empty' => 'Aucun stream lié à ce match pour le moment.',
+        'add' => 'Ajouter un stream',
+        'picker_label' => 'Chaîne',
+    ],
+    'vods' => [
+        'title' => 'VODs',
+        'empty' => 'Aucune VOD liée à ce match pour le moment.',
+        'add' => 'Ajouter une VOD',
+        'whole_match' => 'Match entier',
+        'fields' => [
+            'url' => 'Lien de la VOD',
+            'language_code' => 'Langue',
+            'language_code_search' => 'Rechercher une langue…',
+            'map' => 'Map',
+            'map_none' => 'Match entier',
+        ],
+    ],
 ];

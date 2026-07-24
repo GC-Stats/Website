@@ -16,6 +16,8 @@ namespace App\Http\Controllers;
 
 use App\Helpers\CacheTtl;
 use App\Models\Matchs;
+use App\Models\User;
+use App\Support\PublisherScope;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -41,17 +43,7 @@ class MatchController extends Controller
         if ($meta->tournament_active) {
             $cached = Cache::tags([$tag])->get($cacheKey);
             if ($cached) {
-                $ttl = match ($cached['match']['status']) {
-                    'finished' => 86400 * 30,
-                    'upcoming' => 86400,
-                    'live' => 60,
-                    default => 3600,
-                };
-
-                return response()
-                    ->view('match', $cached)
-                    ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
-                    ->header('Vary', 'Accept-Language');
+                return $this->respondWithMatchView($cached, $cached['match']['status']);
             }
         }
 
@@ -65,6 +57,8 @@ class MatchController extends Controller
                 'teamB:id,name,short_name',
                 'map_bans.team:id,name,short_name',
                 'map_bans.sidePickedBy:id,name,short_name',
+                'streams' => fn ($query) => $query->active()->orderBy('name'),
+                'vods.gameMap:id,map_name',
             ])->findOrFail($id);
 
             $allPlayerStats = DB::table('game_player_stats')
@@ -328,14 +322,36 @@ class MatchController extends Controller
             $matchData = $buildMatchData();
 
             return response()
-                ->view('match', array_merge($matchData, ['inactive_access' => true]))
+                ->view('match', array_merge($matchData, ['inactive_access' => true], $this->perRequestViewData()))
                 ->header('Cache-Control', 'private, no-store')
                 ->header('Vary', 'Accept-Language');
         }
 
         $matchData = Cache::remember($cacheKey, CacheTtl::forMatch($status), $buildMatchData);
 
-        $ttl = match ($matchData['match']['status']) {
+        return $this->respondWithMatchView($matchData, $matchData['match']['status']);
+    }
+
+    /**
+     * Builds the public match-page response. The per-visitor permission
+     * flags (canLinkStreams/canLinkVods) must never be exposed to a shared
+     * cache: a CDN that stored one visitor's permission-gated HTML would
+     * replay it to every other visitor. So whenever those flags are
+     * anything other than the anonymous default, the response is forced
+     * private/no-store instead of the normal shared "public" caching.
+     */
+    private function respondWithMatchView(array $matchData, string $status)
+    {
+        $perRequest = $this->perRequestViewData();
+
+        if ($perRequest['canLinkStreams'] || $perRequest['canLinkVods']) {
+            return response()
+                ->view('match', array_merge($matchData, $perRequest))
+                ->header('Cache-Control', 'private, no-store')
+                ->header('Vary', 'Accept-Language');
+        }
+
+        $ttl = match ($status) {
             'finished' => 86400 * 30,
             'upcoming' => 86400,
             'live' => 60,
@@ -343,8 +359,46 @@ class MatchController extends Controller
         };
 
         return response()
-            ->view('match', $matchData)
+            ->view('match', array_merge($matchData, $perRequest))
             ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
             ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * View data that must never end up inside the cached match payload
+     * (see $buildMatchData/Cache::remember above) because it depends on the
+     * current visitor — computed fresh on every request and merged in after
+     * the cache read/write, for all three response paths.
+     *
+     * @return array{canLinkStreams: bool, canLinkVods: bool}
+     */
+    private function perRequestViewData(): array
+    {
+        $user = auth()->user();
+
+        return [
+            'canLinkStreams' => $this->canLinkPermission($user, 'streams.matches.link', 'publisher.streams.link'),
+            'canLinkVods' => $this->canLinkPermission($user, 'vods.matches.link', 'publisher.vods.link'),
+        ];
+    }
+
+    /**
+     * Whether the current visitor may link a stream channel/VOD to a match
+     * from the public match page — site editors with the admin permission,
+     * or a publisher's own member with the matching publisher permission
+     * (see Admin\MatchStreamController/Admin\MatchVodController, reused as-is:
+     * they authorize per-channel/per-VOD regardless of which page the
+     * request came from). Publishers have no access to the admin match
+     * list/show pages (gated by matches.view), so this is their only way to
+     * link their own channels/VODs.
+     */
+    private function canLinkPermission(?User $user, string $adminPermission, string $publisherPermission): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $user->can($adminPermission)
+            || PublisherScope::publisherIdsWithPermission($user->id, $publisherPermission)->isNotEmpty();
     }
 }

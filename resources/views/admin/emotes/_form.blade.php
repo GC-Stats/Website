@@ -69,7 +69,7 @@
 
     <label class="block">
         <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.emotes.fields.team') }}</span>
-        <select name="team_id" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+        <select name="team_id" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
             <option value="">{{ __('admin.emotes.fields.team_none') }}</option>
             @foreach ($teams as $team)
                 <option value="{{ $team->id }}" @selected(old('team_id') == $team->id)>{{ $team->name }}</option>

@@ -41,6 +41,11 @@ class AdminPermissions extends PermissionCatalog
             'finance' => ['finance.view', 'finance.manage'],
             'about' => ['about.view', 'about.manage'],
             'emotes' => ['emotes.view', 'emotes.create', 'emotes.edit', 'emotes.delete'],
+            'streams' => [
+                'streams.channels.view', 'streams.channels.create', 'streams.channels.edit', 'streams.channels.delete',
+                'streams.matches.link',
+            ],
+            'vods' => ['vods.matches.link'],
             'tournaments' => [
                 'tournaments.view', 'tournaments.create', 'tournaments.edit', 'tournaments.delete',
                 'tournaments.teams.manage', 'tournaments.finished.edit', 'tournaments.activate',

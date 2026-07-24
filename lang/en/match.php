@@ -42,4 +42,24 @@ return [
     'patch' => 'Patch :patch',
     'performance' => 'Performance Summary',
     'economy' => ':team Economy',
+    'streams' => [
+        'title' => 'Streams',
+        'watch' => 'Watch',
+        'empty' => 'No stream linked to this match yet.',
+        'add' => 'Add a stream',
+        'picker_label' => 'Channel',
+    ],
+    'vods' => [
+        'title' => 'VODs',
+        'empty' => 'No VOD linked to this match yet.',
+        'add' => 'Add a VOD',
+        'whole_match' => 'Whole match',
+        'fields' => [
+            'url' => 'VOD URL',
+            'language_code' => 'Language',
+            'language_code_search' => 'Search a language…',
+            'map' => 'Map',
+            'map_none' => 'Whole match',
+        ],
+    ],
 ];

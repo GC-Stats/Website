@@ -18,6 +18,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Matchs extends Model
@@ -96,5 +97,16 @@ class Matchs extends Model
     public function qualifications(): HasMany
     {
         return $this->hasMany(PhaseQualification::class, 'source_match_id');
+    }
+
+    public function streams(): BelongsToMany
+    {
+        return $this->belongsToMany(StreamChannel::class, 'match_streams', 'match_id', 'stream_channel_id')
+            ->withTimestamps();
+    }
+
+    public function vods(): HasMany
+    {
+        return $this->hasMany(Vod::class, 'match_id');
     }
 }

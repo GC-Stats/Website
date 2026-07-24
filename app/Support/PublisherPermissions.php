@@ -37,6 +37,8 @@ class PublisherPermissions extends PermissionCatalog
             'profile' => ['publisher.profile.edit', 'publisher.logo.upload'],
             'news' => ['publisher.news.view', 'publisher.news.edit', 'publisher.news.publish', 'publisher.news.delete'],
             'media' => ['publisher.media.view', 'publisher.media.upload', 'publisher.media.delete'],
+            'streams' => ['publisher.streams.view', 'publisher.streams.edit', 'publisher.streams.delete', 'publisher.streams.link'],
+            'vods' => ['publisher.vods.link'],
             'roles' => ['publisher.roles.manage'],
         ];
     }
