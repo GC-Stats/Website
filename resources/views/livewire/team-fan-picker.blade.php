@@ -115,7 +115,7 @@ new class extends Component {
                     {{ __('account.edit.team.tag_label') }}
                 </label>
                 <select id="selected_team_tag" name="team_tag"
-                        class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                        class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                     <option value="">{{ __('account.edit.team.tag_none') }}</option>
                     @foreach ($selectedTeamTags as $tag)
                         <option value="{{ $tag }}" @selected($tag === $selectedTeamTag)>{{ $tag }}</option>

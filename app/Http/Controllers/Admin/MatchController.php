@@ -20,8 +20,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\GameMap;
 use App\Models\Matchs;
+use App\Models\NewsPublisher;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
+use App\Support\Countries;
+use App\Support\PublisherScope;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -103,18 +106,34 @@ class MatchController extends Controller
         ]);
     }
 
-    public function show(Tournament $tournament, Matchs $match): View
+    public function show(Request $request, Tournament $tournament, Matchs $match): View
     {
         $this->ensureBelongsToTournament($tournament, $match);
 
         $match->load([
             'teamA', 'teamB', 'tournamentPhase', 'game_maps' => fn ($q) => $q->orderBy('order'),
             'qualifications.destinationPhase.tournament',
+            'streams.publisher',
+            'vods.publisher', 'vods.gameMap',
         ]);
+
+        $user = $request->user();
+        $canLinkStreamsAny = $user->can('streams.matches.link');
+        $linkableStreamPublisherIds = $canLinkStreamsAny ? null : PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.link');
+
+        $canLinkVodsAny = $user->can('vods.matches.link');
+        $linkableVodPublisherIds = $canLinkVodsAny ? null : PublisherScope::publisherIdsWithPermission($user->id, 'publisher.vods.link');
 
         return view('admin.matches.show', [
             'tournament' => $tournament,
             'match' => $match,
+            'canLinkStreams' => $canLinkStreamsAny || ($linkableStreamPublisherIds && $linkableStreamPublisherIds->isNotEmpty()),
+            'canLinkVods' => $canLinkVodsAny || ($linkableVodPublisherIds && $linkableVodPublisherIds->isNotEmpty()),
+            'vodsRestricted' => ! $canLinkVodsAny,
+            'vodPublishers' => NewsPublisher::query()
+                ->when(! $canLinkVodsAny, fn ($query) => $query->whereIn('id', $linkableVodPublisherIds))
+                ->orderBy('name')->get(['id', 'name']),
+            'countries' => app(Countries::class)->list(),
         ]);
     }
 

@@ -53,7 +53,10 @@ class PublisherRoleService
         $defaults = [
             self::ROLE_OWNER => $ceiling, // starts at the publisher's full ceiling; site admins can restrict per role from there
             self::ROLE_EDITOR => array_intersect(
-                ['publisher.news.view', 'publisher.news.edit', 'publisher.media.view', 'publisher.media.upload'],
+                [
+                    'publisher.news.view', 'publisher.news.edit', 'publisher.media.view', 'publisher.media.upload',
+                    'publisher.streams.view', 'publisher.streams.edit', 'publisher.vods.link',
+                ],
                 $ceiling
             ),
         ];

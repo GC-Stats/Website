@@ -157,6 +157,12 @@
                 </a>
             </div>
 
+            @if ($match['status'] === 'finished')
+                @include('components.match.vods', ['match' => $match, 'canLinkVods' => $canLinkVods ?? false])
+            @else
+                @include('components.match.streams', ['match' => $match, 'canLinkStreams' => $canLinkStreams ?? false])
+            @endif
+
             <div class="mt-10 -mx-4 md:-mx-8">
                 <div class="flex items-center justify-center gap-4 mb-8">
                     <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10"></div>

@@ -89,6 +89,26 @@ class MatchDisplay
     }
 
     /**
+     * Walks an already-loaded `parent` chain (see the `tournamentPhase.
+     * parent.parent...` eager load in Admin\MatchStreamController::index()/
+     * Admin\MatchVodController::index()) up to its root — the top-level
+     * stage name (e.g. "Playoffs") rather than a specific nested bracket
+     * round, for a compact "which stage of the tournament" display.
+     */
+    public static function rootPhaseName(?TournamentPhase $phase): ?string
+    {
+        if (! $phase) {
+            return null;
+        }
+
+        while ($phase->relationLoaded('parent') && $phase->parent) {
+            $phase = $phase->parent;
+        }
+
+        return $phase->name;
+    }
+
+    /**
      * Root phase gets no prefix; each level of nesting under a parent
      * phase adds one more "- " so a flat <select> still reads as a tree.
      * Walks $allPhases (a flat, already-loaded collection covering the

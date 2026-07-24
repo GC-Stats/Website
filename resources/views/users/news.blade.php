@@ -73,7 +73,7 @@
                             {{ __('user.news.lang_label') }}
                         </label>
                         <select id="lang" name="lang"
-                                class="bg-[#050505] border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                                class="bg-[#050505] border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                             <option value="">{{ __('user.news.lang_all') }}</option>
                             @foreach ($locales as $code => $label)
                                 <option value="{{ $code }}" @selected($langFilter === $code)>{{ $label }}</option>

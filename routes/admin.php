@@ -22,6 +22,8 @@ use App\Http\Controllers\Admin\EmoteController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\GameMapController;
 use App\Http\Controllers\Admin\MatchController;
+use App\Http\Controllers\Admin\MatchStreamController;
+use App\Http\Controllers\Admin\MatchVodController;
 use App\Http\Controllers\Admin\NewsAuthorController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\NewsMediaController;
@@ -33,6 +35,7 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SanctionController;
+use App\Http\Controllers\Admin\StreamChannelController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\TournamentOperationController;
@@ -236,6 +239,16 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::post('/{match}/qualifications', [PhaseQualificationController::class, 'storeForMatch'])
             ->middleware('can:matches.edit')->name('qualifications.store');
 
+        Route::prefix('{match}/streams')->name('streams.')->group(function () {
+            Route::post('/', [MatchStreamController::class, 'store'])->name('store');
+            Route::delete('/{channel}', [MatchStreamController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('{match}/vods')->name('vods.')->group(function () {
+            Route::post('/', [MatchVodController::class, 'store'])->name('store');
+            Route::delete('/{vod}', [MatchVodController::class, 'destroy'])->name('destroy');
+        });
+
         Route::prefix('{match}/maps')->name('maps.')->group(function () {
             Route::get('/{map}', [GameMapController::class, 'show'])
                 ->middleware('can:maps.edit')->name('show');
@@ -253,6 +266,8 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
                 ->middleware('can:maps.delete')->name('destroy');
         });
     });
+
+    Route::get('matches/streams/search', [MatchStreamController::class, 'search'])->name('matches.streams.search');
 
     Route::prefix('news')->name('news.')->group(function () {
         Route::get('/', [NewsController::class, 'index'])->name('index');
@@ -328,6 +343,33 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             Route::delete('/{author}', [NewsAuthorController::class, 'destroy'])
                 ->middleware('can:news.authors.delete')->name('destroy');
         });
+    });
+
+    Route::prefix('streams')->name('streams.')->group(function () {
+        Route::get('/', [StreamChannelController::class, 'index'])->name('index');
+        Route::get('/create', [StreamChannelController::class, 'create'])->name('create');
+        Route::post('/', [StreamChannelController::class, 'store'])->name('store');
+        Route::get('/{channel}/edit', [StreamChannelController::class, 'edit'])->name('edit');
+        Route::put('/{channel}', [StreamChannelController::class, 'update'])->name('update');
+        Route::delete('/{channel}', [StreamChannelController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('streams/matches')->name('streams.matches.')->group(function () {
+        Route::get('/', [MatchStreamController::class, 'index'])->name('index');
+        Route::get('/create', [MatchStreamController::class, 'create'])->name('create');
+        Route::get('/search/tournaments', [MatchStreamController::class, 'searchTournaments'])->name('search-tournaments');
+        Route::get('/search/matches', [MatchStreamController::class, 'searchMatchesInTournament'])->name('search-matches');
+        Route::post('/link', [MatchStreamController::class, 'linkMany'])->name('link');
+    });
+
+    // Same "liste tout" + wizard pattern as streams/matches above, for VODs
+    // (see Admin\MatchVodController) — no separate channel CRUD here since
+    // a VOD isn't a reusable entity (see App\Models\Vod's docblock).
+    Route::prefix('vods')->name('vods.')->group(function () {
+        Route::get('/', [MatchVodController::class, 'index'])->name('index');
+        Route::get('/create', [MatchVodController::class, 'create'])->name('create');
+        Route::get('/search/tournaments', [MatchVodController::class, 'searchTournaments'])->name('search-tournaments');
+        Route::get('/search/matches', [MatchVodController::class, 'searchMatchesInTournament'])->name('search-matches');
     });
 
     Route::prefix('users')->name('users.')->middleware(['can:users.view'])->group(function () {
