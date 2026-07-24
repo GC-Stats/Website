@@ -71,7 +71,6 @@ class GameMapController extends Controller
             'tournament' => $tournament,
             'match' => $match,
             'map' => $map,
-            'rosterPlayers' => $rosterPlayers,
             'teamAPlayers' => $teamAPlayers->map(fn ($p) => ['id' => $p->id, 'handle' => $p->handle])->values(),
             'teamBPlayers' => $teamBPlayers->map(fn ($p) => ['id' => $p->id, 'handle' => $p->handle])->values(),
             'pickerPlayers' => $pickerPlayers,
@@ -341,9 +340,17 @@ class GameMapController extends Controller
         $missingPlayers = $this->missingValIdPlayers($gameMap, $players, $content, $puuidMapping, $isEsportEndpoint);
 
         if ($missingPlayers->isNotEmpty()) {
+            $rosterPlayerIds = $gameMap->match->teamA?->currentPlayers()->pluck('players.id')
+                ->concat($gameMap->match->teamB?->currentPlayers()->pluck('players.id') ?? [])
+                ->values()
+                ->all() ?? [];
+
             return response()->json([
                 'error' => 'Some players could not be matched to a team roster (missing val_id)',
-                'missing_val_ids' => $missingPlayers,
+                'missing_val_ids_html' => view('admin.matches.maps.partials.missing-val-ids', [
+                    'missingPlayers' => $missingPlayers,
+                    'rosterPlayerIds' => $rosterPlayerIds,
+                ])->render(),
                 'is_esport_endpoint' => $isEsportEndpoint,
             ], 422);
         }
@@ -388,7 +395,7 @@ class GameMapController extends Controller
 
         foreach ($puuidMapping as $puuid => $playerId) {
             try {
-                Player::where('id', $playerId)->whereNull($column)->update([$column => $puuid]);
+                Player::where('id', $playerId)->update([$column => $puuid]);
             } catch (QueryException $e) {
                 if ($e->getCode() !== '23000') {
                     throw $e;

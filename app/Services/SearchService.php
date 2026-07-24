@@ -377,9 +377,15 @@ class SearchService
      * An empty term browses the type alphabetically instead of scoring,
      * so the dropdown never opens empty.
      *
+     * `browseIds`, when non-empty, scopes the empty-term browse list to just
+     * those ids (e.g. a match's roster) instead of the whole table — a
+     * non-empty term still searches every row regardless, so typing always
+     * escapes the scoped list.
+     *
+     * @param  list<int>  $browseIds
      * @return list<array{type: string, id: int, title: string, subtitle: ?string, image: ?string, image_kind: string, country_code: ?string, initials: ?string, url: ?string, score: ?int}>
      */
-    public function searchEntities(string $type, string $term, int $limit = 8, int $candidateLimit = 20): array
+    public function searchEntities(string $type, string $term, int $limit = 8, int $candidateLimit = 20, array $browseIds = []): array
     {
         $config = $this->entityConfig($type);
         $modelClass = $config['model'];
@@ -387,6 +393,7 @@ class SearchService
 
         if ($term === '') {
             return $modelClass::query()
+                ->when($browseIds !== [], fn ($q) => $q->whereIn('id', $browseIds))
                 ->orderBy($config['order'])
                 ->limit($limit)
                 ->get()

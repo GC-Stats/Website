@@ -26,7 +26,9 @@
             $subjectPhoto = $subject ? ($isTeam ? $subject->logo : $subject->profile_photo) : null;
             $subjectUrl = $subject ? route($isTeam ? 'admin.teams.show' : 'admin.players.show', $subject) : null;
         @endphp
-        <a href="{{ $subjectUrl ?? '#' }}"
+        <a href="{{ auth()->user()->can('matches.view')
+            ? ($subject ? route($isTeam ? 'admin.teams.show' : 'admin.players.show', $subject) : null)
+            : ($subject ? route($isTeam ? 'teams.show' : 'players.show', $subject) : null) }}"
            class="block px-4 py-3 border-b border-white/5 last:border-0 transition {{ $subjectUrl ? 'hover:bg-white/5' : 'cursor-default' }}">
             <div class="flex items-center justify-between gap-2 min-h-5">
                 <div class="flex items-center gap-1.5 min-w-0">

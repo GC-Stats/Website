@@ -331,56 +331,6 @@ window.GCS.apiFetch = async function (url, options = {}) {
     });
 };
 
-/**
- * Searchable single-player picker: shows `config.initial` (e.g. a team
- * roster) until the user types, then debounced-searches `config.searchUrl`
- * across all players. Each instance tracks its own request sequence number
- * so a slower, superseded response can never overwrite a newer one. Meant
- * to be used as its own `x-data`, one instance per picker, so several can
- * coexist in the same view (e.g. one per unmatched val_id row) without
- * sharing state keyed by hand.
- */
-window.GCS.playerSearchPicker = function (config) {
-    return {
-        query: '',
-        results: config.initial || [],
-        open: false,
-        searchToken: 0,
-
-        flagClass(code) {
-            return (! code || code === config.internationalCode) ? 'un' : code;
-        },
-
-        search() {
-            const q = this.query.trim();
-
-            if (! q) {
-                this.results = config.initial || [];
-
-                return;
-            }
-
-            const token = ++this.searchToken;
-
-            window.GCS.apiFetch(`${config.searchUrl}?q=${encodeURIComponent(q)}`)
-                .then((res) => res.json())
-                .then((data) => {
-                    if (token === this.searchToken) this.results = data;
-                })
-                .catch(() => {
-                    if (token === this.searchToken) this.results = [];
-                });
-        },
-
-        pick(player) {
-            this.query = player.handle;
-            this.open = false;
-
-            if (config.onPick) config.onPick(player);
-        },
-    };
-};
-
 function base64UrlToBuffer(base64url) {
     const padding = '='.repeat((4 - (base64url.length % 4)) % 4);
     const base64 = (base64url + padding).replace(/-/g, '+').replace(/_/g, '/');

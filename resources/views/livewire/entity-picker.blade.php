@@ -25,6 +25,11 @@
  * bump it (e.g. 'w-16 h-10') where the chip is the primary visual, like
  * roster-entry-card.blade.php's grid cards.
  *
+ * `browseIds` scopes the empty-query browse list to just those ids (e.g. a
+ * match's roster) instead of the whole table — typing still searches
+ * everything, so it's just a starting point, not a hard restriction. See
+ * admin/matches/maps/partials/missing-val-ids.blade.php.
+ *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
  * @link      https://github.com/GC-Stats/Website
@@ -48,6 +53,9 @@ new class extends Component {
 
     public string $thumbSize = 'w-8 h-5';
 
+    /** @var list<int> */
+    public array $browseIds = [];
+
     public string $search = '';
 
     /** @var list<array<string, mixed>> */
@@ -55,7 +63,7 @@ new class extends Component {
 
     public ?array $infoItem = null;
 
-    public function mount(string $type, ?string $name = null, ?string $label = null, bool $multiple = false, mixed $selected = null, ?string $placeholder = null, int $limit = 8, string $thumbSize = 'w-8 h-5'): void
+    public function mount(string $type, ?string $name = null, ?string $label = null, bool $multiple = false, mixed $selected = null, ?string $placeholder = null, int $limit = 8, string $thumbSize = 'w-8 h-5', ?array $browseIds = null): void
     {
         $this->type = $type;
         $this->name = $name ?? $type;
@@ -64,6 +72,7 @@ new class extends Component {
         $this->placeholder = $placeholder;
         $this->limit = $limit;
         $this->thumbSize = $thumbSize;
+        $this->browseIds = $browseIds ?? [];
 
         $ids = collect(is_iterable($selected) ? $selected : ($selected !== null ? [$selected] : []))
             ->filter(fn ($id) => $id !== null && $id !== '')
@@ -121,7 +130,7 @@ new class extends Component {
     {
         $excludedIds = collect($this->selectedItems)->pluck('id')->all();
 
-        $results = collect(app(SearchService::class)->searchEntities($this->type, $this->search, $this->limit + count($excludedIds)))
+        $results = collect(app(SearchService::class)->searchEntities($this->type, $this->search, $this->limit + count($excludedIds), browseIds: $this->browseIds))
             ->reject(fn ($item) => in_array($item['id'], $excludedIds, true))
             ->take($this->limit)
             ->values()
@@ -170,35 +179,33 @@ new class extends Component {
         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ $label }}</label>
     @endif
 
-    {{-- Selected entities: same "chip" as team-fan-picker, stacked when multiple. Thumb/flag/actions
-         on their own row so the title below gets the chip's full width instead of being squeezed
-         between them — narrow containers (e.g. roster-entry-card's grid cells) truncated it hard otherwise. --}}
+    {{-- Selected entities: same "chip" as team-fan-picker, stacked when multiple. Everything sits on
+         one row when there's room; flex-wrap only pushes the title down to its own line in genuinely
+         narrow containers (e.g. roster-entry-card's grid cells) instead of forcing it every time. --}}
     @if (count($selectedItems) > 0)
         <div class="space-y-2">
             @foreach ($selectedItems as $item)
                 <input type="hidden" name="{{ $multiple ? "{$name}[]" : $name }}" value="{{ $item['id'] }}">
 
-                <div class="flex flex-col gap-2 bg-[#050505] border border-border-subtle rounded-sm px-4 py-3">
-                    <div class="flex items-center gap-2">
-                        <div class="flex-shrink-0 {{ $thumbSize }} flex items-center justify-center">
-                            @include('livewire.partials.entity-thumb', ['item' => $item, 'size' => $thumbSize])
-                        </div>
-
-                        {{-- entity-thumb already falls back to the flag when there's no photo/logo — only add it here when there IS one, to avoid showing it twice --}}
-                        @if ($item['image'] && $item['country_code'])
-                            <span class="fi fi-{{ strtolower($item['country_code']) }} fis rounded shadow-sm w-5 h-3.5 shrink-0" aria-label="{{ $item['country_code'] }}"></span>
-                        @endif
-
-                        <div class="flex items-center gap-1 ml-auto shrink-0">
-                            @include('livewire.partials.entity-view-button', ['item' => $item, 'class' => 'w-7 h-7'])
-                            <button type="button" wire:click="remove({{ $item['id'] }})"
-                                    class="font-bold uppercase text-[10px] tracking-widest px-3 py-2 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10">
-                                {{ __('entity-picker.remove') }}
-                            </button>
-                        </div>
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 bg-[#050505] border border-border-subtle rounded-sm px-4 py-3">
+                    <div class="flex-shrink-0 {{ $thumbSize }} flex items-center justify-center">
+                        @include('livewire.partials.entity-thumb', ['item' => $item, 'size' => $thumbSize])
                     </div>
 
-                    <span class="text-sm font-bold uppercase tracking-wider text-white truncate">{{ $item['title'] }}</span>
+                    {{-- entity-thumb already falls back to the flag when there's no photo/logo — only add it here when there IS one, to avoid showing it twice --}}
+                    @if ($item['image'] && $item['country_code'])
+                        <span class="fi fi-{{ strtolower($item['country_code']) }} fis rounded shadow-sm w-5 h-3.5 shrink-0" aria-label="{{ $item['country_code'] }}"></span>
+                    @endif
+
+                    <p class="flex-1 min-w-[4rem] text-sm font-bold uppercase tracking-wider text-white truncate">{{ $item['title'] }}</p>
+
+                    <div class="flex items-center gap-1 ml-auto shrink-0">
+                        @include('livewire.partials.entity-view-button', ['item' => $item, 'class' => 'w-7 h-7'])
+                        <button type="button" wire:click="remove({{ $item['id'] }})"
+                                class="font-bold uppercase text-[10px] tracking-widest px-3 py-2 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10">
+                            {{ __('entity-picker.remove') }}
+                        </button>
+                    </div>
                 </div>
             @endforeach
         </div>

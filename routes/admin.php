@@ -104,11 +104,6 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
     });
 
     Route::prefix('players')->name('players.')->group(function () {
-        // No dedicated permission (like news.relations.search): a lightweight
-        // handle/id lookup used by pickers on pages gated by other
-        // permissions (e.g. maps.fetch), which may not imply players.view.
-        Route::get('/search', [PlayerController::class, 'search'])->name('search');
-
         Route::middleware(['can:players.view'])->group(function () {
             Route::get('/', [PlayerController::class, 'index'])->name('index');
             Route::get('/{player}', [PlayerController::class, 'show'])->name('show');
