@@ -12,18 +12,18 @@
  * @link      https://github.com/GC-Stats/Website
  */
 
-use App\Http\Controllers\AboutController;
-use App\Http\Controllers\ApiKeyRevealController;
-use App\Http\Controllers\FinanceController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\MatchController;
-use App\Http\Controllers\NewsController;
-use App\Http\Controllers\PlayerController;
-use App\Http\Controllers\SearchController;
-use App\Http\Controllers\TeamController;
-use App\Http\Controllers\TournamentController;
-use App\Http\Controllers\TransparencyController;
-use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\Public\AboutController;
+use App\Http\Controllers\Public\ApiKeyRevealController;
+use App\Http\Controllers\Public\FinanceController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\MatchController;
+use App\Http\Controllers\Public\NewsController;
+use App\Http\Controllers\Public\PlayerController;
+use App\Http\Controllers\Public\SearchController;
+use App\Http\Controllers\Public\TeamController;
+use App\Http\Controllers\Public\TournamentController;
+use App\Http\Controllers\Public\TransparencyController;
+use App\Http\Controllers\Public\UserProfileController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
@@ -38,35 +38,35 @@ Route::get('/health', function () {
 
 Route::middleware(['static.cache:2592000'])->group(function () {
     Route::get('/terms', function () {
-        return view('legal.terms');
+        return view('public.legal.terms');
     })->name('terms');
 
     Route::get('/legal', function () {
-        return view('legal.legal');
+        return view('public.legal.legal');
     })->name('legal');
 
     Route::get('/privacy', function () {
-        return view('legal.privacy');
+        return view('public.legal.privacy');
     })->name('privacy');
 
     Route::get('/data', function () {
-        return view('data');
+        return view('public.data');
     })->name('data');
 
     Route::get('/takedown', function () {
-        return view('legal.takedown');
+        return view('public.legal.takedown');
     })->name('takedown');
 
     Route::get('/help/edit_page', function () {
-        return view('help/edit_page');
+        return view('public.help/edit_page');
     })->name('help.edit_page');
 
     Route::get('/help/add_tournament', function () {
-        return view('help/add_tournament');
+        return view('public.help/add_tournament');
     })->name('help.add_tournament');
 
     Route::get('/developers', function () {
-        return view('developers');
+        return view('public.developers');
     })->name('developers');
 });
 

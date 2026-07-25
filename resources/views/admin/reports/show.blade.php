@@ -137,11 +137,11 @@
                             <div class="flex items-center justify-between gap-2 py-1.5 border-b border-b-white/10 last:border-b-0">
                                 <span class="text-sm text-white truncate">{{ $reaction->user->name }}</span>
                                 @can('sanctions.create')
-                                    <x-sanction-modal :user="$reaction->user">
+                                    <x-admin.sanction-modal :user="$reaction->user">
                                         <button type="button" class="text-gray-500 hover:text-gc-yellow transition shrink-0" title="{{ __('admin.reports.issue_sanction') }}">
                                             @svg('fas-gavel', 'w-3 h-3', ['aria-hidden' => 'true'])
                                         </button>
-                                    </x-sanction-modal>
+                                    </x-admin.sanction-modal>
                                 @endcan
                             </div>
                         @empty

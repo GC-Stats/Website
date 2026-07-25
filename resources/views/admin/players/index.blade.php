@@ -113,7 +113,7 @@
                         @enderror
                     </div>
 
-                    <x-team-select name="team_id" :label="__('admin.players.create.team_label')" :teams="$teamOptions" :selected="old('team_id')" :placeholder="'—'" />
+                    <x-admin.team-select name="team_id" :label="__('admin.players.create.team_label')" :teams="$teamOptions" :selected="old('team_id')" :placeholder="'—'" />
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">

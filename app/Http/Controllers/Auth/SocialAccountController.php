@@ -15,7 +15,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Exceptions\LastAuthMethodException;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\SocialAccount;
 use App\Services\AccountSecurityService;
 use Illuminate\Http\RedirectResponse;

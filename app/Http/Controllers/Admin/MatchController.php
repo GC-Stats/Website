@@ -17,7 +17,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\GameMap;
 use App\Models\Matchs;
 use App\Models\NewsPublisher;

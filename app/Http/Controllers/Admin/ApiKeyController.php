@@ -16,7 +16,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\ApiKey;
 use App\Models\ApiKeyReveal;
 use Illuminate\Contracts\View\View;

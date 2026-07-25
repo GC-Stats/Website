@@ -10,7 +10,7 @@
     Repository: https://github.com/GC-Stats/Website
 --}}
 @foreach ($navGroups as $groupIndex => $group)
-    @php $visibleItems = collect($group['items'])->filter(fn ($item) => auth()->user()->can($item['can'])); @endphp
+    @php $visibleItems = collect($group['items'])->filter(fn ($item) => \Illuminate\Support\Facades\Gate::allows($item['can'])); @endphp
     @if ($visibleItems->isNotEmpty())
         <div x-data="{ open: localStorage.getItem('gcs_admin_nav_{{ $groupIndex }}') !== '0' }">
             <button type="button"

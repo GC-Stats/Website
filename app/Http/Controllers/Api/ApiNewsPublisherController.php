@@ -16,7 +16,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\Concerns\ResolvesNewsAuthorScope;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\News;
 use App\Models\NewsPublisher;
 use Illuminate\Http\JsonResponse;

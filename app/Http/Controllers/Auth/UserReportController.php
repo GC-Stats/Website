@@ -16,7 +16,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Exceptions\CannotReportUserException;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\User;
 use App\Models\UserReport;
 use App\Services\UserReportService;

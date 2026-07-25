@@ -26,7 +26,7 @@
 
 namespace App\Http\Controllers\Team;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\TeamRoleService;
@@ -44,7 +44,7 @@ class RoleController extends Controller
     {
         $teamRoles->ensureRolesExist($team);
 
-        return view('team.roles.index', [
+        return view('public.team.roles.index', [
             'team' => $team,
             'roles' => Role::withCount('users')->where('team_id', $team->id)->orderBy('name')->get(),
         ]);
@@ -70,7 +70,7 @@ class RoleController extends Controller
 
         $search = $request->get('q');
 
-        return view('team.roles.show', [
+        return view('public.team.roles.show', [
             'team' => $team,
             'role' => $role,
             'permissionGroups' => TeamPermissions::groupedWithin($team->maxPermissions()),

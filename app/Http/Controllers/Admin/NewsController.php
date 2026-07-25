@@ -32,7 +32,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\ManagesPublisherScopedNews;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\News;
 use App\Models\NewsAuthor;
 use App\Models\NewsPublisher;

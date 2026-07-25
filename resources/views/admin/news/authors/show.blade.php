@@ -38,7 +38,7 @@
         <div class="lg:col-span-2 space-y-6">
             <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                 <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.news.authors.form.name_label') }}</h2>
-                <x-logo-upload-form
+                <x-admin.logo-upload-form
                     :current-url="$author->logo"
                     :action-url="route('admin.news.authors.logo.update', $author)"
                     :submit-label="__('admin.news.authors.form.save')"

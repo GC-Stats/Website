@@ -15,7 +15,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\GameMap;
 use App\Models\GameMapRound;
 use App\Models\GamePlayerAdvancedStat;

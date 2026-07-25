@@ -16,7 +16,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Exceptions\LastAuthMethodException;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\Team;
 use App\Services\AccountSecurityService;
 use Illuminate\Contracts\View\View;
@@ -34,7 +34,7 @@ class AccountSettingsController extends Controller
     {
         $user = $request->user()->load(['socialAccounts', 'passkeys']);
 
-        return view('auth.account-edit', [
+        return view('public.auth.account-edit', [
             'user' => $user,
             'linkedProviders' => $user->socialAccounts->pluck('provider')->all(),
         ]);

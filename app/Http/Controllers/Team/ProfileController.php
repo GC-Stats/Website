@@ -18,7 +18,7 @@
 
 namespace App\Http\Controllers\Team;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\Team;
 use App\Services\RosterService;
 use App\Services\TeamProfileService;
@@ -42,7 +42,7 @@ class ProfileController extends Controller
 
         $history = $rosterService->history($team->id);
 
-        return view('team.edit', [
+        return view('public.team.edit', [
             'team' => $team,
             'countries' => app(Countries::class)->list(),
             'roster' => $history->whereNull('left_at')->values(),

@@ -31,7 +31,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\SearchesMatchesForLinking;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\Matchs;
 use App\Models\StreamChannel;
 use App\Models\Tournament;

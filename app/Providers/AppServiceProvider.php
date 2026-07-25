@@ -155,6 +155,11 @@ class AppServiceProvider extends ServiceProvider
             ->isNotEmpty()
             || PublisherScope::publisherIdsForUser($user->id)->isNotEmpty());
 
+        Gate::define('access-developers', fn ($user) => $user->getAllPermissions()
+                ->pluck('name')
+                ->intersect(AdminPermissions::all())
+                ->isNotEmpty();
+
         Gate::define('activity.view', fn ($user) => collect(AdminPermissions::grouped()['activity'])
             ->contains(fn ($permission) => $user->can($permission)));
 

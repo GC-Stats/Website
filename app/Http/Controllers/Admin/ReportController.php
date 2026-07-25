@@ -15,7 +15,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\UserReport;
 use App\Services\UserReportService;
 use Illuminate\Contracts\View\View;

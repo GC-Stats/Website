@@ -17,7 +17,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Exceptions\PlayerHasMatchesException;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\Player;
 use App\Models\Team;
 use App\Models\User;

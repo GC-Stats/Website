@@ -16,7 +16,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\PointType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;

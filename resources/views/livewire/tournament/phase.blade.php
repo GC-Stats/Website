@@ -30,7 +30,7 @@ new class extends Component {
 <div class="w-full">
     @if(!empty($phase))
         <div class="flex flex-col gap-12">
-            <x-tournament.phase-node :node="$phase" :teams="$allTeams" :show-heading="true" />
+            <x-public.tournament.phase-node :node="$phase" :teams="$allTeams" :show-heading="true" />
         </div>
     @endif
 </div>

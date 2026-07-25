@@ -31,7 +31,7 @@
 </head>
 <body class="min-h-screen bg-bg-main text-white" x-data="{ sidebarOpen: false }">
 
-    <x-verify-email-banner />
+    <x-public.verify-email-banner />
 
     @php
         $navGroups = [
@@ -153,9 +153,9 @@
                        @if(request()->routeIs('admin.profile.edit')) aria-current="page" @endif
                        class="hidden sm:flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-all"
                        title="{{ __('admin.profile.title') }}">
-                        {{ auth()->user()->name }}
-                        @if (auth()->user()->username)
-                            <span class="text-gray-600">{{ '@'.auth()->user()->username }}</span>
+                        {{ auth()->user()->name ?? 'Unknown' }}
+                        @if (auth()->user()?->username)
+                            <span class="text-gray-600">{{ '@'.auth()->user()?->username }}</span>
                         @endif
                     </a>
                     <a href="{{ route('admin.profile.edit') }}" aria-label="{{ __('admin.profile.title') }}"
@@ -186,9 +186,11 @@
                     </div>
                 @endif
 
-                @error('role')
-                    <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">{{ $message }}</div>
-                @enderror
+                @if (isset($errors) && $errors->has('role'))
+                    <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">
+                        {{ $errors->first('role') }}
+                    </div>
+                @endif
 
                 @yield('content')
             </main>

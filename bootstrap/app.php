@@ -13,6 +13,9 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -50,6 +53,28 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->trustProxies(at: '*');
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (Throwable $e, Request $request) {
+
+            if ($e instanceof HttpExceptionInterface) {
+                $status = $e->getStatusCode();
+
+                if ($request->is('admin*')) {
+                    if (view()->exists("admin.errors.{$status}")) {
+                        return response()->view("admin.errors.{$status}", ['exception' => $e], $status);
+                    }
+
+                    // Vérifie aussi si la vue par défaut existe bien
+                    if (view()->exists('admin.errors.default')) {
+                        return response()->view('admin.errors.default', ['exception' => $e], $status);
+                    }
+                }
+
+                if ($request->is('developers*')) {
+                    if (view()->exists("developers.errors.{$status}")) {
+                        return response()->view("developers.errors.{$status}", ['exception' => $e], $status);
+                    }
+                }
+            }
+        });
     })->create();

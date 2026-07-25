@@ -11,7 +11,7 @@
 
 namespace App\Http\Controllers\Team;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\Team;
 use App\Services\RosterService;
 use Illuminate\Http\RedirectResponse;

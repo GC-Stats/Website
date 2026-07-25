@@ -21,7 +21,7 @@
 
 namespace App\Http\Controllers\News;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\NewsPublisher;
 use App\Models\User;
 use App\Services\PublisherRoleService;
@@ -39,7 +39,7 @@ class RoleController extends Controller
     {
         $publisherRoles->ensureRolesExist($publisher);
 
-        return view('news.roles.index', [
+        return view('admin.news.roles.index', [
             'publisher' => $publisher,
             'roles' => Role::withCount('users')->where('team_id', $publisher->id)
                 ->where('guard_name', PublisherPermissions::GUARD)->orderBy('name')->get(),
@@ -67,7 +67,7 @@ class RoleController extends Controller
 
         $search = $request->get('q');
 
-        return view('news.roles.show', [
+        return view('admin.news.roles.show', [
             'publisher' => $publisher,
             'role' => $role,
             'permissionGroups' => PublisherPermissions::groupedWithin($publisher->maxPermissions()),

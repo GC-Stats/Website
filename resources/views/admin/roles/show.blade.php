@@ -43,7 +43,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
-            <x-role-permissions-form
+            <x-admin.role-permissions-form
                 :role="$role"
                 :permission-groups="$permissionGroups"
                 :update-url="route('admin.roles.update', $role)"
@@ -53,7 +53,7 @@
                 :empty-message="__('admin.roles.protected_note')"
             />
 
-            <x-role-members-panel
+            <x-admin.role-members-panel
                 :members="$members"
                 :search="$search"
                 :search-results="$searchResults"

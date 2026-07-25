@@ -30,7 +30,7 @@
                     <input type="hidden" name="sort" value="{{ $sort }}">
                     <input type="hidden" name="direction" value="{{ $direction }}">
 
-                    <x-team-select class="w-44" name="team" :teams="$teams" :selected="$team" :placeholder="__('admin.matches.all_teams')" />
+                    <x-admin.team-select class="w-44" name="team" :teams="$teams" :selected="$team" :placeholder="__('admin.matches.all_teams')" />
 
                     <select name="phase" class="h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                         <option value="">{{ __('admin.matches.all_phases') }}</option>

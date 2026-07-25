@@ -19,7 +19,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\NewsPublisher;
 use App\Models\Team;
 use App\Models\User;

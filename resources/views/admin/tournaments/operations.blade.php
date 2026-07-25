@@ -128,7 +128,7 @@
                             </label>
                         </div>
 
-                        <x-timezone-select name="scheduled_at" :label="__('admin.matches.scheduled_at')" :required="true" />
+                        <x-admin.timezone-select name="scheduled_at" :label="__('admin.matches.scheduled_at')" :required="true" />
 
                         <x-confirm-modal
                             :title="__('admin.operations.bulk_create.title')"

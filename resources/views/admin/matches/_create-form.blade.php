@@ -19,7 +19,7 @@
         @error('phase_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
     </label>
 
-    <x-timezone-select
+    <x-admin.timezone-select
         name="scheduled_at"
         :label="__('admin.matches.scheduled_at')"
         :value="old('scheduled_at')"
@@ -28,8 +28,8 @@
     @error('scheduled_at') <p class="-mt-2 text-xs text-red-400">{{ $message }}</p> @enderror
 
     <div class="grid grid-cols-2 gap-3">
-        <x-team-select name="team_a_id" :label="__('admin.matches.team_a')" :teams="$teams" :selected="old('team_a_id')" />
-        <x-team-select name="team_b_id" :label="__('admin.matches.team_b')" :teams="$teams" :selected="old('team_b_id')" />
+        <x-admin.team-select name="team_a_id" :label="__('admin.matches.team_a')" :teams="$teams" :selected="old('team_a_id')" />
+        <x-admin.team-select name="team_b_id" :label="__('admin.matches.team_b')" :teams="$teams" :selected="old('team_b_id')" />
     </div>
 
     <div class="grid grid-cols-2 gap-3">

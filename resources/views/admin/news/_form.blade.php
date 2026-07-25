@@ -71,21 +71,21 @@
 </div>
 
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-    <x-relation-picker
+    <x-admin.relation-picker
         name="players"
         type="players"
         :label="__('admin.news.form.players_label')"
         :search-url="route('admin.news.relations.search')"
         :selected="$selectedPlayers"
     />
-    <x-relation-picker
+    <x-admin.relation-picker
         name="teams"
         type="teams"
         :label="__('admin.news.form.teams_label')"
         :search-url="route('admin.news.relations.search')"
         :selected="$selectedTeams"
     />
-    <x-relation-picker
+    <x-admin.relation-picker
         name="tournaments"
         type="tournaments"
         :label="__('admin.news.form.tournaments_label')"

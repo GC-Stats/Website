@@ -108,7 +108,7 @@
                                     @csrf
                                     @method('PUT')
 
-                                    <x-relation-picker
+                                    <x-admin.relation-picker
                                         name="stream_channel_id"
                                         type="streams"
                                         :label="__('admin.streams.match.picker_label')"

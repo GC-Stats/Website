@@ -15,7 +15,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Exceptions\SocialAccountAlreadyLinkedException;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\SanctionIdentity;
 use App\Models\SocialAccount;
 use App\Models\User;

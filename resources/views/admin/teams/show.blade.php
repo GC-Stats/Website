@@ -56,7 +56,7 @@
                 <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                     <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('team.edit.logo.title') }}</h2>
 
-                    <x-logo-upload-form
+                    <x-admin.logo-upload-form
                         :current-url="$team->logo"
                         :action-url="route('admin.teams.logo.update', $team)"
                         :submit-label="__('team.edit.logo.submit')"
@@ -65,7 +65,7 @@
                         <p class="text-xs text-red-400">{{ $message }}</p>
                     @enderror
 
-                    <x-logo-history
+                    <x-admin.logo-history
                         :logos="$team->logos()->orderByDesc('from')->get()"
                         folder="teams"
                         :add-url="route('admin.teams.logo.history.store', $team)"
@@ -260,7 +260,7 @@
 
     @can('teams.edit')
         <div class="mt-6">
-            <x-roster-panel
+            <x-admin.roster-panel
                 :current="$roster"
                 :history="$rosterHistory"
                 :add-url="route('admin.teams.roster.store', $team)"

@@ -16,7 +16,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\DiscordRoleMapping;
 use App\Models\User;
 use App\Support\AdminPermissions;

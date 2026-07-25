@@ -51,7 +51,7 @@
             <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                 <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('player.edit.logo.title') }}</h2>
 
-                <x-logo-upload-form
+                <x-admin.logo-upload-form
                     :current-url="$player->profile_photo"
                     :action-url="route('admin.players.logo.update', $player)"
                     :submit-label="__('player.edit.logo.submit')"
@@ -60,7 +60,7 @@
                     <p class="text-xs text-red-400">{{ $message }}</p>
                 @enderror
 
-                <x-logo-history
+                <x-admin.logo-history
                     :logos="$player->logos()->orderByDesc('from')->get()"
                     folder="players"
                     :add-url="route('admin.players.logo.history.store', $player)"
@@ -85,7 +85,7 @@
                     @csrf
                     @method('PUT')
 
-                    @include('player._profile-form', ['player' => $player])
+                    @include('admin.players._profile-form', ['player' => $player])
 
                     <button type="submit"
                             class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
@@ -97,7 +97,7 @@
 
     @can('players.edit')
         <div class="mt-6">
-            <x-roster-panel
+            <x-admin.roster-panel
                 :current="$currentTeams"
                 :history="$teamHistory"
                 :add-url="route('admin.players.team-history.store', $player)"

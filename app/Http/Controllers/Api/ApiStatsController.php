@@ -14,7 +14,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\Controller;
 use App\Models\Matchs;
 use App\Models\Player;
 use App\Models\Team;

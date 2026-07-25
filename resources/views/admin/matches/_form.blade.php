@@ -26,8 +26,8 @@
         </select>
     </label>
 
-    <x-team-select name="team_a_id" :label="__('admin.matches.team_a')" :teams="$teams" :selected="old('team_a_id', $match->team_a_id ?? null)" />
-    <x-team-select name="team_b_id" :label="__('admin.matches.team_b')" :teams="$teams" :selected="old('team_b_id', $match->team_b_id ?? null)" />
+    <x-admin.team-select name="team_a_id" :label="__('admin.matches.team_a')" :teams="$teams" :selected="old('team_a_id', $match->team_a_id ?? null)" />
+    <x-admin.team-select name="team_b_id" :label="__('admin.matches.team_b')" :teams="$teams" :selected="old('team_b_id', $match->team_b_id ?? null)" />
 
     @if (isset($match))
         <label class="block">
@@ -44,7 +44,7 @@
     @endif
 
     <div class="md:col-span-2">
-        <x-timezone-select
+        <x-admin.timezone-select
             name="scheduled_at"
             :label="__('admin.matches.scheduled_at')"
             :value="old('scheduled_at', optional($match->scheduled_at ?? null)->format('Y-m-d H:i:s'))"
