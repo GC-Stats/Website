@@ -26,22 +26,10 @@ class ApiTeamLogoController extends Controller
 {
     public function __construct(private readonly LogoUploadService $logoUploadService) {}
 
-    public function index(int $id): JsonResponse
-    {
-        $team = Team::findOrFail($id);
-
-        $logos = $team->logos()->orderByDesc('from')->get()->map(fn ($logo) => [
-            'id' => $logo->id,
-            'from' => $logo->from,
-            'until' => $logo->until,
-            'url' => $this->logoUploadService->thumbnailUrl('teams', $logo->id),
-        ]);
-
-        return response()->json(['logos' => $logos]);
-    }
-
     public function upload(Request $request, int $id): JsonResponse
     {
+        Team::findOrFail($id ?? abort(422, 'team_id is required to accept instantly'));
+
         $validated = $request->validate([
             'image' => ['required', 'file', 'image', 'max:10240'],
             'accept' => ['nullable', 'boolean'],
@@ -50,14 +38,6 @@ class ApiTeamLogoController extends Controller
         ]);
 
         $uuid = $this->logoUploadService->storeLogoPair($request->file('image'), 'teams');
-
-        if ($request->boolean('accept')) {
-            $team = Team::findOrFail($id ?? abort(422, 'team_id is required to accept instantly'));
-
-            $logo = $this->acceptLogo($team, $uuid, $validated['from'] ?? null, $validated['until'] ?? null);
-
-            return response()->json(['success' => true, 'uuid' => $uuid, 'logo' => $logo]);
-        }
 
         return response()->json(['uuid' => $uuid]);
     }
@@ -85,13 +65,6 @@ class ApiTeamLogoController extends Controller
     private function acceptLogo(Team $team, string $uuid, ?string $from = null, ?string $until = null): Logo
     {
         return $this->logoUploadService->acceptWithHistory($team, 'team', $uuid, $from, $until);
-    }
-
-    public function delete(string $uuid): JsonResponse
-    {
-        $this->logoUploadService->deleteLogo('team', 'teams', $uuid);
-
-        return response()->json(['success' => true]);
     }
 
     public function refuse(Request $request): JsonResponse

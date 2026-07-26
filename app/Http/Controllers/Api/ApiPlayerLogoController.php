@@ -26,22 +26,10 @@ class ApiPlayerLogoController extends Controller
 {
     public function __construct(private readonly LogoUploadService $logoUploadService) {}
 
-    public function index(int $id): JsonResponse
-    {
-        $player = Player::findOrFail($id);
-
-        $logos = $player->logos()->orderByDesc('from')->get()->map(fn ($logo) => [
-            'id' => $logo->id,
-            'from' => $logo->from,
-            'until' => $logo->until,
-            'url' => $this->logoUploadService->thumbnailUrl('players', $logo->id),
-        ]);
-
-        return response()->json(['logos' => $logos]);
-    }
-
     public function upload(Request $request, int $id): JsonResponse
     {
+         Player::findOrFail($id ?? abort(422, 'player_id is invalid'));
+
         $validated = $request->validate([
             'image' => ['required', 'file', 'image', 'max:10240'],
             'accept' => ['nullable', 'boolean'],
@@ -50,14 +38,6 @@ class ApiPlayerLogoController extends Controller
         ]);
 
         $uuid = $this->logoUploadService->storeLogoPair($request->file('image'), 'players');
-
-        if ($request->boolean('accept')) {
-            $player = Player::findOrFail($id ?? abort(422, 'player_id is required to accept instantly'));
-
-            $logo = $this->acceptLogo($player, $uuid, $validated['from'] ?? null, $validated['until'] ?? null);
-
-            return response()->json(['success' => true, 'uuid' => $uuid, 'logo' => $logo]);
-        }
 
         return response()->json(['uuid' => $uuid]);
     }
@@ -86,14 +66,6 @@ class ApiPlayerLogoController extends Controller
     {
         return $this->logoUploadService->acceptWithHistory($player, 'player', $uuid, $from, $until);
     }
-
-    public function delete(string $uuid): JsonResponse
-    {
-        $this->logoUploadService->deleteLogo('player', 'players', $uuid);
-
-        return response()->json(['success' => true]);
-    }
-
     public function refuse(Request $request): JsonResponse
     {
         $validated = $request->validate([
