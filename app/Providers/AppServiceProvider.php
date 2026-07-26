@@ -25,6 +25,7 @@ use App\Models\PhaseQualificationResult;
 use App\Models\Player;
 use App\Models\Team;
 use App\Models\Tournament;
+use App\Models\User;
 use App\Observers\LogoObserver;
 use App\Observers\MatchObserver;
 use App\Observers\NewsObserver;
@@ -155,10 +156,9 @@ class AppServiceProvider extends ServiceProvider
             ->isNotEmpty()
             || PublisherScope::publisherIdsForUser($user->id)->isNotEmpty());
 
-        Gate::define('access-developers', fn ($user) => $user->getAllPermissions()
-                ->pluck('name')
-                ->intersect(AdminPermissions::all())
-                ->isNotEmpty();
+        Gate::define('access-developers', fn (User $user) => $user->apiKeys()
+            ->where('is_active', true)
+            ->exists());
 
         Gate::define('activity.view', fn ($user) => collect(AdminPermissions::grouped()['activity'])
             ->contains(fn ($permission) => $user->can($permission)));

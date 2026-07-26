@@ -66,6 +66,17 @@
                         @enderror
                     </div>
 
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+                            {{ __('admin.api_keys.create.owner_username_label') }}
+                        </label>
+                        <input type="text" name="owner_username" required
+                               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                        @error('owner_username')
+                            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <button type="submit"
                             class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                         {{ __('admin.api_keys.create.submit') }}
@@ -82,6 +93,7 @@
                     @foreach ([['client_name', 'admin.api_keys.client_name'], ['rate_limit', 'admin.api_keys.rate_limit'], ['status', 'admin.api_keys.status']] as [$col, $label])
                         <x-admin.sortable-th :col="$col" :sort="$sort" :direction="$direction">{{ __($label) }}</x-admin.sortable-th>
                     @endforeach
+                    <th class="px-4 py-3">{{ __('admin.api_keys.owner') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -106,6 +118,7 @@
                                 </span>
                             @endcan
                         </td>
+                        <td class="px-4 py-3 text-gray-400 text-xs">{{ $key->user?->username ?? '—' }}</td>
                         <td class="px-4 py-3 text-right">
                             @can('api-keys.manage')
                                 <div class="flex justify-end gap-2">
@@ -134,6 +147,13 @@
                                                 <input type="number" name="rate_limit" required min="1" value="{{ $key->rate_limit }}"
                                                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
                                             </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+                                                    {{ __('admin.api_keys.create.owner_username_label') }}
+                                                </label>
+                                                <input type="text" name="owner_username" required value="{{ $key->user?->username }}"
+                                                       class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                                            </div>
                                             <button type="submit"
                                                     class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                                                 {{ __('admin.api_keys.edit_modal.submit') }}
@@ -159,7 +179,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-4 py-8 text-center text-gray-500 text-xs">{{ __('admin.api_keys.empty') }}</td>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-500 text-xs">{{ __('admin.api_keys.empty') }}</td>
                     </tr>
                 @endforelse
             </tbody>

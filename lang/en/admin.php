@@ -1150,6 +1150,7 @@ return [
         'status' => 'Status',
         'active' => 'Active',
         'inactive' => 'Inactive',
+        'owner' => 'Owner',
         'empty' => 'No API keys yet.',
         'edit' => 'Edit',
         'regenerate' => 'Regenerate',
@@ -1158,6 +1159,7 @@ return [
             'title' => 'New API key',
             'client_name_label' => 'Client name',
             'rate_limit_label' => 'Rate limit (requests / minute)',
+            'owner_username_label' => 'Owner (username)',
             'submit' => 'Create key',
         ],
         'edit_modal' => [

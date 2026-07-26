@@ -190,6 +190,13 @@
                                             {{ __('layout.account.admin') }}
                                         </a>
                                     @endcan
+                                    @can('access-developers')
+                                        <a href="{{ route('developers.dashboard') }}" role="menuitem"
+                                           class="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
+                                            <x-fas-code class="w-3.5 h-3.5" aria-hidden="true" />
+                                            {{ __('layout.account.developers') }}
+                                        </a>
+                                    @endcan
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit" role="menuitem"

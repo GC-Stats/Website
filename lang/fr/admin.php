@@ -1096,6 +1096,7 @@ return [
         'status' => 'Statut',
         'active' => 'Active',
         'inactive' => 'Inactive',
+        'owner' => 'Propriétaire',
         'empty' => 'Aucune clé API pour le moment.',
         'edit' => 'Modifier',
         'regenerate' => 'Régénérer',
@@ -1104,6 +1105,7 @@ return [
             'title' => 'Nouvelle clé API',
             'client_name_label' => 'Nom du client',
             'rate_limit_label' => 'Limite de débit (requêtes / minute)',
+            'owner_username_label' => 'Propriétaire (nom d\'utilisateur)',
             'submit' => 'Créer la clé',
         ],
         'edit_modal' => [

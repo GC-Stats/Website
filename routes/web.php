@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Route;
 require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/team.php';
+require __DIR__.'/developers.php';
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -65,7 +66,7 @@ Route::middleware(['static.cache:2592000'])->group(function () {
         return view('public.help/add_tournament');
     })->name('help.add_tournament');
 
-    Route::get('/developers', function () {
+    Route::get('/developers-doc', function () {
         return view('public.developers');
     })->name('developers');
 });

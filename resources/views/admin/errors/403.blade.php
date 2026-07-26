@@ -5,7 +5,7 @@
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
-@extends('errors::layout')
+@extends('admin.errors.layout')
 
 @section('title', __('Forbidden'))
 @section('code', '403')

@@ -16,7 +16,6 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
-
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -70,7 +69,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     }
                 }
 
-                if ($request->is('developers*')) {
+                if ($request->is('developers') || $request->is('developers/*')) {
                     if (view()->exists("developers.errors.{$status}")) {
                         return response()->view("developers.errors.{$status}", ['exception' => $e], $status);
                     }

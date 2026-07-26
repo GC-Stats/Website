@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ApiKey extends Model
 {
@@ -12,6 +14,7 @@ class ApiKey extends Model
     protected $table = 'api_key';
 
     protected $fillable = [
+        'user_id',
         'client_name',
         'key_hash',
         'rate_limit',
@@ -37,5 +40,15 @@ class ApiKey extends Model
     public static function hashKey(string $clearKey): string
     {
         return hash('sha256', $clearKey);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function requestLogs(): HasMany
+    {
+        return $this->hasMany(ApiRequestLog::class, 'api_key_id');
     }
 }

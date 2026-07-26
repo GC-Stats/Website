@@ -8,7 +8,7 @@
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
-@extends('layouts.app')
+@extends('public.layouts.app')
 
 @section('title', __('developers.title'))
 
@@ -77,14 +77,14 @@
 
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <span class="text-gc-yellow">#</span> {{ __('developers.dashboard.title') }}
+                        <span class="text-gc-yellow">#</span> {{ __('developers.doc_dashboard.title') }}
                     </h2>
                     <p class="text-sm text-gray-300 leading-relaxed mb-4">
-                        {{ __('developers.dashboard.body') }}
+                        {{ __('developers.doc_dashboard.body') }}
                     </p>
 
-                    <a href="https://api.gc-stats.app/dashboard" target="_blank" class="inline-flex items-center gap-2 bg-white hover:bg-gray-200 text-black text-[10px] font-black uppercase px-6 py-2 rounded-sm transition">
-                        <x-fas-gauge class="w-3.5 h-3.5 inline-block" aria-hidden="true" /> {{ __('developers.dashboard.btn') }}
+                    <a href="https://gc-stats.app/developers" target="_blank" class="inline-flex items-center gap-2 bg-white hover:bg-gray-200 text-black text-[10px] font-black uppercase px-6 py-2 rounded-sm transition">
+                        <x-fas-gauge class="w-3.5 h-3.5 inline-block" aria-hidden="true" /> {{ __('developers.doc_dashboardbtn') }}
                     </a>
                 </div>
 

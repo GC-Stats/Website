@@ -19,6 +19,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Public\Controller;
 use App\Models\ApiKey;
 use App\Models\ApiKeyReveal;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,6 +37,7 @@ class ApiKeyController extends Controller
         [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'created_at', 'asc');
 
         $keys = ApiKey::query()
+            ->with('user:id,name,username')
             ->when($search, fn ($query) => $query->where('client_name', 'like', '%'.$this->escapeLike($search).'%'))
             ->when($sort === 'client_name', fn ($query) => $query->orderBy('client_name', $direction))
             ->when($sort === 'rate_limit', fn ($query) => $query->orderBy('rate_limit', $direction))
@@ -58,12 +60,16 @@ class ApiKeyController extends Controller
         $validated = $request->validate([
             'client_name' => ['required', 'string', 'min:3', 'max:50'],
             'rate_limit' => ['required', 'integer', 'min:1'],
+            'owner_username' => ['required', 'string', 'exists:users,username'],
         ]);
 
-        $revealUrl = DB::transaction(function () use ($validated) {
+        $owner = User::where('username', $validated['owner_username'])->firstOrFail();
+
+        $revealUrl = DB::transaction(function () use ($validated, $owner) {
             $clearKey = $this->generateClearKey();
 
             $key = ApiKey::create([
+                'user_id' => $owner->id,
                 'client_name' => $validated['client_name'],
                 'rate_limit' => $validated['rate_limit'],
                 'is_active' => true,
@@ -74,7 +80,7 @@ class ApiKeyController extends Controller
         });
 
         activity('administration')->causedBy($request->user())
-            ->withProperties(['client_name' => $validated['client_name']])->log('api_key.created');
+            ->withProperties(['client_name' => $validated['client_name'], 'owner' => $owner->username])->log('api_key.created');
 
         return back()->with('status', 'api-key-created')->with('reveal_url', $revealUrl);
     }
@@ -84,9 +90,16 @@ class ApiKeyController extends Controller
         $validated = $request->validate([
             'client_name' => ['required', 'string', 'min:3', 'max:50'],
             'rate_limit' => ['required', 'integer', 'min:1'],
+            'owner_username' => ['required', 'string', 'exists:users,username'],
         ]);
 
-        $key->update($validated);
+        $owner = User::where('username', $validated['owner_username'])->firstOrFail();
+
+        $key->update([
+            'client_name' => $validated['client_name'],
+            'rate_limit' => $validated['rate_limit'],
+            'user_id' => $owner->id,
+        ]);
 
         activity('administration')->causedBy($request->user())
             ->performedOn($key)->log('api_key.updated');

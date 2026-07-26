@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ApiRequestLog extends Model
 {
@@ -23,4 +24,9 @@ class ApiRequestLog extends Model
     protected $casts = [
         'created_at' => 'datetime',
     ];
+
+    public function apiKey(): BelongsTo
+    {
+        return $this->belongsTo(ApiKey::class, 'api_key_id');
+    }
 }

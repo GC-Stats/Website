@@ -34,7 +34,7 @@ class AccountSettingsController extends Controller
     {
         $user = $request->user()->load(['socialAccounts', 'passkeys']);
 
-        return view('public.auth.account-edit', [
+        return view('auth.account-edit', [
             'user' => $user,
             'linkedProviders' => $user->socialAccounts->pluck('provider')->all(),
         ]);

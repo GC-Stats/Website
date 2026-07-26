@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -108,6 +109,16 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
     public function reportsSubmitted(): HasMany
     {
         return $this->hasMany(UserReport::class, 'reporter_id');
+    }
+
+    public function apiRequestLogs(): HasManyThrough
+    {
+        return $this->hasManyThrough(ApiRequestLog::class, ApiKey::class);
+    }
+
+    public function apiKeys(): HasMany
+    {
+        return $this->hasMany(ApiKey::class);
     }
 
     /**

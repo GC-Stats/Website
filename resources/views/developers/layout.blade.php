@@ -24,7 +24,7 @@
         })();
     </script>
 
-    <title>@yield('title', '') | {{ __('admin.nav.title') }} | {{ config('app.name') }}</title>
+    <title>@yield('title', '') | {{ __('developers.dashboard.nav.title') }} | {{ config('app.name') }}</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -34,49 +34,18 @@
     <x-public.verify-email-banner />
 
     @php
-        $navGroups = [
+        $canAccessDevelopers = auth()->user()?->can('access-developers') ?? false;
+        $defaultApiKey = $canAccessDevelopers ? auth()->user()->apiKeys()->oldest()->first() : null;
+
+        $navGroups = $canAccessDevelopers ? [
             [
-                'label' => __('admin.nav.group_moderation'),
-                'items' => [
-                    ['route' => 'admin.reports.index', 'pattern' => 'admin.reports.*', 'label' => __('admin.nav.reports'), 'icon' => 'fas-flag', 'can' => 'reports.view'],
-                    ['route' => 'admin.sanctions.index', 'pattern' => 'admin.sanctions.*', 'label' => __('admin.nav.sanctions'), 'icon' => 'fas-gavel', 'can' => 'sanctions.view'],
-                    ['route' => 'admin.activity.index', 'pattern' => 'admin.activity.*', 'label' => __('admin.nav.activity'), 'icon' => 'fas-clock-rotate-left', 'can' => 'activity.view'],
-                ],
+                'items' => array_filter([
+                    ['route' => 'developers.api-keys.index', 'params' => [], 'pattern' => 'developers.api-keys.*', 'label' => __('developers.dashboard.nav.api-keys'), 'icon' => 'fas-key'],
+                    $defaultApiKey ? ['route' => 'developers.requests.index', 'params' => ['key' => $defaultApiKey], 'pattern' => 'developers.requests.*', 'label' => __('developers.dashboard.nav.requests'), 'icon' => 'fas-clock-rotate-left'] : null,
+                    $defaultApiKey ? ['route' => 'developers.stats.index', 'params' => ['key' => $defaultApiKey], 'pattern' => 'developers.stats.*', 'label' => __('developers.dashboard.nav.stats'), 'icon' => 'fas-chart-line'] : null,
+                ]),
             ],
-            [
-                'label' => __('admin.nav.group_content'),
-                'items' => [
-                    ['route' => 'admin.tournaments.index', 'pattern' => ['admin.tournaments.*', 'admin.matches.*'], 'label' => __('admin.nav.tournaments'), 'icon' => 'fas-trophy', 'can' => 'tournaments.view'],
-                    ['route' => 'admin.point-types.index', 'pattern' => 'admin.point-types.*', 'label' => __('admin.nav.point_types'), 'icon' => 'fas-coins', 'can' => 'tournaments.view'],
-                    ['route' => 'admin.teams.index', 'pattern' => 'admin.teams.*', 'label' => __('admin.nav.teams'), 'icon' => 'fas-people-group', 'can' => 'teams.view'],
-                    ['route' => 'admin.players.index', 'pattern' => 'admin.players.*', 'label' => __('admin.nav.players'), 'icon' => 'fas-user', 'can' => 'players.view'],
-                ],
-            ],
-            [
-                'label' => __('admin.nav.news'),
-                'items' => [
-                    ['route' => 'admin.news.index', 'pattern' => 'admin.news.index', 'label' => __('admin.nav.news'), 'icon' => 'fas-newspaper', 'can' => 'news.nav.articles'],
-                    ['route' => 'admin.news.publishers.index', 'pattern' => 'admin.news.publishers.*', 'label' => __('admin.nav.news_publishers'), 'icon' => 'fas-building', 'can' => 'news.nav.publishers'],
-                    ['route' => 'admin.news.authors.index', 'pattern' => 'admin.news.authors.*', 'label' => __('admin.nav.news_authors'), 'icon' => 'fas-pen', 'can' => 'news.nav.authors'],
-                    ['route' => 'admin.news.media.index', 'pattern' => 'admin.news.media.*', 'label' => __('admin.nav.news_media'), 'icon' => 'fas-images', 'can' => 'news.nav.media'],
-                    ['route' => 'admin.streams.index', 'pattern' => ['admin.streams.index', 'admin.streams.create', 'admin.streams.edit'], 'label' => __('admin.nav.streams'), 'icon' => 'fas-tower-broadcast', 'can' => 'streams.nav.channels'],
-                    ['route' => 'admin.streams.matches.index', 'pattern' => 'admin.streams.matches.*', 'label' => __('admin.nav.streams_matches'), 'icon' => 'fas-link', 'can' => 'streams.nav.matches'],
-                    ['route' => 'admin.vods.index', 'pattern' => 'admin.vods.*', 'label' => __('admin.nav.vods'), 'icon' => 'fas-film', 'can' => 'vods.nav.matches'],
-                ],
-            ],
-            [
-                'label' => __('admin.nav.group_access'),
-                'items' => [
-                    ['route' => 'admin.users.index', 'pattern' => 'admin.users.*', 'label' => __('admin.nav.users'), 'icon' => 'fas-users', 'can' => 'users.view'],
-                    ['route' => 'admin.roles.index', 'pattern' => 'admin.roles.*', 'label' => __('admin.nav.roles'), 'icon' => 'fas-user-shield', 'can' => 'manage-roles'],
-                    ['route' => 'admin.analytics.index', 'pattern' => 'admin.analytics.*', 'label' => __('admin.nav.analytics'), 'icon' => 'fas-chart-line', 'can' => 'analytics.view'],
-                    ['route' => 'admin.finance.index', 'pattern' => 'admin.finance.*', 'label' => __('admin.nav.finance'), 'icon' => 'fas-sack-dollar', 'can' => 'finance.view'],
-                    ['route' => 'admin.about.index', 'pattern' => 'admin.about.*', 'label' => __('admin.nav.about'), 'icon' => 'fas-circle-info', 'can' => 'about.view'],
-                    ['route' => 'admin.emotes.index', 'pattern' => 'admin.emotes.*', 'label' => __('admin.nav.emotes'), 'icon' => 'fas-face-smile', 'can' => 'emotes.view'],
-                    ['route' => 'admin.api-keys.index', 'pattern' => 'admin.api-keys.*', 'label' => __('admin.nav.api_keys'), 'icon' => 'fas-key', 'can' => 'api-keys.view'],
-                ],
-            ],
-        ];
+        ] : [];
     @endphp
 
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
@@ -86,30 +55,30 @@
 
     <div class="flex min-h-screen">
         <aside class="hidden lg:flex lg:flex-col w-64 shrink-0 border-r border-white/10 bg-black/40 backdrop-blur-xl h-screen sticky top-0">
-            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 px-6 h-16 border-b border-white/10 shrink-0">
+            <a href="{{ route('developers.dashboard') }}" class="flex items-center gap-2 px-6 h-16 border-b border-white/10 shrink-0">
                 <span class="text-lg font-black tracking-tighter text-white uppercase italic">
                     GC<span class="text-[var(--brand-yellow)]">STATS</span>
                 </span>
-                <span class="text-[9px] font-black uppercase tracking-widest text-gray-500 border border-white/10 rounded-md px-1.5 py-0.5">{{ __('admin.nav.title') }}</span>
+                <span class="text-[9px] font-black uppercase tracking-widest text-gray-500 border border-white/10 rounded-md px-1.5 py-0.5">{{ __('developers.dashboard.nav.title') }}</span>
             </a>
 
             <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-5">
                 <div class="pb-5 mb-5 border-b border-white/10">
-                    <a href="{{ route('admin.dashboard') }}"
-                       @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif
-                       class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
+                    <a href="{{ route('developers.dashboard') }}"
+                       @if(request()->routeIs('developers.dashboard')) aria-current="page" @endif
+                       class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs('developers.dashboard') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
                         @svg('fas-gauge', 'w-3.5 h-3.5 shrink-0', ['aria-hidden' => 'true'])
-                        <span class="truncate">{{ __('admin.nav.dashboard') }}</span>
+                        <span class="truncate">{{ __('developers.dashboard.nav.dashboard') }}</span>
                     </a>
                 </div>
 
-                @include('admin.partials.nav', ['navGroups' => $navGroups])
+                @include('developers.partials.nav', ['navGroups' => $navGroups])
             </nav>
 
             <div class="border-t border-white/10 p-3">
                 <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-all">
                     @svg('fas-arrow-left', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
-                    {{ __('admin.nav.back_to_site') }}
+                    {{ __('developers.dashboard.nav.back_to_site') }}
                 </a>
             </div>
         </aside>
@@ -127,15 +96,15 @@
             </div>
             <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-5">
                 <div class="pb-5 mb-5 border-b border-white/10">
-                    <a href="{{ route('admin.dashboard') }}"
-                       @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif
-                       class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
+                    <a href="{{ route('developers.dashboard') }}"
+                       @if(request()->routeIs('developers.dashboard')) aria-current="page" @endif
+                       class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs('developers.dashboard') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
                         @svg('fas-gauge', 'w-3.5 h-3.5 shrink-0', ['aria-hidden' => 'true'])
-                        <span class="truncate">{{ __('admin.nav.dashboard') }}</span>
+                        <span class="truncate">{{ __('developers.nav.dashboard') }}</span>
                     </a>
                 </div>
 
-                @include('admin.partials.nav', ['navGroups' => $navGroups])
+                @include('developers.partials.nav', ['navGroups' => $navGroups])
             </nav>
         </aside>
 
@@ -145,24 +114,10 @@
                     <button @click="sidebarOpen = true" class="lg:hidden" aria-label="{{ __('layout.nav.open_menu') }}">
                         @svg('fas-bars', 'w-4 h-4 text-gray-400', ['aria-hidden' => 'true'])
                     </button>
-                    <h1 class="text-sm font-black uppercase tracking-widest text-white truncate">@yield('title', __('admin.nav.title'))</h1>
+                    <h1 class="text-sm font-black uppercase tracking-widest text-white truncate">@yield('title', __('developers.dashboard.nav.title'))</h1>
                 </div>
 
                 <div class="flex items-center gap-4 shrink-0">
-                    <a href="{{ route('admin.profile.edit') }}"
-                       @if(request()->routeIs('admin.profile.edit')) aria-current="page" @endif
-                       class="hidden sm:flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-all"
-                       title="{{ __('admin.profile.title') }}">
-                        {{ auth()->user()->name ?? 'Unknown' }}
-                        @if (auth()->user()?->username)
-                            <span class="text-gray-600">{{ '@'.auth()->user()?->username }}</span>
-                        @endif
-                    </a>
-                    <a href="{{ route('admin.profile.edit') }}" aria-label="{{ __('admin.profile.title') }}"
-                       @if(request()->routeIs('admin.profile.edit')) aria-current="page" @endif
-                       class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-[var(--brand-yellow)]/50 transition-all {{ request()->routeIs('admin.profile.edit') ? 'border-[var(--brand-yellow)]/50 text-white' : '' }}">
-                        @svg('fas-user', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
-                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" aria-label="{{ __('layout.account.logout') }}"
@@ -176,13 +131,13 @@
             <main class="flex-1 p-4 lg:p-8 min-w-0">
                 @if (session('status'))
                     <div class="mb-6 bg-green-500/10 border border-green-500/30 text-green-400 text-sm rounded-lg px-4 py-3">
-                        {{ __('admin.status.'.session('status')) }}
+                        {{ __('developers.dashboard.status.'.session('status')) }}
                     </div>
                 @endif
 
                 @if (session('error'))
                     <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">
-                        {{ __('admin.status.'.session('error')) }}
+                        {{ __('developers.dashboard.status.'.session('error')) }}
                     </div>
                 @endif
 
