@@ -76,7 +76,7 @@
                     <input type="hidden" name="destination_type" :value="destType">
 
                     <div x-show="destType === 'phase'">
-                        <x-phase-picker name="destination_phase_id" :label="__('admin.tournaments.qualifications.destination_phase')" :search-url="route('admin.tournaments.phases.search')" />
+                        <x-admin.phase-picker name="destination_phase_id" :label="__('admin.tournaments.qualifications.destination_phase')" :search-url="route('admin.tournaments.phases.search')" />
                     </div>
 
                     <div x-show="destType === 'placement'" class="grid grid-cols-2 gap-2">
