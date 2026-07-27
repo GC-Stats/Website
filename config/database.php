@@ -15,6 +15,25 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+/*
+|--------------------------------------------------------------------------
+| Replication Host Resolution
+|--------------------------------------------------------------------------
+|
+| DB_HOST_WRITE/DB_HOST_READ fall back to DB_HOST when unset. env()'s
+| built-in default only applies when a variable is completely unset, not
+| when it's present but empty (e.g. DB_HOST_READ= in a copied .env file),
+| so that fallback is resolved manually here instead. DB_HOST_READ accepts
+| a comma-separated list of replica hosts; if it resolves to nothing, we
+| fall back to the write host so the read connection is never left empty.
+*/
+$dbWriteHost = env('DB_HOST_WRITE') ?: env('DB_HOST', '127.0.0.1');
+$dbReadHosts = array_filter(explode(',', (string) (env('DB_HOST_READ') ?: $dbWriteHost)));
+
+if (empty($dbReadHosts)) {
+    $dbReadHosts = [$dbWriteHost];
+}
+
 return [
 
     /*
@@ -60,10 +79,10 @@ return [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
             'read' => [
-                'host' => array_filter(explode(',', (string) env('DB_HOST_READ', env('DB_HOST', '127.0.0.1')))),
+                'host' => $dbReadHosts,
             ],
             'write' => [
-                'host' => [env('DB_HOST_WRITE', env('DB_HOST', '127.0.0.1'))],
+                'host' => [$dbWriteHost],
             ],
             'sticky' => true,
             'port' => env('DB_PORT', '3306'),
@@ -86,10 +105,10 @@ return [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
             'read' => [
-                'host' => array_filter(explode(',', (string) env('DB_HOST_READ', env('DB_HOST', '127.0.0.1')))),
+                'host' => $dbReadHosts,
             ],
             'write' => [
-                'host' => [env('DB_HOST_WRITE', env('DB_HOST', '127.0.0.1'))],
+                'host' => [$dbWriteHost],
             ],
             'sticky' => true,
             'port' => env('DB_PORT', '3306'),
