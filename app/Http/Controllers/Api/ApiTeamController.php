@@ -16,10 +16,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Public\Controller;
 use App\Models\Team;
-use App\Services\RosterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ApiTeamController extends Controller
 {

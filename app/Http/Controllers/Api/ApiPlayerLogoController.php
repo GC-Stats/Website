@@ -28,7 +28,7 @@ class ApiPlayerLogoController extends Controller
 
     public function upload(Request $request, int $id): JsonResponse
     {
-         Player::findOrFail($id ?? abort(422, 'player_id is invalid'));
+        Player::findOrFail($id ?? abort(422, 'player_id is invalid'));
 
         $validated = $request->validate([
             'image' => ['required', 'file', 'image', 'max:10240'],
@@ -66,6 +66,7 @@ class ApiPlayerLogoController extends Controller
     {
         return $this->logoUploadService->acceptWithHistory($player, 'player', $uuid, $from, $until);
     }
+
     public function refuse(Request $request): JsonResponse
     {
         $validated = $request->validate([

@@ -13,27 +13,10 @@
  * @link      https://github.com/GC-Stats/Website
  */
 
-use App\Http\Controllers\Api\ApiAboutController;
-use App\Http\Controllers\Api\ApiAnalyticsController;
-use App\Http\Controllers\Api\ApiApiKeyController;
-use App\Http\Controllers\Api\ApiAuthorLogoController;
-use App\Http\Controllers\Api\ApiFinanceController;
-use App\Http\Controllers\Api\ApiGameMapController;
-use App\Http\Controllers\Api\ApiMatchController;
-use App\Http\Controllers\Api\ApiNewsAuthorController;
-use App\Http\Controllers\Api\ApiNewsController;
-use App\Http\Controllers\Api\ApiNewsImageController;
-use App\Http\Controllers\Api\ApiNewsPublisherController;
 use App\Http\Controllers\Api\ApiPlayerController;
 use App\Http\Controllers\Api\ApiPlayerLogoController;
-use App\Http\Controllers\Api\ApiPublisherLogoController;
-use App\Http\Controllers\Api\ApiRequestLogController;
-use App\Http\Controllers\Api\ApiStatsController;
 use App\Http\Controllers\Api\ApiTeamController;
 use App\Http\Controllers\Api\ApiTeamLogoController;
-use App\Http\Controllers\Api\ApiTournamentController;
-use App\Http\Controllers\Api\ApiTournamentLogoController;
-
 
 Route::prefix('internal')
     ->middleware(['internal.service'])
