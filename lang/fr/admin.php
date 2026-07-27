@@ -1,5 +1,4 @@
 <?php
-
 return [
     'nav' => [
         'title' => 'Admin',
@@ -30,7 +29,6 @@ return [
         'point_types' => 'Types de points',
         'back_to_site' => 'Retour au site',
     ],
-
     'dashboard' => [
         'title' => 'Tableau de bord',
         'subtitle' => 'Vue d\'ensemble du contenu du site.',
@@ -75,7 +73,6 @@ return [
             'default' => 'Modification',
         ],
     ],
-
     'profile' => [
         'title' => 'Profil',
         'profile' => [
@@ -90,7 +87,6 @@ return [
             'language' => 'Langue',
         ],
     ],
-
     'reports' => [
         'title' => "Signalements d'utilisateurs",
         'status' => [
@@ -132,7 +128,6 @@ return [
         'reviewed_by' => 'Traité par :name le :date',
         'issue_sanction' => 'Sanctionner cet utilisateur',
     ],
-
     'sanctions' => [
         'title' => 'Sanctions',
         'type' => [
@@ -167,7 +162,6 @@ return [
             'submit' => 'Émettre la sanction',
         ],
     ],
-
     'activity' => [
         'title' => "Journal d'activité",
         'filter_log' => 'Journal',
@@ -387,7 +381,6 @@ return [
             'no_details' => 'Aucun détail supplémentaire enregistré pour cet événement.',
         ],
     ],
-
     'roles' => [
         'title' => 'Rôles',
         'member_count' => ':count membre|:count membres',
@@ -432,7 +425,6 @@ return [
             'protected_role' => 'Le rôle super-admin a déjà accès à tout et ne peut pas être modifié ni supprimé.',
         ],
     ],
-
     'teams' => [
         'title' => 'Équipes',
         'search_placeholder' => "Nom, ID ou ID VLR de l'équipe",
@@ -510,7 +502,6 @@ return [
             ],
         ],
     ],
-
     'players' => [
         'title' => 'Joueuses',
         'search_placeholder' => 'Pseudo, ID ou ID VLR',
@@ -593,7 +584,6 @@ return [
             ],
         ],
     ],
-
     'tournaments' => [
         'title' => 'Tournois',
         'information' => 'Informations',
@@ -680,8 +670,27 @@ return [
             'create_name_label' => "Nom de l'équipe",
             'create_submit' => 'Créer et ajouter',
         ],
+        'point_type' => 'Types de point',
+        'point_type_none' => 'Aucun type de point',
+        'qualifications' => [
+            'title' => 'Qualifications',
+            'add' => 'Ajouter une règle',
+            'empty' => 'Aucune règle de qualifications',
+            'delete_confirm' => 'Supprimer cette règle de qualification ?',
+            'rank_from' => 'A partir de',
+            'rank_to' => 'Jusqu\'à',
+            'rank_range' => 'Rang :from-:to',
+            'destination_phase' => 'Phase',
+            'destination_placement' => 'Placement',
+            'placement_sort' => 'Ordre de tri (Ex : 1, 3, 5)',
+            'placement_label' => 'Nom (Ex : Champion, 3-4)',
+            'points' => 'Points',
+            'cash_prize_amount' => 'Montant du Cash Prize',
+            'cash_prize_currency' => 'Devise (Ex : EUR)',
+            'phase_search_placeholder' => 'Cherche une phase de tournoi…',
+            'bracket_hint' => 'Les règles de qualifications pour les brackets sont définis par match — Ouvre un match et utilise le gagnant/perdant pour choisir la destination.',
+        ],
     ],
-
     'emotes' => [
         'title' => 'Emotes',
         'name' => 'Nom',
@@ -731,7 +740,6 @@ return [
         ],
         'empty' => "Aucun emote pour le moment.",
     ],
-
     'streams' => [
         'title' => 'Streams',
         'name' => 'Nom',
@@ -807,7 +815,6 @@ return [
             ],
         ],
     ],
-
     'vods' => [
         'fields' => [
             'url' => 'Lien de la VOD',
@@ -852,7 +859,6 @@ return [
             ],
         ],
     ],
-
     'matches' => [
         'title' => 'Matchs',
         'manage' => 'Gérer',
@@ -1002,8 +1008,17 @@ return [
                 'error' => 'Merci de vérifier les champs en surbrillance.',
             ],
         ],
+        'qualifications' => [
+            'title' => 'Qualification',
+            'add' => 'Ajouter une règle',
+            'empty' => 'Aucune règle de qualification',
+            'delete_confirm' => 'Supprimer cette règle de qualification ?',
+            'outcome' => [
+                'winner' => 'Gagnant',
+                'loser' => 'Perdant',
+            ],
+        ],
     ],
-
     'operations' => [
         'title' => 'Opérations',
         'patch' => [
@@ -1035,7 +1050,6 @@ return [
             'result_failed_missing' => "Échec du renouvellement et rien n'était en cache pour ce match — il n'a jamais été récupéré.",
         ],
     ],
-
     'status' => [
         'profile-information-updated' => 'Profil mis à jour.',
         'tournament-created' => 'Tournoi créé.',
@@ -1148,7 +1162,6 @@ return [
         'phase-qualification-created' => 'Qualification créée.',
         'phase-qualification-deleted' => 'Qualification supprimée.',
     ],
-
     'news' => [
         'title' => 'Actualités',
         'search_placeholder' => 'Titre ou slug',
@@ -1186,7 +1199,6 @@ return [
         'delete' => 'Supprimer',
         'delete_confirm' => 'Supprimer cet article ? Cette action est irréversible.',
         'empty' => 'Aucun article trouvé.',
-
         'publishers' => [
             'title' => 'Éditeurs',
             'search_placeholder' => "Nom de l'éditeur",
@@ -1217,7 +1229,6 @@ return [
             'roles_link' => 'Gérer les rôles',
             'delete' => "Supprimer l'éditeur",
         ],
-
         'authors' => [
             'title' => 'Auteurs',
             'search_placeholder' => "Nom de l'auteur",
@@ -1236,7 +1247,6 @@ return [
             ],
             'delete' => "Supprimer l'auteur",
         ],
-
         'media' => [
             'title' => 'Médias',
             'upload' => 'Envoyer',
@@ -1251,7 +1261,6 @@ return [
             'copied' => 'Copié !',
             'copy_url' => "Copier l'URL du média",
         ],
-
         'roles' => [
             'title' => "Rôles de l'éditeur",
             'back_to_publisher' => 'Retour à :publisher',
@@ -1286,7 +1295,6 @@ return [
             ],
         ],
     ],
-
     'api_keys' => [
         'title' => 'Clés API',
         'search_placeholder' => 'Rechercher par nom de client',
@@ -1318,7 +1326,6 @@ return [
             'copied' => 'Copié !',
         ],
     ],
-
     'finance' => [
         'title' => 'Finances',
         'search_placeholder' => 'Rechercher par libellé',
@@ -1365,7 +1372,6 @@ return [
             'source_url_label' => 'URL source',
         ],
     ],
-
     'analytics' => [
         'title' => 'Statistiques',
         'daily_average' => 'Moyenne de vues quotidiennes',
@@ -1381,7 +1387,6 @@ return [
         'views' => 'Vues',
         'empty' => 'Aucune donnée de vues pour le moment.',
     ],
-
     'about' => [
         'title' => 'À propos',
         'sections_title' => 'Sections',
@@ -1389,7 +1394,6 @@ return [
         'save' => 'Enregistrer',
         'title_label' => 'Titre',
         'content_label' => 'Contenu',
-
         'team_title' => 'Équipe',
         'edit' => 'Modifier',
         'inactive' => 'Inactif',
@@ -1404,7 +1408,6 @@ return [
         'remove_member' => 'Retirer',
         'remove_member_confirm' => 'Retirer ce membre de l\'équipe ?',
         'no_members' => 'Aucun membre pour le moment.',
-
         'projects_title' => 'Projets',
         'add_project' => 'Ajouter un projet',
         'project_name_label' => 'Nom',
@@ -1416,7 +1419,6 @@ return [
         'remove_project' => 'Retirer',
         'remove_project_confirm' => 'Retirer ce projet ?',
         'no_projects' => 'Aucun projet pour le moment.',
-
         'socials_label' => 'Réseaux sociaux',
         'social' => [
             'twitter' => 'Twitter / X',
@@ -1428,7 +1430,6 @@ return [
             'email' => 'Email',
         ],
     ],
-
     'users' => [
         'title' => 'Utilisateurs',
         'search_placeholder' => 'Nom, pseudo ou email',
@@ -1472,5 +1473,28 @@ return [
         'reports_submitted_title' => 'Émis',
         'no_reports_received' => 'Aucun signalement reçu.',
         'no_reports_submitted' => 'Aucun signalement émis.',
+    ],
+    'point_types' => [
+        'title' => 'Types de point',
+        'name' => 'Nom',
+        'label' => 'Nom',
+        'label_placeholder' => 'Ex : 2026',
+        'start_date' => 'Date de début',
+        'end_date' => 'Date de fin',
+        'manage' => 'Gérer',
+        'create' => [
+            'title' => 'Nouveau type de point',
+            'submit' => 'Créer un type de point',
+        ],
+        'edit' => [
+            'title' => 'Modifier le type de point',
+            'submit' => 'Sauvegarder les changements',
+        ],
+        'delete' => [
+            'title' => 'Supprimer un type de point',
+            'trigger' => 'Supprimer',
+            'confirm_body' => 'Supprimer :name (:label) ? Les tournois liés à lui garderont leur résultats mais perdront leur lie, de type de point. Cette action est irréversible.',
+        ],
+        'empty' => 'Aucun type de point.',
     ],
 ];
