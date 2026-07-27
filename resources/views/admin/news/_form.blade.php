@@ -49,7 +49,7 @@
 
 <div>
     <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.news.form.content_label') }}</label>
-    <textarea id="news-content-editor" name="content" rows="14" required
+    <textarea id="news-content-editor" name="content" rows="14"
               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">{{ old('content', $article?->content) }}</textarea>
 </div>
 
