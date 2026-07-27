@@ -15,7 +15,7 @@
 @section('content')
     @include('public.tournament.header')
 
-    <div class="max-w-6xl mx-auto space-y-4">
+    <div class="max-w-7xl mx-auto space-y-4">
         <div class="border-b border-border-subtle pb-2 mb-6">
             <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest">
                 {{ __("tournament.nav.maps") }}
@@ -50,7 +50,23 @@
             </div>
         @endif
 
-        <div class="space-y-4">
+        <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-12 lg:col-span-4 space-y-6">
+                @include('public.partials.maps-insights', ['insights' => $insights, 'namespace' => 'tournament.maps'])
+
+                @include('public.partials.head-to-head-picker', [
+                    'action' => request()->url(),
+                    'preserve' => ['phase_id'],
+                    'lockTeamA' => null,
+                    'tournamentTeams' => $tournamentTeams,
+                ])
+
+                @if($headToHead)
+                    <x-public.head-to-head :data="$headToHead" />
+                @endif
+            </div>
+
+            <div class="col-span-12 lg:col-span-8 space-y-4">
             @forelse($maps as $map)
                 <div class="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
                     <div class="relative p-4 md:p-5 flex flex-wrap items-center justify-between gap-4 border-b border-white/5 bg-cover bg-center"
@@ -164,6 +180,11 @@
             @empty
                 <p class="text-center text-gray-500 py-12">{{ __('tournament.maps.no_data') }}</p>
             @endforelse
+            </div>
         </div>
     </div>
+
+    @if($headToHead)
+        @vite('resources/js/public/head-to-head/index.js')
+    @endif
 @endsection
