@@ -24,9 +24,11 @@ test('request without signature headers is rejected', function () {
 });
 
 test('request with a valid signature is accepted', function () {
-    $headers = signInternalRequest('GET', '/api/internal/players/1');
+    $player = \App\Models\Player::factory()->create();
 
-    $this->getJson('/api/internal/players/1', $headers)->assertSuccessful();
+    $headers = signInternalRequest('GET', "/api/internal/players/{$player->id}");
+
+    $this->getJson("/api/internal/players/{$player->id}", $headers)->assertSuccessful();
 });
 
 test('request with an invalid signature is rejected', function () {
