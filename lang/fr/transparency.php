@@ -24,7 +24,7 @@ return [
                 'body' => 'Fait tourner nos applications principals (Website, API, DiscordBot, RiotRelay), et leur base de données, ainsi que nos services internes.',
             ],
             'na-servers' => [
-                'name' => 'Hostinger',
+                'name' => 'GreenCloud',
                 'role' => 'Serveur secondaire (NA)',
                 'body' => 'Fait tourner nos applications principals (Website, API), et leur base de données.',
             ],

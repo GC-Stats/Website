@@ -229,8 +229,9 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register the BunnyCDN storage disk driver used to publish the
-     * public dataset export.
+     * Register the BunnyCDN storage disk driver, used by the "bunny" disk
+     * (dataset export) and, when FILESYSTEM_DISK_PUBLIC=bunnycdn, the
+     * "public" disk (logos, emotes, news images).
      */
     protected function configureBunnyStorage(): void
     {

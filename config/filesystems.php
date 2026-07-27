@@ -51,12 +51,18 @@ return [
         ],
 
         'public' => [
-            'driver' => 'local',
+            'driver' => env('FILESYSTEM_DISK_PUBLIC', 'local'),
             'root' => public_path('storage'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
+            // Used when FILESYSTEM_DISK_PUBLIC=bunnycdn; ignored by the local driver.
+            // Dedicated storage zone, separate from the BUNNY_* zone used for the open dataset export.
+            'storage_zone' => env('BUNNY_UPLOADS_STORAGE_ZONE'),
+            'api_key' => env('BUNNY_UPLOADS_API_KEY'),
+            'region' => env('BUNNY_UPLOADS_REGION', ''),
+            'pull_zone' => env('BUNNY_UPLOADS_PULL_ZONE_URL'),
         ],
 
         's3' => [
