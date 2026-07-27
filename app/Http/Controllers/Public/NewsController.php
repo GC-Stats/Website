@@ -36,7 +36,7 @@ class NewsController extends Controller
     {
         $locale = app()->getLocale();
 
-        $newsMeta = News::where('slug', $slug)->first(['id', 'publisher_id', 'status']);
+        $newsMeta = News::where('slug', $slug)->first(['id', 'publisher_id', 'status', 'updated_at']);
         abort_unless($newsMeta, 404);
 
         $canPreview = false;
@@ -89,7 +89,8 @@ class NewsController extends Controller
                 ->header('Cache-Control', 'private, no-store');
         }
 
-        $data = Cache::remember("news_show_{$slug}_{$locale}", now()->addHours(6), $build);
+        $cacheKey = "news_show_{$slug}_{$locale}_{$newsMeta->updated_at->timestamp}";
+        $data = Cache::remember($cacheKey, now()->addHours(6), $build);
 
         return response()
             ->view('public.news.show', $data + ['inactive_access' => false])
@@ -111,7 +112,8 @@ class NewsController extends Controller
             return redirect()->route('users.news', $model->user->username, 301);
         }
 
-        $author = Cache::remember("news_author_{$slug}", now()->addDay(), fn () => [
+        $cacheKey = "news_author_{$slug}_{$model->updated_at->timestamp}";
+        $author = Cache::remember($cacheKey, now()->addDay(), fn () => [
             'id' => $model->id,
             'name' => $model->name,
             'slug' => $model->slug,
@@ -136,9 +138,10 @@ class NewsController extends Controller
 
     public function publisher(string $slug)
     {
-        $publisher = Cache::remember("news_publisher_{$slug}", now()->addDay(), function () use ($slug) {
-            $model = NewsPublisher::with('currentLogo')->where('slug', $slug)->firstOrFail();
+        $model = NewsPublisher::with('currentLogo')->where('slug', $slug)->firstOrFail();
 
+        $cacheKey = "news_publisher_{$slug}_{$model->updated_at->timestamp}";
+        $publisher = Cache::remember($cacheKey, now()->addDay(), function () use ($model) {
             return [
                 'id' => $model->id,
                 'name' => $model->name,

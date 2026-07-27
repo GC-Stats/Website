@@ -54,12 +54,12 @@ class TeamController extends Controller
             return $redirect;
         }
 
-        $cacheKey = "team_page_{$id}";
+        $team = Team::findOrFail($id);
+
+        $cacheKey = "team_page_{$id}_{$team->updated_at->timestamp}";
         $tag = "team_{$id}";
 
-        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id) {
-            $team = Team::findOrFail($id);
-
+        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id, $team) {
             $roleOrder = ['player' => 0, 'sub' => 1, 'head coach' => 2, 'assistant coach' => 3, 'manager' => 4, 'staff' => 5];
 
             $currentRoster = $team->players()
@@ -127,12 +127,11 @@ class TeamController extends Controller
         }
 
         $page = $request->input('page', 1);
-        $cacheKey = "team_history_{$id}_page_{$page}";
+        $team = Team::findOrFail($id);
+        $cacheKey = "team_history_{$id}_page_{$page}_{$team->updated_at->timestamp}";
         $tag = "team_{$id}";
 
-        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id) {
-            $team = Team::findOrFail($id);
-
+        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id, $team) {
             $paginated = $team->players()
                 ->select('players.id', 'players.handle')
                 ->withPivot('role', 'joined_at', 'left_at')
@@ -172,7 +171,10 @@ class TeamController extends Controller
         }
 
         $page = $request->input('page', 1);
-        $cacheKey = "team_page_matches_{$id}_page_{$page}";
+        $teamUpdatedAt = Team::where('id', $id)->value('updated_at');
+        abort_unless($teamUpdatedAt !== null, 404);
+
+        $cacheKey = "team_page_matches_{$id}_page_{$page}_".Carbon::parse($teamUpdatedAt)->timestamp;
         $tag = "team_{$id}";
 
         $cached = Cache::tags([$tag])->get($cacheKey);
@@ -233,12 +235,11 @@ class TeamController extends Controller
             return $redirect;
         }
 
-        $cacheKey = "team_maps_{$id}";
+        $team = Team::findOrFail($id);
+        $cacheKey = "team_maps_{$id}_{$team->updated_at->timestamp}";
         $tag = "team_{$id}";
 
-        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id) {
-            $team = Team::findOrFail($id);
-
+        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id, $team) {
             $mapRows = GameMap::query()
                 ->join('matches as m', 'm.id', '=', 'game_maps.match_id')
                 ->where('game_maps.is_completed', true)

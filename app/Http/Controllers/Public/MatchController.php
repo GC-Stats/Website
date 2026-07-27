@@ -20,6 +20,7 @@ use App\Models\User;
 use App\Services\HeadToHeadService;
 use App\Support\MatchPresenter;
 use App\Support\PublisherScope;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -27,16 +28,17 @@ class MatchController extends Controller
 {
     public function index($id)
     {
-        $cacheKey = "match_{$id}";
         $tag = "match_{$id}";
 
         $meta = DB::table('matches')
             ->join('tournaments', 'tournaments.id', '=', 'matches.tournament_id')
             ->where('matches.id', $id)
-            ->select('matches.status', 'tournaments.active as tournament_active')
+            ->select('matches.status', 'matches.updated_at', 'tournaments.active as tournament_active')
             ->first();
 
         abort_unless($meta, 404);
+
+        $cacheKey = "match_{$id}_".Carbon::parse($meta->updated_at)->timestamp;
 
         if (! $meta->tournament_active) {
             abort_unless(auth()->user()?->can('tournaments.view'), 404);

@@ -162,7 +162,6 @@ class TournamentController extends Controller
             return $redirect;
         }
 
-        $cacheKey = "tournament_page_{$id}";
         $tag = "tournament_{$id}";
 
         $news = News::with(['author', 'publisher'])
@@ -174,12 +173,14 @@ class TournamentController extends Controller
             ->get()
             ->toArray();
 
-        $tournamentMeta = Tournament::where('id', $id)->first(['status', 'active']);
+        $tournamentMeta = Tournament::where('id', $id)->first(['status', 'active', 'updated_at']);
         abort_unless($tournamentMeta, 404);
 
         if (! $tournamentMeta->active) {
             abort_unless(auth()->user()?->can('tournaments.view'), 404);
         }
+
+        $cacheKey = "tournament_page_{$id}_{$tournamentMeta->updated_at->timestamp}";
 
         if ($tournamentMeta->active) {
             $cached = Cache::tags([$tag])->get($cacheKey);
@@ -480,13 +481,14 @@ class TournamentController extends Controller
 
         $tag = "tournament_{$id}";
 
-        $tournamentMeta = Tournament::where('id', $id)->first(['status', 'active']);
+        $tournamentMeta = Tournament::where('id', $id)->first(['status', 'active', 'updated_at']);
         abort_unless($tournamentMeta, 404);
 
         if (! $tournamentMeta->active) {
             abort_unless(auth()->user()?->can('tournaments.view'), 404);
         }
 
+        $tournamentVersion = $tournamentMeta->updated_at->timestamp;
         $status = $tournamentMeta->status;
         $ttl = CacheTtl::forTournament($status);
 
@@ -651,10 +653,10 @@ class TournamentController extends Controller
                 ->header('Vary', 'Accept-Language');
         }
 
-        $filters = Cache::tags([$tag])->remember("tournament_matches_filters_{$id}", $ttl, $buildFilters);
+        $filters = Cache::tags([$tag])->remember("tournament_matches_filters_{$id}_{$tournamentVersion}", $ttl, $buildFilters);
 
         $filterKey = ($phaseId ?: 'all').'_'.($teamId ?: 'all').'_'.($roundName ?: 'all').'_'.($statusFilter ?: 'all');
-        $cacheKey = "tournament_page_matches_{$id}_page_{$page}_{$filterKey}";
+        $cacheKey = "tournament_page_matches_{$id}_page_{$page}_{$filterKey}_{$tournamentVersion}";
 
         $cached = Cache::tags([$tag])->get($cacheKey);
         if ($cached) {
@@ -745,8 +747,11 @@ class TournamentController extends Controller
             $dateKey = 'all_time';
         }
 
+        $tournamentUpdatedAt = Tournament::where('id', $id)->value('updated_at');
+        abort_unless($tournamentUpdatedAt !== null, 404);
+
         $periodKey = ($phaseId ? "phase_{$phaseId}" : 'all_phases').'_'.$dateKey;
-        $cacheKey = "tournament_stats_{$id}_{$periodKey}";
+        $cacheKey = "tournament_stats_{$id}_{$periodKey}_".Carbon::parse($tournamentUpdatedAt)->timestamp;
         $tag = "tournament_{$id}";
 
         $cached = Cache::tags([$tag])->get($cacheKey);
@@ -830,7 +835,10 @@ class TournamentController extends Controller
             $phaseId = null;
         }
 
-        $cacheKey = 'tournament_maps_'.$id.'_'.($phaseId ? "phase_{$phaseId}" : 'all_phases');
+        $tournamentUpdatedAt = Tournament::where('id', $id)->value('updated_at');
+        abort_unless($tournamentUpdatedAt !== null, 404);
+
+        $cacheKey = 'tournament_maps_'.$id.'_'.($phaseId ? "phase_{$phaseId}" : 'all_phases').'_'.Carbon::parse($tournamentUpdatedAt)->timestamp;
         $tag = "tournament_{$id}";
 
         $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $phaseIds) {

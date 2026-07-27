@@ -112,12 +112,11 @@ class PlayerController extends Controller
             return $redirect;
         }
 
-        $cacheKey = "player_page_{$id}";
+        $player = Player::findOrFail($id);
+        $cacheKey = "player_page_{$id}_{$player->updated_at->timestamp}";
         $tag = "player_{$id}";
 
-        $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($id) {
-            $player = Player::findOrFail($id);
-
+        $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($id, $player) {
             $mapTeam = fn ($team) => [
                 'id' => $team->id,
                 'name' => $team->name,
@@ -203,12 +202,11 @@ class PlayerController extends Controller
         }
 
         $page = $request->integer('page', 1);
-        $cacheKey = "player_history_{$id}_page_{$page}";
+        $player = Player::findOrFail($id);
+        $cacheKey = "player_history_{$id}_page_{$page}_{$player->updated_at->timestamp}";
         $tag = "player_{$id}";
 
-        $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($id) {
-            $player = Player::findOrFail($id);
-
+        $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($id, $player) {
             $paginated = $player->teams()
                 ->select('teams.id', 'teams.name')
                 ->withPivot('role', 'joined_at', 'left_at')
@@ -252,7 +250,10 @@ class PlayerController extends Controller
         }
 
         $page = $request->input('page', 1);
-        $cacheKey = "player_page_matches_{$id}_page_{$page}";
+        $playerUpdatedAt = Player::where('id', $id)->value('updated_at');
+        abort_unless($playerUpdatedAt !== null, 404);
+
+        $cacheKey = "player_page_matches_{$id}_page_{$page}_".Carbon::parse($playerUpdatedAt)->timestamp;
         $tag = "player_{$id}";
 
         $cached = Cache::tags([$tag])->get($cacheKey);
@@ -329,7 +330,10 @@ class PlayerController extends Controller
             }
         }
 
-        $cacheKey = "player_stats_{$id}_{$periodKey}";
+        $playerUpdatedAt = Player::where('id', $id)->value('updated_at');
+        abort_unless($playerUpdatedAt !== null, 404);
+
+        $cacheKey = "player_stats_{$id}_{$periodKey}_".Carbon::parse($playerUpdatedAt)->timestamp;
         $tag = "player_{$id}";
 
         $cached = Cache::tags([$tag])->get($cacheKey);
