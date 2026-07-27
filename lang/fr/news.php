@@ -10,4 +10,5 @@ return [
     'related' => 'En lien',
     'author' => 'Auteur',
     'publisher' => 'Éditeur',
+    'inactive_access' => "Cet article n'est pas encore visible publiquement. Vous pouvez le voir car votre rôle donne accès aux articles en brouillon ou archivés.",
 ];

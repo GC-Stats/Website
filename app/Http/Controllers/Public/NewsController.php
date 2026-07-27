@@ -21,21 +21,34 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Http\Controllers\Concerns\ManagesPublisherScopedNews;
 use App\Models\News;
 use App\Models\NewsAuthor;
 use App\Models\NewsPublisher;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class NewsController extends Controller
 {
-    public function show(string $slug)
+    use ManagesPublisherScopedNews;
+
+    public function show(Request $request, string $slug)
     {
         $locale = app()->getLocale();
 
-        $data = Cache::remember("news_show_{$slug}_{$locale}", now()->addHours(6), function () use ($slug) {
+        $newsMeta = News::where('slug', $slug)->first(['id', 'publisher_id', 'status']);
+        abort_unless($newsMeta, 404);
+
+        $canPreview = false;
+        if ($newsMeta->status !== 'published') {
+            $canPreview = $request->user()
+                && $this->canManageArticle($request, $newsMeta, 'news.view', 'publisher.news.view');
+            abort_unless($canPreview, 404);
+        }
+
+        $build = function () use ($slug) {
             $news = News::with(['author.currentLogo', 'author.user:id,username', 'publisher.currentLogo', 'players', 'teams', 'tournaments'])
                 ->where('slug', $slug)
-                ->where('status', 'published')
                 ->firstOrFail();
 
             return [
@@ -68,10 +81,18 @@ class NewsController extends Controller
                 'teams' => $news->teams->map(fn ($t) => ['id' => $t->id, 'name' => $t->name])->all(),
                 'tournaments' => $news->tournaments->map(fn ($t) => ['id' => $t->id, 'name' => $t->name])->all(),
             ];
-        });
+        };
+
+        if ($canPreview) {
+            return response()
+                ->view('public.news.show', $build() + ['inactive_access' => true])
+                ->header('Cache-Control', 'private, no-store');
+        }
+
+        $data = Cache::remember("news_show_{$slug}_{$locale}", now()->addHours(6), $build);
 
         return response()
-            ->view('public.news.show', $data)
+            ->view('public.news.show', $data + ['inactive_access' => false])
             ->header('Cache-Control', 'public, max-age=21600, s-maxage=21600')
             ->header('Vary', 'Accept-Language');
     }

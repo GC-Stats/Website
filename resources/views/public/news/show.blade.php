@@ -63,6 +63,12 @@
 
 <div class="max-w-4xl mx-auto">
 
+    @if($inactive_access ?? false)
+        <div class="mb-6 bg-gc-yellow/10 border border-gc-yellow/40 rounded-lg px-4 py-3 text-xs text-gc-yellow">
+            {{ __('news.inactive_access') }}
+        </div>
+    @endif
+
     {{-- ── Hero ───────────────────────────────────────────────────────── --}}
     <div class="relative rounded-2xl overflow-hidden mb-8 border border-white/[0.06]">
         @if($imageCover)

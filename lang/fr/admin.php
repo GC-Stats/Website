@@ -982,6 +982,7 @@ return [
         ],
         'publish' => 'Publier',
         'archive' => 'Archiver',
+        'public_page' => 'Page publique',
         'feature' => 'Mettre en avant',
         'show_on_home' => "Basculer l'accueil",
         'delete' => 'Supprimer',

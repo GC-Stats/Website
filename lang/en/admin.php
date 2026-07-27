@@ -1036,6 +1036,7 @@ return [
         ],
         'publish' => 'Publish',
         'archive' => 'Archive',
+        'public_page' => 'Public page',
         'feature' => 'Toggle featured',
         'show_on_home' => 'Toggle home',
         'delete' => 'Delete',

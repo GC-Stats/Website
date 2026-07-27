@@ -26,6 +26,10 @@
         </div>
 
         <div class="flex gap-2">
+            <a href="{{ route('news.show', $article->slug) }}" target="_blank" rel="noopener"
+               class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
+                {{ __('admin.news.public_page') }}
+            </a>
             @if ($canPublish && $article->status !== 'published')
                 <form method="POST" action="{{ route('admin.news.publish', $article) }}">
                     @csrf
