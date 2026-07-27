@@ -71,7 +71,9 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     @foreach([
                         ['key' => 'cdn', 'icon' => 'fas-bolt'],
-                        ['key' => 'servers', 'icon' => 'fas-server'],
+                        ['key' => 'eu-servers', 'icon' => 'fas-server'],
+                        ['key' => 'na-servers', 'icon' => 'fas-server'],
+                        ['key' => 'oracle-servers', 'icon' => 'fas-server'],
                         ['key' => 'mail', 'icon' => 'fas-envelope'],
                         ['key' => 'domain', 'icon' => 'fas-globe'],
                     ] as $provider)

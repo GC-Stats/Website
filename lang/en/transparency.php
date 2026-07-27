@@ -18,10 +18,20 @@ return [
                 'role' => 'Content delivery',
                 'body' => 'Caches our CSS/JS, as well as player, team & tournament images, on servers around the world to lighten the load on our own servers. Our open data site is also served by Bunny (data.gc-stats.app).',
             ],
-            'servers' => [
-                'name' => 'Hetzner',
-                'role' => 'Application servers',
-                'body' => 'Runs the application and database servers that power the website, the API and all of our services (except the open data site).',
+            'eu-servers' => [
+                'name' => 'Contabo',
+                'role' => 'Primary server',
+                'body' => 'Runs our main applications (Website, API, DiscordBot, RiotRelay), and their databases, and also our internal services.',
+            ],
+            'na-servers' => [
+                'name' => 'Hostinger',
+                'role' => 'Secondary server',
+                'body' => 'Runs our main applications (website, api), and their databases.',
+            ],
+            'oracle-servers' => [
+                'name' => 'Oracle',
+                'role' => 'Off-site servers',
+                'body' => 'Runs somes off-site application, like our Status page and also our Weblate instance.',
             ],
             'mail' => [
                 'name' => 'MXRoute',

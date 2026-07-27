@@ -18,10 +18,20 @@ return [
                 'role' => 'Diffusion de contenu',
                 'body' => 'Mise en cache de notre CSS/JS, ainsi que des images de joueuses, équipes & tournois, sur des serveurs partout dans le monde, afin d\'aléger nos serveurs. Notre site opendata est également servie par Bunny (data.gc-stats.app)',
             ],
-            'servers' => [
-                'name' => 'Hetzner',
-                'role' => 'Serveurs applicatifs',
-                'body' => "Fait tourner les serveurs d'application et de base de données qui font fonctionner le site, l'API et tous nos services (à l'exception du site d'opendata).",
+            'eu-servers' => [
+                'name' => 'Contabo',
+                'role' => 'Serveur principal (EU)',
+                'body' => 'Fait tourner nos applications principals (Website, API, DiscordBot, RiotRelay), et leur base de données, ainsi que nos services internes.',
+            ],
+            'na-servers' => [
+                'name' => 'Hostinger',
+                'role' => 'Serveur secondaire (NA)',
+                'body' => 'Fait tourner nos applications principals (Website, API), et leur base de données.',
+            ],
+            'oracle-servers' => [
+                'name' => 'Oracle',
+                'role' => 'Serveur hors-site (EU)',
+                'body' => 'Fait tourner quelques applications hors-site, tel que notre status page ainsi que notre instance Weblate.',
             ],
             'mail' => [
                 'name' => 'MXRoute',
