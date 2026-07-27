@@ -24,6 +24,7 @@ use App\Http\Controllers\Public\Controller;
 use App\Models\News;
 use App\Models\NewsImage;
 use App\Services\LogoUploadService;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -90,10 +91,14 @@ class NewsMediaController extends Controller
 
         $logoUploadService->storeImage($validated['image'], "news/{$uuid}/cover.webp", 1400, null, 85);
 
-        NewsImage::create([
+        $image = NewsImage::create([
             'id' => $uuid,
             'news_id' => $validated['news_id'] ?? null,
         ]);
+
+        activity('publisher')->performedOn($image)->causedBy($user)
+            ->withProperties(ActivityChangeSet::fromCreated($image, ['news_id'])->toArray())
+            ->log('media.uploaded');
 
         return back()->with('status', 'media-uploaded');
     }
@@ -113,6 +118,10 @@ class NewsMediaController extends Controller
 
             $image->update(['news_id' => null]);
 
+            activity('publisher')->performedOn($image)->causedBy($request->user())
+                ->withProperties(ActivityChangeSet::fromModel($image, ['news_id'])->toArray())
+                ->log('media.unlinked');
+
             return back()->with('status', 'media-unlinked');
         }
 
@@ -129,6 +138,10 @@ class NewsMediaController extends Controller
 
         $image->update(['news_id' => $article->id]);
 
+        activity('publisher')->performedOn($image)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($image, ['news_id'])->toArray())
+            ->log('media.linked');
+
         return back()->with('status', 'media-linked');
     }
 
@@ -140,6 +153,10 @@ class NewsMediaController extends Controller
 
         $article->update(['image_cover' => $image->url]);
 
+        activity('publisher')->performedOn($article)->causedBy($request->user())
+            ->withProperties(['image_id' => $image->id])
+            ->log('media.cover_set');
+
         return back()->with('status', 'cover-updated');
     }
 
@@ -150,8 +167,13 @@ class NewsMediaController extends Controller
             $this->ensureCanManageArticle($request, $image->news, 'news.media.delete', 'publisher.media.delete');
         }
 
+        $newsId = $image->news_id;
         $logoUploadService->deleteFiles('news', $image->id);
         $image->delete();
+
+        activity('publisher')->causedBy($request->user())
+            ->withProperties(['image_id' => $image->id, 'news_id' => $newsId])
+            ->log('media.deleted');
 
         return back()->with('status', 'media-deleted');
     }

@@ -17,6 +17,7 @@ namespace App\Services;
 
 use App\Models\Player;
 use App\Models\User;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Http\UploadedFile;
 
 class PlayerProfileService
@@ -45,12 +46,18 @@ class PlayerProfileService
             'socials' => array_filter($data['socials'] ?? [], fn ($value) => filled($value)),
         ]);
 
-        if ($player->wasChanged(['handle', 'first_name', 'last_name', 'country_code', 'bio', 'vlr_id', 'liquipedia_link', 'is_active'])) {
-            activity('player')->performedOn($player)->causedBy($actor)->log('player.information_updated');
+        $informationFields = ['handle', 'first_name', 'last_name', 'country_code', 'bio', 'vlr_id', 'liquipedia_link', 'is_active'];
+
+        if ($player->wasChanged($informationFields)) {
+            activity('player')->performedOn($player)->causedBy($actor)
+                ->withProperties(ActivityChangeSet::fromModel($player, $informationFields)->toArray())
+                ->log('player.information_updated');
         }
 
         if ($player->wasChanged('socials')) {
-            activity('player')->performedOn($player)->causedBy($actor)->log('player.socials_updated');
+            activity('player')->performedOn($player)->causedBy($actor)
+                ->withProperties(ActivityChangeSet::fromModel($player, ['socials'])->toArray())
+                ->log('player.socials_updated');
         }
     }
 
@@ -63,40 +70,58 @@ class PlayerProfileService
      */
     public function updateIdentifiers(Player $player, array $data, User $actor): void
     {
+        $identifierFields = ['val_id', 'discord_id'];
+
         $player->update([
             'val_id' => $data['val_id'] ?? null,
             'discord_id' => $data['discord_id'] ?? null,
         ]);
 
-        activity('player')->performedOn($player)->causedBy($actor)->log('player.identifiers_updated');
+        activity('player')->performedOn($player)->causedBy($actor)
+            ->withProperties(ActivityChangeSet::fromModel($player, $identifierFields)->toArray())
+            ->log('player.identifiers_updated');
     }
 
     public function linkUser(Player $player, int $userId, User $actor): void
     {
         $player->update(['user_id' => $userId]);
 
-        activity('player')->performedOn($player)->causedBy($actor)->log('player.user_linked');
+        activity('player')->performedOn($player)->causedBy($actor)
+            ->withProperties(['user_id' => $userId])
+            ->log('player.user_linked');
     }
 
     public function unlinkUser(Player $player, User $actor): void
     {
+        $previousUserId = $player->user_id;
+
         $player->update(['user_id' => null]);
 
-        activity('player')->performedOn($player)->causedBy($actor)->log('player.user_unlinked');
+        activity('player')->performedOn($player)->causedBy($actor)
+            ->withProperties(['user_id' => $previousUserId])
+            ->log('player.user_unlinked');
     }
 
     public function resetValId(Player $player, User $actor): void
     {
+        $previousValId = $player->val_id;
+
         $player->update(['val_id' => null]);
 
-        activity('player')->performedOn($player)->causedBy($actor)->log('player.val_id_reset');
+        activity('player')->performedOn($player)->causedBy($actor)
+            ->withProperties(['val_id' => $previousValId])
+            ->log('player.val_id_reset');
     }
 
     public function resetDiscordId(Player $player, User $actor): void
     {
+        $previousDiscordId = $player->discord_id;
+
         $player->update(['discord_id' => null]);
 
-        activity('player')->performedOn($player)->causedBy($actor)->log('player.discord_id_reset');
+        activity('player')->performedOn($player)->causedBy($actor)
+            ->withProperties(['discord_id' => $previousDiscordId])
+            ->log('player.discord_id_reset');
     }
 
     public function updateLogo(Player $player, UploadedFile $file, User $actor): void
@@ -104,7 +129,9 @@ class PlayerProfileService
         $uuid = $this->logoUploadService->storeLogoPair($file, 'players');
         $this->logoUploadService->acceptWithHistory($player, 'player', $uuid);
 
-        activity('player')->performedOn($player)->causedBy($actor)->log('player.logo_updated');
+        activity('player')->performedOn($player)->causedBy($actor)
+            ->withProperties(['logo_id' => $uuid])
+            ->log('player.logo_updated');
     }
 
     public function addLogoHistoryEntry(Player $player, UploadedFile $file, string $from, string $until, User $actor): void
@@ -112,7 +139,9 @@ class PlayerProfileService
         $uuid = $this->logoUploadService->storeLogoPair($file, 'players');
         $this->logoUploadService->acceptWithHistory($player, 'player', $uuid, $from, $until);
 
-        activity('player')->performedOn($player)->causedBy($actor)->log('player.logo_history_added');
+        activity('player')->performedOn($player)->causedBy($actor)
+            ->withProperties(['logo_id' => $uuid, 'from' => $from, 'until' => $until])
+            ->log('player.logo_history_added');
     }
 
     public function updateLogoEntry(Player $player, string $logoId, string $from, ?string $until, User $actor): void
@@ -120,7 +149,9 @@ class PlayerProfileService
         $logo = $player->logos()->findOrFail($logoId);
         $logo->update(['from' => $from, 'until' => $until]);
 
-        activity('player')->performedOn($player)->causedBy($actor)->log('player.logo_history_updated');
+        activity('player')->performedOn($player)->causedBy($actor)
+            ->withProperties(ActivityChangeSet::fromModel($logo, ['from', 'until'])->mergeInto(['logo_id' => $logoId]))
+            ->log('player.logo_history_updated');
     }
 
     public function deleteLogoEntry(Player $player, string $logoId, User $actor): void
@@ -129,6 +160,8 @@ class PlayerProfileService
         $this->logoUploadService->deleteFiles('players', $logo->id);
         $logo->delete();
 
-        activity('player')->performedOn($player)->causedBy($actor)->log('player.logo_history_removed');
+        activity('player')->performedOn($player)->causedBy($actor)
+            ->withProperties(['logo_id' => $logoId])
+            ->log('player.logo_history_removed');
     }
 }

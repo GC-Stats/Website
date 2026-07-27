@@ -25,6 +25,7 @@ use App\Http\Controllers\Public\Controller;
 use App\Models\NewsPublisher;
 use App\Models\User;
 use App\Services\PublisherRoleService;
+use App\Support\Activity\ActivityChangeSet;
 use App\Support\PublisherPermissions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -96,10 +97,13 @@ class RoleController extends Controller
             'permissions.*' => ['string', Rule::in($publisher->maxPermissions())],
         ]);
 
+        $before = $role->permissions->pluck('name')->sort()->values()->all();
         $role->syncPermissions($validated['permissions'] ?? []);
+        $after = collect($validated['permissions'] ?? [])->sort()->values()->all();
 
         activity('publisher')->causedBy($request->user())
-            ->withProperties(['publisher_id' => $publisher->id, 'role' => $role->name, 'permissions' => $validated['permissions'] ?? []])
+            ->withProperties(ActivityChangeSet::make()->add('permissions', $before, $after)
+                ->mergeInto(['publisher_id' => $publisher->id, 'role' => $role->name]))
             ->log('publisher_role.permissions_updated');
 
         return back()->with('status', 'permissions-updated');

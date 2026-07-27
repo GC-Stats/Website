@@ -174,12 +174,12 @@
                     </div>
 
                     @can('sanctions.create')
-                        <x-sanction-modal :user="$report->reportedUser">
+                        <x-admin.sanction-modal :user="$report->reportedUser">
                             <button type="button"
                                     class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20">
                                 {{ __('admin.reports.issue_sanction') }}
                             </button>
-                        </x-sanction-modal>
+                        </x-admin.sanction-modal>
                     @endcan
                 </div>
             @endif

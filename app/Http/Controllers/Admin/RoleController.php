@@ -19,6 +19,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Public\Controller;
 use App\Models\DiscordRoleMapping;
 use App\Models\User;
+use App\Support\Activity\ActivityChangeSet;
 use App\Support\AdminPermissions;
 use App\Support\PermissionTeam;
 use Illuminate\Contracts\View\View;
@@ -84,10 +85,12 @@ class RoleController extends Controller
             'permissions.*' => ['string', Rule::in(AdminPermissions::all())],
         ]);
 
+        $before = $role->permissions->pluck('name')->sort()->values()->all();
         $role->syncPermissions($validated['permissions'] ?? []);
+        $after = collect($validated['permissions'] ?? [])->sort()->values()->all();
 
         activity('administration')->causedBy($request->user())
-            ->withProperties(['role' => $role->name, 'permissions' => $validated['permissions'] ?? []])
+            ->withProperties(ActivityChangeSet::make()->add('permissions', $before, $after)->mergeInto(['role' => $role->name]))
             ->log('role.permissions_updated');
 
         return back()->with('status', 'permissions-updated');
@@ -161,7 +164,10 @@ class RoleController extends Controller
         );
 
         activity('administration')->causedBy($request->user())
-            ->withProperties(['role' => $role->name, 'discord_role_id' => $validated['discord_role_id']])
+            ->withProperties(ActivityChangeSet::make()
+                ->add('discord_role_id', $existingMapping?->discord_role_id, $validated['discord_role_id'])
+                ->add('discord_role_name', $existingMapping?->discord_role_name, $validated['discord_role_name'] ?? null)
+                ->mergeInto(['role' => $role->name]))
             ->log('role.discord_mapping_updated');
 
         return back()->with('status', 'discord-mapping-updated');

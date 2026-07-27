@@ -51,7 +51,9 @@ class ActivateLiveMatches extends Command
         foreach ($matches as $match) {
             $match->update(['status' => 'live']);
 
-            activity('tournament')->performedOn($match)->log('match.auto_activated');
+            activity('tournament')->performedOn($match)
+                ->withProperties(['status' => 'live'])
+                ->log('match.auto_activated');
 
             $this->notifyDiscord($match);
 

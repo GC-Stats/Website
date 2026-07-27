@@ -99,8 +99,18 @@ class ReactionService
      * the reaction.delete permission, unlike toggle() which only ever
      * affects the acting user's own reaction.
      */
-    public function remove(Reaction $reaction): void
+    public function remove(Reaction $reaction, User $moderator): void
     {
+        activity('moderation')
+            ->performedOn($reaction->reactable)
+            ->causedBy($moderator)
+            ->withProperties([
+                'reaction_id' => $reaction->id,
+                'reactor_id' => $reaction->user_id,
+                'emote_id' => $reaction->emote_id,
+            ])
+            ->log('reaction.removed');
+
         $reaction->delete();
     }
 
@@ -111,8 +121,16 @@ class ReactionService
      *
      * @param  Model&HasReactions  $reactable
      */
-    public function removeAllForEmote(Model $reactable, Emote $emote): void
+    public function removeAllForEmote(Model $reactable, Emote $emote, User $moderator): void
     {
+        $count = $reactable->reactions()->where('emote_id', $emote->id)->count();
+
+        activity('moderation')
+            ->performedOn($reactable)
+            ->causedBy($moderator)
+            ->withProperties(['emote_id' => $emote->id, 'reactions_removed' => $count])
+            ->log('reaction.bulk_removed');
+
         $reactable->reactions()->where('emote_id', $emote->id)->delete();
     }
 }

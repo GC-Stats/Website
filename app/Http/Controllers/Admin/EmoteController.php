@@ -20,6 +20,7 @@ use App\Http\Controllers\Public\Controller;
 use App\Models\Emote;
 use App\Models\Team;
 use App\Services\LogoUploadService;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -85,7 +86,9 @@ class EmoteController extends Controller
 
         $this->forgetEmoteCaches();
 
-        activity('emote')->causedBy($request->user())->performedOn($emote)->log('emote.created');
+        activity('administration')->causedBy($request->user())->performedOn($emote)
+            ->withProperties(ActivityChangeSet::fromCreated($emote, ['name', 'source', 'is_active', 'image_path'])->toArray())
+            ->log('emote.created');
 
         return redirect()->route('admin.emotes.index')->with('status', 'emote-created');
     }
@@ -121,19 +124,25 @@ class EmoteController extends Controller
 
         $this->forgetEmoteCaches();
 
-        activity('emote')->causedBy($request->user())->performedOn($emote)->log('emote.updated');
+        activity('administration')->causedBy($request->user())->performedOn($emote)
+            ->withProperties(ActivityChangeSet::fromModel($emote, ['name', 'source', 'is_active', 'image_path'])->toArray())
+            ->log('emote.updated');
 
         return redirect()->route('admin.emotes.index')->with('status', 'emote-updated');
     }
 
     public function destroy(Request $request, Emote $emote): RedirectResponse
     {
+        $name = $emote->name;
+
         Storage::disk('public')->delete($emote->image_path);
         $emote->delete();
 
         $this->forgetEmoteCaches();
 
-        activity('emote')->causedBy($request->user())->log('emote.deleted');
+        activity('administration')->causedBy($request->user())
+            ->withProperties(['name' => $name])
+            ->log('emote.deleted');
 
         return redirect()->route('admin.emotes.index')->with('status', 'emote-deleted');
     }

@@ -69,8 +69,12 @@ class ApiKeyController extends Controller
             return route('api-keys.reveal', ApiKeyReveal::issue($key, $clearKey)->token);
         });
 
+        // The hash itself is never logged (see class docblock) — only that a
+        // regeneration happened, for whom, and when.
         activity('administration')->causedBy($request->user())
-            ->performedOn($key)->log('api_key.regenerated');
+            ->performedOn($key)
+            ->withProperties(['client_name' => $key->client_name])
+            ->log('api_key.regenerated');
 
         return back()->with('status', 'api-key-regenerated')->with('reveal_url', $revealUrl);
     }

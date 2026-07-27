@@ -24,6 +24,7 @@ use App\Http\Controllers\Concerns\ManagesPublisherScopedStreams;
 use App\Http\Controllers\Public\Controller;
 use App\Models\NewsPublisher;
 use App\Models\StreamChannel;
+use App\Support\Activity\ActivityChangeSet;
 use App\Support\Countries;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -99,6 +100,10 @@ class StreamChannelController extends Controller
 
         $channel = StreamChannel::create($validated);
 
+        activity('publisher')->performedOn($channel)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromCreated($channel, array_keys($validated))->toArray())
+            ->log('stream_channel.created');
+
         return redirect()->route('admin.streams.edit', $channel)->with('status', 'channel-created');
     }
 
@@ -122,6 +127,10 @@ class StreamChannelController extends Controller
 
         $channel->update($validated);
 
+        activity('publisher')->performedOn($channel)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($channel, array_keys($validated))->toArray())
+            ->log('stream_channel.updated');
+
         return back()->with('status', 'channel-updated');
     }
 
@@ -129,7 +138,12 @@ class StreamChannelController extends Controller
     {
         $this->ensureCanManageChannel($request, $channel, 'streams.channels.delete', 'publisher.streams.delete');
 
+        $name = $channel->name;
         $channel->delete();
+
+        activity('publisher')->causedBy($request->user())
+            ->withProperties(['name' => $name])
+            ->log('stream_channel.deleted');
 
         return redirect()->route('admin.streams.index')->with('status', 'channel-deleted');
     }

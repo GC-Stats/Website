@@ -26,6 +26,7 @@ use App\Models\Matchs;
 use App\Models\PhaseQualification;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -43,13 +44,15 @@ class PhaseQualificationController extends Controller
             'rank_to' => ['required', 'integer', 'min:1', 'gte:rank_from'],
         ]);
 
-        PhaseQualification::create([
+        $qualification = PhaseQualification::create([
             'source_phase_id' => $phase->id,
             ...$validated,
         ]);
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($phase)->log('phase_qualification.created');
+            ->performedOn($phase)
+            ->withProperties(ActivityChangeSet::fromCreated($qualification, array_keys($validated))->mergeInto(['source_phase_id' => $phase->id]))
+            ->log('phase_qualification.created');
 
         return back()->with('status', 'phase-qualification-created');
     }
@@ -63,14 +66,16 @@ class PhaseQualificationController extends Controller
             'outcome' => ['required', 'string', Rule::in(['winner', 'loser'])],
         ]);
 
-        PhaseQualification::create([
+        $qualification = PhaseQualification::create([
             'source_phase_id' => $match->phase_id,
             'source_match_id' => $match->id,
             ...$validated,
         ]);
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($match)->log('phase_qualification.created');
+            ->performedOn($match)
+            ->withProperties(ActivityChangeSet::fromCreated($qualification, array_keys($validated))->mergeInto(['source_phase_id' => $match->phase_id, 'match_id' => $match->id]))
+            ->log('phase_qualification.created');
 
         return back()->with('status', 'phase-qualification-created');
     }
@@ -84,9 +89,17 @@ class PhaseQualificationController extends Controller
 
         abort_unless($request->user()->can($permission), 403);
 
+        $properties = [
+            'source_phase_id' => $qualification->source_phase_id,
+            'source_match_id' => $qualification->source_match_id,
+            'destination_type' => $qualification->destination_type,
+        ];
+
         $qualification->delete();
 
-        activity('tournament')->causedBy($request->user())->log('phase_qualification.deleted');
+        activity('tournament')->causedBy($request->user())
+            ->withProperties($properties)
+            ->log('phase_qualification.deleted');
 
         return back()->with('status', 'phase-qualification-deleted');
     }

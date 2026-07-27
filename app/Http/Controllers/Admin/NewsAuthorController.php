@@ -21,6 +21,7 @@ use App\Models\NewsAuthor;
 use App\Models\User;
 use App\Services\HtmlSanitizer;
 use App\Services\LogoUploadService;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -115,6 +116,10 @@ class NewsAuthorController extends Controller
             'user_id' => $userId,
         ]);
 
+        activity('publisher')->performedOn($author)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($author, ['name', 'slug', 'bio', 'socials', 'user_id'])->toArray())
+            ->log('author.updated');
+
         return back()->with('status', 'author-updated');
     }
 
@@ -124,8 +129,14 @@ class NewsAuthorController extends Controller
 
         $validated = $request->validate(['logo' => ['required', 'file', 'image', 'max:10240']]);
 
+        $oldLogoId = $author->logos->pluck('id')->first();
+
         $uuid = $logoUploadService->storeLogoPair($validated['logo'], 'authors');
         $logoUploadService->acceptReplacing($author, 'author', $uuid, 'authors');
+
+        activity('publisher')->performedOn($author)->causedBy($request->user())
+            ->withProperties(['changes' => ['logo_id' => ['old' => $oldLogoId, 'new' => $uuid]]])
+            ->log('author.logo_updated');
 
         return back()->with('status', 'logo-updated');
     }
@@ -173,12 +184,21 @@ class NewsAuthorController extends Controller
 
         $author = NewsAuthor::create($validated);
 
+        activity('publisher')->performedOn($author)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromCreated($author, ['name', 'slug', 'bio', 'user_id'])->toArray())
+            ->log('author.created');
+
         return redirect()->route('admin.news.authors.show', $author)->with('status', 'author-created');
     }
 
-    public function destroy(NewsAuthor $author): RedirectResponse
+    public function destroy(Request $request, NewsAuthor $author): RedirectResponse
     {
+        $name = $author->name;
         $author->delete();
+
+        activity('publisher')->causedBy($request->user())
+            ->withProperties(['name' => $name])
+            ->log('author.deleted');
 
         return redirect()->route('admin.news.authors.index')->with('status', 'author-deleted');
     }

@@ -18,6 +18,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Public\Controller;
 use App\Models\FinanceEntry;
+use App\Support\Activity\ActivityChangeSet;
 use App\Support\ExchangeRate;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -94,7 +95,9 @@ class FinanceController extends Controller
         ]);
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($entry)->log('finance_entry.created');
+            ->performedOn($entry)
+            ->withProperties(ActivityChangeSet::fromCreated($entry, ['entry_date', 'type', 'category', 'label', 'description', 'source_url', 'amount_usd', 'amount_eur'])->toArray())
+            ->log('finance_entry.created');
 
         return back()->with('status', 'finance-entry-created');
     }
@@ -111,16 +114,21 @@ class FinanceController extends Controller
         $entry->update([...$data, ...$amounts]);
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($entry)->log('finance_entry.updated');
+            ->performedOn($entry)
+            ->withProperties(ActivityChangeSet::fromModel($entry, ['entry_date', 'type', 'category', 'label', 'description', 'source_url', 'amount_usd', 'amount_eur'])->toArray())
+            ->log('finance_entry.updated');
 
         return back()->with('status', 'finance-entry-updated');
     }
 
     public function destroy(Request $request, FinanceEntry $entry): RedirectResponse
     {
+        $label = $entry->label;
         $entry->delete();
 
-        activity('administration')->causedBy($request->user())->log('finance_entry.deleted');
+        activity('administration')->causedBy($request->user())
+            ->withProperties(['label' => $label])
+            ->log('finance_entry.deleted');
 
         return back()->with('status', 'finance-entry-deleted');
     }

@@ -30,6 +30,7 @@ use App\Http\Controllers\Public\Controller;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\TeamRoleService;
+use App\Support\Activity\ActivityChangeSet;
 use App\Support\TeamPermissions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -99,10 +100,13 @@ class RoleController extends Controller
             'permissions.*' => ['string', Rule::in($team->maxPermissions())],
         ]);
 
+        $before = $role->permissions->pluck('name')->sort()->values()->all();
         $role->syncPermissions($validated['permissions'] ?? []);
+        $after = collect($validated['permissions'] ?? [])->sort()->values()->all();
 
         activity('team')->causedBy($request->user())
-            ->withProperties(['team_id' => $team->id, 'role' => $role->name, 'permissions' => $validated['permissions'] ?? []])
+            ->withProperties(ActivityChangeSet::make()->add('permissions', $before, $after)
+                ->mergeInto(['team_id' => $team->id, 'role' => $role->name]))
             ->log('team_role.permissions_updated');
 
         return back()->with('status', 'permissions-updated');

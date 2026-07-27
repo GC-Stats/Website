@@ -18,8 +18,36 @@
 
 namespace App\Support;
 
+use Illuminate\Database\Eloquent\Model;
+
 class ActivityDisplay
 {
+    /**
+     * The subject models an activity can point to don't share a common
+     * "display name" column (Team/Player/Tournament use `name`/`handle`,
+     * FinanceEntry uses `label`, ApiKey uses `client_name`, GameMap uses
+     * `map_name`, ...) — try the ones that exist in practice, in order,
+     * and fall back to null (caller just shows the id) rather than guessing.
+     */
+    private const NAME_ATTRIBUTES = ['name', 'handle', 'label', 'title', 'client_name', 'map_name'];
+
+    public static function subjectName(?Model $subject): ?string
+    {
+        if (! $subject) {
+            return null;
+        }
+
+        foreach (self::NAME_ATTRIBUTES as $attribute) {
+            $value = $subject->getAttribute($attribute);
+
+            if (filled($value)) {
+                return (string) $value;
+            }
+        }
+
+        return null;
+    }
+
     private const LABEL_KEYS = [
         'team.information_updated' => 'information',
         'team.profile_updated' => 'information',
@@ -61,5 +89,27 @@ class ActivityDisplay
         return $description
             ? ucfirst(str_replace(['.', '_'], ' ', $description))
             : __('admin.dashboard.activity_labels.default');
+    }
+
+    /**
+     * One label per event code, for the full activity log page (as
+     * opposed to label() above, which only covers the handful of
+     * team/player events the dashboard widget shows). Event codes contain
+     * dots (e.g. "team.roster.member_added"), which Laravel's __() would
+     * otherwise parse as nested translation keys — swapping dots for
+     * underscores keeps each one a single flat, unambiguous lookup key.
+     */
+    public static function eventLabel(?string $description): string
+    {
+        if (! $description) {
+            return __('admin.activity.events.default');
+        }
+
+        $key = 'admin.activity.events.'.str_replace('.', '_', $description);
+        $translated = __($key);
+
+        return $translated !== $key
+            ? $translated
+            : ucfirst(str_replace(['.', '_'], ' ', $description));
     }
 }

@@ -21,9 +21,11 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
 use App\Models\TournamentTeam;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class TournamentController extends Controller
@@ -138,8 +140,16 @@ class TournamentController extends Controller
             return $tournament;
         });
 
+        $changeSet = ActivityChangeSet::fromCreated($tournament, array_keys($this->coreColumns($validated)));
+
+        if (! empty($validated['phases'])) {
+            $changeSet->add('phases', null, $this->phaseSnapshot($tournament));
+        }
+
         activity('tournament')->causedBy($request->user())
-            ->performedOn($tournament)->log('tournament.created');
+            ->performedOn($tournament)
+            ->withProperties($changeSet->toArray())
+            ->log('tournament.created');
 
         return redirect()->route('admin.tournaments.show', $tournament)->with('status', 'tournament-created');
     }
@@ -154,6 +164,8 @@ class TournamentController extends Controller
 
         $validated = $this->resolveCustomCategory($this->validateTournament($request, true));
 
+        $phasesBefore = isset($validated['phases']) ? $this->phaseSnapshot($tournament) : null;
+
         DB::transaction(function () use ($tournament, $validated) {
             $tournament->update($this->coreColumns($validated, true));
 
@@ -162,17 +174,28 @@ class TournamentController extends Controller
             }
         });
 
+        $changeSet = ActivityChangeSet::fromModel($tournament, array_keys($this->coreColumns($validated)));
+
+        if ($phasesBefore !== null) {
+            $changeSet->add('phases', $phasesBefore, $this->phaseSnapshot($tournament));
+        }
+
         activity('tournament')->causedBy($request->user())
-            ->performedOn($tournament)->log('tournament.updated');
+            ->performedOn($tournament)
+            ->withProperties($changeSet->toArray())
+            ->log('tournament.updated');
 
         return redirect()->route('admin.tournaments.show', $tournament)->with('status', 'tournament-updated');
     }
 
     public function destroy(Request $request, Tournament $tournament): RedirectResponse
     {
+        $name = $tournament->name;
         $tournament->delete();
 
-        activity('tournament')->causedBy($request->user())->log('tournament.deleted');
+        activity('tournament')->causedBy($request->user())
+            ->withProperties(['name' => $name])
+            ->log('tournament.deleted');
 
         return redirect()->route('admin.tournaments.index')->with('status', 'tournament-deleted');
     }
@@ -209,7 +232,9 @@ class TournamentController extends Controller
         $tournament->touch();
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($tournament)->log('tournament.team_attached');
+            ->performedOn($tournament)
+            ->withProperties(['team_id' => $validated['team_id']])
+            ->log('tournament.team_attached');
 
         return back()->with('status', 'tournament-team-attached');
     }
@@ -221,7 +246,9 @@ class TournamentController extends Controller
         $tournament->touch();
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($tournament)->log('tournament.team_detached');
+            ->performedOn($tournament)
+            ->withProperties(['team_id' => $team->id])
+            ->log('tournament.team_detached');
 
         return back()->with('status', 'tournament-team-detached');
     }
@@ -346,6 +373,22 @@ class TournamentController extends Controller
             ->delete();
     }
 
+    /**
+     * Snapshot of a tournament's phases for activity logging — taken
+     * before and after syncPhases() so the log can show exactly which
+     * phases were added, removed, renamed, reordered or reparented.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function phaseSnapshot(Tournament $tournament): array
+    {
+        return $tournament->phases()->orderBy('order')->get()
+            ->map(fn (TournamentPhase $phase) => Arr::only($phase->toArray(), [
+                'id', 'name', 'format', 'order', 'parent_id', 'start_date', 'end_date',
+            ]))
+            ->all();
+    }
+
     public function quickCreateTeam(Request $request, Tournament $tournament): RedirectResponse
     {
         $validated = $request->validate([
@@ -366,7 +409,9 @@ class TournamentController extends Controller
         $tournament->touch();
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($tournament)->log('tournament.team_created_and_attached');
+            ->performedOn($tournament)
+            ->withProperties(['team_id' => $team->id, 'name' => $validated['name']])
+            ->log('tournament.team_created_and_attached');
 
         return back()->with('status', 'tournament-team-created')->with('team_id', $team->id);
     }

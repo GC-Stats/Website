@@ -48,7 +48,9 @@ class ActivateLiveTournaments extends Command
         foreach ($tournaments as $tournament) {
             $tournament->update(['status' => 'live']);
 
-            activity('tournament')->performedOn($tournament)->log('tournament.auto_activated');
+            activity('tournament')->performedOn($tournament)
+                ->withProperties(['status' => 'live'])
+                ->log('tournament.auto_activated');
 
             $this->notifyDiscord($tournament);
 

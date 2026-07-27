@@ -20,6 +20,7 @@ use App\Http\Controllers\Public\Controller;
 use App\Models\ApiKey;
 use App\Models\ApiKeyReveal;
 use App\Models\User;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,11 +77,13 @@ class ApiKeyController extends Controller
                 'key_hash' => ApiKey::hashKey($clearKey),
             ]);
 
+            activity('administration')->causedBy($request->user())
+                ->performedOn($key)
+                ->withProperties(ActivityChangeSet::fromCreated($key, ['client_name', 'rate_limit', 'user_id', 'is_active'])->toArray())
+                ->log('api_key.created');
+
             return route('api-keys.reveal', ApiKeyReveal::issue($key, $clearKey)->token);
         });
-
-        activity('administration')->causedBy($request->user())
-            ->withProperties(['client_name' => $validated['client_name'], 'owner' => $owner->username])->log('api_key.created');
 
         return back()->with('status', 'api-key-created')->with('reveal_url', $revealUrl);
     }
@@ -102,7 +105,9 @@ class ApiKeyController extends Controller
         ]);
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($key)->log('api_key.updated');
+            ->performedOn($key)
+            ->withProperties(ActivityChangeSet::fromModel($key, ['client_name', 'rate_limit', 'user_id'])->toArray())
+            ->log('api_key.updated');
 
         return back()->with('status', 'api-key-updated');
     }
@@ -112,7 +117,8 @@ class ApiKeyController extends Controller
         $key->update(['is_active' => ! $key->is_active]);
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($key)->withProperties(['is_active' => $key->is_active])
+            ->performedOn($key)
+            ->withProperties(ActivityChangeSet::fromModel($key, ['is_active'])->toArray())
             ->log('api_key.toggled');
 
         return back()->with('status', 'api-key-toggled');
@@ -129,8 +135,12 @@ class ApiKeyController extends Controller
             return route('api-keys.reveal', ApiKeyReveal::issue($key, $clearKey)->token);
         });
 
+        // The hash itself is never logged (see class docblock) — only that a
+        // regeneration happened, for whom, and when.
         activity('administration')->causedBy($request->user())
-            ->performedOn($key)->log('api_key.regenerated');
+            ->performedOn($key)
+            ->withProperties(['client_name' => $key->client_name])
+            ->log('api_key.regenerated');
 
         return back()->with('status', 'api-key-regenerated')->with('reveal_url', $revealUrl);
     }

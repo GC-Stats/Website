@@ -170,14 +170,14 @@ new #[Lazy] class extends Component
     {
         abort_unless(Auth::user()?->can('reaction.delete'), 403);
 
-        app(ReactionService::class)->remove(Reaction::findOrFail($reactionId));
+        app(ReactionService::class)->remove(Reaction::findOrFail($reactionId), Auth::user());
     }
 
     public function deleteAllForEmote(int $emoteId): void
     {
         abort_unless(Auth::user()?->can('reaction.delete'), 403);
 
-        app(ReactionService::class)->removeAllForEmote($this->reactable(), Emote::findOrFail($emoteId));
+        app(ReactionService::class)->removeAllForEmote($this->reactable(), Emote::findOrFail($emoteId), Auth::user());
 
         if ($this->openGroupEmoteId === $emoteId) {
             $this->openGroupEmoteId = null;

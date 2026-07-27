@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Services\HtmlSanitizer;
 use App\Services\LogoUploadService;
 use App\Services\PublisherRoleService;
+use App\Support\Activity\ActivityChangeSet;
 use App\Support\PermissionTeam;
 use App\Support\PublisherPermissions;
 use App\Support\PublisherScope;
@@ -116,6 +117,10 @@ class NewsPublisherController extends Controller
 
         $publisher = NewsPublisher::create($validated);
 
+        activity('publisher')->performedOn($publisher)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromCreated($publisher, array_keys($validated))->toArray())
+            ->log('publisher.created');
+
         return redirect()->route('admin.news.publishers.show', $publisher)->with('status', 'publisher-created');
     }
 
@@ -140,6 +145,10 @@ class NewsPublisherController extends Controller
             'socials' => array_filter($validated['socials'] ?? [], fn ($value) => filled($value)),
         ]);
 
+        activity('publisher')->performedOn($publisher)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($publisher, ['name', 'slug', 'socials'])->toArray())
+            ->log('publisher.information_updated');
+
         return back()->with('status', 'publisher-updated');
     }
 
@@ -149,8 +158,14 @@ class NewsPublisherController extends Controller
 
         $validated = $request->validate(['logo' => ['required', 'file', 'image', 'max:10240']]);
 
+        $oldLogoId = $publisher->logos->pluck('id')->first();
+
         $uuid = $logoUploadService->storeLogoPair($validated['logo'], 'publishers');
         $logoUploadService->acceptReplacing($publisher, 'publisher', $uuid, 'publishers');
+
+        activity('publisher')->performedOn($publisher)->causedBy($request->user())
+            ->withProperties(['changes' => ['logo_id' => ['old' => $oldLogoId, 'new' => $uuid]]])
+            ->log('publisher.logo_updated');
 
         return back()->with('status', 'logo-updated');
     }
@@ -175,6 +190,10 @@ class NewsPublisherController extends Controller
         }
         PermissionTeam::global();
 
+        activity('publisher')->performedOn($publisher)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($publisher, ['max_permissions'])->toArray())
+            ->log('publisher.max_permissions_updated');
+
         return back()->with('status', 'max-permissions-updated');
     }
 
@@ -185,6 +204,10 @@ class NewsPublisherController extends Controller
         $user = User::findOrFail($validated['user_id']);
         $publisherRoles->assign($user, $publisher, PublisherRoleService::ROLE_OWNER);
 
+        activity('publisher')->performedOn($user)->causedBy($request->user())
+            ->withProperties(['publisher_id' => $publisher->id])
+            ->log('publisher.owner_assigned');
+
         return redirect()->route('admin.news.publishers.show', $publisher)->with('status', 'owner-assigned');
     }
 
@@ -192,12 +215,21 @@ class NewsPublisherController extends Controller
     {
         $publisherRoles->revoke($user, $publisher, PublisherRoleService::ROLE_OWNER);
 
+        activity('publisher')->performedOn($user)->causedBy($request->user())
+            ->withProperties(['publisher_id' => $publisher->id])
+            ->log('publisher.owner_removed');
+
         return back()->with('status', 'owner-removed');
     }
 
-    public function destroy(NewsPublisher $publisher): RedirectResponse
+    public function destroy(Request $request, NewsPublisher $publisher): RedirectResponse
     {
+        $name = $publisher->name;
         $publisher->delete();
+
+        activity('publisher')->causedBy($request->user())
+            ->withProperties(['name' => $name])
+            ->log('publisher.deleted');
 
         return redirect()->route('admin.news.publishers.index')->with('status', 'publisher-deleted');
     }

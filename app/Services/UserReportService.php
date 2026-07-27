@@ -23,6 +23,7 @@ use App\Exceptions\CannotReportUserException;
 use App\Models\Emote;
 use App\Models\User;
 use App\Models\UserReport;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Database\Eloquent\Model;
 
 class UserReportService
@@ -107,7 +108,7 @@ class UserReportService
         activity('moderation')
             ->performedOn($report)
             ->causedBy($moderator)
-            ->withProperties(['status' => $status])
+            ->withProperties(ActivityChangeSet::fromModel($report, ['status', 'resolution_note'])->toArray())
             ->log('report.resolved');
     }
 }

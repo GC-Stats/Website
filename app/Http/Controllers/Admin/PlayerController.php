@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Services\PlayerMergeService;
 use App\Services\PlayerProfileService;
 use App\Services\RosterService;
+use App\Support\Activity\ActivityChangeSet;
 use App\Support\Countries;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -119,7 +120,9 @@ class PlayerController extends Controller
             $rosterService->addMember(Team::findOrFail($validated['team_id']), $player->id, 'player', now()->toDateString());
         }
 
-        activity('player')->performedOn($player)->causedBy($request->user())->log('player.created');
+        activity('player')->performedOn($player)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromCreated($player, ['handle', 'country_code', 'vlr_id', 'is_active'])->toArray())
+            ->log('player.created');
 
         return redirect()->route('admin.players.index')->with('status', 'player-created')->with('created_player', $player->id);
     }

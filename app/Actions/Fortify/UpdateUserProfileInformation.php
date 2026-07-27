@@ -5,6 +5,7 @@ namespace App\Actions\Fortify;
 use App\Models\SanctionIdentity;
 use App\Models\User;
 use App\Services\SanctionService;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -54,7 +55,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         }
 
         $email = $input['email'] ?? null;
-        $emailChanged = $email !== $user->email;
+        $oldEmail = $user->email;
+        $emailChanged = $email !== $oldEmail;
 
         if ($emailChanged && $email === null && $user->password !== null) {
             throw ValidationException::withMessages([
@@ -80,12 +82,21 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             ])->save();
         }
 
+        if ($user->wasChanged(['name', 'username'])) {
+            activity('account')
+                ->performedOn($user)
+                ->causedBy($user)
+                ->withProperties(ActivityChangeSet::fromModel($user, ['name', 'username'])->toArray())
+                ->log('account.profile_updated');
+        }
+
         if ($emailChanged && $email !== null) {
             $this->sanctions->propagateIdentity($user, SanctionIdentity::TYPE_EMAIL, $email);
 
             activity('account')
                 ->performedOn($user)
                 ->causedBy($user)
+                ->withProperties(ActivityChangeSet::make()->add('email', $oldEmail, $email)->toArray())
                 ->log('account.email_changed');
         }
     }

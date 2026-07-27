@@ -24,6 +24,7 @@ use App\Services\RosterService;
 use App\Services\TeamMergeService;
 use App\Services\TeamProfileService;
 use App\Services\TeamRoleService;
+use App\Support\Activity\ActivityChangeSet;
 use App\Support\Countries;
 use App\Support\PermissionTeam;
 use App\Support\TeamPermissions;
@@ -118,7 +119,9 @@ class TeamController extends Controller
             'is_active' => true,
         ]);
 
-        activity('team')->performedOn($team)->causedBy($request->user())->log('team.created');
+        activity('team')->performedOn($team)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromCreated($team, ['name', 'country_code', 'vlr_id', 'is_active'])->toArray())
+            ->log('team.created');
 
         return redirect()->route('admin.teams.index')->with('status', 'team-created')->with('created_team', $team->id);
     }
@@ -290,7 +293,8 @@ class TeamController extends Controller
         PermissionTeam::global();
 
         activity('team')->performedOn($team)->causedBy($request->user())
-            ->withProperties(['max_permissions' => $ceiling])->log('team.max_permissions_updated');
+            ->withProperties(ActivityChangeSet::fromModel($team, ['max_permissions'])->toArray())
+            ->log('team.max_permissions_updated');
 
         return back()->with('status', 'max-permissions-updated');
     }

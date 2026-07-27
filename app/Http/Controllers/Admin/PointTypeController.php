@@ -18,6 +18,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Public\Controller;
 use App\Models\PointType;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,10 +39,13 @@ class PointTypeController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $pointType = PointType::create($this->validatePointType($request));
+        $validated = $this->validatePointType($request);
+        $pointType = PointType::create($validated);
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($pointType)->log('point_type.created');
+            ->performedOn($pointType)
+            ->withProperties(ActivityChangeSet::fromCreated($pointType, array_keys($validated))->toArray())
+            ->log('point_type.created');
 
         return redirect()->route('admin.point-types.index')->with('status', 'point-type-created');
     }
@@ -53,19 +57,25 @@ class PointTypeController extends Controller
 
     public function update(Request $request, PointType $pointType): RedirectResponse
     {
-        $pointType->update($this->validatePointType($request));
+        $validated = $this->validatePointType($request);
+        $pointType->update($validated);
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($pointType)->log('point_type.updated');
+            ->performedOn($pointType)
+            ->withProperties(ActivityChangeSet::fromModel($pointType, array_keys($validated))->toArray())
+            ->log('point_type.updated');
 
         return redirect()->route('admin.point-types.index')->with('status', 'point-type-updated');
     }
 
     public function destroy(Request $request, PointType $pointType): RedirectResponse
     {
+        $name = $pointType->name;
         $pointType->delete();
 
-        activity('tournament')->causedBy($request->user())->log('point_type.deleted');
+        activity('tournament')->causedBy($request->user())
+            ->withProperties(['name' => $name])
+            ->log('point_type.deleted');
 
         return redirect()->route('admin.point-types.index')->with('status', 'point-type-deleted');
     }

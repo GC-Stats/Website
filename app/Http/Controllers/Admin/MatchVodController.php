@@ -29,6 +29,7 @@ use App\Models\Matchs;
 use App\Models\NewsPublisher;
 use App\Models\Tournament;
 use App\Models\Vod;
+use App\Support\Activity\ActivityChangeSet;
 use App\Support\Countries;
 use App\Support\PublisherScope;
 use Illuminate\Contracts\View\View;
@@ -138,7 +139,7 @@ class MatchVodController extends Controller
             }
         }
 
-        $match->vods()->create([
+        $vod = $match->vods()->create([
             'game_map_id' => $validated['game_map_id'] ?? null,
             'publisher_id' => $validated['publisher_id'] ?? null,
             'url' => $validated['url'],
@@ -146,6 +147,10 @@ class MatchVodController extends Controller
         ]);
 
         $match->touch();
+
+        activity('tournament')->performedOn($match)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromCreated($vod, ['game_map_id', 'publisher_id', 'url', 'language_code'])->mergeInto(['vod_id' => $vod->id]))
+            ->log('match.vod_linked');
 
         return back()->with('status', 'vod-linked');
     }
@@ -186,6 +191,10 @@ class MatchVodController extends Controller
 
         $match->touch();
 
+        activity('tournament')->performedOn($match)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($vod, ['game_map_id', 'publisher_id', 'url', 'language_code'])->mergeInto(['vod_id' => $vod->id]))
+            ->log('match.vod_updated');
+
         return back()->with('status', 'vod-updated');
     }
 
@@ -196,8 +205,13 @@ class MatchVodController extends Controller
 
         $this->ensureCanManage($request, $vod);
 
+        $vodId = $vod->id;
         $vod->delete();
         $match->touch();
+
+        activity('tournament')->performedOn($match)->causedBy($request->user())
+            ->withProperties(['vod_id' => $vodId])
+            ->log('match.vod_unlinked');
 
         return back()->with('status', 'vod-unlinked');
     }

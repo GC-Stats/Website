@@ -179,6 +179,10 @@ class MatchStreamController extends Controller
         // touch()-to-bust-cache idiom).
         $match->touch();
 
+        activity('tournament')->performedOn($match)->causedBy($request->user())
+            ->withProperties(['stream_channel_id' => $channels->pluck('id')->all()])
+            ->log('match.streams_linked');
+
         return back()->with('status', 'stream-linked');
     }
 
@@ -210,6 +214,10 @@ class MatchStreamController extends Controller
         foreach ($matches as $match) {
             $match->streams()->syncWithoutDetaching($channelIds);
             $match->touch();
+
+            activity('tournament')->performedOn($match)->causedBy($request->user())
+                ->withProperties(['stream_channel_id' => $channelIds->all()])
+                ->log('match.streams_linked');
         }
 
         return redirect()->route('admin.streams.matches.index')->with('status', 'stream-linked');
@@ -236,8 +244,14 @@ class MatchStreamController extends Controller
             $this->ensureCanLink($request, $affectedChannel);
         }
 
+        $before = $match->streams->pluck('id')->all();
+
         $match->streams()->sync($channels->pluck('id'));
         $match->touch();
+
+        activity('tournament')->performedOn($match)->causedBy($request->user())
+            ->withProperties(['changes' => ['stream_channel_id' => ['old' => $before, 'new' => $channels->pluck('id')->all()]]])
+            ->log('match.streams_updated');
 
         return back()->with('status', 'stream-updated');
     }
@@ -249,6 +263,10 @@ class MatchStreamController extends Controller
 
         $match->streams()->detach($channel->id);
         $match->touch();
+
+        activity('tournament')->performedOn($match)->causedBy($request->user())
+            ->withProperties(['stream_channel_id' => $channel->id])
+            ->log('match.stream_unlinked');
 
         return back()->with('status', 'stream-unlinked');
     }

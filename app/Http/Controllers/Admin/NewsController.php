@@ -40,6 +40,7 @@ use App\Models\Player;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Services\HtmlSanitizer;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -159,6 +160,10 @@ class NewsController extends Controller
 
         $this->syncRelations($article, $request);
 
+        activity('publisher')->performedOn($article)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromCreated($article, ['title', 'slug', 'lang', 'publisher_id', 'status'])->toArray())
+            ->log('news.created');
+
         return redirect()->route('admin.news.edit', $article)->with('status', 'article-created');
     }
 
@@ -193,6 +198,12 @@ class NewsController extends Controller
 
         $this->syncRelations($article, $request);
 
+        // content is excluded from the diff — HTML article body, too large
+        // and noisy to be useful as an activity log field.
+        activity('publisher')->performedOn($article)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($article, array_diff(array_keys($validated), ['content']))->toArray())
+            ->log('news.updated');
+
         return back()->with('status', 'article-updated');
     }
 
@@ -200,7 +211,12 @@ class NewsController extends Controller
     {
         $this->ensureCanManageArticle($request, $article, 'news.delete', 'publisher.news.delete');
 
+        $title = $article->title;
         $article->delete();
+
+        activity('publisher')->causedBy($request->user())
+            ->withProperties(['title' => $title, 'publisher_id' => $article->publisher_id])
+            ->log('news.deleted');
 
         return redirect()->route('admin.news.index')->with('status', 'article-deleted');
     }
@@ -213,6 +229,10 @@ class NewsController extends Controller
             'status' => 'published',
             'published_at' => $article->published_at ?? now(),
         ]);
+
+        activity('publisher')->performedOn($article)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($article, ['status', 'published_at'])->toArray())
+            ->log('news.published');
 
         return back()->with('status', 'article-published');
     }
@@ -227,19 +247,31 @@ class NewsController extends Controller
 
         $article->update(['status' => 'archived']);
 
+        activity('publisher')->performedOn($article)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($article, ['status'])->toArray())
+            ->log('news.archived');
+
         return back()->with('status', 'article-archived');
     }
 
-    public function toggleFeature(News $article): RedirectResponse
+    public function toggleFeature(Request $request, News $article): RedirectResponse
     {
         $article->update(['is_featured' => ! $article->is_featured]);
+
+        activity('publisher')->performedOn($article)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($article, ['is_featured'])->toArray())
+            ->log('news.feature_toggled');
 
         return back()->with('status', 'article-updated');
     }
 
-    public function toggleShowOnHome(News $article): RedirectResponse
+    public function toggleShowOnHome(Request $request, News $article): RedirectResponse
     {
         $article->update(['show_on_home' => ! $article->show_on_home]);
+
+        activity('publisher')->performedOn($article)->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::fromModel($article, ['show_on_home'])->toArray())
+            ->log('news.show_on_home_toggled');
 
         return back()->with('status', 'article-updated');
     }

@@ -139,7 +139,9 @@ class AccountSettingsController extends Controller
             $request->validate(['current_password' => ['required', 'current_password']]);
         }
 
-        activity('account')->performedOn($user)->causedBy($user)->log('account.deleted');
+        activity('account')->performedOn($user)->causedBy($user)
+            ->withProperties(['email' => $user->email, 'name' => $user->name])
+            ->log('account.deleted');
 
         Auth::logout();
 

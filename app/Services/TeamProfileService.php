@@ -18,6 +18,7 @@ namespace App\Services;
 
 use App\Models\Team;
 use App\Models\User;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Http\UploadedFile;
 
 class TeamProfileService
@@ -43,12 +44,18 @@ class TeamProfileService
             'socials' => array_filter($data['socials'] ?? [], fn ($value) => filled($value)),
         ]);
 
-        if ($team->wasChanged(['name', 'short_name', 'country_code', 'bio', 'vlr_id', 'liquipedia_link'])) {
-            activity('team')->performedOn($team)->causedBy($actor)->log('team.information_updated');
+        $informationFields = ['name', 'short_name', 'country_code', 'bio', 'vlr_id', 'liquipedia_link'];
+
+        if ($team->wasChanged($informationFields)) {
+            activity('team')->performedOn($team)->causedBy($actor)
+                ->withProperties(ActivityChangeSet::fromModel($team, $informationFields)->toArray())
+                ->log('team.information_updated');
         }
 
         if ($team->wasChanged('socials')) {
-            activity('team')->performedOn($team)->causedBy($actor)->log('team.socials_updated');
+            activity('team')->performedOn($team)->causedBy($actor)
+                ->withProperties(ActivityChangeSet::fromModel($team, ['socials'])->toArray())
+                ->log('team.socials_updated');
         }
     }
 
@@ -62,7 +69,9 @@ class TeamProfileService
         $team->update(['tags' => $newTags]);
 
         if ($team->wasChanged('tags')) {
-            activity('team')->performedOn($team)->causedBy($actor)->log('team.tags_updated');
+            activity('team')->performedOn($team)->causedBy($actor)
+                ->withProperties(ActivityChangeSet::fromModel($team, ['tags'])->toArray())
+                ->log('team.tags_updated');
 
             // A user's fan tag (App\Models\User::team_tag) is only ever
             // validated against this list at pick time (see
@@ -81,7 +90,9 @@ class TeamProfileService
         $uuid = $this->logoUploadService->storeLogoPair($file, 'teams');
         $this->logoUploadService->acceptWithHistory($team, 'team', $uuid);
 
-        activity('team')->performedOn($team)->causedBy($actor)->log('team.logo_updated');
+        activity('team')->performedOn($team)->causedBy($actor)
+            ->withProperties(['logo_id' => $uuid])
+            ->log('team.logo_updated');
     }
 
     public function addLogoHistoryEntry(Team $team, UploadedFile $file, string $from, string $until, User $actor): void
@@ -89,7 +100,9 @@ class TeamProfileService
         $uuid = $this->logoUploadService->storeLogoPair($file, 'teams');
         $this->logoUploadService->acceptWithHistory($team, 'team', $uuid, $from, $until);
 
-        activity('team')->performedOn($team)->causedBy($actor)->log('team.logo_history_added');
+        activity('team')->performedOn($team)->causedBy($actor)
+            ->withProperties(['logo_id' => $uuid, 'from' => $from, 'until' => $until])
+            ->log('team.logo_history_added');
     }
 
     public function updateLogoEntry(Team $team, string $logoId, string $from, ?string $until, User $actor): void
@@ -97,7 +110,9 @@ class TeamProfileService
         $logo = $team->logos()->findOrFail($logoId);
         $logo->update(['from' => $from, 'until' => $until]);
 
-        activity('team')->performedOn($team)->causedBy($actor)->log('team.logo_history_updated');
+        activity('team')->performedOn($team)->causedBy($actor)
+            ->withProperties(ActivityChangeSet::fromModel($logo, ['from', 'until'])->mergeInto(['logo_id' => $logoId]))
+            ->log('team.logo_history_updated');
     }
 
     public function deleteLogoEntry(Team $team, string $logoId, User $actor): void
@@ -106,6 +121,8 @@ class TeamProfileService
         $this->logoUploadService->deleteFiles('teams', $logo->id);
         $logo->delete();
 
-        activity('team')->performedOn($team)->causedBy($actor)->log('team.logo_history_removed');
+        activity('team')->performedOn($team)->causedBy($actor)
+            ->withProperties(['logo_id' => $logoId])
+            ->log('team.logo_history_removed');
     }
 }

@@ -18,6 +18,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Public\Controller;
 use App\Models\User;
+use App\Support\Activity\ActivityPropertyParser;
 use App\Support\AdminPermissions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -49,19 +50,23 @@ class ActivityLogController extends Controller
         $dateFrom = $request->string('date_from')->toString() ?: null;
         $dateTo = $request->string('date_to')->toString() ?: null;
 
+        // Spatie's ->log() call (used everywhere in this codebase) writes the
+        // event code to `description`, not `event` — the `event` column is
+        // never populated, so both the filter list and the filter itself
+        // have to key off `description` instead.
         $events = Activity::query()
             ->whereIn('log_name', $allowedLogNames)
-            ->whereNotNull('event')
+            ->whereNotNull('description')
             ->distinct()
-            ->orderBy('event')
-            ->pluck('event');
+            ->orderBy('description')
+            ->pluck('description');
 
         $activities = Activity::query()
             ->with(['causer', 'subject'])
             ->whereIn('log_name', $allowedLogNames)
             ->when($logName, fn ($query) => $query->where('log_name', $logName))
             ->when($causerId, fn ($query) => $query->where('causer_id', $causerId)->where('causer_type', User::class))
-            ->when($event, fn ($query) => $query->where('event', $event))
+            ->when($event, fn ($query) => $query->where('description', $event))
             ->when($causerName, fn ($query) => $query->whereHasMorph('causer', [User::class], fn ($q) => $q->where('name', 'like', "%{$causerName}%")))
             ->when($dateFrom, fn ($query) => $query->whereDate('created_at', '>=', $dateFrom))
             ->when($dateTo, fn ($query) => $query->whereDate('created_at', '<=', $dateTo))
@@ -78,6 +83,10 @@ class ActivityLogController extends Controller
             ->orderByDesc('id')
             ->paginate(50)
             ->withQueryString();
+
+        $activities->getCollection()->each(
+            fn (Activity $activity) => $activity->setAttribute('parsed_properties', ActivityPropertyParser::parse($activity))
+        );
 
         return view('admin.activity.index', [
             'activities' => $activities,

@@ -23,6 +23,7 @@ use App\Models\AboutSection;
 use App\Models\AboutTeamMember;
 use App\Services\HtmlSanitizer;
 use App\Services\LogoUploadService;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,36 +67,47 @@ class AboutController extends Controller
         $section->save();
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($section)->log('about_section.updated');
+            ->performedOn($section)
+            ->withProperties(ActivityChangeSet::fromModel($section, array_keys($validated))->toArray())
+            ->log('about_section.updated');
 
         return back()->with('status', 'about-section-updated');
     }
 
     public function storeMember(Request $request): RedirectResponse
     {
-        $member = AboutTeamMember::create($this->buildMemberPayload($request));
+        $payload = $this->buildMemberPayload($request);
+        $member = AboutTeamMember::create($payload);
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($member)->log('about_member.created');
+            ->performedOn($member)
+            ->withProperties(ActivityChangeSet::fromCreated($member, array_keys($payload))->toArray())
+            ->log('about_member.created');
 
         return back()->with('status', 'about-member-created');
     }
 
     public function updateMember(Request $request, AboutTeamMember $member): RedirectResponse
     {
-        $member->update($this->buildMemberPayload($request));
+        $payload = $this->buildMemberPayload($request);
+        $member->update($payload);
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($member)->log('about_member.updated');
+            ->performedOn($member)
+            ->withProperties(ActivityChangeSet::fromModel($member, array_keys($payload))->toArray())
+            ->log('about_member.updated');
 
         return back()->with('status', 'about-member-updated');
     }
 
     public function destroyMember(Request $request, AboutTeamMember $member): RedirectResponse
     {
+        $name = $member->name;
         $member->delete();
 
-        activity('administration')->causedBy($request->user())->log('about_member.deleted');
+        activity('administration')->causedBy($request->user())
+            ->withProperties(['name' => $name])
+            ->log('about_member.deleted');
 
         return back()->with('status', 'about-member-deleted');
     }
@@ -105,36 +117,47 @@ class AboutController extends Controller
         $member->update(['photo_url' => $this->uploadImage($request, 'about/team')]);
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($member)->log('about_member.photo_updated');
+            ->performedOn($member)
+            ->withProperties(ActivityChangeSet::fromModel($member, ['photo_url'])->toArray())
+            ->log('about_member.photo_updated');
 
         return back()->with('status', 'about-member-updated');
     }
 
     public function storeProject(Request $request): RedirectResponse
     {
-        $project = AboutProject::create($this->buildProjectPayload($request));
+        $payload = $this->buildProjectPayload($request);
+        $project = AboutProject::create($payload);
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($project)->log('about_project.created');
+            ->performedOn($project)
+            ->withProperties(ActivityChangeSet::fromCreated($project, array_keys($payload))->toArray())
+            ->log('about_project.created');
 
         return back()->with('status', 'about-project-created');
     }
 
     public function updateProject(Request $request, AboutProject $project): RedirectResponse
     {
-        $project->update($this->buildProjectPayload($request));
+        $payload = $this->buildProjectPayload($request);
+        $project->update($payload);
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($project)->log('about_project.updated');
+            ->performedOn($project)
+            ->withProperties(ActivityChangeSet::fromModel($project, array_keys($payload))->toArray())
+            ->log('about_project.updated');
 
         return back()->with('status', 'about-project-updated');
     }
 
     public function destroyProject(Request $request, AboutProject $project): RedirectResponse
     {
+        $name = $project->name;
         $project->delete();
 
-        activity('administration')->causedBy($request->user())->log('about_project.deleted');
+        activity('administration')->causedBy($request->user())
+            ->withProperties(['name' => $name])
+            ->log('about_project.deleted');
 
         return back()->with('status', 'about-project-deleted');
     }
@@ -144,7 +167,9 @@ class AboutController extends Controller
         $project->update(['logo_url' => $this->uploadImage($request, 'about/projects')]);
 
         activity('administration')->causedBy($request->user())
-            ->performedOn($project)->log('about_project.logo_updated');
+            ->performedOn($project)
+            ->withProperties(ActivityChangeSet::fromModel($project, ['logo_url'])->toArray())
+            ->log('about_project.logo_updated');
 
         return back()->with('status', 'about-project-updated');
     }
