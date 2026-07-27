@@ -39,6 +39,17 @@ return [
         'pick_rate' => 'Agent pick rate',
         'comps' => 'Comps played',
         'vs' => 'vs',
+        'insights' => [
+            'title' => 'Insights',
+            'most_played' => 'Most played map',
+            'least_played' => 'Least played map',
+            'best_record' => 'Best record',
+            'best_winrate' => 'Best win rate',
+            'best_atk' => 'Best ATK win rate',
+            'best_def' => 'Best DEF win rate',
+            'times' => ':count times',
+            'face_to_face' => 'Face to Face',
+        ],
     ],
 
     'roles' => [

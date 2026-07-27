@@ -112,5 +112,14 @@ return [
         'played_by' => 'Jouée par',
         'vs' => 'vs',
         'no_data' => 'Aucune map jouée pour le moment',
+        'insights' => [
+            'title' => 'Statistiques',
+            'most_played' => 'Map la plus jouée',
+            'least_played' => 'Map la moins jouée',
+            'best_atk' => 'Meilleur winrate ATK',
+            'best_def' => 'Meilleur winrate DEF',
+            'times' => ':count fois',
+            'face_to_face' => 'Face à Face',
+        ],
     ],
 ];

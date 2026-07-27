@@ -38,6 +38,10 @@ return [
         'player' => 'Joueuse',
         'caption' => 'Statistiques joueuses de :team',
     ],
+    'encounters' => [
+        'title' => 'Confrontations',
+        'empty' => 'Ces deux équipes ne se sont encore jamais affrontées.',
+    ],
     'patch' => 'Patch :patch',
     'performance' => 'Résumé des performances',
     'economy' => 'Économie de :team',

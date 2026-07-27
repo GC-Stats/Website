@@ -24,6 +24,7 @@ use App\Models\PhaseQualification;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
+use App\Services\HeadToHeadService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -902,10 +903,66 @@ class TournamentController extends Controller
             ];
         });
 
+        $tournamentTeams = DB::table('tournament_teams')
+            ->join('teams', 'teams.id', '=', 'tournament_teams.team_id')
+            ->where('tournament_teams.tournament_id', $id)
+            ->orderBy('teams.name')
+            ->select('teams.id', 'teams.name')
+            ->get();
+
+        $headToHead = null;
+        if ($request->filled(['h2h_team_a', 'h2h_team_b'])) {
+            $validTeamIds = $tournamentTeams->pluck('id');
+
+            if ($validTeamIds->contains((int) $request->h2h_team_a) && $validTeamIds->contains((int) $request->h2h_team_b)) {
+                $headToHead = app(HeadToHeadService::class)->compare(
+                    (int) $request->h2h_team_a,
+                    (int) $request->h2h_team_b,
+                    (int) $id
+                );
+            }
+        }
+
         return response()
-            ->view('public.tournament.maps', ['tournament' => $data['tournament'], 'maps' => $data['maps'], 'phases' => $parentPhases, 'selectedPhase' => $phaseId])
+            ->view('public.tournament.maps', [
+                'tournament' => $data['tournament'],
+                'maps' => $data['maps'],
+                'phases' => $parentPhases,
+                'selectedPhase' => $phaseId,
+                'insights' => $this->buildMapInsights($data['maps']),
+                'headToHead' => $headToHead,
+                'tournamentTeams' => $tournamentTeams,
+            ])
             ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
             ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Derive small "most/least played" / "best ATK/DEF winrate" cards from
+     * the already-computed maps list — no extra query.
+     */
+    private function buildMapInsights(array $maps): array
+    {
+        if (empty($maps)) {
+            return [];
+        }
+
+        $maps = collect($maps);
+        $insights = [];
+
+        $mostPlayed = $maps->sortByDesc('times_played')->first();
+        $insights[] = ['label' => 'most_played', 'map_name' => $mostPlayed['map_name'], 'value' => __('tournament.maps.insights.times', ['count' => $mostPlayed['times_played']])];
+
+        $leastPlayed = $maps->sortBy('times_played')->first();
+        $insights[] = ['label' => 'least_played', 'map_name' => $leastPlayed['map_name'], 'value' => __('tournament.maps.insights.times', ['count' => $leastPlayed['times_played']])];
+
+        $bestAtk = $maps->whereNotNull('atk_win_pct')->sortByDesc('atk_win_pct')->first();
+        $insights[] = ['label' => 'best_atk', 'map_name' => $bestAtk['map_name'] ?? null, 'value' => $bestAtk ? $bestAtk['atk_win_pct'].'%' : null];
+
+        $bestDef = $maps->whereNotNull('def_win_pct')->sortByDesc('def_win_pct')->first();
+        $insights[] = ['label' => 'best_def', 'map_name' => $bestDef['map_name'] ?? null, 'value' => $bestDef ? $bestDef['def_win_pct'].'%' : null];
+
+        return $insights;
     }
 
     /**

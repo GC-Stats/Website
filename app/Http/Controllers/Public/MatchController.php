@@ -17,6 +17,8 @@ namespace App\Http\Controllers\Public;
 use App\Helpers\CacheTtl;
 use App\Models\Matchs;
 use App\Models\User;
+use App\Services\HeadToHeadService;
+use App\Support\MatchPresenter;
 use App\Support\PublisherScope;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -307,6 +309,18 @@ class MatchController extends Controller
                 'logo' => $match->teamB->logo,
             ] : null;
 
+            // Global face-to-face: deliberately not scoped to $match->tournament_id
+            // so it reflects the teams' entire history together, not just this event.
+            // Restricted to this match's patch's map pool (see
+            // HeadToHeadService::mapPoolForPatch) so retired maps don't show up.
+            $headToHead = ($match->team_a_id && $match->team_b_id)
+                ? app(HeadToHeadService::class)->compare($match->team_a_id, $match->team_b_id, null, null, null, $match->patch)
+                : null;
+
+            $encounters = ($match->team_a_id && $match->team_b_id)
+                ? $this->buildEncounters($match)
+                : null;
+
             return [
                 'match' => $finalMatch,
                 'idsA' => $idsA,
@@ -315,6 +329,8 @@ class MatchController extends Controller
                 'totalB' => $totalB,
                 'totalEcoSummary' => $totalEcoSummary,
                 'totalPerformance' => $totalPerformance,
+                'headToHead' => $headToHead,
+                'encounters' => $encounters,
             ];
         };
 
@@ -362,6 +378,44 @@ class MatchController extends Controller
             ->view('public.match', array_merge($matchData, $perRequest))
             ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
             ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Prior meetings between this match's two teams, across every tournament,
+     * most recent first — the "Encounters" column on the match page. Scores
+     * are presented from team_a's perspective so the column reads
+     * consistently regardless of which side each team was on in past matches.
+     */
+    private function buildEncounters(Matchs $match): array
+    {
+        $previous = Matchs::query()
+            ->select([
+                'id', 'status', 'round_name', 'scheduled_at',
+                'team_a_score', 'team_b_score', 'team_a_id', 'team_b_id',
+                'tournament_id', 'phase_id',
+            ])
+            ->where('status', 'finished')
+            ->where('id', '!=', $match->id)
+            ->where(function ($query) use ($match) {
+                $query->where(function ($q) use ($match) {
+                    $q->where('team_a_id', $match->team_a_id)->where('team_b_id', $match->team_b_id);
+                })->orWhere(function ($q) use ($match) {
+                    $q->where('team_a_id', $match->team_b_id)->where('team_b_id', $match->team_a_id);
+                });
+            })
+            ->with(['teamA:id,name,short_name', 'teamB:id,name,short_name', 'tournament:id,name', 'tournamentPhase:id,name'])
+            ->orderByDesc('scheduled_at')
+            ->limit(6)
+            ->get();
+
+        $matches = $previous->map(fn ($m) => MatchPresenter::format($m, $match->team_a_id))->values()->all();
+
+        return [
+            'matches' => $matches,
+            'total' => count($matches),
+            'team_a_wins' => collect($matches)->where('result', 'win')->count(),
+            'team_b_wins' => collect($matches)->where('result', 'loss')->count(),
+        ];
     }
 
     /**

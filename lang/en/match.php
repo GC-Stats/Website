@@ -39,6 +39,10 @@ return [
         'player' => 'Player',
         'caption' => ':team player statistics',
     ],
+    'encounters' => [
+        'title' => 'Encounters',
+        'empty' => 'These two teams have never played each other before.',
+    ],
     'patch' => 'Patch :patch',
     'performance' => 'Performance Summary',
     'economy' => ':team Economy',

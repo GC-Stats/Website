@@ -15,8 +15,21 @@
 @section('content')
     @include('public.team.header')
 
-    <div class="max-w-6xl mx-auto space-y-4">
-        <section class="col-span-12 lg:col-span-6 space-y-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-12 lg:col-span-4 space-y-6">
+                @include('public.partials.maps-insights', ['insights' => $insights, 'namespace' => 'team.maps'])
+
+                @include('public.partials.head-to-head-picker', [
+                    'action' => request()->url(),
+                    'preserve' => [],
+                    'lockTeamA' => $team['id'],
+                ])
+
+                <x-public.head-to-head :data="$headToHead" />
+            </div>
+
+            <section class="col-span-12 lg:col-span-8 space-y-4">
             @forelse($maps as $map)
                 <div class="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
                     <div class="relative p-4 md:p-5 flex flex-wrap items-center justify-between gap-4 border-b border-white/5 bg-cover bg-center"
@@ -126,6 +139,9 @@
             @empty
                 <h3 class="text-center text-gray-400">{{ __('team.empty.maps') }}</h3>
             @endforelse
-        </section>
+            </section>
+        </div>
     </div>
+
+    @vite('resources/js/public/head-to-head/index.js')
 @endsection

@@ -18,8 +18,10 @@ use App\Models\GameMap;
 use App\Models\Matchs;
 use App\Models\News;
 use App\Models\Team;
+use App\Services\HeadToHeadService;
 use App\Support\Achievements;
 use App\Support\MatchPresenter;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -225,7 +227,7 @@ class TeamController extends Controller
             ->header('Vary', 'Accept-Language');
     }
 
-    public function maps(int $id, ?string $slug = null)
+    public function maps(Request $request, int $id, ?string $slug = null)
     {
         if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.maps')) {
             return $redirect;
@@ -321,10 +323,71 @@ class TeamController extends Controller
             ];
         });
 
+        $h2hStart = null;
+        $h2hEnd = null;
+
+        if ($request->filled(['h2h_start_date', 'h2h_end_date'])) {
+            $request->validate([
+                'h2h_start_date' => ['date'],
+                'h2h_end_date' => ['date'],
+            ]);
+
+            $h2hStart = Carbon::parse($request->h2h_start_date)->startOfDay();
+            $h2hEnd = Carbon::parse($request->h2h_end_date)->endOfDay();
+        }
+
+        $headToHead = app(HeadToHeadService::class)->compare(
+            (int) $id,
+            $request->filled('h2h_team_b') ? (int) $request->h2h_team_b : null,
+            $request->filled('h2h_tournament_id') ? (int) $request->h2h_tournament_id : null,
+            $h2hStart,
+            $h2hEnd
+        );
+
         return response()
-            ->view('public.team.maps', ['team' => $data['team'], 'maps' => $data['maps']])
+            ->view('public.team.maps', [
+                'team' => $data['team'],
+                'maps' => $data['maps'],
+                'insights' => $this->buildMapInsights($data['maps']),
+                'headToHead' => $headToHead,
+            ])
             ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
             ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Derive small "most/least played" / best record / ATK/DEF winrate
+     * cards from the already-computed maps list — no extra query.
+     */
+    private function buildMapInsights(array $maps): array
+    {
+        if (empty($maps)) {
+            return [];
+        }
+
+        $maps = collect($maps);
+        $insights = [];
+
+        $mostPlayed = $maps->sortByDesc('times_played')->first();
+        $insights[] = ['label' => 'most_played', 'map_name' => $mostPlayed['map_name'], 'value' => __('team.maps.insights.times', ['count' => $mostPlayed['times_played']])];
+
+        $leastPlayed = $maps->sortBy('times_played')->first();
+        $insights[] = ['label' => 'least_played', 'map_name' => $leastPlayed['map_name'], 'value' => __('team.maps.insights.times', ['count' => $leastPlayed['times_played']])];
+
+        $bestRecord = $maps->sortByDesc(fn ($m) => $m['wins'] - $m['losses'])->first();
+        $insights[] = ['label' => 'best_record', 'map_name' => $bestRecord['map_name'], 'value' => $bestRecord['wins'].'-'.$bestRecord['losses']];
+
+        $bestWinrate = $maps->sortByDesc(fn ($m) => $m['times_played'] > 0 ? $m['wins'] / $m['times_played'] : -1)->first();
+        $bestWinratePct = $bestWinrate['times_played'] > 0 ? round($bestWinrate['wins'] / $bestWinrate['times_played'] * 100, 1) : null;
+        $insights[] = ['label' => 'best_winrate', 'map_name' => $bestWinratePct !== null ? $bestWinrate['map_name'] : null, 'value' => $bestWinratePct !== null ? $bestWinratePct.'%' : null];
+
+        $bestAtk = $maps->whereNotNull('atk_win_pct')->sortByDesc('atk_win_pct')->first();
+        $insights[] = ['label' => 'best_atk', 'map_name' => $bestAtk['map_name'] ?? null, 'value' => $bestAtk ? $bestAtk['atk_win_pct'].'%' : null];
+
+        $bestDef = $maps->whereNotNull('def_win_pct')->sortByDesc('def_win_pct')->first();
+        $insights[] = ['label' => 'best_def', 'map_name' => $bestDef['map_name'] ?? null, 'value' => $bestDef ? $bestDef['def_win_pct'].'%' : null];
+
+        return $insights;
     }
 
     /**

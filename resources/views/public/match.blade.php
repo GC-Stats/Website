@@ -38,13 +38,21 @@
 @endpush
 
 @section('content')
-    <section class="mx-auto w-full max-w-7xl py-8 px-4">
+    <section class="mx-auto w-full max-w-[1600px] py-8 px-4">
         @if($inactive_access ?? false)
             <div class="mb-6 bg-gc-yellow/10 border border-gc-yellow/40 rounded-lg px-4 py-3 text-xs text-gc-yellow">
                 {{ __('tournament.inactive_access') }}
             </div>
         @endif
 
+        <div class="flex flex-col lg:flex-row items-start gap-6">
+        @if($encounters)
+            <div class="w-full lg:w-[360px] shrink-0 order-2 lg:order-1">
+                @include('public.partials.encounters', ['encounters' => $encounters])
+            </div>
+        @endif
+
+        <div class="flex-1 min-w-0 w-full order-1 lg:order-2">
         <div class="relative mb-6 flex flex-col items-center">
             <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
@@ -67,16 +75,16 @@
             </a>
         </div>
 
-        <div class="relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-transparent border border-white/5 rounded-2xl p-4 md:p-8 shadow-2xl backdrop-blur-sm">
+        <div class="relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-transparent border border-white/5 rounded-2xl p-4 md:p-6 shadow-2xl backdrop-blur-sm">
             <div class="absolute inset-0 opacity-[0.02] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
 
-            <div class="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-4">
+            <div class="relative flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4">
 
                 <a href="{{ $match['team_a_id'] ? route('teams.show', [$match['team_a_id'], str($teamAName)->slug()]) : '#' }}"
-                   class="flex flex-col md:flex-row items-center gap-4 md:gap-6 flex-1 min-w-0 group justify-center md:justify-end">
+                   class="flex flex-col md:flex-row items-center gap-3 md:gap-4 flex-1 min-w-0 group justify-center md:justify-end">
 
                     <div class="relative order-2 md:order-1 text-center md:text-right min-w-0">
-                        <h3 class="font-black text-xl md:text-2xl italic text-white group-hover:text-[var(--brand-yellow)] transition-colors tracking-tight leading-none truncate">
+                        <h3 class="font-black text-lg md:text-xl italic text-white group-hover:text-[var(--brand-yellow)] transition-colors tracking-tight leading-none truncate">
                             {{ $teamAName }}
                         </h3>
                     </div>
@@ -85,13 +93,13 @@
                         <div class="absolute inset-0 bg-[var(--brand-yellow)]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         <img src="{{ $match['team_a_data']['logo'] ?? asset('storage/images/default-team.webp') }}"
                              alt="{{ $teamAName }}"
-                             class="relative w-14 h-14 md:w-20 md:h-20 object-contain transition-transform duration-500 group-hover:scale-110">
+                             class="relative w-12 h-12 md:w-16 md:h-16 object-contain transition-transform duration-500 group-hover:scale-110">
                     </div>
                 </a>
 
                 <div class="flex flex-col items-center shrink-0 z-10 px-4">
                     @if(!empty($match['patch']))
-                        <span class="mb-4 text-[8px] font-medium text-gray-600 uppercase tracking-widest">
+                        <span class="mb-3 text-[8px] font-medium text-gray-600 uppercase tracking-widest">
                             {{ __('match.patch', ['patch' => $match['patch']]) }}
                         </span>
                     @endif
@@ -99,22 +107,22 @@
                     <div class="relative group">
                         <div class="absolute -inset-4 bg-white/[0.02] rounded-full blur-2xl"></div>
 
-                        <div class="relative flex items-center justify-center gap-4 bg-black/60 backdrop-blur-xl border border-white/10 px-8 py-4 rounded-2xl shadow-2xl overflow-hidden">
+                        <div class="relative flex items-center justify-center gap-3 bg-black/60 backdrop-blur-xl border border-white/10 px-6 py-3 rounded-2xl shadow-2xl overflow-hidden">
                             @if($match["status"] == "finished")
                                 <span class="sr-only">{{ __('match.score_label', ['teamA' => $teamAName, 'scoreA' => $match['team_a_score'], 'scoreB' => $match['team_b_score'], 'teamB' => $teamBName]) }}</span>
-                                <span class="text-4xl md:text-5xl font-black {{ $match["team_a_score"] > $match["team_b_score"] ? 'text-[var(--brand-yellow)]' : 'text-white' }} tracking-tighter" aria-hidden="true">{{ $match["team_a_score"] == -1 ? 'FF' : $match["team_a_score"] }}</span>
+                                <span class="text-3xl md:text-4xl font-black {{ $match["team_a_score"] > $match["team_b_score"] ? 'text-[var(--brand-yellow)]' : 'text-white' }} tracking-tighter" aria-hidden="true">{{ $match["team_a_score"] == -1 ? 'FF' : $match["team_a_score"] }}</span>
                                 <div class="w-[1px] h-8 bg-white/10" aria-hidden="true"></div>
-                                <span class="text-4xl md:text-5xl font-black {{ $match["team_b_score"] > $match["team_a_score"] ? 'text-[var(--brand-yellow)]' : 'text-white' }} tracking-tighter" aria-hidden="true">{{ $match["team_b_score"] == -1 ? 'FF' : $match["team_b_score"] }}</span>
+                                <span class="text-3xl md:text-4xl font-black {{ $match["team_b_score"] > $match["team_a_score"] ? 'text-[var(--brand-yellow)]' : 'text-white' }} tracking-tighter" aria-hidden="true">{{ $match["team_b_score"] == -1 ? 'FF' : $match["team_b_score"] }}</span>
                             @elseif($match["status"] == "upcoming")
-                                <span class="text-4xl md:text-5xl font-black text-white tracking-tighter" aria-label="{{ __('match.upcoming') }}">VS</span>
+                                <span class="text-3xl md:text-4xl font-black text-white tracking-tighter" aria-label="{{ __('match.upcoming') }}">VS</span>
                             @else
                                 <div class="flex flex-col items-center" role="status" aria-live="polite">
                                     <span class="text-sm font-black text-green-500 animate-pulse tracking-[0.3em] mb-1">LIVE</span>
                                     <span class="sr-only">{{ __('match.score_label', ['teamA' => $teamAName, 'scoreA' => $match['team_a_score'], 'scoreB' => $match['team_b_score'], 'teamB' => $teamBName]) }}</span>
                                     <div class="flex items-center gap-2" aria-hidden="true">
-                                        <span class="text-4xl md:text-5xl font-black {{ $match["team_a_score"] > $match["team_b_score"] ? 'text-[var(--brand-yellow)]' : 'text-white' }} tracking-tighter">{{ $match["team_a_score"] == -1 ? 'FF' : $match["team_a_score"] }}</span>
+                                        <span class="text-3xl md:text-4xl font-black {{ $match["team_a_score"] > $match["team_b_score"] ? 'text-[var(--brand-yellow)]' : 'text-white' }} tracking-tighter">{{ $match["team_a_score"] == -1 ? 'FF' : $match["team_a_score"] }}</span>
                                         <div class="w-[1px] h-8 bg-white/10"></div>
-                                        <span class="text-4xl md:text-5xl font-black {{ $match["team_b_score"] > $match["team_a_score"] ? 'text-[var(--brand-yellow)]' : 'text-white' }} tracking-tighter">{{ $match["team_b_score"] == -1 ? 'FF' : $match["team_b_score"] }}</span>
+                                        <span class="text-3xl md:text-4xl font-black {{ $match["team_b_score"] > $match["team_a_score"] ? 'text-[var(--brand-yellow)]' : 'text-white' }} tracking-tighter">{{ $match["team_b_score"] == -1 ? 'FF' : $match["team_b_score"] }}</span>
                                     </div>
                                 </div>
                             @endif
@@ -122,13 +130,13 @@
                     </div>
 
                     @if(\App\Helpers\PivotDate::isUnknown($match['scheduled_at'] ?? null))
-                        <div class="mt-4 flex flex-col items-center gap-1">
+                        <div class="mt-3 flex flex-col items-center gap-1">
                             <span class="text-[10px] font-black text-white/40 uppercase tracking-widest">
                                 {{ __('match.unknown_date') }}
                             </span>
                         </div>
                     @else
-                        <div class="mt-4 flex flex-col items-center gap-1" data-utc-datetime="{{ \Carbon\Carbon::parse($match['scheduled_at'], 'UTC')->toIso8601String() }}">
+                        <div class="mt-3 flex flex-col items-center gap-1" data-utc-datetime="{{ \Carbon\Carbon::parse($match['scheduled_at'], 'UTC')->toIso8601String() }}">
                             <span class="js-match-date text-[10px] font-black text-white/40 uppercase tracking-widest">
                                 {{ \Carbon\Carbon::parse($match['scheduled_at'])->translatedFormat('d M Y') }}
                             </span>
@@ -140,17 +148,17 @@
                 </div>
 
                 <a href="{{ $match['team_b_id'] ? route('teams.show', [$match['team_b_id'], str($teamBName)->slug()]) : '#' }}"
-                   class="flex flex-col md:flex-row items-center gap-4 md:gap-6 flex-1 min-w-0 group justify-center md:justify-start">
+                   class="flex flex-col md:flex-row items-center gap-3 md:gap-4 flex-1 min-w-0 group justify-center md:justify-start">
 
                     <div class="relative shrink-0">
                         <div class="absolute inset-0 bg-[var(--brand-yellow)]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         <img src="{{ $match['team_b_data']['logo'] ?? asset('storage/images/default-team.webp') }}"
                              alt="{{ $teamBName }}"
-                             class="relative w-14 h-14 md:w-20 md:h-20 object-contain transition-transform duration-500 group-hover:scale-110">
+                             class="relative w-12 h-12 md:w-16 md:h-16 object-contain transition-transform duration-500 group-hover:scale-110">
                     </div>
 
                     <div class="text-center md:text-left min-w-0">
-                        <h3 class="font-black text-xl md:text-2xl italic text-white group-hover:text-[var(--brand-yellow)] transition-colors tracking-tight leading-none truncate">
+                        <h3 class="font-black text-lg md:text-xl italic text-white group-hover:text-[var(--brand-yellow)] transition-colors tracking-tight leading-none truncate">
                             {{ $teamBName }}
                         </h3>
                     </div>
@@ -163,7 +171,7 @@
                 @include('components.public.match.streams', ['match' => $match, 'canLinkStreams' => $canLinkStreams ?? false])
             @endif
 
-            <div class="mt-10 -mx-4 md:-mx-8">
+            <div class="mt-10 -mx-4 md:-mx-6">
                 <div class="flex items-center justify-center gap-4 mb-8">
                     <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10"></div>
                     <span class="text-[8px] font-black text-gray-600 uppercase tracking-[0.5em]">{{ __('match.veto') }}</span>
@@ -213,6 +221,49 @@
                     @endif
                 </div>
             </div>
+        </div>
+        </div>
+
+        @if($headToHead)
+            <div class="w-full lg:w-[360px] shrink-0 order-3">
+                <div x-data="{
+                    open: false,
+                    copied: false,
+                    copyLink() {
+                        navigator.clipboard.writeText('{{ route('widget.head-to-head', ['team_a' => $match['team_a_id'], 'team_b' => $match['team_b_id']]) }}');
+                        this.copied = true;
+                        setTimeout(() => { this.copied = false; this.open = false; }, 1200);
+                    }
+                }">
+                    <div class="flex items-center justify-between gap-4 mb-4">
+                        <span class="text-[9px] font-black text-gray-600 uppercase tracking-[0.3em]">{{ __('head_to_head.title') }}</span>
+
+                        <div class="relative" @click.outside="open = false">
+                            <button type="button" @click="open = !open" class="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="18" cy="5" r="3"></circle>
+                                    <circle cx="6" cy="12" r="3"></circle>
+                                    <circle cx="18" cy="19" r="3"></circle>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                </svg>
+                                {{ __('head_to_head.widget.share') }}
+                            </button>
+
+                            <div x-show="open" x-cloak x-transition.origin.top.right
+                                 class="absolute right-0 z-20 mt-2 w-48 bg-[#0d0d0d] border border-white/10 rounded-xl shadow-2xl overflow-hidden">
+                                <button type="button" @click="copyLink()" class="w-full text-left px-4 py-3 text-[9px] font-black uppercase tracking-widest text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
+                                    <span x-show="!copied">{{ __('head_to_head.widget.copy_link') }}</span>
+                                    <span x-show="copied" x-cloak class="text-[var(--brand-yellow)]">{{ __('head_to_head.widget.link_copied') }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <x-public.head-to-head :data="$headToHead" />
+                </div>
+            </div>
+        @endif
         </div>
 
         @if(count($match['game_maps']) > 0)
@@ -550,4 +601,8 @@
             .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
         </style>
     </section>
+
+    @if($headToHead)
+        @vite('resources/js/public/head-to-head/index.js')
+    @endif
 @endsection

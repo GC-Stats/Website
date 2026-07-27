@@ -24,6 +24,7 @@ use App\Http\Controllers\Public\TeamController;
 use App\Http\Controllers\Public\TournamentController;
 use App\Http\Controllers\Public\TransparencyController;
 use App\Http\Controllers\Public\UserProfileController;
+use App\Http\Controllers\Public\WidgetController;
 use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/auth.php';
@@ -105,6 +106,10 @@ Route::prefix('/user/{user:username}')->name('users.')->group(function () {
 });
 
 Route::get('/match/{id}', [MatchController::class, 'index'])->name('match.show');
+
+Route::middleware(['throttle:60,1'])->prefix('/widget')->name('widget.')->group(function () {
+    Route::get('/head-to-head', [WidgetController::class, 'headToHead'])->name('head-to-head');
+});
 
 Route::get('/search', [SearchController::class, 'index'])->name('search.results');
 

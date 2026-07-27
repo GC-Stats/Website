@@ -23,6 +23,7 @@ use App\Models\Matchs;
 use App\Models\NewsPublisher;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
+use App\Support\Activity\ActivityChangeSet;
 use App\Support\Countries;
 use App\Support\PublisherScope;
 use Illuminate\Contracts\View\View;
@@ -169,7 +170,9 @@ class MatchController extends Controller
         ]]);
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($match)->log('match.created');
+            ->performedOn($match)
+            ->withProperties(ActivityChangeSet::fromCreated($match, array_keys($validated))->toArray())
+            ->log('match.created');
 
         return redirect()->back()->with('status', 'match-created');
     }
@@ -183,7 +186,9 @@ class MatchController extends Controller
         $match->update($validated);
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($match)->log('match.updated');
+            ->performedOn($match)
+            ->withProperties(ActivityChangeSet::fromModel($match, array_keys($validated))->toArray())
+            ->log('match.updated');
 
         return redirect()->route('admin.matches.show', [$tournament, $match])->with('status', 'match-updated');
     }
@@ -192,9 +197,17 @@ class MatchController extends Controller
     {
         $this->requireEditable($request, $tournament, $match, 'matches.delete');
 
+        $properties = [
+            'round_name' => $match->round_name,
+            'team_a_id' => $match->team_a_id,
+            'team_b_id' => $match->team_b_id,
+        ];
+
         $match->delete();
 
-        activity('tournament')->causedBy($request->user())->log('match.deleted');
+        activity('tournament')->causedBy($request->user())
+            ->withProperties($properties)
+            ->log('match.deleted');
 
         return redirect()->route('admin.matches.index', $tournament)->with('status', 'match-deleted');
     }
@@ -240,13 +253,17 @@ class MatchController extends Controller
     {
         $this->requireEditable($request, $tournament, $match, 'maps.reset');
 
+        $mapsCount = $match->game_maps()->count();
+
         DB::transaction(function () use ($match) {
             $match->game_maps()->delete();
             $match->map_bans()->delete();
         });
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($match)->log('match.maps_reset');
+            ->performedOn($match)
+            ->withProperties(['maps_count' => $mapsCount])
+            ->log('match.maps_reset');
 
         return redirect()->route('admin.matches.show', [$tournament, $match])->with('status', 'match-maps-reset');
     }
@@ -281,6 +298,8 @@ class MatchController extends Controller
             ];
         }
 
+        $vetosBefore = $this->vetoSnapshot($match);
+
         DB::transaction(function () use ($match, $vetos) {
             $match->map_bans()->delete();
 
@@ -292,7 +311,9 @@ class MatchController extends Controller
         });
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($match)->log('match.veto_updated');
+            ->performedOn($match)
+            ->withProperties(ActivityChangeSet::make()->add('vetos', $vetosBefore, $this->vetoSnapshot($match))->toArray())
+            ->log('match.veto_updated');
 
         return redirect()->route('admin.matches.show', [$tournament, $match])->with('status', 'match-veto-updated');
     }
@@ -331,6 +352,8 @@ class MatchController extends Controller
                 'order' => $index + 1,
             ];
         }
+
+        $vetosBefore = $this->vetoSnapshot($match);
 
         DB::transaction(function () use ($match, $vetoPayload) {
             $match->map_bans()->delete();
@@ -378,7 +401,9 @@ class MatchController extends Controller
         }
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($match)->log('match.wikicode_imported');
+            ->performedOn($match)
+            ->withProperties(ActivityChangeSet::make()->add('vetos', $vetosBefore, $this->vetoSnapshot($match))->toArray())
+            ->log('match.wikicode_imported');
 
         return redirect()->route('admin.matches.edit', [$tournament, $match])->with('status', 'match-wikicode-imported');
     }
@@ -416,6 +441,20 @@ class MatchController extends Controller
         }
 
         $match->game_maps()->whereNotIn('id', $keptIds)->delete();
+    }
+
+    /**
+     * Snapshot of a match's veto (map_bans), taken before and after a
+     * rewrite so the activity log can show exactly which bans/picks/sides
+     * changed rather than just a new count.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function vetoSnapshot(Matchs $match): array
+    {
+        return $match->map_bans()->orderBy('order')->get()
+            ->map(fn ($ban) => $ban->only(['team_id', 'map_name', 'type', 'side', 'side_picked_by', 'order']))
+            ->all();
     }
 
     /**
