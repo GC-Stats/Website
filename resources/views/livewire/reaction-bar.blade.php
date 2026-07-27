@@ -344,11 +344,11 @@ new #[Lazy] class extends Component
                                             </div>
                                             <div class="flex items-center gap-2 shrink-0">
                                                 @can('sanctions.create')
-                                                    <x-sanction-modal :user="$reaction->user">
+                                                    <x-admin.sanction-modal :user="$reaction->user">
                                                         <button type="button" class="text-gray-500 hover:text-gc-yellow transition" title="{{ __('admin.reports.issue_sanction') }}">
                                                             @svg('fas-gavel', 'w-3 h-3', ['aria-hidden' => 'true'])
                                                         </button>
-                                                    </x-sanction-modal>
+                                                    </x-admin.sanction-modal>
                                                 @endcan
                                                 @can('reaction.delete')
                                                     <button type="button" wire:click="deleteReaction({{ $reaction->id }})"
