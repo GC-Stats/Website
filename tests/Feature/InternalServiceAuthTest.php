@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Player;
+
 // Pest's getJson() always sends a JSON-encoded body, even for GET requests
 // with no data ("[]"), so the signed payload must match that exact body —
 // not the empty string a real GET request would send.
@@ -24,7 +26,7 @@ test('request without signature headers is rejected', function () {
 });
 
 test('request with a valid signature is accepted', function () {
-    $player = \App\Models\Player::factory()->create();
+    $player = Player::factory()->create();
 
     $headers = signInternalRequest('GET', "/api/internal/players/{$player->id}");
 
