@@ -4,7 +4,7 @@
  * GC-Stats — Admin: game maps
  *
  * Per-map actions nested under a match: basic field edits, live fetch from
- * the Riot relay (fetchMapData() — transferred from the deprecated
+ * the Riot relay (fetchMapData() — transferred from the now-removed
  * Api\ApiGameMapController, also reused by
  * App\Console\Commands\BackfillMapAdvancedStats — this is now the single
  * source of truth, not duplicated elsewhere),
@@ -22,7 +22,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Api\ApiGameMapController;
 use App\Http\Controllers\Public\Controller;
 use App\Models\GameMap;
 use App\Models\GameMapRound;
@@ -34,6 +33,7 @@ use App\Models\MatchVeto;
 use App\Models\Player;
 use App\Models\Tournament;
 use App\Services\MapStatsCalculator;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -121,8 +121,15 @@ class GameMapController extends Controller
             'rounds.*.player_stats.*.armor' => ['sometimes', 'nullable', 'string', 'max:100'],
         ]);
 
+        $beforeCounts = [
+            'player_stats_count' => $map->playerStats()->count(),
+            'rounds_count' => $map->rounds()->count(),
+        ];
+
         DB::transaction(function () use ($validated, $match, $map) {
             $map->playerStats()->delete();
+
+            $teamMap = collect($validated['player_stats'])->pluck('team_id', 'player_id');
 
             foreach ($validated['player_stats'] as $stat) {
                 GamePlayerStat::create([
@@ -146,6 +153,7 @@ class GameMapController extends Controller
                     foreach ($roundData['player_stats'] ?? [] as $ps) {
                         GameMapRoundPlayerStat::create([
                             ...$ps,
+                            'team_id' => $teamMap[$ps['player_id']] ?? null,
                             'game_map_round_id' => $round->id,
                         ]);
                     }
@@ -153,8 +161,17 @@ class GameMapController extends Controller
             }
         });
 
+        // A full value dump (per-round, per-player) would be enormous and
+        // largely redundant with the map's own stats page — the count diff
+        // is what actually signals "something changed here" in the log.
+        $changeSet = ActivityChangeSet::make()
+            ->add('player_stats_count', $beforeCounts['player_stats_count'], count($validated['player_stats']))
+            ->add('rounds_count', $beforeCounts['rounds_count'], count($validated['rounds'] ?? []));
+
         activity('tournament')->causedBy($request->user())
-            ->performedOn($map)->log('map.stats_updated');
+            ->performedOn($map)
+            ->withProperties($changeSet->toArray())
+            ->log('map.stats_updated');
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true]);
@@ -183,7 +200,9 @@ class GameMapController extends Controller
         $this->recomputeMatchScore($match);
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($map)->log('map.updated');
+            ->performedOn($map)
+            ->withProperties(ActivityChangeSet::fromModel($map, array_keys($validated))->toArray())
+            ->log('map.updated');
 
         return redirect()->route('admin.matches.maps.show', [$tournament, $match, $map])->with('status', 'map-updated');
     }
@@ -252,6 +271,9 @@ class GameMapController extends Controller
     {
         $this->requireEditable($request, $tournament, $match, 'maps.fetch', $map);
 
+        $fields = ['api_match_id', 'map_name', 'team_a_score', 'team_b_score', 'is_completed'];
+        $before = $map->only($fields);
+
         $response = $this->fetchMapData($map->id, $request);
         $status = $response->getStatusCode();
         $succeeded = $status >= 200 && $status < 300;
@@ -260,8 +282,23 @@ class GameMapController extends Controller
             $this->recomputeMatchScore($match);
         }
 
+        // fetchMapData() re-fetches its own GameMap instance internally, so
+        // $map here never sees those attribute writes — reload it to diff
+        // against the $before snapshot taken above.
+        $changeSet = ActivityChangeSet::make();
+
+        if ($succeeded) {
+            $after = $map->fresh()?->only($fields) ?? [];
+
+            foreach ($fields as $field) {
+                $changeSet->add($field, $before[$field] ?? null, $after[$field] ?? null);
+            }
+        }
+
         activity('tournament')->causedBy($request->user())
-            ->performedOn($map)->log('map.fetched');
+            ->performedOn($map)
+            ->withProperties($changeSet->mergeInto(['success' => $succeeded]))
+            ->log('map.fetched');
 
         if ($request->wantsJson()) {
             if ($succeeded) {
@@ -487,6 +524,16 @@ class GameMapController extends Controller
             ->union($puuidMapping);
         $roundKills = $rounds->map(fn ($round) => $this->mapStats->extractKills($round));
 
+        $playerTeamMap = $players->mapWithKeys(function ($p) use ($playerMapping, $teamAColor, $match) {
+            $playerId = $playerMapping[$p['puuid']] ?? null;
+
+            if (! $playerId) {
+                return [];
+            }
+
+            return [$playerId => ($p['teamId'] === $teamAColor) ? $match->team_a_id : $match->team_b_id];
+        });
+
         foreach ($rounds as $index => $round) {
             $isTeamAWinner = ($round['winningTeam'] === $teamAColor);
 
@@ -512,6 +559,7 @@ class GameMapController extends Controller
 
                 $gameMapRound->playerStats()->create([
                     'player_id' => $playerMapping[$puuid],
+                    'team_id' => $playerTeamMap[$playerMapping[$puuid]] ?? null,
                     'kills' => count($pStat['kills'] ?? []),
                     'assists' => $kills->filter(fn ($k) => in_array($puuid, $k['assistants']))->count(),
                     'score' => $pStat['score'] ?? 0,
@@ -525,7 +573,7 @@ class GameMapController extends Controller
         }
 
         $this->saveMatchPlayerStats($gameMap, $players, $rounds, $roundKills, $teamAColor, $totalRounds, $content, $playerMapping);
-        $this->computeAdvancedStats($gameMap, $players, $rounds, $roundKills, $teamAColor, $content, $playerMapping);
+        $this->computeAdvancedStats($gameMap, $players, $rounds, $roundKills, $teamAColor, $content, $playerMapping, $playerTeamMap);
     }
 
     /**
@@ -647,7 +695,7 @@ class GameMapController extends Controller
      * trades, economy round outcomes, plants/defuses/post-plant, ATK/DEF
      * splits), computed by MapStatsCalculator::computeAdvancedStats().
      */
-    private function computeAdvancedStats(GameMap $gameMap, Collection $players, Collection $rounds, Collection $roundKills, ?string $teamAColor, array $content, Collection $playerMapping): void
+    private function computeAdvancedStats(GameMap $gameMap, Collection $players, Collection $rounds, Collection $roundKills, ?string $teamAColor, array $content, Collection $playerMapping, Collection $playerTeamMap): void
     {
         $match = $gameMap->match;
         $agg = $this->mapStats->computeAdvancedStats($players, $rounds, $roundKills, $teamAColor);
@@ -659,7 +707,10 @@ class GameMapController extends Controller
 
             GamePlayerAdvancedStat::updateOrCreate(
                 ['game_map_id' => $gameMap->id, 'player_id' => $playerId, 'agent_name' => $agentName],
-                array_merge(['match_id' => $match->id], $agg[$puuid])
+                array_merge([
+                    'match_id' => $match->id,
+                    'team_id' => $playerTeamMap[$playerId] ?? null,
+                ], $agg[$puuid])
             );
         }
     }
@@ -740,19 +791,49 @@ class GameMapController extends Controller
         }
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($map)->log('map.cache_renewed');
+            ->performedOn($map)
+            ->withProperties(['success' => $response->successful()])
+            ->log('map.cache_renewed');
 
         return back()->with($response->successful() ? 'status' : 'error', $response->successful() ? 'map-renewed' : 'map-renew-failed');
     }
 
-    public function reset(Request $request, Tournament $tournament, Matchs $match, GameMap $map, ApiGameMapController $api): RedirectResponse
+    /**
+     * Wipe a map's entered stats back to an unplayed state — deletes its
+     * player stats/rounds (round player stats cascade)/advanced stats and
+     * clears score/completion, without deleting the map row itself (unlike
+     * destroy()) or its Riot link (api_match_id, map_name survive so a
+     * re-fetch or manual re-entry can reuse them). Mirrors
+     * MatchController::resetMaps(), one level down.
+     */
+    public function reset(Request $request, Tournament $tournament, Matchs $match, GameMap $map): RedirectResponse
     {
         $this->requireEditable($request, $tournament, $match, 'maps.reset', $map);
 
-        $api->reset($map->id);
+        $counts = [
+            'player_stats_count' => $map->playerStats()->count(),
+            'rounds_count' => $map->rounds()->count(),
+            'advanced_stats_count' => $map->advancedStats()->count(),
+        ];
+
+        DB::transaction(function () use ($map) {
+            $map->playerStats()->delete();
+            $map->advancedStats()->delete();
+            $map->rounds()->delete();
+
+            $map->update([
+                'team_a_score' => null,
+                'team_b_score' => null,
+                'is_completed' => false,
+            ]);
+        });
+
+        $this->recomputeMatchScore($match);
 
         activity('tournament')->causedBy($request->user())
-            ->performedOn($map)->log('map.reset');
+            ->performedOn($map)
+            ->withProperties(ActivityChangeSet::fromModel($map, ['team_a_score', 'team_b_score', 'is_completed'])->mergeInto($counts))
+            ->log('map.reset');
 
         return redirect()->route('admin.matches.maps.show', [$tournament, $match, $map])->with('status', 'map-reset');
     }
@@ -761,9 +842,13 @@ class GameMapController extends Controller
     {
         $this->requireEditable($request, $tournament, $match, 'maps.delete', $map);
 
+        $mapName = $map->map_name;
+
         $map->delete();
 
-        activity('tournament')->causedBy($request->user())->log('map.deleted');
+        activity('tournament')->causedBy($request->user())
+            ->withProperties(['map_name' => $mapName])
+            ->log('map.deleted');
 
         return redirect()->route('admin.matches.show', [$tournament, $match])->with('status', 'map-deleted');
     }

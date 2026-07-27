@@ -26,7 +26,7 @@ class GamePlayerAdvancedStat extends Model
     use HasFactory, ResolvesMatchContext;
 
     protected $fillable = [
-        'tournament_id', 'phase_id', 'match_id', 'game_map_id', 'player_id', 'agent_name',
+        'tournament_id', 'phase_id', 'match_id', 'game_map_id', 'player_id', 'team_id', 'agent_name',
         'clutch_1v1_won', 'clutch_1v1_total',
         'clutch_1v2_won', 'clutch_1v2_total',
         'clutch_1v3_won', 'clutch_1v3_total',
@@ -54,6 +54,11 @@ class GamePlayerAdvancedStat extends Model
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class);
+    }
+
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
     }
 
     public function gameMap(): BelongsTo

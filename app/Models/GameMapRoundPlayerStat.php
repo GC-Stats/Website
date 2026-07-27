@@ -18,13 +18,14 @@ namespace App\Models;
 use App\Models\Concerns\ResolvesMatchContext;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GameMapRoundPlayerStat extends Model
 {
     use HasFactory, ResolvesMatchContext;
 
     protected $fillable = [
-        'tournament_id', 'phase_id', 'match_id', 'game_map_round_id', 'player_id', 'kills', 'assists',
+        'tournament_id', 'phase_id', 'match_id', 'game_map_round_id', 'player_id', 'team_id', 'kills', 'assists',
         'score', 'loadout_value', 'economy_spent', 'economy_remaining', 'weapon_id', 'armor',
     ];
 
@@ -43,5 +44,10 @@ class GameMapRoundPlayerStat extends Model
     public function player()
     {
         return $this->belongsTo(Player::class);
+    }
+
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
     }
 }
