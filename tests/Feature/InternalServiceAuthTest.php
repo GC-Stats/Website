@@ -20,39 +20,39 @@ beforeEach(function () {
 });
 
 test('request without signature headers is rejected', function () {
-    $this->getJson('/api/internal/stats')->assertUnauthorized();
+    $this->getJson('/api/internal/players/1')->assertUnauthorized();
 });
 
 test('request with a valid signature is accepted', function () {
-    $headers = signInternalRequest('GET', '/api/internal/stats');
+    $headers = signInternalRequest('GET', '/api/internal/players/1');
 
-    $this->getJson('/api/internal/stats', $headers)->assertSuccessful();
+    $this->getJson('/api/internal/players/1', $headers)->assertSuccessful();
 });
 
 test('request with an invalid signature is rejected', function () {
-    $headers = signInternalRequest('GET', '/api/internal/stats');
+    $headers = signInternalRequest('GET', '/api/internal/players/1');
     $headers['X-Internal-Signature'] = 'not-the-right-signature';
 
-    $this->getJson('/api/internal/stats', $headers)->assertUnauthorized();
+    $this->getJson('/api/internal/players/1', $headers)->assertUnauthorized();
 });
 
 test('request signed for a different path is rejected', function () {
     $headers = signInternalRequest('GET', '/api/internal/analytics/summary');
 
-    $this->getJson('/api/internal/stats', $headers)->assertUnauthorized();
+    $this->getJson('/api/internal/players/1', $headers)->assertUnauthorized();
 });
 
 test('request older than the allowed drift is rejected', function () {
-    $headers = signInternalRequest('GET', '/api/internal/stats', '', time() - 301);
+    $headers = signInternalRequest('GET', '/api/internal/players/1', '', time() - 301);
 
-    $this->getJson('/api/internal/stats', $headers)->assertUnauthorized();
+    $this->getJson('/api/internal/players/1', $headers)->assertUnauthorized();
 });
 
 test('request is rejected when the internal secret is not configured', function () {
     config(['services.internal.secret' => null]);
 
-    $headers = signInternalRequest('GET', '/api/internal/stats');
+    $headers = signInternalRequest('GET', '/api/internal/players/1');
     // Re-sign is meaningless without a secret, but headers must still be present
     // to reach the "secret not configured" branch rather than the missing-header one.
-    $this->getJson('/api/internal/stats', $headers)->assertUnauthorized();
+    $this->getJson('/api/internal/players/1', $headers)->assertUnauthorized();
 });
