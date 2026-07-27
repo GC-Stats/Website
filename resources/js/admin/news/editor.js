@@ -53,5 +53,23 @@ if (document.getElementById('news-content-editor')) {
         },
         table_default_attributes: {},
         table_default_styles: {},
+
+        relative_urls: false,
+        remove_script_host: false,
+        convert_urls: false,
+
+        setup(editor) {
+            editor.on('ObjectResized', (e) => {
+                if (e.target.nodeName !== 'IMG') {
+                    return;
+                }
+
+                const img = e.target;
+                img.setAttribute('width', String(Math.round(e.width)));
+                img.setAttribute('height', String(Math.round(e.height)));
+                img.style.removeProperty('width');
+                img.style.removeProperty('height');
+            });
+        },
     });
 }

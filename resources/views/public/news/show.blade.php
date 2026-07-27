@@ -116,7 +116,7 @@
                     prose-strong:text-white prose-strong:font-black
                     prose-ul:text-gray-300 prose-ol:text-gray-300
                     prose-li:text-[15px] prose-li:leading-relaxed
-                    prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-img:w-full
+                    prose-img:inline-block prose-img:rounded-xl prose-img:border prose-img:border-white/10 prose-img:max-w-full prose-img:h-auto prose-img:mx-1
                     prose-blockquote:border-l-2 prose-blockquote:border-[var(--brand-yellow)] prose-blockquote:pl-4 prose-blockquote:text-gray-400 prose-blockquote:not-italic prose-blockquote:bg-white/[0.02] prose-blockquote:rounded-r-lg prose-blockquote:py-1
                     prose-code:text-[var(--brand-yellow)] prose-code:bg-white/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
                     prose-pre:bg-white/[0.03] prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl">
