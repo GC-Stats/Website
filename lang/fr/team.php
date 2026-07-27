@@ -38,6 +38,17 @@ return [
         'pick_rate' => 'Pick rate des agents',
         'comps' => 'Comps jouées',
         'vs' => 'vs',
+        'insights' => [
+            'title' => 'Statistiques',
+            'most_played' => 'Map la plus jouée',
+            'least_played' => 'Map la moins jouée',
+            'best_record' => 'Meilleur bilan',
+            'best_winrate' => 'Meilleur winrate',
+            'best_atk' => 'Meilleur winrate ATK',
+            'best_def' => 'Meilleur winrate DEF',
+            'times' => ':count fois',
+            'face_to_face' => 'Face à Face',
+        ],
     ],
 
     'roles' => [
