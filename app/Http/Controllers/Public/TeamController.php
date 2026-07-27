@@ -131,7 +131,7 @@ class TeamController extends Controller
         $cacheKey = "team_history_{$id}_page_{$page}_{$team->updated_at->timestamp}";
         $tag = "team_{$id}";
 
-        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id, $team) {
+        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($team) {
             $paginated = $team->players()
                 ->select('players.id', 'players.handle')
                 ->withPivot('role', 'joined_at', 'left_at')
