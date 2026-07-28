@@ -636,6 +636,11 @@
                            class="w-11 h-11 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white transition-all duration-300 hover:bg-white hover:text-black hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.4)]">
                             <x-fab-github class="w-4 h-4" aria-hidden="true" />
                         </a>
+                        <a href="https://ko-fi.com/gcstats" target="_blank" rel="noopener noreferrer"
+                           aria-label="Ko-Fi"
+                           class="w-11 h-11 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white transition-all duration-300 hover:bg-white hover:text-black hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.4)]">
+                            <x-fab-ko-fi class="w-4 h-4" aria-hidden="true" />
+                        </a>
                     </div>
                 </div>
         </div>
