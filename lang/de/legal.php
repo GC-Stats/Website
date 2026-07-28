@@ -1,7 +1,7 @@
 <?php
 return [
     'title' => '',
-    'last_updated' => '',
+    'last_updated' => 'Letzte Aktualisierung: :date',
     'editor' => [
         'title' => '',
         'intro' => '',
