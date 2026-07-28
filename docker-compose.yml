@@ -1,0 +1,14 @@
+services:
+  website:
+    image: ghcr.io/gc-stats/website:latest
+    container_name: gcs-website
+    restart: always
+    env_file: .env
+    ports:
+      - '80:80'
+    healthcheck:
+      test: ["CMD-SHELL", "pidof php-fpm > /dev/null"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
