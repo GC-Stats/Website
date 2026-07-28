@@ -1,13 +1,13 @@
 <?php
 return [
-    'title' => '',
-    'live' => '',
-    'news' => '',
-    'matches' => '',
+    'title' => 'Zuhause',
+    'live' => 'live',
+    'news' => 'Nachrichten',
+    'matches' => 'Spiele',
     'tournaments' => [
-        'live' => '',
-        'upcoming' => '',
-        'finished' => '',
-        'sidebar' => '',
+        'live' => 'laufende Turniere',
+        'upcoming' => 'anstehende Turniere',
+        'finished' => 'beendete Turniere',
+        'sidebar' => 'Turniere',
     ],
 ];
