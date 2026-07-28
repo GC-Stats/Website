@@ -75,6 +75,7 @@ return [
             'title' => 'Aides & Informations',
             'update_page' => 'Modifier sa page joueur/équipe',
             'add_tournament' => 'Intégrer son tournoi',
+            'widgets' => 'Widgets',
         ],
     ],
 ];

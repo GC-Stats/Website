@@ -607,6 +607,12 @@
                                 {{ __("layout.footer.informations.add_tournament") }}
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('widget.index') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center justify-center md:justify-start gap-2 group">
+                                <span class="w-0 h-[1px] bg-[var(--brand-yellow)] transition-all group-hover:w-3"></span>
+                                {{ __("layout.footer.informations.widgets") }}
+                            </a>
+                        </li>
                     </ul>
                 </div>
 

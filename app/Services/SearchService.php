@@ -322,6 +322,22 @@ class SearchService
                     ['label' => 'Bio', 'value' => $m->bio],
                 ],
             ],
+            'tournament' => [
+                'model' => Tournament::class,
+                'columns' => ['name'],
+                'order' => 'name',
+                'title' => fn (Tournament $m) => $m->name,
+                'subtitle' => fn (Tournament $m) => $m->region,
+                'image' => fn (Tournament $m) => $m->logo,
+                'imageKind' => 'logo',
+                'route' => fn (Tournament $m) => route('tournaments.show', [$m->id, $m->slug ?: str($m->name)->slug()]),
+                'fields' => fn (Tournament $m) => [
+                    ['label' => 'Region', 'value' => $m->region],
+                    ['label' => 'Category', 'value' => $m->category],
+                    ['label' => 'Start date', 'value' => optional($m->start_date)->format('Y-m-d')],
+                    ['label' => 'End date', 'value' => optional($m->end_date)->format('Y-m-d')],
+                ],
+            ],
             'user' => [
                 'model' => User::class,
                 'columns' => ['name', 'username', 'email'],
@@ -366,7 +382,7 @@ class SearchService
      */
     public function entityTypes(): array
     {
-        return ['player', 'team', 'user', 'emote'];
+        return ['player', 'team', 'tournament', 'user', 'emote'];
     }
 
     /**

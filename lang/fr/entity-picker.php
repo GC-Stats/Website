@@ -12,6 +12,7 @@ return [
     'type' => [
         'player' => 'joueuses',
         'team' => 'équipes',
+        'tournament' => 'tournois',
         'user' => 'utilisateurs',
         'emote' => 'emotes',
     ],

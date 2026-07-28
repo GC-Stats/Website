@@ -29,7 +29,12 @@ class HeadToHeadService
      * comparison) — used as the default state of the Face to Face widget
      * before a second team is picked.
      */
-    public function compare(int $teamAId, ?int $teamBId = null, ?int $tournamentId = null, ?Carbon $start = null, ?Carbon $end = null, ?string $patch = null): array
+    /**
+     * $mapPool, when given, wins over $patch — it's an explicit map list
+     * (e.g. from the broadcast widget's config) rather than one inferred
+     * from what's been played under a patch.
+     */
+    public function compare(int $teamAId, ?int $teamBId = null, ?int $tournamentId = null, ?Carbon $start = null, ?Carbon $end = null, ?string $patch = null, ?array $mapPool = null): array
     {
         $teamA = Team::findOrFail($teamAId);
         $teamB = $teamBId ? Team::findOrFail($teamBId) : null;
@@ -39,12 +44,10 @@ class HeadToHeadService
 
         $mapNames = collect($profileA->keys())->merge($profileB->keys())->unique();
 
-        if ($patch) {
-            $activePool = $this->mapPoolForPatch($patch);
+        $activePool = $mapPool ? collect($mapPool) : ($patch ? $this->mapPoolForPatch($patch) : null);
 
-            if ($activePool->isNotEmpty()) {
-                $mapNames = $mapNames->filter(fn ($mapName) => $activePool->contains($mapName));
-            }
+        if ($activePool && $activePool->isNotEmpty()) {
+            $mapNames = $mapNames->filter(fn ($mapName) => $activePool->contains($mapName));
         }
 
         $mapNames = $mapNames->sort()->values();

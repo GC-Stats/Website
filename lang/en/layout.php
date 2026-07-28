@@ -79,6 +79,7 @@ return [
             'title' => 'Help & Information',
             'update_page' => 'Modify player/team page',
             'add_tournament' => 'Integrate your tournament',
+            'widgets' => 'Widgets',
         ],
     ],
 ];

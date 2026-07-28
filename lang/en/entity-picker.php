@@ -12,6 +12,7 @@ return [
     'type' => [
         'player' => 'players',
         'team' => 'teams',
+        'tournament' => 'tournaments',
         'user' => 'users',
         'emote' => 'emotes',
     ],
