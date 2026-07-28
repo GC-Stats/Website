@@ -123,6 +123,36 @@ test('applyTradeStats does not count a trade outside the trade window', function
         ->and($agg['avenger']['trade_kills'])->toBe(0);
 });
 
+test('computeAliveStateTimeline records the starting state and every kill transition, with the round winner denormalized as atk/def', function () {
+    $players = collect([
+        ['puuid' => 'a1', 'teamId' => 'Red'],
+        ['puuid' => 'a2', 'teamId' => 'Red'],
+        ['puuid' => 'b1', 'teamId' => 'Blue'],
+        ['puuid' => 'b2', 'teamId' => 'Blue'],
+    ]);
+
+    // Round 0 (first half): a1 (Red) plants, so Red is the first-half attacker.
+    // Red also wins the round, so every row's winner_side should be 'atk'.
+    $rounds = collect([
+        ['roundNum' => 0, 'bombPlanter' => 'a1', 'winningTeam' => 'Red'],
+    ]);
+
+    $roundKills = collect([
+        collect([
+            ['killer' => 'b1', 'victim' => 'a2', 'time' => 500, 'assistants' => []],
+            ['killer' => 'a1', 'victim' => 'b1', 'time' => 800, 'assistants' => []],
+        ]),
+    ]);
+
+    $timeline = $this->calc->computeAliveStateTimeline($players, $rounds, $roundKills, 'Red');
+
+    expect($timeline[0])->toBe([
+        ['sequence' => 0, 'time_ms' => 0, 'atk_alive' => 2, 'def_alive' => 2, 'winner_side' => 'atk'],
+        ['sequence' => 1, 'time_ms' => 500, 'atk_alive' => 1, 'def_alive' => 2, 'winner_side' => 'atk'],
+        ['sequence' => 2, 'time_ms' => 800, 'atk_alive' => 1, 'def_alive' => 1, 'winner_side' => 'atk'],
+    ]);
+});
+
 test('applyClutchStats records a 1v1 win for the last alive player of the winning team', function () {
     $agg = [
         'a1' => $this->calc->emptyAdvancedStatsRow(),

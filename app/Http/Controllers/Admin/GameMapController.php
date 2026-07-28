@@ -384,6 +384,7 @@ class GameMapController extends Controller
 
             return response()->json([
                 'error' => 'Some players could not be matched to a team roster (missing val_id)',
+                'missing_val_ids' => $missingPlayers->values()->all(),
                 'missing_val_ids_html' => view('admin.matches.maps.partials.missing-val-ids', [
                     'missingPlayers' => $missingPlayers,
                     'rosterPlayerIds' => $rosterPlayerIds,
@@ -523,6 +524,10 @@ class GameMapController extends Controller
         $playerMapping = Player::whereIn($column, $players->pluck('puuid'))->pluck('id', $column)
             ->union($puuidMapping);
         $roundKills = $rounds->map(fn ($round) => $this->mapStats->extractKills($round));
+        $aliveStateTimeline = $this->mapStats->computeAliveStateTimeline($players, $rounds, $roundKills, $teamAColor);
+
+        $firstHalfAttackerColor = $this->mapStats->firstHalfAttackerColor($rounds, $players);
+        $teamBColor = $teams->pluck('teamId')->unique()->first(fn ($color) => $color !== $teamAColor);
 
         $playerTeamMap = $players->mapWithKeys(function ($p) use ($playerMapping, $teamAColor, $match) {
             $playerId = $playerMapping[$p['puuid']] ?? null;
@@ -536,17 +541,36 @@ class GameMapController extends Controller
 
         foreach ($rounds as $index => $round) {
             $isTeamAWinner = ($round['winningTeam'] === $teamAColor);
+            $plantInfo = $this->mapStats->extractPlantInfo($round);
+            $attackerColor = $this->mapStats->attackerColorForRoundIndex($index, $firstHalfAttackerColor, $teamAColor, $teamBColor);
+            $atkTeamId = match ($attackerColor) {
+                null => null,
+                $teamAColor => $match->team_a_id,
+                default => $match->team_b_id,
+            };
+            $defTeamId = match ($attackerColor) {
+                null => null,
+                $teamAColor => $match->team_b_id,
+                default => $match->team_a_id,
+            };
 
             $gameMapRound = $gameMap->rounds()->create([
                 'round_number' => $round['roundNum'] + 1,
                 'winning_team' => $isTeamAWinner ? $match->team_a_id : $match->team_b_id,
                 'win_type' => $round['roundResult'],
+                'plant_site' => $plantInfo['site'],
+                'plant_x' => $plantInfo['x'],
+                'plant_y' => $plantInfo['y'],
+                'atk_team' => $atkTeamId,
+                'def_team' => $defTeamId,
             ]);
 
             $kills = $roundKills[$index];
 
-            $this->persistRoundKills($match, $gameMapRound, $kills, $playerMapping, $content);
+            $persistedKills = $this->persistRoundKills($match, $gameMapRound, $kills, $playerMapping, $content);
             $this->persistRoundDamages($match, $gameMapRound, $round, $playerMapping);
+            $this->persistRoundPositions($match, $gameMapRound, $plantInfo, $persistedKills, $playerMapping);
+            $this->persistRoundAliveStates($match, $gameMapRound, $aliveStateTimeline[$index] ?? []);
 
             foreach ($round['playerStats'] as $pStat) {
                 $puuid = $pStat['puuid'];
@@ -577,13 +601,26 @@ class GameMapController extends Controller
     }
 
     /**
-     * Bulk-insert the raw kill events of a round into game_map_round_kills.
+     * Bulk-insert the raw kill events of a round into game_map_round_kills,
+     * then recover each row's new id from the insert so the per-kill
+     * position snapshots persisted right after in persistRoundPositions()
+     * can link back to it. A plain bulk DB::table()->insert() doesn't return
+     * per-row ids, so we rely on MySQL's guarantee that a single multi-row
+     * INSERT (row count known upfront, no interleaved concurrent insert on
+     * this table from this request) gets a contiguous id block starting at
+     * lastInsertId() — cheaper than one GameMapRoundKill::create() per kill,
+     * which would otherwise re-run ResolvesMatchContext's lookup query for
+     * every single kill in the map. Returns the original normalized kill
+     * data (still including its puuid-keyed player_locations) enriched with
+     * the new DB id.
+     *
+     * @return Collection<int, array>
      */
-    private function persistRoundKills(Matchs $match, GameMapRound $gameMapRound, Collection $kills, Collection $playerMapping, array $content): void
+    private function persistRoundKills(Matchs $match, GameMapRound $gameMapRound, Collection $kills, Collection $playerMapping, array $content): Collection
     {
         $now = now();
 
-        $rows = $kills
+        $prepared = $kills
             ->map(function ($kill) use ($match, $gameMapRound, $playerMapping, $content, $now) {
                 $victimId = $playerMapping[$kill['victim']] ?? null;
 
@@ -597,26 +634,149 @@ class GameMapController extends Controller
                     ->values();
 
                 return [
-                    'tournament_id' => $match->tournament_id,
-                    'phase_id' => $match->phase_id,
-                    'match_id' => $match->id,
-                    'game_map_round_id' => $gameMapRound->id,
-                    'killer_player_id' => $kill['killer'] !== null ? ($playerMapping[$kill['killer']] ?? null) : null,
-                    'victim_player_id' => $victimId,
-                    'time_ms' => $kill['time'],
-                    'weapon' => $content['equips'][strtolower($kill['weapon'] ?? '')] ?? $kill['weapon'],
-                    'damage_type' => $kill['damage_type'],
-                    'is_secondary_fire' => $kill['is_secondary_fire'] ?? false,
-                    'assistant_player_ids' => json_encode($assistantIds->values()->all()),
-                    'created_at' => $now,
-                    'updated_at' => $now,
+                    'kill' => $kill,
+                    'insert' => [
+                        'tournament_id' => $match->tournament_id,
+                        'phase_id' => $match->phase_id,
+                        'match_id' => $match->id,
+                        'game_map_round_id' => $gameMapRound->id,
+                        'killer_player_id' => $kill['killer'] !== null ? ($playerMapping[$kill['killer']] ?? null) : null,
+                        'victim_player_id' => $victimId,
+                        'time_ms' => $kill['time'],
+                        'weapon' => $content['equips'][strtolower($kill['weapon'] ?? '')] ?? $kill['weapon'],
+                        'damage_type' => $kill['damage_type'],
+                        'is_secondary_fire' => $kill['is_secondary_fire'] ?? false,
+                        'assistant_player_ids' => json_encode($assistantIds->values()->all()),
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ],
                 ];
             })
             ->filter()
             ->values();
 
+        if ($prepared->isEmpty()) {
+            return collect();
+        }
+
+        DB::table('game_map_round_kills')->insert($prepared->pluck('insert')->all());
+
+        $firstId = (int) DB::getPdo()->lastInsertId();
+
+        return $prepared->values()->map(fn ($item, $i) => [...$item['kill'], 'id' => $firstId + $i]);
+    }
+
+    /**
+     * Bulk-insert per-player position snapshots for a round: one row per
+     * alive player at each kill (from Riot's playerLocations), plus one row
+     * per alive player at plant/defuse time (from plantPlayerLocations /
+     * defusePlayerLocations), if either happened.
+     */
+    private function persistRoundPositions(Matchs $match, GameMapRound $gameMapRound, array $plantInfo, Collection $persistedKills, Collection $playerMapping): void
+    {
+        $now = now();
+        $rows = collect();
+
+        foreach ($persistedKills as $kill) {
+            foreach ($kill['player_locations'] ?? [] as $loc) {
+                $playerId = $playerMapping[$loc['puuid']] ?? null;
+
+                if (! $playerId) {
+                    continue;
+                }
+
+                $role = match ($loc['puuid']) {
+                    $kill['killer'] => 'killer',
+                    $kill['victim'] => 'victim',
+                    default => 'bystander',
+                };
+
+                $rows->push([
+                    'tournament_id' => $match->tournament_id,
+                    'phase_id' => $match->phase_id,
+                    'match_id' => $match->id,
+                    'game_map_round_id' => $gameMapRound->id,
+                    'event_type' => 'kill',
+                    'game_map_round_kill_id' => $kill['id'],
+                    'player_id' => $playerId,
+                    'role' => $role,
+                    'x' => $loc['location']['x'] ?? 0,
+                    'y' => $loc['location']['y'] ?? 0,
+                    'view_radians' => $loc['viewRadians'] ?? null,
+                    'time_ms' => $kill['time'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+
+        $this->pushPlantOrDefusePositions($rows, $match, $gameMapRound, $plantInfo['plant_player_locations'], 'plant', $plantInfo['planter_puuid'], 'planter', $plantInfo['plant_time_ms'], $playerMapping, $now);
+        $this->pushPlantOrDefusePositions($rows, $match, $gameMapRound, $plantInfo['defuse_player_locations'], 'defuse', $plantInfo['defuser_puuid'], 'defuser', $plantInfo['defuse_time_ms'], $playerMapping, $now);
+
         if ($rows->isNotEmpty()) {
-            DB::table('game_map_round_kills')->insert($rows->toArray());
+            DB::table('game_map_round_player_positions')->insert($rows->toArray());
+        }
+    }
+
+    /**
+     * Shared row-builder for the plant/defuse branches of
+     * persistRoundPositions(): every player in the given playerLocations
+     * array gets a row, tagged $actorRole ('planter'/'defuser') for the one
+     * entry whose puuid matches $actorPuuid (the round's bombPlanter/
+     * bombDefuser) and 'bystander' for everyone else.
+     */
+    private function pushPlantOrDefusePositions(Collection $rows, Matchs $match, GameMapRound $gameMapRound, array $locations, string $eventType, ?string $actorPuuid, string $actorRole, ?int $timeMs, Collection $playerMapping, $now): void
+    {
+        foreach ($locations as $loc) {
+            $playerId = $playerMapping[$loc['puuid']] ?? null;
+
+            if (! $playerId) {
+                continue;
+            }
+
+            $rows->push([
+                'tournament_id' => $match->tournament_id,
+                'phase_id' => $match->phase_id,
+                'match_id' => $match->id,
+                'game_map_round_id' => $gameMapRound->id,
+                'event_type' => $eventType,
+                'game_map_round_kill_id' => null,
+                'player_id' => $playerId,
+                'role' => $loc['puuid'] === $actorPuuid ? $actorRole : 'bystander',
+                'x' => $loc['location']['x'] ?? 0,
+                'y' => $loc['location']['y'] ?? 0,
+                'view_radians' => $loc['viewRadians'] ?? null,
+                'time_ms' => $timeMs,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+    }
+
+    /**
+     * Bulk-insert this round's ATK-vs-DEF alive-count timeline (the "XvY"
+     * situations) computed by MapStatsCalculator::computeAliveStateTimeline().
+     */
+    private function persistRoundAliveStates(Matchs $match, GameMapRound $gameMapRound, array $stateRows): void
+    {
+        $now = now();
+
+        $rows = collect($stateRows)->map(fn ($row) => [
+            'tournament_id' => $match->tournament_id,
+            'phase_id' => $match->phase_id,
+            'match_id' => $match->id,
+            'game_map_round_id' => $gameMapRound->id,
+            'sequence' => $row['sequence'],
+            'time_ms' => $row['time_ms'],
+            'atk_alive' => $row['atk_alive'],
+            'def_alive' => $row['def_alive'],
+            'winner_side' => $row['winner_side'],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        if ($rows->isNotEmpty()) {
+            DB::table('game_map_round_alive_states')->insert($rows->toArray());
         }
     }
 

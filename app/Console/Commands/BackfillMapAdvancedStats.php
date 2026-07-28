@@ -5,14 +5,26 @@
  *
  * Detects game maps that were already imported (have a linked Riot match)
  * but are missing the newer per-round detail (kills, damages, ATK/DEF
- * advanced stats) and re-fetches them via Admin\GameMapController::fetchMapData().
+ * advanced stats, XvY alive-state timeline, kill/plant/defuse positions)
+ * and re-fetches them via Admin\GameMapController::fetchMapData(). Selection
+ * is keyed on the alive-state timeline rather than advancedStats, since a
+ * map fetched before that table existed will have advancedStats but nothing
+ * in game_map_round_alive_states/game_map_round_player_positions — a plain
+ * re-fetch backfills all of it in one pass regardless of which piece was
+ * missing.
  *
  * Historical maps were imported before val_id/team-side resolution existed,
- * so a plain re-fetch can fail with a 422 (ambiguous team side, or a player
- * missing val_id). Where possible this command resolves those cases itself
- * from data already on file — the map's own game_player_stats.team_id
- * (recorded at import time) cross-referenced against Player.val_id — instead
- * of failing the whole map.
+ * or the API's official match endpoint has since expired its cache and only
+ * resolves via the esports endpoint (a different puuid space, with its own
+ * esports_val_id identity column never previously populated) — so a plain
+ * re-fetch can fail with a 422 (ambiguous team side, or a player missing
+ * val_id/esports_val_id for the endpoint in use). Where possible this
+ * command resolves those cases itself from data already on file: primarily
+ * by matching the map's own game_player_stats.val_name (the exact
+ * "gameName#tagLine" recorded at a prior successful import) against the
+ * missing player's name from the new fetch, falling back to team_id +
+ * agent_name matching for older maps that predate val_name — instead of
+ * failing the whole map.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -38,13 +50,23 @@ class BackfillMapAdvancedStats extends Command
         {--sleep=1.5 : Seconds to wait between Riot API calls}
         {--dry-run : List the maps that would be processed without fetching}';
 
-    protected $description = 'Re-fetch rounds/kills/damages/advanced stats for existing maps that are missing them';
+    protected $description = 'Re-fetch rounds/kills/damages/advanced stats/alive-states/positions for existing maps that are missing them';
 
     public function handle(GameMapController $controller): int
     {
+        // storeMatchData() isn't wrapped in a transaction, so a map that
+        // threw partway through its per-round loop can be left with some
+        // rounds already carrying alive-state rows — whereDoesntHave
+        //('rounds.aliveStates') alone would then wrongly treat it as done
+        // and never retry it. advancedStats is only written once, after
+        // every round has fully processed, so OR-ing it back in keeps
+        // catching those partial failures too.
         $query = GameMap::query()
             ->whereNotNull('api_match_id')
-            ->whereDoesntHave('advancedStats')
+            ->where(function ($q) {
+                $q->whereDoesntHave('advancedStats')
+                    ->orWhereDoesntHave('rounds.aliveStates');
+            })
             ->with('match.teamA', 'match.teamB');
 
         if ($tournamentId = $this->option('tournament')) {
@@ -170,15 +192,27 @@ class BackfillMapAdvancedStats extends Command
 
     /**
      * Resolve puuid => player_id for players the controller couldn't match
-     * to a val_id, using the map's own historical game_player_stats: match
-     * the unresolved player by team + agent against that map's recorded
-     * lineup, since names/handles may have changed since import.
+     * to a val_id/esports_val_id, using the map's own historical
+     * game_player_stats — most commonly needed when the official match
+     * endpoint's cache has expired and the esports endpoint (a distinct
+     * puuid space, with its own never-before-populated esports_val_id
+     * column) is the only way left to re-fetch this map.
+     *
+     * Primary strategy: exact match on val_name, the "gameName#tagLine"
+     * string recorded verbatim at a prior successful import — a precise
+     * identity match that doesn't depend on knowing which raw team color is
+     * "Team A" for this fetch attempt. Falls back to team_id + agent_name
+     * matching (less precise — breaks down if a player agent-swapped
+     * between visits to this map) for older maps imported before val_name
+     * was recorded.
      */
     private function resolvePuuidMappingFromDb(GameMap $gameMap, array $missingValIds): array
     {
         $lineup = GamePlayerStat::where('game_map_id', $gameMap->id)
             ->whereNotNull('player_id')
-            ->get(['player_id', 'team_id', 'agent_name']);
+            ->get(['player_id', 'team_id', 'agent_name', 'val_name']);
+
+        $byValName = $lineup->whereNotNull('val_name')->pluck('player_id', 'val_name');
 
         $teamAId = $gameMap->match->team_a_id;
         $teamBId = $gameMap->match->team_b_id;
@@ -186,6 +220,12 @@ class BackfillMapAdvancedStats extends Command
         $mapping = [];
 
         foreach ($missingValIds as $missing) {
+            if (isset($byValName[$missing['name']])) {
+                $mapping[$missing['puuid']] = $byValName[$missing['name']];
+
+                continue;
+            }
+
             $teamId = match (true) {
                 $missing['team'] === $gameMap->match->teamA?->short_name => $teamAId,
                 $missing['team'] === $gameMap->match->teamB?->short_name => $teamBId,

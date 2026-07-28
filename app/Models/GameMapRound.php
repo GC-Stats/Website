@@ -30,6 +30,11 @@ class GameMapRound extends Model
         'round_number',
         'winning_team',
         'win_type',
+        'plant_site',
+        'plant_x',
+        'plant_y',
+        'atk_team',
+        'def_team',
     ];
 
     protected static function booted()
@@ -57,5 +62,15 @@ class GameMapRound extends Model
     public function damages()
     {
         return $this->hasMany(GameMapRoundDamage::class);
+    }
+
+    public function aliveStates()
+    {
+        return $this->hasMany(GameMapRoundAliveState::class);
+    }
+
+    public function playerPositions()
+    {
+        return $this->hasMany(GameMapRoundPlayerPosition::class);
     }
 }

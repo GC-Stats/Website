@@ -58,11 +58,43 @@ class MapStatsCalculator
                     'weapon' => $isEnvironmental ? null : $weapon,
                     'damage_type' => $damageType,
                     'is_secondary_fire' => $finishingDamage['isSecondaryFireMode'] ?? false,
+                    'victim_location' => $kill['victimLocation'] ?? null,
+                    'player_locations' => $kill['playerLocations'] ?? [],
                 ]);
             }
         }
 
         return $kills->sortBy('time')->values();
+    }
+
+    /**
+     * Pull plant/defuse site, coordinates, and player-position snapshots off
+     * a round's raw data. Null-safe throughout since a round may end without
+     * a plant (or without a defuse) ever happening.
+     */
+    public function extractPlantInfo(array $round): array
+    {
+        // Riot always sends plantSite/plantLocation/plantRoundTime (and their
+        // defuse equivalents) even when no plant/defuse happened, as sentinel
+        // ""/{x:0,y:0}/0 values rather than omitting the keys — gate on the
+        // actual bombPlanter/bombDefuser puuid (already used elsewhere in
+        // this class as the real "did it happen" signal) so a round with no
+        // plant gets null columns instead of a fake site/coordinate.
+        $planted = ! empty($round['bombPlanter']);
+        $defused = ! empty($round['bombDefuser']);
+        $plantLocation = $round['plantLocation'] ?? null;
+
+        return [
+            'site' => $planted ? ($round['plantSite'] ?? null) : null,
+            'x' => $planted ? ($plantLocation['x'] ?? null) : null,
+            'y' => $planted ? ($plantLocation['y'] ?? null) : null,
+            'planter_puuid' => $round['bombPlanter'] ?? null,
+            'plant_time_ms' => $planted ? ($round['plantRoundTime'] ?? null) : null,
+            'plant_player_locations' => $planted ? ($round['plantPlayerLocations'] ?? []) : [],
+            'defuser_puuid' => $round['bombDefuser'] ?? null,
+            'defuse_time_ms' => $defused ? ($round['defuseRoundTime'] ?? null) : null,
+            'defuse_player_locations' => $defused ? ($round['defusePlayerLocations'] ?? []) : [],
+        ];
     }
 
     /**
@@ -159,6 +191,78 @@ class MapStatsCalculator
                 $agg[$puuid]["clutch_1v{$n}_won"]++;
             }
         }
+    }
+
+    /**
+     * Build, for every round, the timeline of ATK-alive-vs-DEF-alive
+     * situations ("XvY"): one row for the round's starting state plus one
+     * row per kill thereafter, shrinking the same per-team alive sets used
+     * by applyClutchStats() but recording every transition instead of only
+     * the "down to 1" case. The round's actual winner is resolved once per
+     * round (via attackerColorForRoundIndex()) and denormalized onto every
+     * row as winner_side, so aggregate "winrate at NvM" queries never need
+     * a join back to game_map_rounds.
+     *
+     * @return Collection<int, array<int, array{sequence:int,time_ms:int,atk_alive:int,def_alive:int,winner_side:string}>>
+     *         keyed by round index (matching $rounds/$roundKills order)
+     */
+    public function computeAliveStateTimeline(Collection $players, Collection $rounds, Collection $roundKills, ?string $teamAColor): Collection
+    {
+        $teamByPuuid = $players->pluck('teamId', 'puuid');
+        $rosterByColor = $players->groupBy('teamId')->map(fn ($g) => $g->pluck('puuid')->all());
+        $teamBColor = $teamAColor
+            ? $rosterByColor->keys()->first(fn ($color) => $color !== $teamAColor)
+            : null;
+        $firstHalfAttackerColor = $this->firstHalfAttackerColor($rounds, $players);
+
+        $timeline = collect();
+
+        foreach ($rounds as $index => $round) {
+            $kills = $roundKills[$index];
+
+            if (! $teamAColor || ! $teamBColor) {
+                $timeline[$index] = [];
+
+                continue;
+            }
+
+            $attackerColor = $this->attackerColorForRoundIndex($index, $firstHalfAttackerColor, $teamAColor, $teamBColor);
+            $defenderColor = $attackerColor === $teamAColor ? $teamBColor : $teamAColor;
+            $winnerSide = $round['winningTeam'] === $attackerColor ? 'atk' : 'def';
+
+            $aliveSets = [
+                $teamAColor => array_flip($rosterByColor[$teamAColor] ?? []),
+                $teamBColor => array_flip($rosterByColor[$teamBColor] ?? []),
+            ];
+
+            $rows = [[
+                'sequence' => 0,
+                'time_ms' => 0,
+                'atk_alive' => count($aliveSets[$attackerColor]),
+                'def_alive' => count($aliveSets[$defenderColor]),
+                'winner_side' => $winnerSide,
+            ]];
+
+            $sequence = 1;
+            foreach ($kills as $kill) {
+                $victimColor = $teamByPuuid[$kill['victim']] ?? null;
+                if ($victimColor && isset($aliveSets[$victimColor][$kill['victim']])) {
+                    unset($aliveSets[$victimColor][$kill['victim']]);
+                }
+
+                $rows[] = [
+                    'sequence' => $sequence++,
+                    'time_ms' => $kill['time'],
+                    'atk_alive' => count($aliveSets[$attackerColor]),
+                    'def_alive' => count($aliveSets[$defenderColor]),
+                    'winner_side' => $winnerSide,
+                ];
+            }
+
+            $timeline[$index] = $rows;
+        }
+
+        return $timeline;
     }
 
     /**
