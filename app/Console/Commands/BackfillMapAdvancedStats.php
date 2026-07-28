@@ -57,7 +57,7 @@ class BackfillMapAdvancedStats extends Command
         // storeMatchData() isn't wrapped in a transaction, so a map that
         // threw partway through its per-round loop can be left with some
         // rounds already carrying alive-state rows — whereDoesntHave
-        //('rounds.aliveStates') alone would then wrongly treat it as done
+        // ('rounds.aliveStates') alone would then wrongly treat it as done
         // and never retry it. advancedStats is only written once, after
         // every round has fully processed, so OR-ing it back in keeps
         // catching those partial failures too.

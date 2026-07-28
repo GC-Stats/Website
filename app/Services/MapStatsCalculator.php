@@ -204,7 +204,7 @@ class MapStatsCalculator
      * a join back to game_map_rounds.
      *
      * @return Collection<int, array<int, array{sequence:int,time_ms:int,atk_alive:int,def_alive:int,winner_side:string}>>
-     *         keyed by round index (matching $rounds/$roundKills order)
+     *                                                                                                                     keyed by round index (matching $rounds/$roundKills order)
      */
     public function computeAliveStateTimeline(Collection $players, Collection $rounds, Collection $roundKills, ?string $teamAColor): Collection
     {
