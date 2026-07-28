@@ -9,7 +9,7 @@ return [
     'current_team' => '',
     'old_team' => '',
     'no_team' => '',
-    'news' => '',
+    'news' => 'Nachrichten',
     'seemore' => '',
     // Other pages text
     'matches_history' => '',
@@ -33,5 +33,17 @@ return [
         'matches' => '',
         'stats' => '',
         'teams_history' => '',
+    ],
+    'edit' => [
+        'fields' => [
+            'country_code' => 'Ländercode',
+            'country_code_search' => 'Nach Land suchen…',
+            'country_code_none' => 'Kein Land / International',
+            'bio' => 'Beschreibung',
+            'vlr_id' => 'VLR.gg ID',
+            'vlr_id_info' => 'Nicht angezeigt oder öffentlich geteilt — interne Nutzung um unsere Arbeit zu vereinfachen.',
+            'liquipedia_link' => 'Liquipedia Link',
+            'socials' => 'soziale Konten',
+        ],
     ],
 ];
