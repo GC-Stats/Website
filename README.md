@@ -61,10 +61,10 @@ The easiest way to get started without installing PHP or MySQL locally.
 
 4. **Clear cache and make the migration**
    ```bash
-    docker compose exec -T gc_production_app php artisan config:cache
-    docker compose exec -T gc_production_app php artisan route:cache
-    docker compose exec -T gc_production_app php artisan view:cache
-    docker compose exec -T gc_production_app php artisan migrate --force
+    docker compose exec -T gcs-website php artisan config:cache
+    docker compose exec -T gcs-website php artisan route:cache
+    docker compose exec -T gcs-website php artisan view:cache
+    docker compose exec -T gcs-website php artisan migrate --force
    ```
 
 ### Option 2: Manual Installation (From Source)
