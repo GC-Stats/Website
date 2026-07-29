@@ -21,6 +21,7 @@ use App\Models\Player;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Support\MatchDisplay;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -59,8 +60,9 @@ class DashboardController extends Controller
                 ->whereIn('status', ['live', 'upcoming'])
                 ->whereNotNull('scheduled_at')
                 ->whereDate('scheduled_at', '!=', MatchDisplay::UNKNOWN_DATE)
+                ->where('scheduled_at', '>=', Carbon::now()->subHours(12))
                 ->orderByRaw("FIELD(status, 'live', 'upcoming')")
-                ->orderByDesc('scheduled_at')
+                ->orderBy('scheduled_at', 'asc')
                 ->paginate(5, ['*'], 'matches_page'),
             'recentTournaments' => $recentTournaments,
             'recentTeamModifications' => Activity::with(['causer', 'subject'])
