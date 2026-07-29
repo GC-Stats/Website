@@ -110,16 +110,10 @@
         <div class="mb-6 bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.veto.first_action') }}</span>
             <div class="flex flex-wrap items-center gap-2">
-                <select x-model="firstTeam" @change="applyFirstTeam()" @if($locked) disabled @endif
-                        class="bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition disabled:opacity-40 [color-scheme:dark]">
-                    <option value="">{{ __('admin.matches.veto.select_team') }}</option>
-                    @if ($match->teamA)
-                        <option value="{{ $teamAId }}">{{ \App\Support\MatchDisplay::teamName($match->teamA, $match->status) }}</option>
-                    @endif
-                    @if ($match->teamB)
-                        <option value="{{ $teamBId }}">{{ \App\Support\MatchDisplay::teamName($match->teamB, $match->status) }}</option>
-                    @endif
-                </select>
+                <x-styled-select x-model="firstTeam" @change="applyFirstTeam()" :disabled="$locked"
+                    :options="collect(['' => __('admin.matches.veto.select_team')])
+                        ->when($match->teamA, fn ($c) => $c->put((string) $teamAId, \App\Support\MatchDisplay::teamName($match->teamA, $match->status)))
+                        ->when($match->teamB, fn ($c) => $c->put((string) $teamBId, \App\Support\MatchDisplay::teamName($match->teamB, $match->status)))" />
                 <p class="text-xs text-gray-500">{{ __('admin.matches.veto.first_action_help') }}</p>
             </div>
         </div>
@@ -139,16 +133,10 @@
                         <div class="grid grid-cols-1 md:grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] gap-3 items-start">
                             <span class="text-xs font-black uppercase tracking-tight text-white pt-2.5" x-text="'{{ __('admin.matches.veto.map_label') }} ' + (index + 1)"></span>
 
-                            <select :name="`maps[${index}][team]`" x-model="row.team" @change="defaultSidePickedBy(row)"
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                <option value="none">{{ __('admin.matches.veto.select_team') }}</option>
-                                @if ($match->teamA)
-                                    <option value="{{ $teamAId }}">{{ \App\Support\MatchDisplay::teamName($match->teamA, $match->status) }}</option>
-                                @endif
-                                @if ($match->teamB)
-                                    <option value="{{ $teamBId }}">{{ \App\Support\MatchDisplay::teamName($match->teamB, $match->status) }}</option>
-                                @endif
-                            </select>
+                            <x-styled-select x-model="row.team" x-bind:name="`maps[${index}][team]`" @change="defaultSidePickedBy(row)"
+                                :options="collect(['none' => __('admin.matches.veto.select_team')])
+                                    ->when($match->teamA, fn ($c) => $c->put((string) $teamAId, \App\Support\MatchDisplay::teamName($match->teamA, $match->status)))
+                                    ->when($match->teamB, fn ($c) => $c->put((string) $teamBId, \App\Support\MatchDisplay::teamName($match->teamB, $match->status)))" />
 
                             <div class="relative" @click.outside="row.mapOpen = false">
                                 <button type="button" @click="openMap(row); $nextTick(() => $el.parentElement.querySelector('[x-ref=mapSearch]').focus())"
@@ -176,31 +164,25 @@
                                 </div>
                             </div>
 
-                            <select :name="`maps[${index}][type]`" x-model="row.type" @change="defaultSidePickedBy(row)"
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                <option value="none">{{ __('admin.matches.veto.select_type') }}</option>
-                                <option value="ban">{{ __('admin.matches.veto.ban') }}</option>
-                                <option value="pick">{{ __('admin.matches.veto.pick') }}</option>
-                                <option value="decider">{{ __('admin.matches.veto.decider') }}</option>
-                            </select>
+                            <x-styled-select x-model="row.type" x-bind:name="`maps[${index}][type]`" @change="defaultSidePickedBy(row)"
+                                :options="[
+                                    'none' => __('admin.matches.veto.select_type'),
+                                    'ban' => __('admin.matches.veto.ban'),
+                                    'pick' => __('admin.matches.veto.pick'),
+                                    'decider' => __('admin.matches.veto.decider'),
+                                ]" />
 
-                            <select :name="`maps[${index}][side]`" x-model="row.side" :disabled="! canPickSide(row)"
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition disabled:opacity-40 [color-scheme:dark]">
-                                <option value="">{{ __('admin.matches.veto.select_side') }}</option>
-                                <option value="atk">{{ __('admin.matches.veto.atk') }}</option>
-                                <option value="def">{{ __('admin.matches.veto.def') }}</option>
-                            </select>
+                            <x-styled-select x-model="row.side" x-bind:name="`maps[${index}][side]`" x-bind:disabled="! canPickSide(row)"
+                                :options="[
+                                    '' => __('admin.matches.veto.select_side'),
+                                    'atk' => __('admin.matches.veto.atk'),
+                                    'def' => __('admin.matches.veto.def'),
+                                ]" />
 
-                            <select :name="`maps[${index}][side_picked_by]`" x-model="row.side_picked_by" :disabled="! canPickSide(row)"
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition disabled:opacity-40 [color-scheme:dark]">
-                                <option value="">{{ __('admin.matches.veto.side_picked_by') }}</option>
-                                @if ($match->teamA)
-                                    <option value="{{ $teamAId }}">{{ \App\Support\MatchDisplay::teamName($match->teamA, $match->status) }}</option>
-                                @endif
-                                @if ($match->teamB)
-                                    <option value="{{ $teamBId }}">{{ \App\Support\MatchDisplay::teamName($match->teamB, $match->status) }}</option>
-                                @endif
-                            </select>
+                            <x-styled-select x-model="row.side_picked_by" x-bind:name="`maps[${index}][side_picked_by]`" x-bind:disabled="! canPickSide(row)"
+                                :options="collect(['' => __('admin.matches.veto.side_picked_by')])
+                                    ->when($match->teamA, fn ($c) => $c->put((string) $teamAId, \App\Support\MatchDisplay::teamName($match->teamA, $match->status)))
+                                    ->when($match->teamB, fn ($c) => $c->put((string) $teamBId, \App\Support\MatchDisplay::teamName($match->teamB, $match->status)))" />
                         </div>
                     </div>
                 </template>

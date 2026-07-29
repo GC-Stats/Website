@@ -13,12 +13,8 @@
     <div class="flex items-center justify-end mb-4">
         <label class="flex items-center gap-2">
             <span class="text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('developers.dashboard.filter.key') }}</span>
-            <select onchange="window.location = this.value"
-                    class="h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                @foreach ($keys as $option)
-                    <option value="{{ route('developers.requests.index', $option) }}" @selected($key->id === $option->id)>{{ $option->client_name }}</option>
-                @endforeach
-            </select>
+            <x-styled-select navigate class="w-56" :selected="route('developers.requests.index', $key)"
+                :options="$keys->mapWithKeys(fn ($option) => [route('developers.requests.index', $option) => $option->client_name])" />
         </label>
     </div>
 
@@ -28,22 +24,14 @@
 
         <label class="block">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('developers.dashboard.requests.endpoint') }}</span>
-            <select name="endpoint" class="h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('developers.dashboard.requests.filter.all_endpoints') }}</option>
-                @foreach ($endpoints as $option)
-                    <option value="{{ $option }}" @selected($endpoint === $option)>{{ $option }}</option>
-                @endforeach
-            </select>
+            <x-styled-select name="endpoint" :selected="$endpoint" class="w-48"
+                :options="collect(['' => __('developers.dashboard.requests.filter.all_endpoints')])->merge(collect($endpoints)->mapWithKeys(fn ($option) => [$option => $option]))" />
         </label>
 
         <label class="block">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('developers.dashboard.requests.status') }}</span>
-            <select name="status" class="h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('developers.dashboard.requests.filter.all_statuses') }}</option>
-                @foreach ($statuses as $option)
-                    <option value="{{ $option }}" @selected($status === $option)>{{ $option }}</option>
-                @endforeach
-            </select>
+            <x-styled-select name="status" :selected="$status" class="w-40"
+                :options="collect(['' => __('developers.dashboard.requests.filter.all_statuses')])->merge(collect($statuses)->mapWithKeys(fn ($option) => [$option => $option]))" />
         </label>
 
         <label class="block">

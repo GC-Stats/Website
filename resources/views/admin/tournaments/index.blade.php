@@ -16,43 +16,27 @@
             <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.tournaments.search_placeholder') }}"
                    class="flex-1 max-w-sm bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
-            <select name="region" onchange="this.form.submit()"
-                    class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('admin.tournaments.all_regions') }}</option>
-                @foreach ($regions as $r)
-                    <option value="{{ $r }}" @selected($region === $r)>{{ $r }}</option>
-                @endforeach
-            </select>
+            <x-styled-select name="region" :selected="$region" autosubmit
+                :options="collect(['' => __('admin.tournaments.all_regions')])->merge(collect($regions)->mapWithKeys(fn ($r) => [$r => $r]))" />
 
-            <select name="status" onchange="this.form.submit()"
-                    class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('admin.tournaments.all_statuses') }}</option>
-                @foreach (['upcoming', 'live', 'finished'] as $s)
-                    <option value="{{ $s }}" @selected($status === $s)>{{ __('admin.tournaments.status.'.$s) }}</option>
-                @endforeach
-            </select>
+            <x-styled-select name="status" :selected="$status" autosubmit
+                :options="collect(['' => __('admin.tournaments.all_statuses')])->merge(collect(['upcoming', 'live', 'finished'])->mapWithKeys(fn ($s) => [$s => __('admin.tournaments.status.'.$s)]))" />
 
-            <select name="active" onchange="this.form.submit()"
-                    class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('admin.tournaments.all_active') }}</option>
-                <option value="1" @selected($active === '1')>{{ __('admin.tournaments.active') }}</option>
-                <option value="0" @selected($active === '0')>{{ __('admin.tournaments.inactive') }}</option>
-            </select>
+            <x-styled-select name="active" :selected="$active" autosubmit
+                :options="[
+                    '' => __('admin.tournaments.all_active'),
+                    '1' => __('admin.tournaments.active'),
+                    '0' => __('admin.tournaments.inactive'),
+                ]" />
 
-            <select name="category" onchange="this.form.submit()"
-                    class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('admin.tournaments.all_categories') }}</option>
-                @foreach ($categories as $c)
-                    <option value="{{ $c }}" @selected($category === $c)>{{ $c }}</option>
-                @endforeach
-                <option value="__custom__" @selected($category === '__custom__')>{{ __('admin.tournaments.category_custom') }}</option>
-            </select>
+            <x-styled-select name="category" :selected="$category" autosubmit
+                :options="collect(['' => __('admin.tournaments.all_categories')])->merge(collect($categories)->mapWithKeys(fn ($c) => [$c => $c]))->merge(['__custom__' => __('admin.tournaments.category_custom')])" />
 
-            <select name="sort" onchange="this.form.submit()"
-                    class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="start_date" @selected($sort === 'start_date')>{{ __('admin.tournaments.sort.start_date') }}</option>
-                <option value="name" @selected($sort === 'name')>{{ __('admin.tournaments.sort.name') }}</option>
-            </select>
+            <x-styled-select name="sort" :selected="$sort" autosubmit
+                :options="[
+                    'start_date' => __('admin.tournaments.sort.start_date'),
+                    'name' => __('admin.tournaments.sort.name'),
+                ]" />
 
             <button type="submit"
                     class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">

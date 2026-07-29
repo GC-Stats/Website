@@ -44,30 +44,20 @@
         <div class="grid grid-cols-2 gap-4">
             <label class="block">
                 <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.region') }}</span>
-                <select name="region" required
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                    @foreach ($regions as $r)
-                        <option value="{{ $r }}" @selected(old('region', $tournament->region ?? '') === $r)>{{ $r }}</option>
-                    @endforeach
-                </select>
+                <x-styled-select name="region" :selected="old('region', $tournament->region ?? '')"
+                    :options="collect($regions)->mapWithKeys(fn ($r) => [$r => $r])" />
             </label>
 
-            <div x-data="{ custom: {{ $isCustomCategory ? 'true' : 'false' }} }" class="block">
+            <div x-data="{ category: {{ \Illuminate\Support\Js::from($currentCategory) }} }" class="block">
                 <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.category') }}</span>
-                {{-- The select is the only element named "category" — it stays in the DOM (holding
-                     "__custom__") while hidden, so a second hidden input with the same name would
-                     always be posted too and silently clobber whichever value came first. --}}
-                <select name="category" x-ref="categorySelect" x-show="!custom" @change="custom = ($event.target.value === '__custom__')"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                    @foreach ($categories as $c)
-                        <option value="{{ $c }}" @selected($currentCategory === $c)>{{ $c }}</option>
-                    @endforeach
-                    <option value="__custom__" @selected($isCustomCategory)>{{ __('admin.tournaments.category_custom') }}</option>
-                </select>
-                <div x-show="custom" class="flex gap-2">
+                <div x-show="category !== '__custom__'">
+                    <x-styled-select x-model="category" name="category"
+                        :options="collect($categories)->mapWithKeys(fn ($c) => [$c => $c])->merge(['__custom__' => __('admin.tournaments.category_custom')])" />
+                </div>
+                <div x-show="category === '__custom__'" class="flex gap-2">
                     <input type="text" name="category_custom" value="{{ $isCustomCategory ? $currentCategory : '' }}" placeholder="{{ __('admin.tournaments.category_custom') }}"
                            class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
-                    <button type="button" @click="custom = false; $refs.categorySelect.value = '{{ $categories[0] }}'"
+                    <button type="button" @click="category = '{{ $categories[0] }}'"
                             class="font-bold uppercase text-[10px] tracking-widest px-3 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10">
                         &times;
                     </button>
@@ -79,13 +69,13 @@
             <label class="block">
                 <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.start_date') }}</span>
                 <input type="date" name="start_date" value="{{ old('start_date', optional($tournament->start_date ?? null)->format('Y-m-d')) }}" required
-                       class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                       class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
             </label>
 
             <label class="block">
                 <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.end_date') }}</span>
                 <input type="date" name="end_date" value="{{ old('end_date', optional($tournament->end_date ?? null)->format('Y-m-d')) }}" required
-                       class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                       class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
             </label>
         </div>
 
@@ -117,24 +107,15 @@
 
         <label class="block">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.point_type') }}</span>
-            <select name="point_type_id"
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('admin.tournaments.point_type_none') }}</option>
-                @foreach ($pointTypes as $pointType)
-                    <option value="{{ $pointType->id }}" @selected((int) old('point_type_id', $tournament->point_type_id ?? '') === $pointType->id)>{{ $pointType->name }}</option>
-                @endforeach
-            </select>
+            <x-styled-select name="point_type_id" :selected="old('point_type_id', $tournament->point_type_id ?? '')"
+                :options="collect(['' => __('admin.tournaments.point_type_none')])->merge($pointTypes->mapWithKeys(fn ($pointType) => [$pointType->id => $pointType->name]))" />
         </label>
 
         @if ($tournament ?? null)
             <label class="block">
                 <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.status_column') }}</span>
-                <select name="status"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                    @foreach (['upcoming', 'live', 'finished'] as $s)
-                        <option value="{{ $s }}" @selected(old('status', $tournament->status) === $s)>{{ __('admin.tournaments.status.'.$s) }}</option>
-                    @endforeach
-                </select>
+                <x-styled-select name="status" :selected="old('status', $tournament->status)"
+                    :options="collect(['upcoming', 'live', 'finished'])->mapWithKeys(fn ($s) => [$s => __('admin.tournaments.status.'.$s)])" />
             </label>
         @endif
     </div>
@@ -226,14 +207,14 @@
                     <input type="text" :name="'phases['+index+'][name]'" x-model="phase.name" placeholder="{{ __('admin.tournaments.phases.name') }}" required
                            class="flex-1 min-w-0 bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
-                    <select :name="'phases['+index+'][format]'" x-model="phase.format"
-                            class="w-32 shrink-0 bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                        <option value="">—</option>
-                        <option value="bracket">{{ __('admin.tournaments.phases.format_options.bracket') }}</option>
-                        <option value="round_robin">{{ __('admin.tournaments.phases.format_options.round_robin') }}</option>
-                        <option value="swiss">{{ __('admin.tournaments.phases.format_options.swiss') }}</option>
-                        <option value="swiss_buchholz">{{ __('admin.tournaments.phases.format_options.swiss_buchholz') }}</option>
-                    </select>
+                    <x-styled-select x-model="phase.format" x-bind:name="'phases['+index+'][format]'" class="w-32 shrink-0"
+                        :options="[
+                            '' => '—',
+                            'bracket' => __('admin.tournaments.phases.format_options.bracket'),
+                            'round_robin' => __('admin.tournaments.phases.format_options.round_robin'),
+                            'swiss' => __('admin.tournaments.phases.format_options.swiss'),
+                            'swiss_buchholz' => __('admin.tournaments.phases.format_options.swiss_buchholz'),
+                        ]" />
 
                     <div class="flex shrink-0 gap-0.5">
                         <button type="button" @click="outdent(index)" :disabled="! phase.parent_id" title="{{ __('admin.tournaments.phases.outdent') }}"

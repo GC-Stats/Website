@@ -51,25 +51,20 @@
 
                             <label class="block mb-3">
                                 <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.phase') }}</span>
-                                <select name="phase_id"
-                                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                    <option value="">{{ __('admin.matches.all_phases') }}</option>
-                                    @foreach ($phases as $p)
-                                        <option value="{{ $p->id }}">{{ $p->name }}</option>
-                                    @endforeach
-                                </select>
+                                <x-styled-select name="phase_id"
+                                    :options="collect(['' => __('admin.matches.all_phases')])->merge($phases->mapWithKeys(fn ($p) => [$p->id => $p->name]))" />
                             </label>
 
                             <div class="grid grid-cols-2 gap-3">
                                 <label class="block">
                                     <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.operations.patch.date_from') }}</span>
                                     <input type="date" name="date_from"
-                                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                                 </label>
                                 <label class="block">
                                     <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.operations.patch.date_to') }}</span>
                                     <input type="date" name="date_to"
-                                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                                 </label>
                             </div>
                         </div>
@@ -103,12 +98,8 @@
                     <fieldset @disabled($bulkCreateLocked) class="space-y-4">
                         <label class="block">
                             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.phase') }}</span>
-                            <select name="phase_id" required
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                @foreach ($phases as $p)
-                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
-                                @endforeach
-                            </select>
+                            <x-styled-select name="phase_id"
+                                :options="$phases->mapWithKeys(fn ($p) => [$p->id => $p->name])" />
                         </label>
 
                         <div class="grid grid-cols-2 gap-3">
@@ -119,12 +110,8 @@
                             </label>
                             <label class="block">
                                 <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.best_of') }}</span>
-                                <select name="best_of"
-                                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                    @foreach ([1, 2, 3, 4, 5] as $f)
-                                        <option value="{{ $f }}" @selected($f == 3)>BO{{ $f }}</option>
-                                    @endforeach
-                                </select>
+                                <x-styled-select name="best_of" :selected="3"
+                                    :options="collect([1, 2, 3, 4, 5])->mapWithKeys(fn ($f) => [$f => 'BO'.$f])" />
                             </label>
                         </div>
 
@@ -175,12 +162,8 @@
                     <fieldset @disabled($cachePurgeLocked) class="grid grid-cols-1 md:grid-cols-[160px_1fr_auto] gap-3 items-end">
                         <label class="block">
                             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.operations.cache_purge.region') }}</span>
-                            <select name="region" required
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                @foreach ($riotRegions as $region)
-                                    <option value="{{ $region }}">{{ $region }}</option>
-                                @endforeach
-                            </select>
+                            <x-styled-select name="region"
+                                :options="collect($riotRegions)->mapWithKeys(fn ($region) => [$region => $region])" />
                         </label>
 
                         <label class="block">

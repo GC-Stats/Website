@@ -72,13 +72,8 @@
                         <label for="lang" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
                             {{ __('user.news.lang_label') }}
                         </label>
-                        <select id="lang" name="lang"
-                                class="bg-[#050505] border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                            <option value="">{{ __('user.news.lang_all') }}</option>
-                            @foreach ($locales as $code => $label)
-                                <option value="{{ $code }}" @selected($langFilter === $code)>{{ $label }}</option>
-                            @endforeach
-                        </select>
+                        <x-styled-select name="lang" :selected="$langFilter"
+                            :options="collect(['' => __('user.news.lang_all')])->merge(collect($locales))" />
                     </div>
 
                     <div>
@@ -86,7 +81,7 @@
                             {{ __('user.news.from_label') }}
                         </label>
                         <input id="from" type="date" name="from" value="{{ $fromFilter }}"
-                               class="bg-[#050505] border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                               class="bg-[#050505] border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                     </div>
 
                     <div>
@@ -94,7 +89,7 @@
                             {{ __('user.news.until_label') }}
                         </label>
                         <input id="until" type="date" name="until" value="{{ $untilFilter }}"
-                               class="bg-[#050505] border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                               class="bg-[#050505] border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                     </div>
 
                     <button type="submit"

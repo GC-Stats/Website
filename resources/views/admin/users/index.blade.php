@@ -16,21 +16,11 @@
         <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.users.search_placeholder') }}"
                class="flex-1 min-w-[200px] max-w-sm bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
-        <select name="role" onchange="this.form.submit()"
-                class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            <option value="">{{ __('admin.users.all_roles') }}</option>
-            @foreach ($roles as $role)
-                <option value="{{ $role->name }}" @selected($roleFilter === $role->name)>{{ $role->name }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="role" :selected="$roleFilter" autosubmit class="w-40"
+            :options="collect(['' => __('admin.users.all_roles')])->merge($roles->mapWithKeys(fn ($role) => [$role->name => $role->name]))" />
 
-        <select name="publisher" onchange="this.form.submit()"
-                class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            <option value="">{{ __('admin.users.all_publishers') }}</option>
-            @foreach ($publishers as $publisher)
-                <option value="{{ $publisher->id }}" @selected((string) $publisherFilter === (string) $publisher->id)>{{ $publisher->name }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="publisher" :selected="$publisherFilter" autosubmit class="w-40"
+            :options="collect(['' => __('admin.users.all_publishers')])->merge($publishers->mapWithKeys(fn ($publisher) => [(string) $publisher->id => $publisher->name]))" />
 
         @if ($search || $roleFilter || $publisherFilter)
             <a href="{{ route('admin.users.index') }}"

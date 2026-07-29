@@ -35,9 +35,9 @@
                     @csrf
                     @method('PUT')
                     <input type="date" name="from" value="{{ $logo->from->format('Y-m-d') }}" aria-label="{{ $fromLabel }}"
-                           class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
+                           class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                     <input type="date" name="until" value="{{ $logo->until?->format('Y-m-d') }}" aria-label="{{ $untilLabel }}"
-                           class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
+                           class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                     <button type="submit"
                             class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-white/10 border border-border-subtle text-white hover:bg-white/20">
                         {{ $saveLabel }}
@@ -71,9 +71,9 @@
                    @change="preview = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : null"
                    class="flex-1 min-w-[10rem] text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-sm file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-widest file:bg-white/5 file:text-white hover:file:bg-white/10">
             <input type="date" name="from" required aria-label="{{ $fromLabel }}"
-                   class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
+                   class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
             <input type="date" name="until" required aria-label="{{ $untilLabel }}"
-                   class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
+                   class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
             <button type="submit"
                     class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90 shrink-0">
                 {{ $addLabel }}

@@ -22,13 +22,8 @@
         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
             {{ __('admin.about.project_type_label') }}
         </label>
-        <select name="type"
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            <option value=""></option>
-            @foreach ($projectTypes as $type)
-                <option value="{{ $type }}" @selected(old('type', $project->type ?? '') === $type)>{{ $type }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="type" :selected="old('type', $project->type ?? '')"
+            :options="collect(['' => ''])->merge(collect($projectTypes)->mapWithKeys(fn ($type) => [$type => $type]))" />
     </div>
 
     @foreach ($locales as $locale)

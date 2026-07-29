@@ -10,12 +10,8 @@
 
     <label class="block">
         <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.phase') }}</span>
-        <select name="phase_id" required
-                    class="w-full h-[42px] bg-white/5 border border-white/10 rounded-lg px-4 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            @foreach ($phases as $p)
-                <option value="{{ $p->id }}" @selected(old('phase_id', $sticky['phase_id'] ?? '') == $p->id)>{{ \App\Support\MatchDisplay::phaseLabel($p, $phases) }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="phase_id" :selected="old('phase_id', $sticky['phase_id'] ?? '')"
+            :options="$phases->mapWithKeys(fn ($p) => [$p->id => \App\Support\MatchDisplay::phaseLabel($p, $phases)])" />
         @error('phase_id') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
     </label>
 
@@ -35,12 +31,8 @@
     <div class="grid grid-cols-2 gap-3">
         <label class="block">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.best_of') }}</span>
-            <select name="best_of"
-                    class="w-full h-[42px] bg-white/5 border border-white/10 rounded-lg px-4 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                @foreach ([1, 2, 3, 4, 5] as $f)
-                    <option value="{{ $f }}" @selected(old('best_of', $sticky['best_of'] ?? 3) == $f)>BO{{ $f }}</option>
-                @endforeach
-            </select>
+            <x-styled-select name="best_of" :selected="old('best_of', $sticky['best_of'] ?? 3)"
+                :options="collect([1, 2, 3, 4, 5])->mapWithKeys(fn ($f) => [$f => 'BO'.$f])" />
         </label>
 
         <label class="block">

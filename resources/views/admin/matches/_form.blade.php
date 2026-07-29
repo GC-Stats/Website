@@ -8,22 +8,14 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <label class="block">
         <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.phase') }}</span>
-        <select name="phase_id" required
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            @foreach ($phases as $p)
-                <option value="{{ $p->id }}" @selected(old('phase_id', $match->phase_id ?? ($sticky['phase_id'] ?? '')) == $p->id)>{{ \App\Support\MatchDisplay::phaseLabel($p, $phases) }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="phase_id" :selected="old('phase_id', $match->phase_id ?? ($sticky['phase_id'] ?? ''))"
+            :options="$phases->mapWithKeys(fn ($p) => [$p->id => \App\Support\MatchDisplay::phaseLabel($p, $phases)])" />
     </label>
 
     <label class="block">
         <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.status_column') }}</span>
-        <select name="status"
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            @foreach (['upcoming', 'live', 'finished'] as $s)
-                <option value="{{ $s }}" @selected(old('status', $match->status ?? 'upcoming') === $s)>{{ __('admin.matches.status.'.$s) }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="status" :selected="old('status', $match->status ?? 'upcoming')"
+            :options="collect(['upcoming', 'live', 'finished'])->mapWithKeys(fn ($s) => [$s => __('admin.matches.status.'.$s)])" />
     </label>
 
     <x-admin.team-select name="team_a_id" :label="__('admin.matches.team_a')" :teams="$teams" :selected="old('team_a_id', $match->team_a_id ?? null)" />

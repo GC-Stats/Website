@@ -27,22 +27,15 @@
         <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.emotes.search_placeholder') }}"
                class="flex-1 min-w-[200px] max-w-sm bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
-        <select name="status" onchange="this.form.submit()"
-                class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            <option value="">{{ __('admin.emotes.all_statuses') }}</option>
-            <option value="active" @selected($statusFilter === 'active')>{{ __('admin.emotes.active') }}</option>
-            <option value="inactive" @selected($statusFilter === 'inactive')>{{ __('admin.emotes.inactive') }}</option>
-        </select>
+        <x-styled-select name="status" :selected="$statusFilter" autosubmit class="w-40"
+            :options="[
+                '' => __('admin.emotes.all_statuses'),
+                'active' => __('admin.emotes.active'),
+                'inactive' => __('admin.emotes.inactive'),
+            ]" />
 
-        <select name="source" onchange="this.form.submit()"
-                class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            <option value="">{{ __('admin.emotes.all_sources') }}</option>
-            @foreach ($sources as $sourceOption)
-                <option value="{{ $sourceOption }}" @selected($sourceFilter === $sourceOption)>
-                    {{ $sourceOption === 'custom' ? __('admin.emotes.source_custom') : $sourceOption }}
-                </option>
-            @endforeach
-        </select>
+        <x-styled-select name="source" :selected="$sourceFilter" autosubmit class="w-40"
+            :options="collect(['' => __('admin.emotes.all_sources')])->merge(collect($sources)->mapWithKeys(fn ($sourceOption) => [$sourceOption => $sourceOption === 'custom' ? __('admin.emotes.source_custom') : $sourceOption]))" />
 
         @if ($search || $statusFilter || $sourceFilter)
             <a href="{{ route('admin.emotes.index') }}"

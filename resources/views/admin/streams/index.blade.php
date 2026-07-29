@@ -27,13 +27,8 @@
         <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.streams.search_placeholder') }}"
                class="flex-1 min-w-[200px] max-w-sm bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
-        <select name="platform" onchange="this.form.submit()"
-                class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            <option value="">{{ __('admin.streams.all_platforms') }}</option>
-            @foreach ($platforms as $platformOption)
-                <option value="{{ $platformOption }}" @selected($platform === $platformOption)>{{ ucfirst($platformOption) }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="platform" :selected="$platform" autosubmit class="w-40"
+            :options="collect(['' => __('admin.streams.all_platforms')])->merge(collect($platforms)->mapWithKeys(fn ($platformOption) => [$platformOption => ucfirst($platformOption)]))" />
 
         @if ($search || $platform)
             <a href="{{ route('admin.streams.index') }}"

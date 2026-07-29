@@ -32,25 +32,17 @@
 
                     <x-admin.team-select class="w-44" name="team" :teams="$teams" :selected="$team" :placeholder="__('admin.matches.all_teams')" />
 
-                    <select name="phase" class="h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                        <option value="">{{ __('admin.matches.all_phases') }}</option>
-                        @foreach ($phases as $p)
-                            <option value="{{ $p->id }}" @selected($phase == $p->id)>{{ $p->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-styled-select name="phase" :selected="$phase" class="w-44"
+                        :options="collect(['' => __('admin.matches.all_phases')])->merge($phases->mapWithKeys(fn ($p) => [$p->id => $p->name]))" />
 
                     <input type="text" name="round_name" value="{{ $round_name }}" placeholder="{{ __('admin.matches.round_name') }}"
                            class="w-32 h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
                     <input type="date" name="date" value="{{ $date }}"
-                           class="h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                           class="h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
 
-                    <select name="status" class="h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                        <option value="">{{ __('admin.matches.all_statuses') }}</option>
-                        @foreach (['upcoming', 'live', 'finished'] as $s)
-                            <option value="{{ $s }}" @selected($status === $s)>{{ __('admin.matches.status.'.$s) }}</option>
-                        @endforeach
-                    </select>
+                    <x-styled-select name="status" :selected="$status" class="w-40"
+                        :options="collect(['' => __('admin.matches.all_statuses')])->merge(collect(['upcoming', 'live', 'finished'])->mapWithKeys(fn ($s) => [$s => __('admin.matches.status.'.$s)]))" />
 
                     <button type="submit"
                             class="h-[42px] font-bold uppercase text-[10px] tracking-widest px-4 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">

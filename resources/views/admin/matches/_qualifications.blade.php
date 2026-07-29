@@ -57,11 +57,11 @@
                       class="mt-2 space-y-2 bg-black/20 border border-white/10 rounded-lg p-3 max-w-md">
                     @csrf
 
-                    <select name="outcome" required
-                            class="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                        <option value="winner">{{ __('admin.matches.qualifications.outcome.winner') }}</option>
-                        <option value="loser">{{ __('admin.matches.qualifications.outcome.loser') }}</option>
-                    </select>
+                    <x-styled-select name="outcome"
+                        :options="[
+                            'winner' => __('admin.matches.qualifications.outcome.winner'),
+                            'loser' => __('admin.matches.qualifications.outcome.loser'),
+                        ]" />
 
                     <div class="flex gap-2">
                         <button type="button" @click="destType = 'phase'"

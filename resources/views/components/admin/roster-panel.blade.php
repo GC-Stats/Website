@@ -48,14 +48,9 @@
                 <livewire:entity-picker :type="$pickerType" :name="$pivotField" />
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <select name="role" aria-label="{{ $roleLabel }}"
-                            class="flex-1 min-w-[8rem] bg-black/40 border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
-                        @foreach ($roles as $value => $label)
-                            <option value="{{ $value }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
+                    <x-styled-select name="role" class="flex-1 min-w-[8rem]" :options="$roles" />
                     <input type="date" name="joined_at" value="{{ now()->format('Y-m-d') }}" aria-label="{{ $joinedAtLabel }}"
-                           class="bg-black/40 border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                           class="bg-black/40 border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                 </div>
 
                 <button type="submit"

@@ -30,14 +30,8 @@
 
     <label class="block">
         <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.streams.fields.platform') }}</span>
-        <select name="platform" required
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            @foreach ($platforms as $platformOption)
-                <option value="{{ $platformOption }}" @selected(old('platform', $channel->platform ?? '') === $platformOption)>
-                    {{ ucfirst($platformOption) }}
-                </option>
-            @endforeach
-        </select>
+        <x-styled-select name="platform" :selected="old('platform', $channel->platform ?? '')"
+            :options="collect($platforms)->mapWithKeys(fn ($platformOption) => [$platformOption => ucfirst($platformOption)])" />
         @error('platform')
             <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
         @enderror
@@ -86,15 +80,8 @@
     @if (! $restricted)
         <label class="block">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.streams.fields.publisher') }}</span>
-            <select name="publisher_id"
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('admin.streams.fields.publisher_none') }}</option>
-                @foreach ($publishers as $publisherOption)
-                    <option value="{{ $publisherOption->id }}" @selected((int) old('publisher_id', $channel->publisher_id ?? '') === $publisherOption->id)>
-                        {{ $publisherOption->name }}
-                    </option>
-                @endforeach
-            </select>
+            <x-styled-select name="publisher_id" :selected="old('publisher_id', $channel->publisher_id ?? '')"
+                :options="collect(['' => __('admin.streams.fields.publisher_none')])->merge($publishers->mapWithKeys(fn ($publisherOption) => [$publisherOption->id => $publisherOption->name]))" />
             @error('publisher_id')
                 <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
             @enderror

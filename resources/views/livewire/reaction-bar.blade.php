@@ -256,13 +256,8 @@ new #[Lazy] class extends Component
                     <form wire:submit="submitReactionReport" class="space-y-4">
                         <div>
                             <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('reactions.report.emote_label') }}</label>
-                            <select wire:model="reportEmoteId" required
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                <option value=""></option>
-                                @foreach ($summary as $row)
-                                    <option value="{{ $row['emote']->id }}">{{ $row['emote']->name }}</option>
-                                @endforeach
-                            </select>
+                            <x-styled-select wire:model="reportEmoteId"
+                                :options="collect(['' => ''])->merge(collect($summary)->mapWithKeys(fn ($row) => [$row['emote']->id => $row['emote']->name]))" />
                             @error('reportEmoteId')
                                 <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
                             @enderror
@@ -270,13 +265,8 @@ new #[Lazy] class extends Component
 
                         <div>
                             <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('reactions.report.category_label') }}</label>
-                            <select wire:model="reportCategory" required
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                <option value=""></option>
-                                @foreach (\App\Models\UserReport::CATEGORIES as $category)
-                                    <option value="{{ $category }}">{{ __('admin.reports.category.'.$category) }}</option>
-                                @endforeach
-                            </select>
+                            <x-styled-select wire:model="reportCategory"
+                                :options="collect(['' => ''])->merge(collect(\App\Models\UserReport::CATEGORIES)->mapWithKeys(fn ($category) => [$category => __('admin.reports.category.'.$category)]))" />
                             @error('reportCategory')
                                 <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
                             @enderror

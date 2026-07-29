@@ -35,21 +35,13 @@
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('head_to_head.picker.team_a') }}</label>
-                    <select name="h2h_team_a" class="w-full py-2 px-3 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow">
-                        <option value="">—</option>
-                        @foreach($tournamentTeams as $t)
-                            <option value="{{ $t->id }}" {{ (string) request()->query('h2h_team_a') === (string) $t->id ? 'selected' : '' }}>{{ $t->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-styled-select name="h2h_team_a" :selected="request()->query('h2h_team_a')"
+                        :options="collect(['' => '—'])->merge($tournamentTeams->mapWithKeys(fn ($t) => [$t->id => $t->name]))" />
                 </div>
                 <div>
                     <label class="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('head_to_head.picker.team_b') }}</label>
-                    <select name="h2h_team_b" class="w-full py-2 px-3 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow">
-                        <option value="">—</option>
-                        @foreach($tournamentTeams as $t)
-                            <option value="{{ $t->id }}" {{ (string) request()->query('h2h_team_b') === (string) $t->id ? 'selected' : '' }}>{{ $t->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-styled-select name="h2h_team_b" :selected="request()->query('h2h_team_b')"
+                        :options="collect(['' => '—'])->merge($tournamentTeams->mapWithKeys(fn ($t) => [$t->id => $t->name]))" />
                 </div>
             </div>
         @else
@@ -63,12 +55,12 @@
                 <div>
                     <label class="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('head_to_head.picker.start_date') }}</label>
                     <input type="date" name="h2h_start_date" value="{{ request()->query('h2h_start_date') }}"
-                           class="w-full py-2 px-3 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow">
+                           class="w-full py-2 px-3 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
                 </div>
                 <div>
                     <label class="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('head_to_head.picker.end_date') }}</label>
                     <input type="date" name="h2h_end_date" value="{{ request()->query('h2h_end_date') }}"
-                           class="w-full py-2 px-3 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow">
+                           class="w-full py-2 px-3 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
                 </div>
             </div>
         @endif

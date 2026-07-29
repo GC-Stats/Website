@@ -35,12 +35,8 @@
         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
             {{ __('admin.sanctions.issue.type_label') }}
         </label>
-        <select name="type" required
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            @foreach (\App\Models\Sanction::TYPES as $type)
-                <option value="{{ $type }}">{{ __('admin.sanctions.type.'.$type) }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="type"
+            :options="collect(\App\Models\Sanction::TYPES)->mapWithKeys(fn ($type) => [$type => __('admin.sanctions.type.'.$type)])" />
         @error('type')
             <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
         @enderror
@@ -62,7 +58,7 @@
             {{ __('admin.sanctions.issue.ends_at_label') }}
         </label>
         <input type="datetime-local" name="ends_at"
-               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
         @error('ends_at')
             <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
         @enderror

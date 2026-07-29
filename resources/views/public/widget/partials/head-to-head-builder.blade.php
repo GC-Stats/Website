@@ -26,12 +26,12 @@
         <div>
             <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('widgets.builder.start_date') }}</label>
             <input type="date" name="start_date" value="{{ request()->query('start_date') }}"
-                   class="w-full py-2.5 px-4 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow transition">
+                   class="w-full py-2.5 px-4 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
         </div>
         <div>
             <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('widgets.builder.end_date') }}</label>
             <input type="date" name="end_date" value="{{ request()->query('end_date') }}"
-                   class="w-full py-2.5 px-4 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow transition">
+                   class="w-full py-2.5 px-4 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
         </div>
     </div>
 

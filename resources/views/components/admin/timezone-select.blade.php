@@ -97,7 +97,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
         <input type="datetime-local" x-model="localValue" @change="recompute()" @if($required) required @endif
-               class="w-full h-[42px] bg-white/5 border border-white/10 rounded-lg px-4 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+               class="w-full h-[42px] bg-white/5 border border-white/10 rounded-lg px-4 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
 
         <div class="relative">
             <button type="button" @click="tzOpen = ! tzOpen"

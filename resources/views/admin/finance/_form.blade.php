@@ -24,18 +24,14 @@
                 {{ __('admin.finance.form.entry_date_label') }}
             </label>
             <input type="date" name="entry_date" required value="{{ old('entry_date', $entry?->entry_date?->format('Y-m-d')) }}"
-                   class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                   class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
         </div>
         <div>
             <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
                 {{ __('admin.finance.form.type_label') }}
             </label>
-            <select name="type" required
-                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                @foreach (['income', 'expense'] as $t)
-                    <option value="{{ $t }}" @selected(old('type', $entry->type ?? '') === $t)>{{ __('admin.finance.type.'.$t) }}</option>
-                @endforeach
-            </select>
+            <x-styled-select name="type" :selected="old('type', $entry->type ?? '')"
+                :options="collect(['income', 'expense'])->mapWithKeys(fn ($t) => [$t => __('admin.finance.type.'.$t)])" />
         </div>
     </div>
 
@@ -43,12 +39,8 @@
         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
             {{ __('admin.finance.form.category_label') }}
         </label>
-        <select name="category" x-model="category" required
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            @foreach ($categories as $c)
-                <option value="{{ $c }}">{{ __('admin.finance.category.'.$c) }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="category" x-model="category" :selected="$initialCategory"
+            :options="collect($categories)->mapWithKeys(fn ($c) => [$c => __('admin.finance.category.'.$c)])" />
         @error('category')
             <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
         @enderror
@@ -124,12 +116,8 @@
                 <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
                     {{ __('admin.finance.form.currency_label') }}
                 </label>
-                <select name="currency" required
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                    @foreach ($currencies as $c)
-                        <option value="{{ $c }}" @selected(old('currency', 'EUR') === $c)>{{ $c }}</option>
-                    @endforeach
-                </select>
+                <x-styled-select name="currency" :selected="old('currency', 'EUR')"
+                    :options="collect($currencies)->mapWithKeys(fn ($c) => [$c => $c])" />
             </div>
         </div>
     @endif

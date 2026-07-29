@@ -23,14 +23,14 @@
         <input type="hidden" name="sort" value="{{ $sort }}">
         <input type="hidden" name="direction" value="{{ $direction }}">
 
-        <select name="status" onchange="this.form.submit()"
-                class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            <option value="active" @selected($status === 'active')>{{ __('admin.streams.matches.status_active') }}</option>
-            <option value="all" @selected($status === 'all')>{{ __('admin.streams.matches.status_all') }}</option>
-            <option value="upcoming" @selected($status === 'upcoming')>{{ __('admin.matches.status.upcoming') }}</option>
-            <option value="live" @selected($status === 'live')>{{ __('admin.matches.status.live') }}</option>
-            <option value="finished" @selected($status === 'finished')>{{ __('admin.matches.status.finished') }}</option>
-        </select>
+        <x-styled-select name="status" :selected="$status" autosubmit class="w-44"
+            :options="[
+                'active' => __('admin.streams.matches.status_active'),
+                'all' => __('admin.streams.matches.status_all'),
+                'upcoming' => __('admin.matches.status.upcoming'),
+                'live' => __('admin.matches.status.live'),
+                'finished' => __('admin.matches.status.finished'),
+            ]" />
     </form>
 
     <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-x-auto">

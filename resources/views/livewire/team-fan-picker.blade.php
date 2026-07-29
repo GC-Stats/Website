@@ -114,13 +114,8 @@ new class extends Component {
                 <label for="selected_team_tag" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
                     {{ __('account.edit.team.tag_label') }}
                 </label>
-                <select id="selected_team_tag" name="team_tag"
-                        class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                    <option value="">{{ __('account.edit.team.tag_none') }}</option>
-                    @foreach ($selectedTeamTags as $tag)
-                        <option value="{{ $tag }}" @selected($tag === $selectedTeamTag)>{{ $tag }}</option>
-                    @endforeach
-                </select>
+                <x-styled-select name="team_tag" :selected="$selectedTeamTag"
+                    :options="collect(['' => __('account.edit.team.tag_none')])->merge(collect($selectedTeamTags)->mapWithKeys(fn ($tag) => [$tag => $tag]))" />
             </div>
         @else
             <p class="text-xs text-gray-500">{{ __('account.edit.team.no_tags') }}</p>

@@ -32,12 +32,8 @@
 
         <label class="block">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.activity.filter.action') }}</span>
-            <select name="event" class="h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('admin.activity.filter.all_actions') }}</option>
-                @foreach ($events as $option)
-                    <option value="{{ $option }}" @selected($event === $option)>{{ \App\Support\ActivityDisplay::eventLabel($option) }}</option>
-                @endforeach
-            </select>
+            <x-styled-select name="event" :selected="$event" class="w-48"
+                :options="collect(['' => __('admin.activity.filter.all_actions')])->merge(collect($events)->mapWithKeys(fn ($option) => [$option => \App\Support\ActivityDisplay::eventLabel($option)]))" />
         </label>
 
         <label class="block">

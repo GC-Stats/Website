@@ -120,11 +120,11 @@
                         </label>
                         <label class="block">
                             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.maps.completed') }}</span>
-                            <select name="is_completed"
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                <option value="1" @selected(old('is_completed', $map->is_completed) == 1)>{{ __('admin.matches.maps.finished') }}</option>
-                                <option value="0" @selected(old('is_completed', $map->is_completed) == 0)>{{ __('admin.matches.maps.not_finished') }}</option>
-                            </select>
+                            <x-styled-select name="is_completed" :selected="old('is_completed', $map->is_completed) ? '1' : '0'"
+                                :options="[
+                                    '1' => __('admin.matches.maps.finished'),
+                                    '0' => __('admin.matches.maps.not_finished'),
+                                ]" />
                         </label>
                     </div>
 
@@ -347,20 +347,12 @@
                                     <template x-for="(stat, index) in mainStatsByTeam.{{ $teamKey }}" :key="index">
                                         <tr class="border-b border-white/5">
                                             <td class="py-1.5 pr-2">
-                                                <select x-model="stat.player_id" class="w-full h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
-                                                    <option value="">—</option>
-                                                    <template x-for="p in {{ \Illuminate\Support\Js::from($pickerPlayers) }}" :key="p.id">
-                                                        <option :value="p.id" :selected="String(stat.player_id) === String(p.id)" x-text="p.handle"></option>
-                                                    </template>
-                                                </select>
+                                                <x-styled-select x-model="stat.player_id" class="w-full"
+                                                    :options="collect(['' => '—'])->merge($pickerPlayers->mapWithKeys(fn ($p) => [$p['id'] => $p['handle']]))" />
                                             </td>
                                             <td class="py-1.5 pr-2">
-                                                <select x-model="stat.agent_name" class="w-full h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
-                                                    <option value="">—</option>
-                                                    <template x-for="a in {{ \Illuminate\Support\Js::from($agentPool) }}" :key="a">
-                                                        <option :value="a" :selected="stat.agent_name === a" x-text="a"></option>
-                                                    </template>
-                                                </select>
+                                                <x-styled-select x-model="stat.agent_name" class="w-full"
+                                                    :options="collect(['' => '—'])->merge(collect($agentPool)->mapWithKeys(fn ($a) => [$a => $a]))" />
                                             </td>
                                             <td class="py-1.5 pr-2"><input type="number" x-model="stat.kills" min="0" class="w-12 h-8 rounded-md border border-white/10 bg-white/5 px-1 text-center text-[11px] text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"></td>
                                             <td class="py-1.5 pr-2"><input type="number" x-model="stat.deaths" min="0" class="w-12 h-8 rounded-md border border-white/10 bg-white/5 px-1 text-center text-[11px] text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"></td>
@@ -414,19 +406,16 @@
                                 <tr class="border-b border-white/5">
                                     <td class="py-1.5 pr-2"><input type="number" x-model="round.round_number" min="1" class="w-16 h-8 rounded-md border border-white/10 bg-white/5 px-1 text-center text-[11px] text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"></td>
                                     <td class="py-1.5 pr-2">
-                                        <select x-model="round.winning_team" class="w-40 h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
-                                            <option value="">{{ __('admin.matches.maps.manual_stats.select_team') }}</option>
-                                            <option :value="{{ $match->team_a_id }}" :selected="String(round.winning_team) === String({{ $match->team_a_id }})">{{ \App\Support\MatchDisplay::teamName($match->teamA, $match->status) }}</option>
-                                            <option :value="{{ $match->team_b_id }}" :selected="String(round.winning_team) === String({{ $match->team_b_id }})">{{ \App\Support\MatchDisplay::teamName($match->teamB, $match->status) }}</option>
-                                        </select>
+                                        <x-styled-select x-model="round.winning_team" class="w-40"
+                                            :options="[
+                                                '' => __('admin.matches.maps.manual_stats.select_team'),
+                                                $match->team_a_id => \App\Support\MatchDisplay::teamName($match->teamA, $match->status),
+                                                $match->team_b_id => \App\Support\MatchDisplay::teamName($match->teamB, $match->status),
+                                            ]" />
                                     </td>
                                     <td class="py-1.5 pr-2">
-                                        <select x-model="round.win_type" class="w-36 h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
-                                            <option value="">—</option>
-                                            <template x-for="w in {{ \Illuminate\Support\Js::from($winTypePool) }}" :key="w">
-                                                <option :value="w" :selected="round.win_type === w" x-text="w"></option>
-                                            </template>
-                                        </select>
+                                        <x-styled-select x-model="round.win_type" class="w-36"
+                                            :options="collect(['' => '—'])->merge(collect($winTypePool)->mapWithKeys(fn ($w) => [$w => $w]))" />
                                     </td>
                                     <td class="py-1.5 pr-2">
                                         <button type="button" @click="openRoundEditor(i)" class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10 whitespace-nowrap">
@@ -486,12 +475,8 @@
                                         <template x-for="(ps, statIndex) in editingRoundByTeam.{{ $teamKey }}" :key="statIndex">
                                             <tr class="border-b border-white/5">
                                                 <td class="py-1.5 pr-2">
-                                                    <select x-model="ps.player_id" class="w-28 h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
-                                                        <option value="">—</option>
-                                                        <template x-for="p in {{ \Illuminate\Support\Js::from($pickerPlayers) }}" :key="p.id">
-                                                            <option :value="p.id" :selected="String(ps.player_id) === String(p.id)" x-text="p.handle"></option>
-                                                        </template>
-                                                    </select>
+                                                    <x-styled-select x-model="ps.player_id" class="w-28"
+                                                        :options="collect(['' => '—'])->merge($pickerPlayers->mapWithKeys(fn ($p) => [$p['id'] => $p['handle']]))" />
                                                 </td>
                                                 <td class="py-1.5 pr-2"><input type="number" x-model="ps.kills" min="0" class="w-12 h-8 rounded-md border border-white/10 bg-white/5 px-1 text-center text-[11px] text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"></td>
                                                 <td class="py-1.5 pr-2"><input type="number" x-model="ps.assists" min="0" class="w-12 h-8 rounded-md border border-white/10 bg-white/5 px-1 text-center text-[11px] text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"></td>
@@ -500,20 +485,12 @@
                                                 <td class="py-1.5 pr-2"><input type="number" x-model="ps.economy_spent" min="-1" class="w-14 h-8 rounded-md border border-white/10 bg-white/5 px-1 text-center text-[11px] text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"></td>
                                                 <td class="py-1.5 pr-2"><input type="number" x-model="ps.economy_remaining" min="-1" class="w-14 h-8 rounded-md border border-white/10 bg-white/5 px-1 text-center text-[11px] text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"></td>
                                                 <td class="py-1.5 pr-2">
-                                                    <select x-model="ps.weapon_id" class="w-24 h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
-                                                        <option value="">—</option>
-                                                        <template x-for="w in {{ \Illuminate\Support\Js::from($weaponPool) }}" :key="w">
-                                                            <option :value="w" :selected="ps.weapon_id === w" x-text="w"></option>
-                                                        </template>
-                                                    </select>
+                                                    <x-styled-select x-model="ps.weapon_id" class="w-24"
+                                                        :options="collect(['' => '—'])->merge(collect($weaponPool)->mapWithKeys(fn ($w) => [$w => $w]))" />
                                                 </td>
                                                 <td class="py-1.5 pr-2">
-                                                    <select x-model="ps.armor" class="w-24 h-8 rounded-md border border-white/10 bg-white/5 px-1.5 text-[11px] text-white focus:outline-none focus:border-gc-yellow [color-scheme:dark]">
-                                                        <option value="">—</option>
-                                                        <template x-for="ar in {{ \Illuminate\Support\Js::from($armorPool) }}" :key="ar">
-                                                            <option :value="ar" :selected="ps.armor === ar" x-text="ar"></option>
-                                                        </template>
-                                                    </select>
+                                                    <x-styled-select x-model="ps.armor" class="w-24"
+                                                        :options="collect(['' => '—'])->merge(collect($armorPool)->mapWithKeys(fn ($ar) => [$ar => $ar]))" />
                                                 </td>
                                                 <td class="py-1.5">
                                                     <button type="button" @click="removeRoundPlayerRow(ps)" class="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 hover:bg-red-500/10 hover:text-red-400 transition">

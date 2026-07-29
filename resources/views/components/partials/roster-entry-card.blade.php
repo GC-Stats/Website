@@ -30,24 +30,19 @@
 
             <div>
                 <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ $roleLabel }}</label>
-                <select name="entries[{{ $index }}][role]" aria-label="{{ $roleLabel }}"
-                        class="w-full bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
-                    @foreach ($roles as $value => $label)
-                        <option value="{{ $value }}" @selected($entry->role === $value)>{{ $label }}</option>
-                    @endforeach
-                </select>
+                <x-styled-select name="entries[{{ $index }}][role]" :selected="$entry->role" :options="$roles" />
             </div>
 
             <div>
                 <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ $joinedAtLabel }}</label>
                 <input type="date" name="entries[{{ $index }}][joined_at]" value="{{ $entry->joined_at }}" aria-label="{{ $joinedAtLabel }}"
-                       class="w-full bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
+                       class="w-full bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
             </div>
 
             <div>
                 <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ $leftAtLabel }}</label>
                 <input type="date" name="entries[{{ $index }}][left_at]" value="{{ $entry->left_at }}" aria-label="{{ $leftAtLabel }}"
-                       class="w-full bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
+                       class="w-full bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
             </div>
 
             <button type="button"

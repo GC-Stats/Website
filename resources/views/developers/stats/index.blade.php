@@ -26,12 +26,8 @@
     <div class="flex items-center justify-end mb-4">
         <label class="flex items-center gap-2">
             <span class="text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('developers.dashboard.filter.key') }}</span>
-            <select onchange="window.location = this.value"
-                    class="h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                @foreach ($keys as $option)
-                    <option value="{{ route('developers.stats.index', $option) }}" @selected($key->id === $option->id)>{{ $option->client_name }}</option>
-                @endforeach
-            </select>
+            <x-styled-select navigate class="w-56" :selected="route('developers.stats.index', $key)"
+                :options="$keys->mapWithKeys(fn ($option) => [route('developers.stats.index', $option) => $option->client_name])" />
         </label>
     </div>
 

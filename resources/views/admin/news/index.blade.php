@@ -17,13 +17,13 @@
             <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.news.search_placeholder') }}"
                    class="flex-1 max-w-sm bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
 
-            <select name="status" onchange="this.form.submit()"
-                    class="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('admin.news.search_submit') }}</option>
-                <option value="draft" @selected($status === 'draft')>{{ __('admin.news.status.draft') }}</option>
-                <option value="published" @selected($status === 'published')>{{ __('admin.news.status.published') }}</option>
-                <option value="archived" @selected($status === 'archived')>{{ __('admin.news.status.archived') }}</option>
-            </select>
+            <x-styled-select name="status" :selected="$status" autosubmit class="w-40"
+                :options="[
+                    '' => __('admin.news.search_submit'),
+                    'draft' => __('admin.news.status.draft'),
+                    'published' => __('admin.news.status.published'),
+                    'archived' => __('admin.news.status.archived'),
+                ]" />
 
             <button type="submit"
                     class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">

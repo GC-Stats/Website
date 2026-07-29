@@ -115,25 +115,15 @@
 
                                                 <div>
                                                     <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.vods.fields.map') }}</label>
-                                                    <select name="game_map_id"
-                                                            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                                        <option value="" @selected(! $vod->game_map_id) style="background-color:#0a0a0a;color:#fff;">{{ __('admin.vods.fields.map_none') }}</option>
-                                                        @foreach ($match->game_maps as $map)
-                                                            <option value="{{ $map->id }}" @selected($vod->game_map_id === $map->id) style="background-color:#0a0a0a;color:#fff;">{{ $map->map_name }}</option>
-                                                        @endforeach
-                                                    </select>
+                                                    <x-styled-select name="game_map_id" :selected="$vod->game_map_id"
+                                                        :options="collect(['' => __('admin.vods.fields.map_none')])->merge($match->game_maps->mapWithKeys(fn ($map) => [$map->id => $map->map_name]))" />
                                                 </div>
 
                                                 @if (! $vodsRestricted)
                                                     <div>
                                                         <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.vods.fields.publisher') }}</label>
-                                                        <select name="publisher_id"
-                                                                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                                            <option value="" @selected(! $vod->publisher_id)>{{ __('admin.vods.fields.publisher_none') }}</option>
-                                                            @foreach ($vodPublishers as $publisherOption)
-                                                                <option value="{{ $publisherOption->id }}" @selected($vod->publisher_id === $publisherOption->id)>{{ $publisherOption->name }}</option>
-                                                            @endforeach
-                                                        </select>
+                                                        <x-styled-select name="publisher_id" :selected="$vod->publisher_id"
+                                                            :options="collect(['' => __('admin.vods.fields.publisher_none')])->merge($vodPublishers->mapWithKeys(fn ($publisherOption) => [$publisherOption->id => $publisherOption->name]))" />
                                                     </div>
                                                 @else
                                                     <input type="hidden" name="publisher_id" value="{{ $vod->publisher_id ?? $vodPublishers->first()?->id }}">

@@ -36,7 +36,7 @@
          x-data="{
             tournament: null, tournamentQuery: '', tournamentResults: [],
             matches: [], matchFilter: '', sortField: 'scheduled_at', sortDir: 'desc',
-            match: null,
+            match: null, gameMapId: '', gameMapOpen: false,
             async searchTournaments() {
                 if (this.tournamentQuery.length < 2) { this.tournamentResults = []; return; }
                 const res = await fetch(`{{ route('admin.vods.search-tournaments') }}?q=${encodeURIComponent(this.tournamentQuery)}`);
@@ -64,7 +64,7 @@
                     return 0;
                 });
             },
-            pickMatch(m) { this.match = m; },
+            pickMatch(m) { this.match = m; this.gameMapId = ''; },
             storeUrl() { return `{{ url('/admin/tournaments') }}/${this.tournament.id}/matches/${this.match.id}/vods`; },
          }">
 
@@ -168,15 +168,26 @@
                             </div>
                         </div>
 
-                        <div x-show="match && match.maps && match.maps.length">
+
+                        <div x-show="match && match.maps && match.maps.length" class="relative" @click.outside="gameMapOpen = false">
                             <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.vods.fields.map') }}</label>
-                            <select name="game_map_id"
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                <option value="" style="background-color:#0a0a0a;color:#fff;">{{ __('admin.vods.fields.map_none') }}</option>
+                            <button type="button" @click="gameMapOpen = ! gameMapOpen"
+                                    class="h-[42px] w-full flex items-center justify-between gap-2 bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                                <span x-text="(match && (match.maps.find(map => String(map.id) === String(gameMapId)) || {}).name) || '{{ __('admin.vods.fields.map_none') }}'" class="truncate"></span>
+                                <svg class="w-3 h-3 text-gray-500 shrink-0" :class="gameMapOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div x-show="gameMapOpen" x-cloak
+                                 class="absolute z-20 mt-1 w-full bg-bg-card border border-white/10 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                                <button type="button" @click="gameMapId = ''; gameMapOpen = false"
+                                        class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white/5 transition">{{ __('admin.vods.fields.map_none') }}</button>
                                 <template x-for="map in (match ? match.maps : [])" :key="map.id">
-                                    <option :value="map.id" x-text="map.name" style="background-color:#0a0a0a;color:#fff;"></option>
+                                    <button type="button" @click="gameMapId = map.id; gameMapOpen = false" x-text="map.name"
+                                            class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white/5 transition"></button>
                                 </template>
-                            </select>
+                            </div>
+                            <input type="hidden" name="game_map_id" x-model="gameMapId">
                         </div>
 
                         <button type="submit"

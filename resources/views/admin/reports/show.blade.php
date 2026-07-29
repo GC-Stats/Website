@@ -98,12 +98,8 @@
                             <label for="status" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
                                 {{ __('admin.reports.resolve.status_label') }}
                             </label>
-                            <select id="status" name="status" required
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                @foreach ($statuses as $option)
-                                    <option value="{{ $option }}" @selected(old('status') === $option)>{{ __('admin.reports.status.'.$option) }}</option>
-                                @endforeach
-                            </select>
+                            <x-styled-select name="status" :selected="old('status')"
+                                :options="collect($statuses)->mapWithKeys(fn ($option) => [$option => __('admin.reports.status.'.$option)])" />
                             @error('status')
                                 <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
                             @enderror

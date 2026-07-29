@@ -22,22 +22,13 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div>
         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.news.form.publisher_label') }}</label>
-        <select name="publisher_id"
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            <option value="">—</option>
-            @foreach ($publishers as $publisher)
-                <option value="{{ $publisher->id }}" @selected(old('publisher_id', $article?->publisher_id) == $publisher->id)>{{ $publisher->name }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="publisher_id" :selected="old('publisher_id', $article?->publisher_id)"
+            :options="collect(['' => '—'])->merge($publishers->mapWithKeys(fn ($publisher) => [$publisher->id => $publisher->name]))" />
     </div>
     <div>
         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.news.form.lang_label') }}</label>
-        <select name="lang" required
-                class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-            @foreach (config('locales.supported') as $code => $label)
-                <option value="{{ $code }}" @selected(old('lang', $article?->lang ?? app()->getLocale()) === $code)>{{ $label }}</option>
-            @endforeach
-        </select>
+        <x-styled-select name="lang" :selected="old('lang', $article?->lang ?? app()->getLocale())"
+            :options="config('locales.supported')" />
     </div>
 </div>
 

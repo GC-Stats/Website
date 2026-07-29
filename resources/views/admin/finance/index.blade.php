@@ -16,13 +16,8 @@
             <input type="hidden" name="direction" value="{{ $direction }}">
             <input type="text" name="q" value="{{ $search }}" placeholder="{{ __('admin.finance.search_placeholder') }}"
                    class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
-            <select name="type" onchange="this.form.submit()"
-                    class="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                <option value="">{{ __('admin.finance.all_types') }}</option>
-                @foreach (['income', 'expense'] as $t)
-                    <option value="{{ $t }}" @selected($type === $t)>{{ __('admin.finance.type.'.$t) }}</option>
-                @endforeach
-            </select>
+            <x-styled-select name="type" :selected="$type" autosubmit class="w-40"
+                :options="collect(['' => __('admin.finance.all_types')])->merge(collect(['income', 'expense'])->mapWithKeys(fn ($t) => [$t => __('admin.finance.type.'.$t)]))" />
         </form>
 
         @can('finance.manage')

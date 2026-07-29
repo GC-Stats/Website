@@ -53,7 +53,7 @@
                                    id="start_date"
                                    name="start_date"
                                    value="{{ request('start_date') }}"
-                                   class="bg-transparent border-none text-[11px] text-gray-300 w-28 py-1 px-2 focus:outline-none">
+                                   class="bg-transparent border-none text-[11px] text-gray-300 w-28 py-1 px-2 focus:outline-none [color-scheme:dark]">
 
                             <span class="text-gray-700 font-bold px-1 pointer-events-none whitespace-nowrap" aria-hidden="true">–</span>
 
@@ -62,7 +62,7 @@
                                    id="end_date"
                                    name="end_date"
                                    value="{{ request('end_date') }}"
-                                   class="bg-transparent border-none text-[11px] text-gray-300 w-28 py-1 px-2 focus:outline-none">
+                                   class="bg-transparent border-none text-[11px] text-gray-300 w-28 py-1 px-2 focus:outline-none [color-scheme:dark]">
                         </div>
                     <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-gray-300 p-1.5 rounded transition-colors ml-2" aria-label="{{ __('player.stats.filter_submit') }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

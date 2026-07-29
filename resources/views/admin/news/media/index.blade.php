@@ -53,13 +53,8 @@
                         <form method="POST" action="{{ route('admin.news.media.link', $image) }}" class="flex-1 min-w-[120px]">
                             @csrf
                             @method('PUT')
-                            <select name="news_id" onchange="this.form.submit()" title="{{ __('admin.news.media.link_to_article') }}"
-                                    class="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                                <option value="">{{ __('admin.news.media.unattached') }}</option>
-                                @foreach ($linkableArticles as $linkable)
-                                    <option value="{{ $linkable->id }}" @selected($image->news_id === $linkable->id)>{{ $linkable->title }}</option>
-                                @endforeach
-                            </select>
+                            <x-styled-select name="news_id" :selected="$image->news_id" autosubmit
+                                :options="collect(['' => __('admin.news.media.unattached')])->merge($linkableArticles->mapWithKeys(fn ($linkable) => [$linkable->id => $linkable->title]))" />
                         </form>
                         <button
                             type="button"
