@@ -66,7 +66,7 @@ class ApiKeyController extends Controller
 
         $owner = User::where('username', $validated['owner_username'])->firstOrFail();
 
-        $revealUrl = DB::transaction(function () use ($validated, $owner) {
+        $revealUrl = DB::transaction(function () use ($request, $validated, $owner) {
             $clearKey = $this->generateClearKey();
 
             $key = ApiKey::create([
