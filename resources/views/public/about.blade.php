@@ -24,6 +24,23 @@
         return $value[$locale] ?? $value['en'] ?? reset($value);
     };
 
+    $linkify = function (?string $text) {
+        if (! $text) {
+            return $text;
+        }
+
+        return preg_replace_callback(
+            '/(https?:\/\/[^\s<]+)/i',
+            function ($matches) {
+                $url = rtrim($matches[1], '.,)');
+                $trailing = substr($matches[1], strlen($url));
+
+                return '<a href="' . $url . '" target="_blank" rel="noopener noreferrer nofollow" class="text-gc-yellow underline hover:no-underline break-all">' . $url . '</a>' . $trailing;
+            },
+            nl2br(e($text))
+        );
+    };
+
     $socialConfig = collect([
         'twitter' => ['url' => 'https://x.com/', 'icon' => 'fab-x-twitter'],
         'twitch' => ['url' => 'https://twitch.tv/', 'icon' => 'fab-twitch'],
@@ -61,7 +78,7 @@
                             </h2>
                         </div>
                         <div class="text-sm text-gray-300 leading-relaxed">
-                            {!! nl2br(e($translate($section->content))) !!}
+                            {!! $linkify($translate($section->content)) !!}
                         </div>
                     </div>
                 @endforeach
@@ -100,7 +117,7 @@
                                 @php $bio = $translate($member->bio); @endphp
                                 @if($bio)
                                     <p class="relative text-xs text-gray-400 leading-relaxed mt-3">
-                                        {!! nl2br(e($bio)) !!}
+                                        {!! $linkify($bio) !!}
                                     </p>
                                 @endif
 
