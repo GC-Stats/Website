@@ -74,7 +74,7 @@ jobs:
           REST=("${ALL[@]:1}")
           REST_JSON=$(printf '%s\n' "${REST[@]:-}" | jq -R . | jq -sc '[.[] | select(length > 0)]')
 
-          HOOK_ID="gcs-website-preprod"
+          HOOK_ID="gcs-website"
 
           echo "primary=$PRIMARY" >> $GITHUB_OUTPUT
           echo "rest=$REST_JSON" >> $GITHUB_OUTPUT
