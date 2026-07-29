@@ -412,7 +412,7 @@
                         <span class="text-gc-yellow">10.</span> Game_Map_Rounds
                     </h2>
                     <div class="flex flex-wrap gap-2">
-                        @foreach(["id", "game_map_id", "round_number", "winning_team", "win_type"] as $name)
+                        @foreach(["id", "game_map_id", "round_number", "winning_team", "win_type", "atk_team", "def_team", "plant_site", "plant_x", "plant_y"] as $name)
                             <div class="group relative w-max">
                                 <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
                                     {{ $name }}
@@ -430,13 +430,85 @@
                         <span class="text-gc-yellow">11.</span> Game_Map_Round_Player_Stats
                     </h2>
                     <div class="flex flex-wrap gap-2">
-                        @foreach(["id", "game_map_round_id", "player_id", "kills", "assists", "score", "economy_spent", "economy_remaining", "weapon_id", "armor"] as $name)
+                        @foreach(["id", "game_map_round_id", "player_id", "team_id", "kills", "assists", "score", "economy_spent", "economy_remaining", "weapon_id", "armor"] as $name)
                             <div class="group relative w-max">
                                 <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
                                     {{ $name }}
                                 </div>
                                 <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
                                     <p class="text-[9px] text-white uppercase font-bold">{{ __("data.game_map_round_player_stats.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative md:col-span-2 lg:col-span-3">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
+                        <span class="text-gc-yellow">12.</span> Game_Map_Round_Kills
+                    </h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(["game_map_round_id", "killer_player_id", "victim_player_id", "assistant_player_ids", "time_ms", "weapon", "damage_type", "is_secondary_fire"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.game_map_round_kills.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative md:col-span-2">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
+                        <span class="text-gc-yellow">13.</span> Game_Map_Round_Damages
+                    </h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(["game_map_round_id", "attacker_player_id", "receiver_player_id", "damage", "headshots", "bodyshots", "legshots"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.game_map_round_damages.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
+                        <span class="text-gc-yellow">14.</span> Game_Map_Round_Alive_States
+                    </h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(["game_map_round_id", "sequence", "time_ms", "atk_alive", "def_alive", "winner_side"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.game_map_round_alive_states.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative md:col-span-2 lg:col-span-3">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
+                        <span class="text-gc-yellow">15.</span> Game_Map_Round_Player_Positions
+                    </h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(["game_map_round_id", "event_type", "game_map_round_kill_id", "player_id", "role", "x", "y", "view_radians", "time_ms"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.game_map_round_player_positions.".$name) }}</p>
                                 </div>
                             </div>
                         @endforeach
@@ -464,7 +536,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">12.</span> News
+                        <span class="text-gc-yellow">16.</span> News
                     </h2>
 
                     <ul class="space-y-4 mt-4">
@@ -547,13 +619,183 @@
 
             <div class="border-b border-border-subtle pb-8 text-center mt-12">
                 <p class="text-[10px] font-bold text-gray-500 uppercase mt-2 tracking-[0.4em]">
+                    {{ __("data.titles.account") }}
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2">
+                        <span class="text-gc-yellow">17.</span> Users
+                    </h2>
+
+                    <ul class="space-y-4 mt-4">
+                        <li class="flex flex-col gap-1">
+                            <span class="text-[9px] font-black text-gray-500 uppercase italic">{{ __("data.users.titles.main") }}</span>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                @foreach(["id", "username", "team_tag", "preferences"] as $name)
+                                    <div class="group relative w-max">
+                                        <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                            {{ $name }}
+                                        </div>
+                                        <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-20 w-40 bg-black border border-border-subtle p-2 shadow-2xl">
+                                            <p class="text-[9px] leading-tight text-gray-400 uppercase font-bold">{{ __("data.users.".$name) }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </li>
+                        <li class="flex flex-col gap-1">
+                            <span class="text-[9px] font-black text-gray-500 uppercase italic">{{ __("data.users.titles.security") }}</span>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                @foreach(["email", "password", "two_factor_secret", "two_factor_recovery_codes", "discord_synced_at"] as $name)
+                                    <div class="group relative w-max">
+                                        <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                            {{ $name }}
+                                        </div>
+                                        <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-20 w-40 bg-black border border-border-subtle p-2 shadow-2xl">
+                                            <p class="text-[9px] leading-tight text-gray-400 uppercase font-bold">{{ __("data.users.".$name) }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
+                        <span class="text-gc-yellow">18.</span> Social_Accounts & Passkeys
+                    </h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(["user_id", "provider", "provider_id", "nickname", "avatar", "token", "refresh_token", "token_expires_at"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.social_accounts.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                        @foreach(["name", "credential_id", "last_used_at"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.passkeys.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
+                        <span class="text-gc-yellow">19.</span> Sanctions & Sanction_Identities
+                    </h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(["type", "reason", "starts_at", "ends_at", "revoked_at", "issued_by", "revoked_by"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.sanctions.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                        @foreach(["type", "value"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gc-yellow/50 text-gc-yellow text-[9px] font-black uppercase transition-all cursor-help">
+                                    identity_{{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.sanction_identities.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
+                        <span class="text-gc-yellow">20.</span> User_Reports & Activity_Log
+                    </h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(["reporter_id", "reported_user_id", "category", "reason", "status", "reviewed_by", "resolution_note"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.user_reports.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                        @foreach(["log_name", "description", "event", "attribute_changes", "causer", "subject"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gc-yellow/50 text-gc-yellow text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.activity_log.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative md:col-span-2">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
+                        <span class="text-gc-yellow">21.</span> Reactions & Emotes
+                    </h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(["emote_id", "user_id", "reactable"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gray-700 text-gray-500 group-hover:border-gc-yellow group-hover:text-white text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.reactions.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                        @foreach(["name", "image_path", "source", "is_active"] as $name)
+                            <div class="group relative w-max">
+                                <div class="px-2 py-1 border border-gc-yellow/50 text-gc-yellow text-[9px] font-black uppercase transition-all cursor-help">
+                                    {{ $name }}
+                                </div>
+                                <div class="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 bg-black border border-border-subtle p-2 shadow-2xl">
+                                    <p class="text-[9px] text-white uppercase font-bold">{{ __("data.emotes.".$name) }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            <div class="bg-bg-card border-l-2 border-gc-yellow p-6 flex items-center gap-6 shadow-xl">
+                <div class="text-gc-yellow">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-[12px] text-gray-300 leading-relaxed ">
+                        {!! __("data.descriptions.account") !!}
+                    </p>
+                </div>
+            </div>
+
+            <div class="border-b border-border-subtle pb-8 text-center mt-12">
+                <p class="text-[10px] font-bold text-gray-500 uppercase mt-2 tracking-[0.4em]">
                     {{ __("data.titles.others") }}
                 </p>
             </div>
             <div class="grid grid-cols-1 gap-6">
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">13.</span> Page_views
+                        <span class="text-gc-yellow">22.</span> Page_views
                     </h2>
 
                     <ul class="space-y-4 mt-4">

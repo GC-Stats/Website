@@ -16,6 +16,7 @@ return [
         'tournament' => 'Tournaments Structure',
         'matches' => 'Matches Structure',
         'news' => 'News Structure',
+        'account' => 'User Accounts & Moderation',
         'others' => 'Other Data Structure',
     ],
 
@@ -24,6 +25,7 @@ return [
         'tournament' => 'Each tournament must have an identifier, a name, dates, a region, a category, and a status. They are collected by our team or upon request during a tournament addition request.',
         'matches' => "We collect a lot of match information to provide detailed statistics. We retrieve:<br> - Basic match information (Mandatory)<br> - Match vetos<br> - Played maps, with results, stats and advanced stats (in a separate maps dataset, referenced by map id)<br> - Each round's result (Who wins, and how)<br> - Each player's stats per round (KDA/Economy/Weapon/Armor/etc)<br><br>These stats are not always collected, but we strive to obtain them to display the most complete statistics possible.",
         'news' => 'Each news item must have an identifier, a title, content, and an author.<br><br>The status is hidden but allows for display (Draft = In progress, Published = Visible on site, Archived = Hidden on site but accessible via API).',
+        'account' => "These tables only exist for people who have created a user account (distinct from a player profile), needed to react to news, manage a profile, or administer the site.<br><br>Security data (password, 2FA, passkeys) is never shared. Linked Discord/Twitter/Twitch accounts store an access token used solely for authentication.<br><br>Moderation data (sanctions, ban-evasion fingerprints, reports, activity log) forms a safety record kept independently of the account, including after its deletion, to prevent ban evasion.",
         'others' => 'We store the number of visits per page per hour; we do not store who visited, from which region, or the exact time.<br><br>This data is stored and private. It is never shared; we use it to visualize site usage and adapt our infrastructure as needed.',
     ],
 
@@ -212,12 +214,60 @@ return [
         'round_number' => 'Round number (1-24+)',
         'winning_team' => 'Winning team',
         'win_type' => 'Win type (Defuse, Detonation, Wipe)',
+        'atk_team' => 'Team on attack this round',
+        'def_team' => 'Team on defense this round',
+        'plant_site' => 'Spike plant site (A/B/C)',
+        'plant_x' => 'Plant X position on the minimap',
+        'plant_y' => 'Plant Y position on the minimap',
+    ],
+
+    'game_map_round_kills' => [
+        'game_map_round_id' => 'Concerned round',
+        'killer_player_id' => 'Player who got the kill',
+        'victim_player_id' => 'Player who was killed',
+        'assistant_player_ids' => 'Players who assisted the kill',
+        'time_ms' => 'Time of the kill (ms since round start)',
+        'weapon' => 'Weapon used',
+        'damage_type' => 'Damage type (weapon, ability, fall, etc.)',
+        'is_secondary_fire' => 'Kill made with secondary fire (e.g. a weapon\'s scope)',
+    ],
+
+    'game_map_round_damages' => [
+        'game_map_round_id' => 'Concerned round',
+        'attacker_player_id' => 'Player who dealt the damage',
+        'receiver_player_id' => 'Player who received the damage',
+        'damage' => 'Damage dealt',
+        'headshots' => 'Number of headshots',
+        'bodyshots' => 'Number of bodyshots',
+        'legshots' => 'Number of legshots',
+    ],
+
+    'game_map_round_alive_states' => [
+        'game_map_round_id' => 'Concerned round',
+        'sequence' => 'Order of the event within the round',
+        'time_ms' => 'Time of the event (ms since round start)',
+        'atk_alive' => 'Players alive on attack',
+        'def_alive' => 'Players alive on defense',
+        'winner_side' => 'Side currently holding the numbers advantage',
+    ],
+
+    'game_map_round_player_positions' => [
+        'game_map_round_id' => 'Concerned round',
+        'event_type' => 'Event type (kill, plant, defuse)',
+        'game_map_round_kill_id' => 'Related kill, if any',
+        'player_id' => 'Concerned player',
+        'role' => 'Role in the event (killer, victim, bystander, planter, defuser)',
+        'x' => 'X position on the minimap',
+        'y' => 'Y position on the minimap',
+        'view_radians' => 'View angle at the time of the event',
+        'time_ms' => 'Time of the event (ms since round start)',
     ],
 
     'game_map_round_player_stats' => [
         'id' => 'Unique round stat identifier',
         'game_map_round_id' => 'Concerned round',
         'player_id' => 'Concerned player',
+        'team_id' => 'Player\'s team at the time of the round',
         'kills' => 'Kills during this round',
         'assists' => 'Assists during this round',
         'score' => 'Score obtained this round',
@@ -249,5 +299,85 @@ return [
         'uri' => 'Page URL',
         'viewed_at' => 'Time of viewing',
         'count' => 'Number of views',
+    ],
+
+    'users' => [
+        'titles' => [
+            'main' => 'Main Information',
+            'security' => 'Security (private)',
+        ],
+        'id' => 'Unique account identifier',
+        'username' => 'Publicly displayed username',
+        'email' => 'Email address (private, never displayed)',
+        'team_tag' => 'Team shown as "supported" on the public profile, with a tag from that team',
+        'preferences' => 'Interface preferences (private)',
+        'password' => 'Password, hashed (never stored or displayed in plain text)',
+        'two_factor_secret' => 'Two-factor authentication (2FA) secret, if enabled',
+        'two_factor_recovery_codes' => '2FA recovery codes, if enabled',
+        'discord_synced_at' => 'Date of last sync with Discord',
+    ],
+
+    'social_accounts' => [
+        'user_id' => 'Concerned user account',
+        'provider' => 'Linked platform (Discord, Twitter/X, or Twitch)',
+        'provider_id' => 'Account ID on that platform',
+        'nickname' => 'Nickname on that platform',
+        'avatar' => 'Avatar retrieved from that platform',
+        'token' => 'OAuth access token (private, never shared, used only for authentication)',
+        'refresh_token' => 'OAuth refresh token (private)',
+        'token_expires_at' => 'Access token expiry date',
+    ],
+
+    'passkeys' => [
+        'name' => 'Name given to the passkey',
+        'credential_id' => 'Technical identifier of the key (private)',
+        'last_used_at' => 'Last time this key was used',
+    ],
+
+    'sanctions' => [
+        'type' => 'Sanction type (warning, ban, etc.)',
+        'reason' => 'Reason for the sanction',
+        'starts_at' => 'Start date',
+        'ends_at' => 'End date (if temporary)',
+        'revoked_at' => 'Early revocation date, if any',
+        'issued_by' => 'Moderator who issued the sanction',
+        'revoked_by' => 'Moderator who revoked the sanction, if any',
+    ],
+
+    'sanction_identities' => [
+        'type' => 'Type of technical fingerprint attached (e.g. email)',
+        'value' => 'Fingerprint value (private, kept even after account deletion to prevent ban evasion)',
+    ],
+
+    'user_reports' => [
+        'reporter_id' => 'Account that filed the report',
+        'reported_user_id' => 'Reported account',
+        'category' => 'Report category (fraud, ban evasion, harassment, fake account, other)',
+        'reason' => 'Detail provided by the reporter',
+        'status' => 'Handling status (pending, resolved, rejected)',
+        'reviewed_by' => 'Moderator who handled the report',
+        'resolution_note' => 'Resolution note left by moderation',
+    ],
+
+    'activity_log' => [
+        'log_name' => 'Category of the logged action',
+        'description' => 'Description of the action performed',
+        'event' => 'Event type (created, updated, deleted)',
+        'attribute_changes' => 'Detail of changed fields (before/after)',
+        'causer' => 'Account that performed the action',
+        'subject' => 'Item affected by the action (player, team, etc.)',
+    ],
+
+    'reactions' => [
+        'emote_id' => 'Emote used',
+        'user_id' => 'Account that reacted',
+        'reactable' => 'Content the reaction is attached to (e.g. a news item)',
+    ],
+
+    'emotes' => [
+        'name' => 'Emote name',
+        'image_path' => 'Image path',
+        'source' => 'Emote origin (e.g. twemoji, custom)',
+        'is_active' => 'Is the emote available for use?',
     ],
 ];
