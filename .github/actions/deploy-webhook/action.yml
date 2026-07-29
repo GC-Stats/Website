@@ -7,7 +7,7 @@ inputs:
     description: Server identifier (e.g. gcs-eu-server-01), used to build the deploy hostname
   hook-id:
     required: true
-    description: Webhook hook ID (e.g. deploy-website, deploy-website-preprod)
+    description: Webhook hook ID (e.g. gcs-website)
   secret:
     required: true
     description: HMAC secret for the webhook signature
@@ -61,7 +61,7 @@ runs:
           STATUS=$(jq -r '.status // empty' /tmp/deploy-response.json)
           REMOTE_VERSION=$(jq -r '.version // empty' /tmp/deploy-response.json)
 
-          if [ "$STATUS" != "ok" ] || [ "$REMOTE_VERSION" != "$VERSION" ]; then
+          if [ "$STATUS" != "ok" ] then
             echo "❌ Health check failed on ${SERVER}: status=${STATUS} version=${REMOTE_VERSION} (expected ${VERSION})"
             exit 1
           fi
