@@ -36,6 +36,19 @@ return [
         'maps' => ':tournament - Maps',
     ],
 
+    'edit' => [
+        'logo' => [
+            'title' => 'Logo',
+            'submit' => 'Envoyer',
+            'history_title' => 'Historique des logos',
+            'history_from' => 'Du',
+            'history_until' => 'Au',
+            'history_add' => "Ajouter à l'historique",
+            'history_remove_confirm' => 'Supprimer définitivement cet historique de logo ?',
+            'history_empty' => 'Aucun logo passé.',
+        ],
+    ],
+
     'teams_participating' => 'Équipes participantes',
     'show_roster' => 'Voir le roster',
     'hide_roster' => 'Masquer le roster',

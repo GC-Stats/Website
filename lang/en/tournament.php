@@ -36,6 +36,19 @@ return [
         'maps' => ':tournament - Maps',
     ],
 
+    'edit' => [
+        'logo' => [
+            'title' => 'Logo',
+            'submit' => 'Upload',
+            'history_title' => 'Logo history',
+            'history_from' => 'From',
+            'history_until' => 'Until',
+            'history_add' => 'Add to history',
+            'history_remove_confirm' => 'Permanently remove this logo history entry?',
+            'history_empty' => 'No past logos.',
+        ],
+    ],
+
     'teams_participating' => 'Participating Teams',
     'show_roster' => 'Show roster',
     'hide_roster' => 'Hide roster',

@@ -167,6 +167,13 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             Route::delete('/{tournament}/teams/{team}', [TournamentController::class, 'detachTeam'])->name('teams.destroy');
         });
 
+        Route::middleware(['can:tournaments.edit'])->prefix('{tournament}/logo')->name('logo.')->group(function () {
+            Route::post('/', [TournamentController::class, 'updateLogo'])->name('update');
+            Route::post('/history', [TournamentController::class, 'storeLogoHistory'])->name('history.store');
+            Route::put('/history/{logo}', [TournamentController::class, 'updateLogoEntry'])->name('history.update');
+            Route::delete('/history/{logo}', [TournamentController::class, 'destroyLogoEntry'])->name('history.destroy');
+        });
+
         Route::get('/phases/search', [PhaseQualificationController::class, 'searchPhases'])
             ->middleware('can:tournaments.edit')->name('phases.search');
         Route::post('/{tournament}/phases/{phase}/qualifications', [PhaseQualificationController::class, 'store'])

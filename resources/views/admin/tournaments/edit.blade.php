@@ -35,4 +35,34 @@
             </button>
         </form>
     </fieldset>
+
+    <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4 mt-6">
+        <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('tournament.edit.logo.title') }}</h2>
+
+        <x-admin.logo-upload-form
+            :current-url="$tournament->logo"
+            :action-url="route('admin.tournaments.logo.update', $tournament)"
+            :submit-label="__('tournament.edit.logo.submit')"
+        />
+        @error('logo')
+        <p class="text-xs text-red-400">{{ $message }}</p>
+        @enderror
+
+        <x-admin.logo-history
+            :logos="$tournament->logos()->orderByDesc('from')->get()"
+            folder="tournaments"
+            :add-url="route('admin.tournaments.logo.history.store', $tournament)"
+            :update-url="fn ($logo) => route('admin.tournaments.logo.history.update', [$tournament, $logo->id])"
+            :delete-url="fn ($logo) => route('admin.tournaments.logo.history.destroy', [$tournament, $logo->id])"
+            :title="__('tournament.edit.logo.history_title')"
+            :from-label="__('tournament.edit.logo.history_from')"
+            :until-label="__('tournament.edit.logo.history_until')"
+            :save-label="__('team.roster.save')"
+            :add-label="__('tournament.edit.logo.history_add')"
+            :remove-label="__('team.roster.remove')"
+            :remove-confirm-title="__('team.roster.remove')"
+            :remove-confirm-body="fn ($logo) => __('tournament.edit.logo.history_remove_confirm')"
+            :empty-label="__('tournament.edit.logo.history_empty')"
+        />
+    </div>
 @endsection

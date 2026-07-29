@@ -21,6 +21,7 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
 use App\Models\TournamentTeam;
+use App\Services\LogoUploadService;
 use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -251,6 +252,74 @@ class TournamentController extends Controller
             ->log('tournament.team_detached');
 
         return back()->with('status', 'tournament-team-detached');
+    }
+
+    public function updateLogo(Request $request, Tournament $tournament, LogoUploadService $logoUploadService): RedirectResponse
+    {
+        $validated = $request->validate([
+            'logo' => ['required', 'file', 'image', 'max:10240'],
+        ]);
+
+        $uuid = $logoUploadService->storeLogoPair($validated['logo'], 'tournaments');
+        $logoUploadService->acceptWithHistory($tournament, 'tournament', $uuid);
+
+        activity('tournament')->causedBy($request->user())
+            ->performedOn($tournament)
+            ->withProperties(['logo_id' => $uuid])
+            ->log('tournament.logo_updated');
+
+        return back()->with('status', 'logo-updated');
+    }
+
+    public function storeLogoHistory(Request $request, Tournament $tournament, LogoUploadService $logoUploadService): RedirectResponse
+    {
+        $validated = $request->validate([
+            'logo' => ['required', 'file', 'image', 'max:10240'],
+            'from' => ['required', 'date'],
+            'until' => ['required', 'date', 'after:from'],
+        ]);
+
+        $uuid = $logoUploadService->storeLogoPair($validated['logo'], 'tournaments');
+        $logoUploadService->acceptWithHistory($tournament, 'tournament', $uuid, $validated['from'], $validated['until']);
+
+        activity('tournament')->causedBy($request->user())
+            ->performedOn($tournament)
+            ->withProperties(['logo_id' => $uuid, 'from' => $validated['from'], 'until' => $validated['until']])
+            ->log('tournament.logo_history_added');
+
+        return back()->with('status', 'logo-history-added');
+    }
+
+    public function updateLogoEntry(Request $request, Tournament $tournament, string $logo, LogoUploadService $logoUploadService): RedirectResponse
+    {
+        $validated = $request->validate([
+            'from' => ['required', 'date'],
+            'until' => ['nullable', 'date', 'after:from'],
+        ]);
+
+        $logoModel = $tournament->logos()->findOrFail($logo);
+        $logoModel->update(['from' => $validated['from'], 'until' => $validated['until'] ?? null]);
+
+        activity('tournament')->causedBy($request->user())
+            ->performedOn($tournament)
+            ->withProperties(ActivityChangeSet::fromModel($logoModel, ['from', 'until'])->mergeInto(['logo_id' => $logo]))
+            ->log('tournament.logo_history_updated');
+
+        return back()->with('status', 'logo-history-updated');
+    }
+
+    public function destroyLogoEntry(Request $request, Tournament $tournament, string $logo, LogoUploadService $logoUploadService): RedirectResponse
+    {
+        $logoModel = $tournament->logos()->findOrFail($logo);
+        $logoUploadService->deleteFiles('tournaments', $logoModel->id);
+        $logoModel->delete();
+
+        activity('tournament')->causedBy($request->user())
+            ->performedOn($tournament)
+            ->withProperties(['logo_id' => $logo])
+            ->log('tournament.logo_history_removed');
+
+        return back()->with('status', 'logo-history-removed');
     }
 
     private function validateTournament(Request $request, bool $isUpdate = false): array
