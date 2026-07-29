@@ -71,15 +71,35 @@
                     .filter(m => q.length < 1 || m.toLowerCase().includes(q));
             },
 
-            openMap(row) {
+            mapDropdownRow: null,
+            mapDropdownIndex: null,
+            mapDropdownRect: { top: 0, left: 0, width: 0 },
+
+            // Row cards are siblings that each toggle their own z-index/backdrop-blur
+            // stacking context (open row vs closed rows) — Chromium doesn't always
+            // respect z-index ordering between sibling backdrop-filter contexts, so
+            // the dropdown could render behind the row below it. Teleporting it to
+            // <body> sidesteps that entirely: it's positioned with fixed coords and
+            // never competes with the row cards' stacking contexts at all.
+            openMap(row, index, event) {
                 this.rows.forEach(r => { r.mapOpen = false; });
                 row.mapOpen = true;
                 row.mapQuery = '';
+                this.mapDropdownRow = row;
+                this.mapDropdownIndex = index;
+                const rect = event.currentTarget.getBoundingClientRect();
+                this.mapDropdownRect = { top: rect.bottom + window.scrollY + 4, left: rect.left + window.scrollX, width: rect.width };
+            },
+
+            closeMapDropdown() {
+                if (this.mapDropdownRow) this.mapDropdownRow.mapOpen = false;
+                this.mapDropdownRow = null;
+                this.mapDropdownIndex = null;
             },
 
             selectMap(row, name) {
                 row.map_name = name;
-                row.mapOpen = false;
+                this.closeMapDropdown();
             },
 
             canPickSide(row) {
@@ -128,8 +148,7 @@
                 @method('PUT')
 
                 <template x-for="(row, index) in rows" :key="index">
-                    <div class="relative bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4"
-                         :class="row.mapOpen ? 'z-20' : 'z-0'">
+                    <div class="relative bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4">
                         <div class="grid grid-cols-1 md:grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] gap-3 items-start">
                             <span class="text-xs font-black uppercase tracking-tight text-white pt-2.5" x-text="'{{ __('admin.matches.veto.map_label') }} ' + (index + 1)"></span>
 
@@ -138,8 +157,8 @@
                                     ->when($match->teamA, fn ($c) => $c->put((string) $teamAId, \App\Support\MatchDisplay::teamName($match->teamA, $match->status)))
                                     ->when($match->teamB, fn ($c) => $c->put((string) $teamBId, \App\Support\MatchDisplay::teamName($match->teamB, $match->status)))" />
 
-                            <div class="relative" @click.outside="row.mapOpen = false">
-                                <button type="button" @click="openMap(row); $nextTick(() => $el.parentElement.querySelector('[x-ref=mapSearch]').focus())"
+                            <div class="relative">
+                                <button type="button" @click="openMap(row, index, $event); $nextTick(() => $refs.mapSearch?.focus())"
                                         class="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                                     <span x-text="row.map_name === 'none' ? '{{ __('admin.matches.veto.select_map') }}' : row.map_name" class="truncate"></span>
                                     <svg class="w-3 h-3 text-gray-500 shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,21 +166,6 @@
                                     </svg>
                                 </button>
                                 <input type="hidden" :name="`maps[${index}][map_name]`" x-model="row.map_name">
-
-                                <div x-show="row.mapOpen" x-cloak
-                                     class="absolute z-10 mt-1 w-full bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-hidden">
-                                    <input type="text" x-model="row.mapQuery" placeholder="{{ __('admin.matches.veto.map_search') }}" x-ref="mapSearch"
-                                           class="w-full bg-white/5 border-b border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
-                                    <div class="max-h-40 overflow-y-auto">
-                                        <button type="button" @click="selectMap(row, 'none')"
-                                                class="block w-full text-left px-3 py-1.5 text-xs text-gray-500 hover:bg-white/5 transition">—</button>
-                                        <template x-for="mapName in filteredMaps(row, index)" :key="mapName">
-                                            <button type="button" @click="selectMap(row, mapName)" x-text="mapName"
-                                                    class="block w-full text-left px-3 py-1.5 text-xs text-white hover:bg-white/5 transition"></button>
-                                        </template>
-                                        <p x-show="filteredMaps(row, index).length === 0" class="px-3 py-2 text-xs text-gray-500">—</p>
-                                    </div>
-                                </div>
                             </div>
 
                             <x-styled-select x-model="row.type" x-bind:name="`maps[${index}][type]`" @change="defaultSidePickedBy(row)"
@@ -195,5 +199,27 @@
                 </div>
             </form>
         </fieldset>
+
+        <template x-teleport="body">
+            <div x-show="mapDropdownRow !== null" x-cloak @click.outside="closeMapDropdown()" @scroll.window="closeMapDropdown()"
+                 :style="`top: ${mapDropdownRect.top}px; left: ${mapDropdownRect.left}px; width: ${mapDropdownRect.width}px;`"
+                 class="fixed z-50 bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm shadow-xl overflow-hidden">
+                <template x-if="mapDropdownRow">
+                    <div>
+                        <input type="text" x-model="mapDropdownRow.mapQuery" placeholder="{{ __('admin.matches.veto.map_search') }}" x-ref="mapSearch"
+                               class="w-full bg-white/5 border-b border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
+                        <div class="max-h-40 overflow-y-auto">
+                            <button type="button" @click="selectMap(mapDropdownRow, 'none')"
+                                    class="block w-full text-left px-3 py-1.5 text-xs text-gray-500 hover:bg-white/5 transition">—</button>
+                            <template x-for="mapName in filteredMaps(mapDropdownRow, mapDropdownIndex)" :key="mapName">
+                                <button type="button" @click="selectMap(mapDropdownRow, mapName)" x-text="mapName"
+                                        class="block w-full text-left px-3 py-1.5 text-xs text-white hover:bg-white/5 transition"></button>
+                            </template>
+                            <p x-show="filteredMaps(mapDropdownRow, mapDropdownIndex).length === 0" class="px-3 py-2 text-xs text-gray-500">—</p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
     </div>
 @endsection
