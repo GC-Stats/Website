@@ -14,6 +14,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -48,25 +50,73 @@ jobs:
           build-args: |
             RELEASE_VERSION=${{ steps.meta.outputs.version }}
 
-  deploy:
+  resolve-servers:
     runs-on: ubuntu-latest
     needs: build
+    environment: ${{ inputs.environment }}
+    outputs:
+      primary: ${{ steps.servers.outputs.primary }}
+      rest: ${{ steps.servers.outputs.rest }}
+      hook-id: ${{ steps.servers.outputs.hook-id }}
     steps:
-      - name: Deploy via Webhook
+      - name: Resolve server list
+        id: servers
         env:
-          SECRET: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+          SERVERS: ${{ vars.SERVERS }}
         run: |
+          if [ -z "$SERVERS" ]; then
+            echo "❌ vars.SERVERS is not set for the '${{ inputs.environment }}' environment"
+            exit 1
+          fi
+
+          IFS=',' read -ra ALL <<< "$SERVERS"
+          PRIMARY="${ALL[0]}"
+          REST=("${ALL[@]:1}")
+          REST_JSON=$(printf '%s\n' "${REST[@]:-}" | jq -R . | jq -sc '[.[] | select(length > 0)]')
+
           if [ "${{ inputs.environment }}" = "prod" ]; then
             HOOK_ID="deploy-website"
           else
             HOOK_ID="deploy-website-preprod"
           fi
 
-          PAYLOAD='{"ref":"refs/heads/main"}'
+          echo "primary=$PRIMARY" >> $GITHUB_OUTPUT
+          echo "rest=$REST_JSON" >> $GITHUB_OUTPUT
+          echo "hook-id=$HOOK_ID" >> $GITHUB_OUTPUT
 
-          SIG=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | cut -d' ' -f2)
+  deploy-primary:
+    runs-on: ubuntu-latest
+    needs: [build, resolve-servers]
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v6
 
-          curl -sf -X POST "https://deploy.gc-stats.app/hooks/${HOOK_ID}" \
-            -H "Content-Type: application/json" \
-            -H "X-Hub-Signature-256: sha256=${SIG}" \
-            -d "$PAYLOAD"
+      - name: Deploy to primary server
+        uses: ./.github/actions/deploy-webhook
+        with:
+          server: ${{ needs.resolve-servers.outputs.primary }}
+          hook-id: ${{ needs.resolve-servers.outputs.hook-id }}
+          secret: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+          version: ${{ needs.build.outputs.version }}
+          verify-health: ${{ inputs.environment == 'prod' }}
+
+  deploy-rest:
+    runs-on: ubuntu-latest
+    needs: [build, resolve-servers, deploy-primary]
+    if: needs.resolve-servers.outputs.rest != '[]'
+    environment: ${{ inputs.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        server: ${{ fromJSON(needs.resolve-servers.outputs.rest) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Deploy to ${{ matrix.server }}
+        uses: ./.github/actions/deploy-webhook
+        with:
+          server: ${{ matrix.server }}
+          hook-id: ${{ needs.resolve-servers.outputs.hook-id }}
+          secret: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+          version: ${{ needs.build.outputs.version }}
+          verify-health: 'true'

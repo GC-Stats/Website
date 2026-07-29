@@ -35,7 +35,7 @@ require __DIR__.'/developers.php';
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/health', function () {
-    return response()->json(['status' => 'ok']);
+    return response()->json(['status' => 'ok', 'version' => config('app.version')]);
 });
 
 Route::middleware(['static.cache:2592000'])->group(function () {
