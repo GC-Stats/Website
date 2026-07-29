@@ -27,7 +27,23 @@ trait HasLogo
 {
     public function currentLogo(): MorphOne
     {
-        return $this->morphOne(Logo::class, 'entity')->whereNull('until')->latestOfMany('from');
+        return $this->morphOne(Logo::class, 'entity')->ofMany(['from' => 'max'], function ($query) {
+            $query->whereNull('until')->whereNull('theme');
+        });
+    }
+
+    public function currentLogoDark(): MorphOne
+    {
+        return $this->morphOne(Logo::class, 'entity')->ofMany(['from' => 'max'], function ($query) {
+            $query->whereNull('until')->where('theme', 'dark');
+        });
+    }
+
+    public function currentLogoLight(): MorphOne
+    {
+        return $this->morphOne(Logo::class, 'entity')->ofMany(['from' => 'max'], function ($query) {
+            $query->whereNull('until')->where('theme', 'light');
+        });
     }
 
     /**
@@ -42,9 +58,18 @@ trait HasLogo
      */
     abstract protected function defaultLogoUrl(): string;
 
-    protected function resolveLogoUrl(): string
+    /**
+     * Resolves to the given theme's dedicated logo variant, falling back to
+     * the theme-agnostic logo, then to defaultLogoUrl() when the entity has
+     * no logo at all. Pass null (the default) for the theme-agnostic logo.
+     */
+    protected function resolveLogoUrl(?string $theme = null): string
     {
-        $logo = $this->currentLogo;
+        $logo = match ($theme) {
+            'dark' => $this->currentLogoDark ?? $this->currentLogo,
+            'light' => $this->currentLogoLight ?? $this->currentLogo,
+            default => $this->currentLogo,
+        };
 
         if (! $logo) {
             return $this->defaultLogoUrl();

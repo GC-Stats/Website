@@ -25,6 +25,7 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
 use App\Services\HeadToHeadService;
+use App\Support\CurrentTheme;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -180,7 +181,7 @@ class TournamentController extends Controller
             abort_unless(auth()->user()?->can('tournaments.view'), 404);
         }
 
-        $cacheKey = "tournament_page_{$id}_{$tournamentMeta->updated_at->timestamp}";
+        $cacheKey = "tournament_page_{$id}_{$tournamentMeta->updated_at->timestamp}_theme_".CurrentTheme::get();
 
         if ($tournamentMeta->active) {
             $cached = Cache::tags([$tag])->get($cacheKey);
@@ -656,7 +657,7 @@ class TournamentController extends Controller
         $filters = Cache::tags([$tag])->remember("tournament_matches_filters_{$id}_{$tournamentVersion}", $ttl, $buildFilters);
 
         $filterKey = ($phaseId ?: 'all').'_'.($teamId ?: 'all').'_'.($roundName ?: 'all').'_'.($statusFilter ?: 'all');
-        $cacheKey = "tournament_page_matches_{$id}_page_{$page}_{$filterKey}_{$tournamentVersion}";
+        $cacheKey = "tournament_page_matches_{$id}_page_{$page}_{$filterKey}_{$tournamentVersion}_theme_".CurrentTheme::get();
 
         $cached = Cache::tags([$tag])->get($cacheKey);
         if ($cached) {
@@ -751,7 +752,7 @@ class TournamentController extends Controller
         abort_unless($tournamentUpdatedAt !== null, 404);
 
         $periodKey = ($phaseId ? "phase_{$phaseId}" : 'all_phases').'_'.$dateKey;
-        $cacheKey = "tournament_stats_{$id}_{$periodKey}_".Carbon::parse($tournamentUpdatedAt)->timestamp;
+        $cacheKey = "tournament_stats_{$id}_{$periodKey}_".Carbon::parse($tournamentUpdatedAt)->timestamp.'_theme_'.CurrentTheme::get();
         $tag = "tournament_{$id}";
 
         $cached = Cache::tags([$tag])->get($cacheKey);
@@ -838,7 +839,7 @@ class TournamentController extends Controller
         $tournamentUpdatedAt = Tournament::where('id', $id)->value('updated_at');
         abort_unless($tournamentUpdatedAt !== null, 404);
 
-        $cacheKey = 'tournament_maps_'.$id.'_'.($phaseId ? "phase_{$phaseId}" : 'all_phases').'_'.Carbon::parse($tournamentUpdatedAt)->timestamp;
+        $cacheKey = 'tournament_maps_'.$id.'_'.($phaseId ? "phase_{$phaseId}" : 'all_phases').'_'.Carbon::parse($tournamentUpdatedAt)->timestamp.'_theme_'.CurrentTheme::get();
         $tag = "tournament_{$id}";
 
         $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $phaseIds) {

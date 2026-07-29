@@ -17,13 +17,14 @@ namespace App\Http\Controllers\Public;
 use App\Models\Matchs;
 use App\Models\News;
 use App\Models\Tournament;
+use App\Support\CurrentTheme;
 use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $data = Cache::remember('home_page', now()->addMinutes(10), function () {
+        $data = Cache::remember('home_page_theme_'.CurrentTheme::get(), now()->addMinutes(10), function () {
             $statusOrder = ['live', 'upcoming', 'finished'];
 
             $matches = Matchs::query()

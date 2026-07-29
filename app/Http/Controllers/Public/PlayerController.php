@@ -19,6 +19,7 @@ use App\Models\Matchs;
 use App\Models\News;
 use App\Models\Player;
 use App\Support\Achievements;
+use App\Support\CurrentTheme;
 use App\Support\MatchPresenter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -113,7 +114,7 @@ class PlayerController extends Controller
         }
 
         $player = Player::findOrFail($id);
-        $cacheKey = "player_page_{$id}_{$player->updated_at->timestamp}";
+        $cacheKey = "player_page_{$id}_{$player->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "player_{$id}";
 
         $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($id, $player) {
@@ -203,7 +204,7 @@ class PlayerController extends Controller
 
         $page = $request->integer('page', 1);
         $player = Player::findOrFail($id);
-        $cacheKey = "player_history_{$id}_page_{$page}_{$player->updated_at->timestamp}";
+        $cacheKey = "player_history_{$id}_page_{$page}_{$player->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "player_{$id}";
 
         $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($player) {
@@ -253,7 +254,7 @@ class PlayerController extends Controller
         $playerUpdatedAt = Player::where('id', $id)->value('updated_at');
         abort_unless($playerUpdatedAt !== null, 404);
 
-        $cacheKey = "player_page_matches_{$id}_page_{$page}_".Carbon::parse($playerUpdatedAt)->timestamp;
+        $cacheKey = "player_page_matches_{$id}_page_{$page}_".Carbon::parse($playerUpdatedAt)->timestamp.'_theme_'.CurrentTheme::get();
         $tag = "player_{$id}";
 
         $cached = Cache::tags([$tag])->get($cacheKey);

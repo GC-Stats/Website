@@ -85,9 +85,10 @@ class ProfileController extends Controller
     {
         $validated = $request->validate([
             'logo' => ['required', 'file', 'image', 'max:10240'],
+            'theme' => ['nullable', 'in:dark,light'],
         ]);
 
-        $service->updateLogo($team, $validated['logo'], $request->user());
+        $service->updateLogo($team, $validated['logo'], $request->user(), $validated['theme'] ?? null);
 
         return back()->with('status', 'logo-updated');
     }
@@ -98,9 +99,10 @@ class ProfileController extends Controller
             'logo' => ['required', 'file', 'image', 'max:10240'],
             'from' => ['required', 'date'],
             'until' => ['required', 'date', 'after:from'],
+            'theme' => ['nullable', 'in:dark,light'],
         ]);
 
-        $service->addLogoHistoryEntry($team, $validated['logo'], $validated['from'], $validated['until'], $request->user());
+        $service->addLogoHistoryEntry($team, $validated['logo'], $validated['from'], $validated['until'], $request->user(), $validated['theme'] ?? null);
 
         return back()->with('status', 'logo-history-added');
     }
@@ -110,9 +112,10 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'from' => ['required', 'date'],
             'until' => ['nullable', 'date', 'after:from'],
+            'theme' => ['nullable', 'in:dark,light'],
         ]);
 
-        $service->updateLogoEntry($team, $logo, $validated['from'], $validated['until'] ?? null, $request->user());
+        $service->updateLogoEntry($team, $logo, $validated['from'], $validated['until'] ?? null, $request->user(), $validated['theme'] ?? null);
 
         return back()->with('status', 'logo-history-updated');
     }

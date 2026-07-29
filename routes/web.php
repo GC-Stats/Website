@@ -21,6 +21,7 @@ use App\Http\Controllers\Public\NewsController;
 use App\Http\Controllers\Public\PlayerController;
 use App\Http\Controllers\Public\SearchController;
 use App\Http\Controllers\Public\TeamController;
+use App\Http\Controllers\Public\ThemePreferenceController;
 use App\Http\Controllers\Public\TournamentController;
 use App\Http\Controllers\Public\TransparencyController;
 use App\Http\Controllers\Public\UserProfileController;
@@ -124,6 +125,8 @@ Route::middleware(['throttle:30,1'])->group(function () {
     Route::get('/api-keys/reveal/{token}', [ApiKeyRevealController::class, 'show'])->name('api-keys.reveal');
     Route::post('/api-keys/reveal/{token}', [ApiKeyRevealController::class, 'reveal'])->name('api-keys.reveal.confirm');
 });
+
+Route::post('/preferences/theme', [ThemePreferenceController::class, 'update'])->name('preferences.theme.update');
 
 Route::get('lang/{locale}', function ($locale) {
     $supportedLocales = array_keys(Config::get('locales.supported', []));

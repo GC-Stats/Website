@@ -109,6 +109,19 @@ window.GCS.setTheme = function (theme) {
     } else {
         document.documentElement.setAttribute('data-theme', theme);
     }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch('/preferences/theme', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({ theme }),
+        keepalive: true,
+    }).catch(() => {});
 };
 
 window.GCS.getAccent = function () {

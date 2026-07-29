@@ -46,6 +46,10 @@ return [
             'history_add' => 'Add to history',
             'history_remove_confirm' => 'Permanently remove this logo history entry?',
             'history_empty' => 'No past logos.',
+            'theme_label' => 'Theme',
+            'theme_universal' => 'All themes',
+            'theme_dark' => 'Dark theme only',
+            'theme_light' => 'Light theme only',
         ],
     ],
 

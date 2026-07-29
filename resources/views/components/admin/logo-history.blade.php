@@ -20,6 +20,10 @@
     'removeConfirmTitle',
     'removeConfirmBody',
     'emptyLabel',
+    'themeable' => false,
+    'themeUniversalLabel' => null,
+    'themeDarkLabel' => null,
+    'themeLightLabel' => null,
 ])
 
 <div class="pt-4 border-t border-border-subtle space-y-3">
@@ -38,6 +42,14 @@
                            class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
                     <input type="date" name="until" value="{{ $logo->until?->format('Y-m-d') }}" aria-label="{{ $untilLabel }}"
                            class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
+                    @if ($themeable)
+                        <select name="theme" aria-label="{{ $themeUniversalLabel }}"
+                                class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
+                            <option value="" @selected(! $logo->theme)>{{ $themeUniversalLabel }}</option>
+                            <option value="dark" @selected($logo->theme === 'dark')>{{ $themeDarkLabel }}</option>
+                            <option value="light" @selected($logo->theme === 'light')>{{ $themeLightLabel }}</option>
+                        </select>
+                    @endif
                     <button type="submit"
                             class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-white/10 border border-border-subtle text-white hover:bg-white/20">
                         {{ $saveLabel }}
@@ -74,6 +86,14 @@
                    class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
             <input type="date" name="until" required aria-label="{{ $untilLabel }}"
                    class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
+            @if ($themeable)
+                <select name="theme" aria-label="{{ $themeUniversalLabel }}"
+                        class="bg-black/40 border border-border-subtle rounded-sm px-2 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
+                    <option value="">{{ $themeUniversalLabel }}</option>
+                    <option value="dark">{{ $themeDarkLabel }}</option>
+                    <option value="light">{{ $themeLightLabel }}</option>
+                </select>
+            @endif
             <button type="submit"
                     class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90 shrink-0">
                 {{ $addLabel }}

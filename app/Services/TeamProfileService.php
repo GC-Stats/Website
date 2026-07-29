@@ -85,33 +85,33 @@ class TeamProfileService
         }
     }
 
-    public function updateLogo(Team $team, UploadedFile $file, User $actor): void
+    public function updateLogo(Team $team, UploadedFile $file, User $actor, ?string $theme = null): void
     {
         $uuid = $this->logoUploadService->storeLogoPair($file, 'teams');
-        $this->logoUploadService->acceptWithHistory($team, 'team', $uuid);
+        $this->logoUploadService->acceptWithHistory($team, 'team', $uuid, theme: $theme);
 
         activity('team')->performedOn($team)->causedBy($actor)
-            ->withProperties(['logo_id' => $uuid])
+            ->withProperties(['logo_id' => $uuid, 'theme' => $theme])
             ->log('team.logo_updated');
     }
 
-    public function addLogoHistoryEntry(Team $team, UploadedFile $file, string $from, string $until, User $actor): void
+    public function addLogoHistoryEntry(Team $team, UploadedFile $file, string $from, string $until, User $actor, ?string $theme = null): void
     {
         $uuid = $this->logoUploadService->storeLogoPair($file, 'teams');
-        $this->logoUploadService->acceptWithHistory($team, 'team', $uuid, $from, $until);
+        $this->logoUploadService->acceptWithHistory($team, 'team', $uuid, $from, $until, $theme);
 
         activity('team')->performedOn($team)->causedBy($actor)
-            ->withProperties(['logo_id' => $uuid, 'from' => $from, 'until' => $until])
+            ->withProperties(['logo_id' => $uuid, 'from' => $from, 'until' => $until, 'theme' => $theme])
             ->log('team.logo_history_added');
     }
 
-    public function updateLogoEntry(Team $team, string $logoId, string $from, ?string $until, User $actor): void
+    public function updateLogoEntry(Team $team, string $logoId, string $from, ?string $until, User $actor, ?string $theme = null): void
     {
         $logo = $team->logos()->findOrFail($logoId);
-        $logo->update(['from' => $from, 'until' => $until]);
+        $logo->update(['from' => $from, 'until' => $until, 'theme' => $theme]);
 
         activity('team')->performedOn($team)->causedBy($actor)
-            ->withProperties(ActivityChangeSet::fromModel($logo, ['from', 'until'])->mergeInto(['logo_id' => $logoId]))
+            ->withProperties(ActivityChangeSet::fromModel($logo, ['from', 'until', 'theme'])->mergeInto(['logo_id' => $logoId]))
             ->log('team.logo_history_updated');
     }
 

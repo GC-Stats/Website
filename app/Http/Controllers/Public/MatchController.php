@@ -18,6 +18,7 @@ use App\Helpers\CacheTtl;
 use App\Models\Matchs;
 use App\Models\User;
 use App\Services\HeadToHeadService;
+use App\Support\CurrentTheme;
 use App\Support\MatchPresenter;
 use App\Support\PublisherScope;
 use Carbon\Carbon;
@@ -38,7 +39,7 @@ class MatchController extends Controller
 
         abort_unless($meta, 404);
 
-        $cacheKey = "match_{$id}_".Carbon::parse($meta->updated_at)->timestamp;
+        $cacheKey = "match_{$id}_".Carbon::parse($meta->updated_at)->timestamp.'_theme_'.CurrentTheme::get();
 
         if (! $meta->tournament_active) {
             abort_unless(auth()->user()?->can('tournaments.view'), 404);

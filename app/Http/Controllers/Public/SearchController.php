@@ -15,6 +15,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Services\SearchService;
+use App\Support\CurrentTheme;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
@@ -30,7 +31,11 @@ class SearchController extends Controller
         $results = [];
 
         if (mb_strlen($term) >= 2) {
-            $results = Cache::remember("search_full_v2_{$term}", now()->addMinutes(15), fn () => $searchService->search($term, perTypeLimit: 50, candidateLimit: 100));
+            $results = Cache::remember(
+                "search_full_v2_{$term}_theme_".CurrentTheme::get(),
+                now()->addMinutes(15),
+                fn () => $searchService->search($term, perTypeLimit: 50, candidateLimit: 100)
+            );
         }
 
         $items = collect($results)

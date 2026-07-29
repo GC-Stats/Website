@@ -46,6 +46,10 @@ return [
             'history_add' => "Ajouter à l'historique",
             'history_remove_confirm' => 'Supprimer définitivement cet historique de logo ?',
             'history_empty' => 'Aucun logo passé.',
+            'theme_label' => 'Thème',
+            'theme_universal' => 'Tous les thèmes',
+            'theme_dark' => 'Thème sombre uniquement',
+            'theme_light' => 'Thème clair uniquement',
         ],
     ],
 

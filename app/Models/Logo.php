@@ -34,6 +34,7 @@ class Logo extends Model
         'entity_id',
         'from',
         'until',
+        'theme',
     ];
 
     protected $casts = [

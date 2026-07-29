@@ -43,6 +43,10 @@
                         :current-url="$team->logo"
                         :action-url="route('teams.logo.update', $teamParams)"
                         :submit-label="__('team.edit.logo.submit')"
+                        :themeable="true"
+                        :theme-universal-label="__('team.edit.logo.theme_universal')"
+                        :theme-dark-label="__('team.edit.logo.theme_dark')"
+                        :theme-light-label="__('team.edit.logo.theme_light')"
                     />
                     @error('logo')
                         <p class="text-xs text-red-400">{{ $message }}</p>
@@ -63,6 +67,10 @@
                         :remove-confirm-title="__('team.roster.remove')"
                         :remove-confirm-body="fn ($logo) => __('team.edit.logo.history_remove_confirm')"
                         :empty-label="__('team.edit.logo.history_empty')"
+                        :themeable="true"
+                        :theme-universal-label="__('team.edit.logo.theme_universal')"
+                        :theme-dark-label="__('team.edit.logo.theme_dark')"
+                        :theme-light-label="__('team.edit.logo.theme_light')"
                     />
                 </div>
             @endcan

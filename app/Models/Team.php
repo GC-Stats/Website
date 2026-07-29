@@ -15,6 +15,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasLogo;
+use App\Support\CurrentTheme;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -122,7 +123,7 @@ class Team extends Model
 
     public function getLogoAttribute(): string
     {
-        return $this->resolveLogoUrl();
+        return $this->resolveLogoUrl(CurrentTheme::get());
     }
 
     protected function logoStorageFolder(): string

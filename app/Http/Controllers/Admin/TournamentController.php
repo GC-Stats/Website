@@ -258,14 +258,15 @@ class TournamentController extends Controller
     {
         $validated = $request->validate([
             'logo' => ['required', 'file', 'image', 'max:10240'],
+            'theme' => ['nullable', 'in:dark,light'],
         ]);
 
         $uuid = $logoUploadService->storeLogoPair($validated['logo'], 'tournaments');
-        $logoUploadService->acceptWithHistory($tournament, 'tournament', $uuid);
+        $logoUploadService->acceptWithHistory($tournament, 'tournament', $uuid, theme: $validated['theme'] ?? null);
 
         activity('tournament')->causedBy($request->user())
             ->performedOn($tournament)
-            ->withProperties(['logo_id' => $uuid])
+            ->withProperties(['logo_id' => $uuid, 'theme' => $validated['theme'] ?? null])
             ->log('tournament.logo_updated');
 
         return back()->with('status', 'logo-updated');
@@ -277,14 +278,15 @@ class TournamentController extends Controller
             'logo' => ['required', 'file', 'image', 'max:10240'],
             'from' => ['required', 'date'],
             'until' => ['required', 'date', 'after:from'],
+            'theme' => ['nullable', 'in:dark,light'],
         ]);
 
         $uuid = $logoUploadService->storeLogoPair($validated['logo'], 'tournaments');
-        $logoUploadService->acceptWithHistory($tournament, 'tournament', $uuid, $validated['from'], $validated['until']);
+        $logoUploadService->acceptWithHistory($tournament, 'tournament', $uuid, $validated['from'], $validated['until'], $validated['theme'] ?? null);
 
         activity('tournament')->causedBy($request->user())
             ->performedOn($tournament)
-            ->withProperties(['logo_id' => $uuid, 'from' => $validated['from'], 'until' => $validated['until']])
+            ->withProperties(['logo_id' => $uuid, 'from' => $validated['from'], 'until' => $validated['until'], 'theme' => $validated['theme'] ?? null])
             ->log('tournament.logo_history_added');
 
         return back()->with('status', 'logo-history-added');
@@ -295,14 +297,15 @@ class TournamentController extends Controller
         $validated = $request->validate([
             'from' => ['required', 'date'],
             'until' => ['nullable', 'date', 'after:from'],
+            'theme' => ['nullable', 'in:dark,light'],
         ]);
 
         $logoModel = $tournament->logos()->findOrFail($logo);
-        $logoModel->update(['from' => $validated['from'], 'until' => $validated['until'] ?? null]);
+        $logoModel->update(['from' => $validated['from'], 'until' => $validated['until'] ?? null, 'theme' => $validated['theme'] ?? null]);
 
         activity('tournament')->causedBy($request->user())
             ->performedOn($tournament)
-            ->withProperties(ActivityChangeSet::fromModel($logoModel, ['from', 'until'])->mergeInto(['logo_id' => $logo]))
+            ->withProperties(ActivityChangeSet::fromModel($logoModel, ['from', 'until', 'theme'])->mergeInto(['logo_id' => $logo]))
             ->log('tournament.logo_history_updated');
 
         return back()->with('status', 'logo-history-updated');

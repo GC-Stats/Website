@@ -20,6 +20,7 @@ use App\Models\News;
 use App\Models\Team;
 use App\Services\HeadToHeadService;
 use App\Support\Achievements;
+use App\Support\CurrentTheme;
 use App\Support\MatchPresenter;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,7 +57,7 @@ class TeamController extends Controller
 
         $team = Team::findOrFail($id);
 
-        $cacheKey = "team_page_{$id}_{$team->updated_at->timestamp}";
+        $cacheKey = "team_page_{$id}_{$team->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "team_{$id}";
 
         $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id, $team) {
@@ -128,7 +129,7 @@ class TeamController extends Controller
 
         $page = $request->input('page', 1);
         $team = Team::findOrFail($id);
-        $cacheKey = "team_history_{$id}_page_{$page}_{$team->updated_at->timestamp}";
+        $cacheKey = "team_history_{$id}_page_{$page}_{$team->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "team_{$id}";
 
         $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($team) {
@@ -176,7 +177,7 @@ class TeamController extends Controller
         $teamUpdatedAt = Team::where('id', $id)->value('updated_at');
         abort_unless($teamUpdatedAt !== null, 404);
 
-        $cacheKey = "team_page_matches_{$id}_page_{$page}_status_".($status ?? 'all').'_'.Carbon::parse($teamUpdatedAt)->timestamp;
+        $cacheKey = "team_page_matches_{$id}_page_{$page}_status_".($status ?? 'all').'_'.Carbon::parse($teamUpdatedAt)->timestamp.'_theme_'.CurrentTheme::get();
         $tag = "team_{$id}";
 
         $cached = Cache::tags([$tag])->get($cacheKey);
@@ -239,7 +240,7 @@ class TeamController extends Controller
         }
 
         $team = Team::findOrFail($id);
-        $cacheKey = "team_maps_{$id}_{$team->updated_at->timestamp}";
+        $cacheKey = "team_maps_{$id}_{$team->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "team_{$id}";
 
         $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id, $team) {

@@ -43,6 +43,10 @@
             :current-url="$tournament->logo"
             :action-url="route('admin.tournaments.logo.update', $tournament)"
             :submit-label="__('tournament.edit.logo.submit')"
+            :themeable="true"
+            :theme-universal-label="__('tournament.edit.logo.theme_universal')"
+            :theme-dark-label="__('tournament.edit.logo.theme_dark')"
+            :theme-light-label="__('tournament.edit.logo.theme_light')"
         />
         @error('logo')
         <p class="text-xs text-red-400">{{ $message }}</p>
@@ -63,6 +67,10 @@
             :remove-confirm-title="__('team.roster.remove')"
             :remove-confirm-body="fn ($logo) => __('tournament.edit.logo.history_remove_confirm')"
             :empty-label="__('tournament.edit.logo.history_empty')"
+            :themeable="true"
+            :theme-universal-label="__('tournament.edit.logo.theme_universal')"
+            :theme-dark-label="__('tournament.edit.logo.theme_dark')"
+            :theme-light-label="__('tournament.edit.logo.theme_light')"
         />
     </div>
 @endsection

@@ -148,7 +148,8 @@ class LogoUploadService
         string $entityType,
         string $uuid,
         ?string $from = null,
-        ?string $until = null
+        ?string $until = null,
+        ?string $theme = null
     ): Logo {
         if ($until) {
             return Logo::create([
@@ -157,16 +158,22 @@ class LogoUploadService
                 'entity_id' => $entity->id,
                 'from' => $from ?? now(),
                 'until' => $until,
+                'theme' => $theme,
             ]);
         }
 
-        Logo::where('entity_type', $entityType)->where('entity_id', $entity->id)->whereNull('until')->update(['until' => now()]);
+        Logo::where('entity_type', $entityType)
+            ->where('entity_id', $entity->id)
+            ->whereNull('until')
+            ->when($theme === null, fn ($query) => $query->whereNull('theme'), fn ($query) => $query->where('theme', $theme))
+            ->update(['until' => now()]);
 
         $logo = Logo::create([
             'id' => $uuid,
             'entity_type' => $entityType,
             'entity_id' => $entity->id,
             'from' => $from ?? now(),
+            'theme' => $theme,
         ]);
 
         $entity->touch();
