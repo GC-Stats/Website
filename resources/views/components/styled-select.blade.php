@@ -60,20 +60,13 @@
             const found = this.options.find(o => o.value === String(this.value));
             return found ? found.label : this.value;
         },
-        // The option list is teleported to <body> (fixed-positioned from the
-        // button's own rect) instead of living inside this component's own
-        // 'relative' wrapper. When several styled-selects sit in sibling cards
-        // that each form their own stacking context (e.g. backdrop-blur rows
-        // in a list), an absolutely-positioned dropdown nested in one card
-        // can render behind a later sibling card regardless of z-index —
-        // Chromium doesn't reliably order z-index across sibling backdrop-filter
-        // stacking contexts. Teleporting sidesteps that: the dropdown never
-        // shares a stacking context with anything else on the page.
+
+
         toggle(event) {
             this.open = ! this.open;
             if (this.open) {
                 const r = event.currentTarget.getBoundingClientRect();
-                this.rect = { top: r.bottom + window.scrollY + 4, left: r.left + window.scrollX, width: r.width };
+                this.rect = { top: r.bottom + 4, left: r.left, width: r.width };
             }
         },
         select(v) {

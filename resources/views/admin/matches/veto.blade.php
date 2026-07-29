@@ -75,20 +75,15 @@
             mapDropdownIndex: null,
             mapDropdownRect: { top: 0, left: 0, width: 0 },
 
-            // Row cards are siblings that each toggle their own z-index/backdrop-blur
-            // stacking context (open row vs closed rows) — Chromium doesn't always
-            // respect z-index ordering between sibling backdrop-filter contexts, so
-            // the dropdown could render behind the row below it. Teleporting it to
-            // <body> sidesteps that entirely: it's positioned with fixed coords and
-            // never competes with the row cards' stacking contexts at all.
             openMap(row, index, event) {
                 this.rows.forEach(r => { r.mapOpen = false; });
                 row.mapOpen = true;
                 row.mapQuery = '';
                 this.mapDropdownRow = row;
                 this.mapDropdownIndex = index;
+                // position:fixed is viewport-relative — no scrollY/scrollX offset here.
                 const rect = event.currentTarget.getBoundingClientRect();
-                this.mapDropdownRect = { top: rect.bottom + window.scrollY + 4, left: rect.left + window.scrollX, width: rect.width };
+                this.mapDropdownRect = { top: rect.bottom + 4, left: rect.left, width: rect.width };
             },
 
             closeMapDropdown() {
