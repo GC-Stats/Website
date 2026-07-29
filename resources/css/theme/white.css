@@ -157,3 +157,82 @@
 [data-theme="white"] a.bg-white.text-black {
     border: 1px solid var(--color-border-subtle);
 }
+
+/* Subtle borders on arbitrary opacity values not covered by the /5, /10
+   rules above (e.g. news article hero/excerpt dividers) */
+[data-theme="white"] .border-white\/\[0\.06\] {
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* News article hero banner: always a dark scrim over the cover image (or a
+   dark gradient placeholder), regardless of theme, so its text stays legible.
+   These selectors opt its own children back out of the generic text/bg
+   recolor rules above. */
+[data-theme="white"] .news-hero.border-white\/\[0\.06\] {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+[data-theme="white"] .news-hero .text-white,
+[data-theme="white"] .news-hero h1 {
+    color: #ffffff !important;
+}
+
+[data-theme="white"] .news-hero .text-gray-300,
+[data-theme="white"] .news-hero .text-gray-400 {
+    color: #d1d5db !important;
+}
+
+[data-theme="white"] .news-hero .text-gray-600 {
+    color: #9ca3af !important;
+}
+
+[data-theme="white"] .news-hero .bg-black\/60 {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="white"] .news-hero .border-white\/10 {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="white"] .news-hero .hover\:text-white:hover {
+    color: #ffffff !important;
+}
+
+/* News article body: `prose-invert` (+ the prose-p/-strong/-ul/-ol/-blockquote/
+   -code/-pre modifiers on the article tag) hardcode a light-on-dark palette
+   that doesn't follow the theme system. Re-point it to the light palette. */
+[data-theme="white"] .news-content h1,
+[data-theme="white"] .news-content h2,
+[data-theme="white"] .news-content h3,
+[data-theme="white"] .news-content h4 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="white"] .news-content p,
+[data-theme="white"] .news-content ul,
+[data-theme="white"] .news-content ol,
+[data-theme="white"] .news-content li {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="white"] .news-content strong {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="white"] .news-content blockquote {
+    color: var(--text-muted) !important;
+    background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+[data-theme="white"] .news-content code {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="white"] .news-content pre {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+    border-color: var(--color-border-subtle) !important;
+}
+
+[data-theme="white"] .news-content pre code {
+    color: var(--text-secondary) !important;
+}

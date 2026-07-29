@@ -70,7 +70,10 @@
     @endif
 
     {{-- ── Hero ───────────────────────────────────────────────────────── --}}
-    <div class="relative rounded-2xl overflow-hidden mb-8 border border-white/[0.06]">
+    {{-- Always rendered as a dark scrim (for image legibility), regardless of
+         the site theme — see `.news-hero` overrides in theme/white.css that
+         keep its text/badges light-on-dark instead of following the page theme. --}}
+    <div class="news-hero relative rounded-2xl overflow-hidden mb-8 border border-white/[0.06]">
         @if($imageCover)
             <img src="{{ $imageCover }}" alt=""
                  class="w-full h-64 md:h-80 object-cover opacity-50">
