@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.meta.outputs.version }}
+      image-tag: ${{ steps.meta.outputs.image-tag }}
     steps:
       - uses: actions/checkout@v6
 
@@ -36,8 +37,10 @@ jobs:
 
           if [ "${{ inputs.environment }}" = "prod" ]; then
             echo "tags=ghcr.io/gc-stats/website:latest,ghcr.io/gc-stats/website:${VERSION}" >> $GITHUB_OUTPUT
+            echo "image-tag=latest" >> $GITHUB_OUTPUT
           else
             echo "tags=ghcr.io/gc-stats/website:preprod" >> $GITHUB_OUTPUT
+            echo "image-tag=preprod" >> $GITHUB_OUTPUT
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
@@ -93,6 +96,7 @@ jobs:
           server: ${{ needs.resolve-servers.outputs.primary }}
           hook-id: ${{ needs.resolve-servers.outputs.hook-id }}
           secret: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+          image-tag: ${{ needs.build.outputs.image-tag }}
           version: ${{ needs.build.outputs.version }}
           verify-health: ${{ inputs.environment == 'prod' }}
 
@@ -114,5 +118,6 @@ jobs:
           server: ${{ matrix.server }}
           hook-id: ${{ needs.resolve-servers.outputs.hook-id }}
           secret: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+          image-tag: ${{ needs.build.outputs.image-tag }}
           version: ${{ needs.build.outputs.version }}
           verify-health: 'true'

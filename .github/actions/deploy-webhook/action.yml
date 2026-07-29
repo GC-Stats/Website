@@ -11,6 +11,9 @@ inputs:
   secret:
     required: true
     description: HMAC secret for the webhook signature
+  image-tag:
+    required: true
+    description: Docker image tag to pull on the server (latest for prod, preprod for preprod)
   version:
     required: true
     description: Expected version, verified against the health check returned by the deploy script
@@ -28,12 +31,13 @@ runs:
         SERVER: ${{ inputs.server }}
         HOOK_ID: ${{ inputs.hook-id }}
         SECRET: ${{ inputs.secret }}
+        IMAGE_TAG: ${{ inputs.image-tag }}
         VERSION: ${{ inputs.version }}
         VERIFY_HEALTH: ${{ inputs.verify-health }}
       run: |
         set -euo pipefail
 
-        PAYLOAD=$(printf '{"ref":"refs/heads/main","service":"%s","tag":"%s"}' "website" "$VERSION")
+        PAYLOAD=$(printf '{"ref":"refs/heads/main","service":"%s","tag":"%s"}' "website" "$IMAGE_TAG")
         SIG=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | cut -d' ' -f2)
 
         echo "::group::Deploying ${VERSION} to ${SERVER}"
