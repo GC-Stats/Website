@@ -1,17 +1,17 @@
 <?php
 return [
-    'title' => '',
+    'title' => 'Sobre Nós',
     'presentation' => [
-        'title' => '',
+        'title' => 'Quem Somos',
     ],
     'team' => [
-        'title' => '',
+        'title' => 'A Nossa Equipa',
     ],
     'projects' => [
-        'title' => '',
-        'visit' => '',
+        'title' => 'Os Nossos Projetos',
+        'visit' => 'Visitar projeto',
     ],
     'future' => [
-        'title' => "",
+        'title' => "O Que Vem a Seguir",
     ],
 ];

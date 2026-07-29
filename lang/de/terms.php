@@ -1,10 +1,10 @@
 <?php
 return [
-    'title' => '',
-    'last_updated' => '',
-    'intro' => '',
+    'title' => 'Nutzungsbedingungen',
+    'last_updated' => 'Letzte Aktualisierung: :date',
+    'intro' => 'Durch das Zugreifen oder Nutzen von GC Stats stimmen Sie den Nutzungsbedingungen zu. Bitte lesen Sie diese sorgfältig bevor Sie die Seite verwenden.',
     'service' => [
-        'title' => '',
+        'title' => 'Über diesen Dienst',
         'text' => '',
     ],
     'access' => [
