@@ -23,7 +23,7 @@
     };
 @endphp
 
-<a href="{{ route('match.show', $match['id']) }}" class="block mb-2 md:mb-6 group" aria-label="{{ $matchAriaLabel }}">
+<a href="{{ route('match.show', $match['id']) }}" data-match-status="{{ $matchStatus }}" class="block mb-2 md:mb-6 group" aria-label="{{ $matchAriaLabel }}">
     <div class="match-card relative bg-white/[0.02] border border-white/5 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-300 group-hover:border-[var(--brand-yellow)]/30 group-hover:bg-white/[0.04] group-hover:-translate-y-1 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
         <div class="px-3 py-1.5 md:px-5 md:py-3 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
             <div class="flex items-center gap-2 md:gap-3 min-w-0">

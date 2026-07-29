@@ -171,10 +171,12 @@ class TeamController extends Controller
         }
 
         $page = $request->input('page', 1);
+        $status = $request->input('status');
+        $status = in_array($status, ['upcoming', 'finished'], true) ? $status : null;
         $teamUpdatedAt = Team::where('id', $id)->value('updated_at');
         abort_unless($teamUpdatedAt !== null, 404);
 
-        $cacheKey = "team_page_matches_{$id}_page_{$page}_".Carbon::parse($teamUpdatedAt)->timestamp;
+        $cacheKey = "team_page_matches_{$id}_page_{$page}_status_".($status ?? 'all').'_'.Carbon::parse($teamUpdatedAt)->timestamp;
         $tag = "team_{$id}";
 
         $cached = Cache::tags([$tag])->get($cacheKey);
@@ -188,15 +190,16 @@ class TeamController extends Controller
             );
 
             return response()
-                ->view('public.team.matches', ['team' => $cached['team'], 'matches' => $matches])
+                ->view('public.team.matches', ['team' => $cached['team'], 'matches' => $matches, 'status' => $status])
                 ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
                 ->header('Vary', 'Accept-Language');
         }
 
-        $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id) {
+        $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $status) {
             $team = Team::findOrFail($id);
 
             $paginated = $this->teamMatchesQuery($id)
+                ->when($status, fn ($query) => $query->where('matches.status', $status))
                 ->orderBy('matches.scheduled_at', 'desc')
                 ->paginate(10);
 
@@ -224,7 +227,7 @@ class TeamController extends Controller
         );
 
         return response()
-            ->view('public.team.matches', ['team' => $data['team'], 'matches' => $matches])
+            ->view('public.team.matches', ['team' => $data['team'], 'matches' => $matches, 'status' => $status])
             ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
             ->header('Vary', 'Accept-Language');
     }

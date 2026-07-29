@@ -17,6 +17,7 @@ return [
         'upcoming' => 'Match à venir : :teamA vs :teamB',
     ],
     'status' => [
+        'all' => 'Tous',
         'upcoming' => 'À venir',
         'live' => 'En direct',
         'finished' => 'Terminé',

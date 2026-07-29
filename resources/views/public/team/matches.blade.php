@@ -15,6 +15,16 @@
     @include('public.team.header')
 
     <div class="max-w-6xl mx-auto space-y-4">
+        <div class="flex bg-white/[0.03] p-1 rounded-lg border border-white/5 gap-1 w-fit">
+            @foreach(['' => 'match.status.all', 'upcoming' => 'match.status.upcoming', 'finished' => 'match.status.finished'] as $statusOption => $statusLabel)
+                <a href="{{ request()->fullUrlWithQuery(['status' => $statusOption ?: null, 'page' => null]) }}"
+                   class="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all duration-300
+                   {{ ($status ?? '') === $statusOption ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-500 hover:text-white hover:bg-white/5' }}">
+                    {{ __($statusLabel) }}
+                </a>
+            @endforeach
+        </div>
+
         <section class="col-span-12 lg:col-span-6 space-y-4">
             @forelse($matches as $match)
                 <x-public.match :match="$match" />

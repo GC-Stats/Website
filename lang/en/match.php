@@ -18,6 +18,7 @@ return [
         'upcoming' => 'Upcoming match: :teamA vs :teamB',
     ],
     'status' => [
+        'all' => 'All',
         'upcoming' => 'Upcoming',
         'live' => 'Live',
         'finished' => 'Finished',
