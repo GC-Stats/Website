@@ -121,11 +121,12 @@
                 });
             },
         }"
+        x-effect="applyFirstTeam()"
     >
         <div class="mb-6 bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.veto.first_action') }}</span>
             <div class="flex flex-wrap items-center gap-2">
-                <x-styled-select x-model="firstTeam" @change="applyFirstTeam()" :disabled="$locked"
+                <x-styled-select x-model="firstTeam" :disabled="$locked"
                     :options="collect(['' => __('admin.matches.veto.select_team')])
                         ->when($match->teamA, fn ($c) => $c->put((string) $teamAId, \App\Support\MatchDisplay::teamName($match->teamA, $match->status)))
                         ->when($match->teamB, fn ($c) => $c->put((string) $teamBId, \App\Support\MatchDisplay::teamName($match->teamB, $match->status)))" />
@@ -143,11 +144,11 @@
                 @method('PUT')
 
                 <template x-for="(row, index) in rows" :key="index">
-                    <div class="relative bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4">
+                    <div class="relative bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4" x-effect="defaultSidePickedBy(row)">
                         <div class="grid grid-cols-1 md:grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] gap-3 items-start">
                             <span class="text-xs font-black uppercase tracking-tight text-white pt-2.5" x-text="'{{ __('admin.matches.veto.map_label') }} ' + (index + 1)"></span>
 
-                            <x-styled-select x-model="row.team" x-bind:name="`maps[${index}][team]`" @change="defaultSidePickedBy(row)"
+                            <x-styled-select x-model="row.team" x-bind:name="`maps[${index}][team]`"
                                 :options="collect(['none' => __('admin.matches.veto.select_team')])
                                     ->when($match->teamA, fn ($c) => $c->put((string) $teamAId, \App\Support\MatchDisplay::teamName($match->teamA, $match->status)))
                                     ->when($match->teamB, fn ($c) => $c->put((string) $teamBId, \App\Support\MatchDisplay::teamName($match->teamB, $match->status)))" />
@@ -163,7 +164,7 @@
                                 <input type="hidden" :name="`maps[${index}][map_name]`" x-model="row.map_name">
                             </div>
 
-                            <x-styled-select x-model="row.type" x-bind:name="`maps[${index}][type]`" @change="defaultSidePickedBy(row)"
+                            <x-styled-select x-model="row.type" x-bind:name="`maps[${index}][type]`"
                                 :options="[
                                     'none' => __('admin.matches.veto.select_type'),
                                     'ban' => __('admin.matches.veto.ban'),

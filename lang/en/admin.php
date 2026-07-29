@@ -1148,6 +1148,7 @@ return [
         'team-deleted' => 'Team deleted.',
         'team-merged' => 'Teams merged.',
         'team-delete-blocked' => 'This team has matches on record and cannot be deleted.',
+        'player-created' => 'Player created.',
         'player-deleted' => 'Player deleted.',
         'player-delete-blocked' => 'This player has matches on record and cannot be deleted.',
         'user-linked' => 'User account linked.',

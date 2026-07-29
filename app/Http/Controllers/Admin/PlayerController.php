@@ -103,7 +103,7 @@ class PlayerController extends Controller
     public function store(Request $request, RosterService $rosterService): RedirectResponse
     {
         $validated = $request->validate([
-            'handle' => ['required', 'string', 'max:255', 'unique:players,handle'],
+            'handle' => ['required', 'string', 'max:255'],
             'country_code' => ['nullable', 'string', 'max:5'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
             'vlr_id' => ['nullable', 'integer'],

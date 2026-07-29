@@ -1108,6 +1108,7 @@ return [
         'team-deleted' => 'Équipe supprimée.',
         'team-merged' => 'Équipes fusionnées.',
         'team-delete-blocked' => 'Cette équipe a des matchs enregistrés et ne peut pas être supprimée.',
+        'player-created' => 'Joueuse créée.',
         'player-deleted' => 'Joueuse supprimée.',
         'player-delete-blocked' => 'Cette joueuse a des matchs enregistrés et ne peut pas être supprimée.',
         'user-linked' => 'Compte utilisateur lié.',
