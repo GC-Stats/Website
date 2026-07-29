@@ -39,15 +39,20 @@ return [
         'title' => 'Hosting',
         'intro' => 'The site is hosted by:',
         'name' => 'Host',
+        'name_secondary' => 'Secondary Host',
         'address' => 'Address',
         'contact' => 'Contact',
+        'cdn_title' => 'Image Storage & Delivery',
+        'cdn_value' => 'Bunny.net (BunnyCDN), used to host and deliver logos, avatars, and news images.',
+        'mail_title' => 'Email Delivery',
+        'mail_value' => 'A transactional email provider (MXRoute) is used for authentication and account notifications.',
     ],
 
     'gdpr' => [
         'title' => 'Data Protection (GDPR)',
         'intro' => 'In accordance with GDPR, you have a right to access, rectify, and delete your data.',
         'purpose' => 'Purpose',
-        'purpose_value' => 'User account management and technical statistics (Loki).',
+        'purpose_value' => 'User account management (authentication, security), community moderation, and anonymous audience statistics.',
         'contact' => 'GDPR Contact',
     ],
 

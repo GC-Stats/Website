@@ -20,7 +20,7 @@
                     {{ __('privacy.title') }}
                 </h1>
                 <p class="text-[10px] font-bold text-gray-500 uppercase mt-2">
-                    {{ __('privacy.last_updated', ['date' => date('25/04/2026')]) }}
+                    {{ __('privacy.last_updated', ['date' => date('29/07/2026')]) }}
                 </p>
             </div>
 
@@ -63,7 +63,7 @@
 
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-8 shadow-2xl">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-4 border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">03.</span> {{ __('privacy.private_data.title') }}
+                        <span class="text-gc-yellow">04.</span> {{ __('privacy.private_data.title') }}
                     </h2>
                     <div class="space-y-4">
                         <p class="text-sm text-gray-300 leading-relaxed">
@@ -84,7 +84,48 @@
 
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-8 shadow-2xl">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-4 border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">04.</span> {{ __('privacy.data_structure.title') }}
+                        <span class="text-gc-yellow">05.</span> {{ __('privacy.account_data.title') }}
+                    </h2>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        {{ __('privacy.account_data.text') }}
+                    </p>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-8 shadow-2xl">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-4 border-b border-border-subtle pb-2 flex items-center gap-2">
+                        <span class="text-gc-yellow">06.</span> {{ __('privacy.social_login.title') }}
+                    </h2>
+                    <div class="space-y-4">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            {{ __('privacy.social_login.text') }}
+                        </p>
+                        <div class="bg-bg-main border-l-2 border-gc-yellow p-4">
+                            <p class="text-xs text-gray-400 italic leading-snug">
+                                {{ __('privacy.social_login.gravatar') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-8 shadow-2xl">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-4 border-b border-border-subtle pb-2 flex items-center gap-2">
+                        <span class="text-gc-yellow">07.</span> {{ __('privacy.moderation.title') }}
+                    </h2>
+                    <div class="space-y-4">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            {{ __('privacy.moderation.text') }}
+                        </p>
+                        <div class="bg-bg-main border-l-2 border-gc-yellow p-4">
+                            <p class="text-xs text-gray-400 italic leading-snug">
+                                {{ __('privacy.moderation.retention_note') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-bg-card border border-border-subtle rounded-sm p-8 shadow-2xl">
+                    <h2 class="text-xs font-bold text-white uppercase tracking-widest mb-4 border-b border-border-subtle pb-2 flex items-center gap-2">
+                        <span class="text-gc-yellow">08.</span> {{ __('privacy.data_structure.title') }}
                     </h2>
 
                     <p class="text-xs text-gray-400 leading-normal">

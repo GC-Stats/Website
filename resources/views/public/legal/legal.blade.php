@@ -19,7 +19,7 @@
                     {{ __('legal.title') }}
                 </h1>
                 <p class="text-[10px] font-bold text-gray-500 uppercase mt-2">
-                    {{ __('legal.last_updated', ['date' => date('25/04/2026')]) }}
+                    {{ __('legal.last_updated', ['date' => date('29/07/2026')]) }}
                 </p>
             </div>
 
@@ -100,8 +100,10 @@
                             <span class="text-gc-yellow">04.</span> {{ __('legal.hosting.title') }}
                         </h2>
                         <div class="text-sm space-y-3 text-gray-300">
-                            <p><span class="text-[10px] block font-bold text-gray-500 uppercase">{{ __('legal.hosting.name') }}</span>Hetzner Online GmbH Industriestr.</p>
-                            <p><span class="text-[10px] block font-bold text-gray-500 uppercase">{{ __('legal.hosting.address') }}</span>25 91710 Gunzenhausen, Germany</p>
+                            <p><span class="text-[10px] block font-bold text-gray-500 uppercase">{{ __('legal.hosting.name') }}</span>Contabo GmbH, Welfenstrasse 22, 81541 Munich, Germany</p>
+                            <p><span class="text-[10px] block font-bold text-gray-500 uppercase">{{ __('legal.hosting.name_secondary') }}</span>365 Group LLC (GreenCloud VPS), 16192 Coastal Hwy, Lewes, DE 19958, USA</p>
+                            <p><span class="text-[10px] block font-bold text-gray-500 uppercase">{{ __('legal.hosting.cdn_title') }}</span>{{ __('legal.hosting.cdn_value') }}</p>
+                            <p><span class="text-[10px] block font-bold text-gray-500 uppercase">{{ __('legal.hosting.mail_title') }}</span>{{ __('legal.hosting.mail_value') }}</p>
                         </div>
                     </div>
 
@@ -111,7 +113,7 @@
                         </h2>
                         <div class="text-sm space-y-3 text-gray-300">
                             <p>{{ __('legal.gdpr.intro') }}</p>
-                            <p><span class="text-[10px] block font-bold text-gray-500 uppercase">{{ __('legal.gdpr.contact') }}</span>gpdr@gc-stats.app</p>
+                            <p><span class="text-[10px] block font-bold text-gray-500 uppercase">{{ __('legal.gdpr.contact') }}</span>gdpr@gc-stats.app</p>
                         </div>
                     </div>
                 </div>

@@ -39,15 +39,20 @@ return [
         'title' => 'Hébergement',
         'intro' => 'Le site est hébergé par :',
         'name' => 'Hébergeur',
+        'name_secondary' => 'Hébergeur secondaire',
         'address' => 'Adresse',
         'contact' => 'Contact',
+        'cdn_title' => 'Stockage & diffusion des images',
+        'cdn_value' => 'Bunny.net (BunnyCDN), utilisé pour l’hébergement et la diffusion des logos, avatars et images de news.',
+        'mail_title' => 'Envoi d’emails',
+        'mail_value' => 'Un prestataire d’envoi d’emails transactionnels (MXRoute) est utilisé pour l’authentification et les notifications de compte.',
     ],
 
     'gdpr' => [
         'title' => 'Protection des Données (RGPD)',
         'intro' => 'Conformément au RGPD, vous disposez d’un droit d’accès, de rectification et de suppression de vos données.',
         'purpose' => 'Finalité',
-        'purpose_value' => 'Gestion des comptes utilisateurs et statistiques techniques (Loki).',
+        'purpose_value' => 'Gestion des comptes utilisateurs (authentification, sécurité), modération de la communauté et statistiques de fréquentation anonymes.',
         'contact' => 'Contact RGPD',
     ],
 
