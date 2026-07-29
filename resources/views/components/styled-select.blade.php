@@ -73,7 +73,7 @@
             this.value = v;
             this.open = false;
             this.$nextTick(() => {
-                this.$dispatch('change');
+                this.$refs.root.dispatchEvent(new CustomEvent('change', { bubbles: true }));
                 @if($navigate)
                     window.location = v;
                 @elseif($autosubmit)
@@ -83,6 +83,7 @@
         },
     }"
     x-modelable="value"
+    x-ref="root"
     {{ $attributes->whereDoesntStartWith(['wire:', 'x-bind:name', 'x-bind:disabled'])->merge(['class' => 'relative']) }}
 >
     {{-- .stop keeps this click from reaching the teleported dropdown's own
