@@ -54,20 +54,16 @@ class BackfillMapAdvancedStats extends Command
 
     public function handle(GameMapController $controller): int
     {
-        // storeMatchData() isn't wrapped in a transaction, so a map that
-        // threw partway through its per-round loop can be left with some
-        // rounds already carrying alive-state rows — whereDoesntHave
-        // ('rounds.aliveStates') alone would then wrongly treat it as done
-        // and never retry it. advancedStats is only written once, after
-        // every round has fully processed, so OR-ing it back in keeps
-        // catching those partial failures too.
         $query = GameMap::query()
             ->whereNotNull('api_match_id')
             ->where(function ($q) {
                 $q->whereDoesntHave('advancedStats')
                     ->orWhereDoesntHave('rounds.aliveStates');
             })
-            ->with('match.teamA', 'match.teamB');
+            ->with('match.teamA', 'match.teamB')
+            ->join('matches', 'matches.id', '=', 'game_maps.match_id')
+            ->orderByDesc('matches.scheduled_at')
+            ->select('game_maps.*');
 
         if ($tournamentId = $this->option('tournament')) {
             $query->where('tournament_id', (int) $tournamentId);
@@ -97,30 +93,53 @@ class BackfillMapAdvancedStats extends Command
         $success = 0;
         $skipped = 0;
         $failed = 0;
+        $failuresByType = [];
 
         foreach ($maps as $gameMap) {
             $this->line("Map #{$gameMap->id} ({$gameMap->map_name}, match #{$gameMap->match_id})");
 
-            [$status, $body] = $this->attemptFetch($controller, $gameMap);
+            try {
+                [$status, $body] = $this->attemptFetch($controller, $gameMap);
 
-            if ($status === 422 && isset($body['available_colors'])) {
-                $teamAColor = $this->resolveTeamAColorFromDb($gameMap, $body['players'] ?? []);
+                $params = [];
 
-                if ($teamAColor) {
-                    $this->comment("  Ambiguous team side — resolved '{$teamAColor}' from existing game_player_stats, retrying");
+                for ($attempt = 0; $attempt < 5; $attempt++) {
+                    if ($status !== 422) {
+                        break;
+                    }
+
+                    if (isset($body['missing_val_ids'])) {
+                        $puuidMapping = $this->resolvePuuidMappingFromDb($gameMap, $body['missing_val_ids']);
+
+                        if (empty($puuidMapping)) {
+                            break;
+                        }
+
+                        $this->comment('  Resolved '.count($puuidMapping).' missing val_id(s) from existing data, retrying');
+                        $params['puuid_mapping'] = $puuidMapping;
+                    } elseif (isset($body['available_colors'])) {
+                        $teamAColor = $this->resolveTeamAColorFromDb($gameMap, $body['players'] ?? []);
+
+                        if (! $teamAColor) {
+                            break;
+                        }
+
+                        $this->comment("  Ambiguous team side — resolved '{$teamAColor}' from existing game_player_stats, retrying");
+                        $params['team_a_color'] = $teamAColor;
+                    } else {
+                        break;
+                    }
+
                     usleep((int) ($sleep * 1_000_000));
-                    [$status, $body] = $this->attemptFetch($controller, $gameMap, ['team_a_color' => $teamAColor]);
+                    [$status, $body] = $this->attemptFetch($controller, $gameMap, $params);
                 }
-            }
+            } catch (\Throwable $e) {
+                $this->error('  PHP error: '.$e->getMessage());
+                $failed++;
+                $failuresByType[get_class($e).': '.$e->getMessage()] = ($failuresByType[get_class($e).': '.$e->getMessage()] ?? 0) + 1;
+                usleep((int) ($sleep * 1_000_000));
 
-            if ($status === 422 && isset($body['missing_val_ids'])) {
-                $puuidMapping = $this->resolvePuuidMappingFromDb($gameMap, $body['missing_val_ids']);
-
-                if (! empty($puuidMapping)) {
-                    $this->comment('  Resolved '.count($puuidMapping).' missing val_id(s) from existing data, retrying');
-                    usleep((int) ($sleep * 1_000_000));
-                    [$status, $body] = $this->attemptFetch($controller, $gameMap, ['puuid_mapping' => $puuidMapping]);
-                }
+                continue;
             }
 
             if ($status < 300) {
@@ -131,8 +150,16 @@ class BackfillMapAdvancedStats extends Command
                 $this->warn("  Skipped: {$reason}");
                 $skipped++;
             } else {
-                $this->error('  Failed (HTTP '.$status.'): '.($body['error'] ?? 'unknown error'));
+                $reason = $body['error'] ?? 'unknown error';
+                $this->error('  Failed (HTTP '.$status.'): '.$reason);
                 $failed++;
+
+                $type = match (true) {
+                    $status === 404 => "API 404: {$reason}",
+                    $status >= 500 => "API {$status} (server error): {$reason}",
+                    default => "API {$status}: {$reason}",
+                };
+                $failuresByType[$type] = ($failuresByType[$type] ?? 0) + 1;
             }
 
             usleep((int) ($sleep * 1_000_000));
@@ -140,6 +167,18 @@ class BackfillMapAdvancedStats extends Command
 
         $this->newLine();
         $this->info("Done. Success: {$success}, Skipped: {$skipped}, Failed: {$failed}");
+
+        if (! empty($failuresByType)) {
+            $this->newLine();
+            $this->warn('Failures by type:');
+            $this->table(
+                ['Type', 'Count'],
+                collect($failuresByType)
+                    ->sortDesc()
+                    ->map(fn ($count, $type) => [$type, $count])
+                    ->values()
+            );
+        }
 
         return self::SUCCESS;
     }
