@@ -49,6 +49,7 @@ use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
+use Intervention\Image\Interfaces\ImageInterface;
 
 class LogoUploadService
 {
@@ -74,7 +75,7 @@ class LogoUploadService
 
         $image = $manager->decode($file->getPathname());
 
-        $thumbnail = (clone $image)->scaleDown(width: $thumbWidth, height: $thumbHeight)->encode(new WebpEncoder(quality: $thumbQuality));
+        $thumbnail = $this->scaleByShortestSide(clone $image, $thumbWidth, $thumbHeight)->encode(new WebpEncoder(quality: $thumbQuality));
 
         $full = $image->encode(new WebpEncoder(quality: $fullQuality));
 
@@ -104,13 +105,31 @@ class LogoUploadService
         $manager = ImageManager::usingDriver(GdDriver::class);
 
         $image = $manager->decode($file->getPathname());
-        $image = $image->scaleDown(width: $width, height: $height);
+        $image = $width !== null && $height !== null
+            ? $this->scaleByShortestSide($image, $width, $height)
+            : $image->scaleDown(width: $width, height: $height);
 
         $encoded = $image->encode(new WebpEncoder(quality: $quality));
 
         Storage::disk($disk)->put($path, (string) $encoded);
 
         return Storage::disk($disk)->url($path);
+    }
+
+    /**
+     * Scale an image so its *shortest* side matches the target box, instead
+     * of Intervention's scaleDown() which fits the *longest* side (letterboxing
+     * non-square images). A 1000x2000 source scaled against a 200x200 box
+     * becomes 200x400, not 100x200.
+     */
+    private function scaleByShortestSide(ImageInterface $image, int $width, int $height): ImageInterface
+    {
+        $scale = max($width / $image->width(), $height / $image->height());
+
+        return $image->resize(
+            (int) round($image->width() * $scale),
+            (int) round($image->height() * $scale)
+        );
     }
 
     /**
