@@ -71,7 +71,7 @@ class NewsPublisher extends Model
         return 'publishers';
     }
 
-    protected function defaultLogoUrl(): string
+    protected function defaultLogoUrl(?string $theme = null): string
     {
         return '';
     }

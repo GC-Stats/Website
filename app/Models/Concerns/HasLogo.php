@@ -54,9 +54,11 @@ trait HasLogo
 
     /**
      * URL returned when the entity has no current logo. Must be implemented
-     * by the using model.
+     * by the using model. Receives the resolved theme ("dark"/"light"/null)
+     * so entities with theme-scoped default artwork (e.g. Team's
+     * default-team-light/dark.webp) can pick the matching variant.
      */
-    abstract protected function defaultLogoUrl(): string;
+    abstract protected function defaultLogoUrl(?string $theme = null): string;
 
     /**
      * Resolves to the given theme's dedicated logo variant, falling back to
@@ -72,7 +74,7 @@ trait HasLogo
         };
 
         if (! $logo) {
-            return $this->defaultLogoUrl();
+            return $this->defaultLogoUrl($theme);
         }
 
         return Storage::disk('public')->url("{$this->logoStorageFolder()}/{$logo->id}/200x200.webp");

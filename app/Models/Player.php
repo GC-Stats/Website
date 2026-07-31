@@ -92,7 +92,7 @@ class Player extends Model
         return 'players';
     }
 
-    protected function defaultLogoUrl(): string
+    protected function defaultLogoUrl(?string $theme = null): string
     {
         return '';
     }

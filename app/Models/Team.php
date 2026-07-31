@@ -131,8 +131,12 @@ class Team extends Model
         return 'teams';
     }
 
-    protected function defaultLogoUrl(): string
+    protected function defaultLogoUrl(?string $theme = null): string
     {
-        return asset('storage/images/default-team.webp');
+        return match ($theme) {
+            'dark' => asset('storage/images/default-team-dark.webp'),
+            'light' => asset('storage/images/default-team-light.webp'),
+            default => asset('storage/images/default-team.webp'),
+        };
     }
 }

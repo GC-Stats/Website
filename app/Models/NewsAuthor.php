@@ -65,7 +65,7 @@ class NewsAuthor extends Model
         return 'authors';
     }
 
-    protected function defaultLogoUrl(): string
+    protected function defaultLogoUrl(?string $theme = null): string
     {
         return '';
     }

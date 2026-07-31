@@ -121,7 +121,7 @@ class Tournament extends Model
         return 'tournaments';
     }
 
-    protected function defaultLogoUrl(): string
+    protected function defaultLogoUrl(?string $theme = null): string
     {
         return asset('storage/images/default-tournament.webp');
     }

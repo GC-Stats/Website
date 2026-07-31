@@ -121,7 +121,9 @@ window.GCS.setTheme = function (theme) {
         },
         body: JSON.stringify({ theme }),
         keepalive: true,
-    }).catch(() => {});
+    })
+        .catch(() => {})
+        .finally(() => window.location.reload());
 };
 
 window.GCS.getAccent = function () {
