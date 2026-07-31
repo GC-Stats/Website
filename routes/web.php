@@ -111,6 +111,7 @@ Route::get('/match/{id}', [MatchController::class, 'index'])->name('match.show')
 Route::middleware(['throttle:60,1'])->prefix('/widget')->name('widget.')->group(function () {
     Route::get('/', [WidgetController::class, 'index'])->name('index');
     Route::get('/head-to-head', [WidgetController::class, 'headToHead'])->name('head-to-head');
+    Route::get('/heatmap', [WidgetController::class, 'heatmap'])->name('heatmap');
 });
 
 Route::get('/search', [SearchController::class, 'index'])->name('search.results');
