@@ -9,6 +9,10 @@ return [
             'name' => 'Face to Face',
             'description' => 'Radar chart du taux de victoire comparant les mappools de deux équipes, avec un filtre optionnel par patch ou mappool personnalisée.',
         ],
+        'heatmap' => [
+            'name' => 'Heatmap des positions',
+            'description' => 'Heatmap de densité des positions des joueurs sur la mini-carte, filtrable par tournoi, période, side, équipe, joueur et type d\'évènement.',
+        ],
     ],
 
     'configure' => 'Configurer',
@@ -28,6 +32,28 @@ return [
         'mappool_placeholder' => 'ex. Ascent, Bind, Haven',
         'mappool_hint' => 'Noms de maps séparés par des virgules. Prioritaire sur le patch ci-dessus.',
         'submit' => 'Générer le lien',
+
+        'map' => 'Map',
+        'map_placeholder' => 'Choisissez une map',
+        'side' => 'Side',
+        'side_all' => 'Tous les sides',
+        'side_atk' => 'Attaque',
+        'side_def' => 'Défense',
+        'team' => 'Équipe (optionnel)',
+        'player' => 'Joueur (optionnel)',
+        'event_types' => 'Types d\'évènements',
+        'event_kill' => 'Kills',
+        'event_plant' => 'Plants',
+        'event_defuse' => 'Defuses',
+
+        'agent' => 'Agent (optionnel)',
+        'agent_all' => 'Tous les agents',
+        'color' => 'Couleur de la heatmap',
+        'color_hint' => 'Modifiable aussi directement dans l\'URL via ?color=RRGGBB.',
+
+        'time_start' => 'Temps du round à partir de (secondes)',
+        'time_end' => 'Temps du round jusqu\'à (secondes)',
+        'time_hint' => 'Restreint les positions à une fenêtre du chrono du round, ex. les 20 premières secondes de chaque round.',
     ],
 
     'result' => [

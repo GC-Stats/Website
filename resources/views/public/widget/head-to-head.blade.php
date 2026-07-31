@@ -10,6 +10,8 @@
 --}}
 @extends('public.layouts.widget')
 
+@section('title', __('head_to_head.title'))
+
 @section('content')
     <x-public.head-to-head :data="$headToHead" :bare="true" />
 

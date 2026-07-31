@@ -27,7 +27,8 @@
 @section('title', __('widgets.title'))
 
 @php
-    $hasBuilderQuery = request()->hasAny(['team_a', 'team_b', 'tournament_id', 'start_date', 'end_date', 'patch', 'mappool']);
+    $hasH2HBuilderQuery = request()->hasAny(['team_a', 'team_b', 'tournament_id', 'start_date', 'end_date', 'patch', 'mappool']);
+    $hasHeatmapBuilderQuery = request()->hasAny(['map', 'side', 'team_id', 'player_id', 'event_type']);
 @endphp
 
 @section('content')
@@ -45,8 +46,15 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
                 @foreach ($widgets as $widget)
+                    @php
+                        $widgetHasBuilderQuery = match ($widget['key']) {
+                            'head-to-head' => $hasH2HBuilderQuery,
+                            'heatmap' => $hasHeatmapBuilderQuery,
+                            default => false,
+                        };
+                    @endphp
                     <div class="bg-bg-card border border-border-subtle rounded-sm overflow-hidden shadow-xl flex flex-col"
-                         x-data="{ open: {{ $hasBuilderQuery ? 'true' : 'false' }} }">
+                         x-data="{ open: {{ $widgetHasBuilderQuery ? 'true' : 'false' }} }">
                         <div class="aspect-square bg-[#050505] border-b border-border-subtle relative overflow-hidden">
                             @if ($widget['preview_url'])
                                 <iframe src="{{ $widget['preview_url'] }}"
@@ -88,6 +96,22 @@
                                             'teamB' => $teamB,
                                             'tournament' => $tournament,
                                             'generatedUrl' => $generatedUrl,
+                                        ])
+                                    @elseif ($widget['key'] === 'heatmap')
+                                        @include('public.widget.partials.heatmap-builder', [
+                                            'mapList' => $mapList,
+                                            'selectedMap' => $selectedMap,
+                                            'selectedSide' => $selectedSide,
+                                            'selectedEventTypes' => $selectedEventTypes,
+                                            'tournament' => $tournament,
+                                            'heatmapTeam' => $heatmapTeam,
+                                            'heatmapPlayer' => $heatmapPlayer,
+                                            'agentList' => $agentList,
+                                            'selectedAgent' => $selectedAgent,
+                                            'selectedColor' => $selectedColor,
+                                            'selectedTimeStart' => $selectedTimeStart,
+                                            'selectedTimeEnd' => $selectedTimeEnd,
+                                            'heatmapGeneratedUrl' => $heatmapGeneratedUrl,
                                         ])
                                     @endif
                                 </div>
