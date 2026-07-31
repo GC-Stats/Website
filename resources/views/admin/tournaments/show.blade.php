@@ -262,7 +262,7 @@
                 @forelse ($teams as $team)
                     <div class="flex items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-lg px-4 py-3">
                         <div class="flex items-center gap-2 min-w-0">
-                            <img src="{{ $team->logo }}" alt="" class="w-6 h-6 object-cover rounded-lg shrink-0">
+                            <img src="{{ $team->logo }}" alt="" class="w-6 h-6 object-contain rounded-lg shrink-0">
                             <p class="text-sm text-white font-semibold truncate">{{ $team->name }}</p>
                         </div>
                         @can('tournaments.teams.manage')

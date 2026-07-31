@@ -31,7 +31,7 @@
                                 <div class="relative shrink-0">
                                     @if($player['profile_photo'])
                                         <img src="{{ $player['profile_photo'] }}" alt="{{ $player['handle'] }}"
-                                             class="w-10 h-10 object-cover border border-white/10 rounded-lg bg-black/40">
+                                             class="w-10 h-10 object-contain border border-white/10 rounded-lg bg-black/40">
                                     @else
                                         <div class="w-10 h-10 flex items-center justify-center border border-white/10 rounded-lg bg-[var(--brand-yellow)]/10">
                                             <span class="text-md md:text-l font-black text-[var(--brand-yellow)]">
