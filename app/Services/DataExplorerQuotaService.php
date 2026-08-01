@@ -38,7 +38,7 @@ class DataExplorerQuotaService
     {
         $authorizedCount = User::where('data_explorer_enabled', true)->count();
 
-        return intdiv(config('services.data_explorer.quota'), max(1, $authorizedCount));
+        return intdiv((int) config('services.data_explorer.quota'), max(1, $authorizedCount));
     }
 
     /**
@@ -171,7 +171,7 @@ class DataExplorerQuotaService
 
         return [
             'total_used' => $usages->sum('platform_requests_count'),
-            'total_quota' => config('services.data_explorer.quota'),
+            'total_quota' => (int) config('services.data_explorer.quota'),
             'per_user' => $usages->sortByDesc(fn (DataExplorerUsage $usage) => $usage->totalRequestsCount())->values(),
         ];
     }
