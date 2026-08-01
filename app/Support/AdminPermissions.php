@@ -37,6 +37,7 @@ class AdminPermissions extends PermissionCatalog
             'news_media' => ['news.media.view', 'news.media.upload', 'news.media.delete'],
             'reactions' => ['reaction.view', 'reaction.delete'],
             'api_keys' => ['api-keys.view', 'api-keys.manage'],
+            'data_explorer' => ['data-explorer.view', 'data-explorer.manage'],
             'analytics' => ['analytics.view'],
             'users' => ['users.view', 'users.view.details'],
             'finance' => ['finance.view', 'finance.manage'],

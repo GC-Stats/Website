@@ -19,6 +19,7 @@ return [
         'login' => 'Sign in',
         'profile' => 'View profile',
         'settings' => 'Account settings',
+        'change_requests' => 'My change requests',
         'admin' => 'Admin panel',
         'developers' => 'Developers panel',
         'no_admin_section' => 'Your role has admin permissions, but no dashboard section is built for it yet.',
@@ -73,6 +74,7 @@ return [
             'about_us' => 'About Us',
             'dmca' => 'Content Removal Request',
             'dev_doc' => 'Developer Documentation',
+            'data_explorer' => 'Data Explorer',
             'transparency' => 'Transparency',
         ],
         'informations' => [

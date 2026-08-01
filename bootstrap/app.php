@@ -30,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('app:prune-api-key-reveals')->everyFifteenMinutes();
         $schedule->command('discord:sync-roles')->everyFifteenMinutes();
 
+        $schedule->command('app:reset-data-explorer-usage')->monthlyOn(1, '00:05');
+        $schedule->command('app:prune-data-explorer-error-logs')->daily();
+
         $schedule->command('matches:activate-live')->everyMinute();
         $schedule->command('tournaments:activate-live')->daily();
     })

@@ -92,4 +92,7 @@ return [
         'match_live_webhook' => env('DISCORD_MATCH_LIVE_WEBHOOK_URL'),
     ],
 
+    'gc_stats_api' => [
+        'base_url' => env('GC_STATS_API_URL'),
+    ],
 ];

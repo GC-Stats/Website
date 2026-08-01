@@ -34,7 +34,6 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\PasskeyAuthenticatable;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'username', 'email', 'password', 'team_id', 'team_tag', 'pronouns'])]
@@ -56,6 +55,8 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
             'password' => 'hashed',
             'preferences' => 'array',
             'discord_synced_at' => 'datetime',
+            'data_explorer_enabled' => 'boolean',
+            'pronouns' => 'integer',
         ];
     }
 
@@ -85,6 +86,12 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
         return $this->hasMany(Sanction::class);
     }
 
+    /** Change requests this user has submitted (see ChangeRequest::requested_by), across any subject type. */
+    public function changeRequests(): HasMany
+    {
+        return $this->hasMany(ChangeRequest::class, 'requested_by');
+    }
+
     /**
      * Active global (not team-scoped) suspension or ban, if any — the same
      * check EnsureAccountIsNotSanctioned enforces at the route level, reused
@@ -96,7 +103,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
         return $this->sanctions()
             ->active()
             ->whereNull('team_id')
-            ->whereIn('type', [Sanction::TYPE_SUSPENSION, Sanction::TYPE_BAN])
+            ->whereIn('type', Sanction::BLOCKING_TYPES)
             ->latest('starts_at')
             ->first();
     }
@@ -138,6 +145,22 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
         return $this->hasMany(ApiKey::class);
     }
 
+    public function dataExplorerApiKeys(): HasMany
+    {
+        return $this->hasMany(DataExplorerApiKey::class);
+    }
+
+    /** The one (if any) of this user's linked provider keys currently toggled on. */
+    public function activeDataExplorerApiKey(): HasOne
+    {
+        return $this->hasOne(DataExplorerApiKey::class)->where('is_active', true);
+    }
+
+    public function dataExplorerUsages(): HasMany
+    {
+        return $this->hasMany(DataExplorerUsage::class);
+    }
+
     /**
      * Number of distinct ways this account can currently be authenticated
      * with (password + each linked social provider). Must never drop to 0.
@@ -177,34 +200,9 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
     }
 
     /**
-     * Whether this user can reach that team's own management page at all
-     * (any of the team.* permissions, checked under that team's own
-     * PermissionTeam context — then restored, so callers on a page that
-     * also does its own global-context permission checks elsewhere in the
-     * same request, e.g. the nav's admin-panel link, aren't affected).
-     */
-    public function canManageTeam(int $teamId): bool
-    {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
-        $registrar = app(PermissionRegistrar::class);
-        $previousTeamId = $registrar->getPermissionsTeamId();
-
-        PermissionTeam::use($teamId);
-
-        $canManage = $this->can('team.profile.edit') || $this->can('team.logo.upload') || $this->can('team.roles.manage');
-
-        $registrar->setPermissionsTeamId($previousTeamId);
-
-        return $canManage;
-    }
-
-    /**
      * Shared by every "search users to assign a role/owner to" screen
-     * (Admin\RoleController, Admin\TeamController, Team\RoleController) so
-     * the searchable columns and LIKE-escaping stay identical everywhere.
+     * (Admin\RoleController, Admin\TeamController) so the searchable
+     * columns and LIKE-escaping stay identical everywhere.
      */
     public function scopeMatching(Builder $query, string $term): Builder
     {

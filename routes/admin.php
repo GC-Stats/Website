@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\ChangeRequestController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DataExplorerController;
 use App\Http\Controllers\Admin\EmoteController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\GameMapController;
@@ -440,6 +441,16 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             Route::patch('/{key}/toggle', [ApiKeyController::class, 'toggleStatus'])->name('toggle');
             Route::patch('/{key}/regenerate', [ApiKeyController::class, 'regenerate'])->name('regenerate');
         });
+    });
+
+    Route::prefix('data-explorer')->name('data-explorer.')->group(function () {
+        Route::middleware(['can:data-explorer.view'])->group(function () {
+            Route::get('/access', [DataExplorerController::class, 'access'])->name('access');
+            Route::get('/usage', [DataExplorerController::class, 'usage'])->name('usage');
+        });
+
+        Route::patch('/access/{user}/toggle', [DataExplorerController::class, 'toggleAccess'])
+            ->middleware(['can:data-explorer.manage'])->name('access.toggle');
     });
 
     Route::middleware(['can:manage-roles'])->prefix('roles')->name('roles.')->group(function () {

@@ -21,6 +21,7 @@ return [
         'vods' => 'VODs',
         'roles' => 'Rôles',
         'api_keys' => 'Clés API',
+        'data_explorer' => 'Data Explorer',
         'finance' => 'Finances',
         'analytics' => 'Statistiques',
         'about' => 'À propos',
@@ -1571,6 +1572,34 @@ return [
             'copied' => 'Copié !',
         ],
     ],
+
+    'data_explorer' => [
+        'access' => [
+            'title' => 'Data Explorer — Accès à la clé plateforme',
+            'search_placeholder' => 'Rechercher par nom, pseudo ou email',
+            'view_usage' => 'Voir la consommation',
+            'user' => 'Utilisateur',
+            'status' => 'Clé plateforme',
+            'enabled' => 'Autorisé',
+            'disabled' => 'Non autorisé',
+            'all_statuses' => 'Tous les statuts',
+            'clear_filters' => 'Réinitialiser les filtres',
+            'empty' => 'Aucun utilisateur trouvé.',
+        ],
+        'usage' => [
+            'title' => 'Data Explorer — Consommation de la clé plateforme',
+            'total_title' => 'Requêtes plateforme ce mois-ci',
+            'user' => 'Utilisateur',
+            'source' => 'Source',
+            'source_platform' => 'Clé plateforme',
+            'source_personal' => 'Clé externe',
+            'source_both' => 'Les deux',
+            'platform_requests' => 'Requêtes via la clé plateforme',
+            'personal_requests' => 'Requêtes via la clé personnelle',
+            'empty' => 'Aucune consommation enregistrée ce mois-ci.',
+        ],
+    ],
+
     'finance' => [
         'title' => 'Finances',
         'search_placeholder' => 'Rechercher par libellé',

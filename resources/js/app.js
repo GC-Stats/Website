@@ -694,3 +694,279 @@ window.accountSecurity = function (config) {
         },
     };
 };
+
+window.dataExplorer = function (config) {
+    return {
+        executeUrl: config.executeUrl,
+        blocked: config.blocked,
+
+        prompt: '',
+        loading: false,
+        error: '',
+        errorId: '',
+        canRetry: false,
+        response: null,
+        copied: false,
+
+        get resultColumns() {
+            const rows = this.response?.result;
+
+            return Array.isArray(rows) && rows.length > 0 ? Object.keys(rows[0]) : [];
+        },
+
+        get resultRows() {
+            return Array.isArray(this.response?.result) ? this.response.result : [];
+        },
+
+        get rawJson() {
+            return this.response ? JSON.stringify(this.response, null, 2) : '';
+        },
+
+        async submit() {
+            this.loading = true;
+            this.error = '';
+            this.errorId = '';
+            this.canRetry = false;
+            this.response = null;
+            this.copied = false;
+
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 25000);
+
+            try {
+                const res = await window.GCS.apiFetch(this.executeUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt: this.prompt }),
+                    signal: controller.signal,
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    this.error = data.error || data.message || 'Something went wrong.';
+                    this.errorId = data.error_id || '';
+                    this.canRetry = Boolean(data.retry);
+                    return;
+                }
+
+                this.response = data;
+            } catch (e) {
+                this.error = e.name === 'AbortError' ? 'The request timed out.' : 'Something went wrong.';
+                this.canRetry = true;
+            } finally {
+                clearTimeout(timeout);
+                this.loading = false;
+            }
+        },
+
+        async copyResult() {
+            if (!this.rawJson) return;
+
+            await navigator.clipboard.writeText(this.rawJson);
+            this.copied = true;
+            setTimeout(() => (this.copied = false), 2000);
+        },
+    };
+};
+
+window.dataExplorerBuilder = function (config) {
+    return {
+        executeUrl: config.executeUrl,
+        operators: config.operators,
+
+        measuresList: config.schema.measures,
+        dimensionsList: config.schema.dimensions,
+        measureSearch: '',
+        dimensionSearch: '',
+        selectedMeasures: [],
+        selectedDimensions: [],
+        pendingAgg: {},
+        filters: [],
+        limit: 100,
+
+        loading: false,
+        error: '',
+        errorId: '',
+        canRetry: false,
+        response: null,
+        copied: false,
+
+        get filteredMeasures() {
+            const q = this.measureSearch.trim().toLowerCase();
+
+            return q ? this.measuresList.filter((m) => m.toLowerCase().includes(q)) : this.measuresList;
+        },
+
+        // Cube measures are pre-aggregated (Cube has no "pick any field, pick
+        // any aggregation" mode — each combination is its own named measure,
+        // e.g. matches.avg_team_a_score). Rather than show that flat list of
+        // raw names, group by base field + detected aggregation prefix
+        // (avg_/total_/max_/min_) so the UI reads as "team_a_score: [Avg]"
+        // instead of forcing the user to already know the naming convention.
+        get measureGroups() {
+            const aggLabels = { avg: 'Avg', total: 'Sum', max: 'Max', min: 'Min' };
+            const groups = {};
+
+            for (const full of this.filteredMeasures) {
+                const dot = full.indexOf('.');
+                const cube = full.slice(0, dot);
+                const name = full.slice(dot + 1);
+
+                let base = name;
+                let aggLabel = null;
+
+                for (const prefix of Object.keys(aggLabels)) {
+                    if (name.startsWith(prefix + '_')) {
+                        base = name.slice(prefix.length + 1);
+                        aggLabel = aggLabels[prefix];
+                        break;
+                    }
+                }
+
+                if (aggLabel === null) {
+                    aggLabel = name === 'count' || name.endsWith('_count') ? 'Count' : name;
+                }
+
+                const key = `${cube}.${base}`;
+                if (!groups[key]) groups[key] = { key, cube, base, items: [] };
+                groups[key].items.push({ full, aggLabel });
+            }
+
+            return Object.values(groups).sort((a, b) => a.key.localeCompare(b.key));
+        },
+
+        get filteredDimensions() {
+            const q = this.dimensionSearch.trim().toLowerCase();
+
+            return q ? this.dimensionsList.filter((d) => d.toLowerCase().includes(q)) : this.dimensionsList;
+        },
+
+        // Filters only make sense against fields already picked as a measure
+        // or dimension — showing the full catalogue here would let someone
+        // filter on a field that isn't even part of the query.
+        get selectedFields() {
+            return [...this.selectedMeasures, ...this.selectedDimensions];
+        },
+
+        get selectedFieldsWithType() {
+            return [
+                ...this.selectedMeasures.map((field) => ({ field, type: 'measure' })),
+                ...this.selectedDimensions.map((field) => ({ field, type: 'dimension' })),
+            ];
+        },
+
+        get resultColumns() {
+            const rows = this.response?.result;
+
+            return Array.isArray(rows) && rows.length > 0 ? Object.keys(rows[0]) : [];
+        },
+
+        get resultRows() {
+            return Array.isArray(this.response?.result) ? this.response.result : [];
+        },
+
+        get rawJson() {
+            return this.response ? JSON.stringify(this.response, null, 2) : '';
+        },
+
+        toggleMeasure(field) {
+            this.selectedMeasures = this.selectedMeasures.includes(field)
+                ? this.selectedMeasures.filter((f) => f !== field)
+                : [...this.selectedMeasures, field];
+        },
+
+        // Picks whichever aggregation is currently selected in that group's
+        // dropdown (defaulting to the first available one) and adds it.
+        addMeasureFromGroup(group) {
+            const chosen = this.pendingAgg[group.key] || group.items[0]?.full;
+
+            if (chosen && !this.selectedMeasures.includes(chosen)) {
+                this.selectedMeasures = [...this.selectedMeasures, chosen];
+            }
+        },
+
+        toggleDimension(field) {
+            this.selectedDimensions = this.selectedDimensions.includes(field)
+                ? this.selectedDimensions.filter((f) => f !== field)
+                : [...this.selectedDimensions, field];
+        },
+
+        deselectField(field) {
+            this.selectedMeasures = this.selectedMeasures.filter((f) => f !== field);
+            this.selectedDimensions = this.selectedDimensions.filter((f) => f !== field);
+            this.filters = this.filters.filter((f) => f.member !== field);
+        },
+
+        addFilter() {
+            this.filters.push({ member: this.selectedFields[0] || '', operator: 'equals', values: '' });
+        },
+
+        removeFilter(index) {
+            this.filters.splice(index, 1);
+        },
+
+        async submit() {
+            this.loading = true;
+            this.error = '';
+            this.errorId = '';
+            this.canRetry = false;
+            this.response = null;
+            this.copied = false;
+
+            const payload = {
+                measures: this.selectedMeasures,
+                dimensions: this.selectedDimensions,
+                filters: this.filters
+                    .filter((f) => f.member)
+                    .map((f) => ({
+                        member: f.member,
+                        operator: f.operator,
+                        values:
+                            f.operator === 'set' || f.operator === 'notSet'
+                                ? []
+                                : f.values
+                                      .split(',')
+                                      .map((v) => v.trim())
+                                      .filter(Boolean),
+                    })),
+                limit: this.limit ? parseInt(this.limit, 10) : null,
+            };
+
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 25000);
+
+            try {
+                const res = await window.GCS.apiFetch(this.executeUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    signal: controller.signal,
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    this.error = data.error || data.message || 'Something went wrong.';
+                    this.errorId = data.error_id || '';
+                    this.canRetry = Boolean(data.retry);
+                    return;
+                }
+
+                this.response = data;
+            } catch (e) {
+                this.error = e.name === 'AbortError' ? 'The request timed out.' : 'Something went wrong.';
+                this.canRetry = true;
+            } finally {
+                clearTimeout(timeout);
+                this.loading = false;
+            }
+        },
+
+        async copyResult() {
+            if (!this.rawJson) return;
+
+            await navigator.clipboard.writeText(this.rawJson);
+            this.copied = true;
+            setTimeout(() => (this.copied = false), 2000);
+        },
+    };
+};

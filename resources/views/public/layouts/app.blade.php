@@ -183,6 +183,11 @@
                                         <x-fas-user class="w-3.5 h-3.5" aria-hidden="true" />
                                         {{ __('layout.account.settings') }}
                                     </a>
+                                    <a href="{{ route('account.change-requests.index') }}" role="menuitem"
+                                       class="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
+                                        <x-fas-pen class="w-3.5 h-3.5" aria-hidden="true" />
+                                        {{ __('layout.account.change_requests') }}
+                                    </a>
                                     @can('access-admin')
                                         <a href="{{ route('admin.dashboard') }}" role="menuitem"
                                            class="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
@@ -339,6 +344,12 @@
                        class="flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all {{ request()->routeIs('account.edit') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 bg-white/5' }}">
                         <x-fas-user class="w-3.5 h-3.5" aria-hidden="true" />
                         {{ __('layout.account.settings') }}
+                    </a>
+                    <a href="{{ route('account.change-requests.index') }}"
+                       @if(request()->routeIs('account.change-requests.*')) aria-current="page" @endif
+                       class="flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all {{ request()->routeIs('account.change-requests.*') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 bg-white/5' }}">
+                        <x-fas-pen class="w-3.5 h-3.5" aria-hidden="true" />
+                        {{ __('layout.account.change_requests') }}
                     </a>
                     @can('access-admin')
                         <a href="{{ route('admin.dashboard') }}"
@@ -578,6 +589,12 @@
                             <a href="{{ route('developers') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center justify-center md:justify-start gap-2 group">
                                 <span class="w-0 h-[1px] bg-[var(--brand-yellow)] transition-all group-hover:w-3"></span>
                                 {{ __("layout.footer.about.dev_doc") }}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('data-explorer.index') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center justify-center md:justify-start gap-2 group">
+                                <span class="w-0 h-[1px] bg-[var(--brand-yellow)] transition-all group-hover:w-3"></span>
+                                {{ __("layout.footer.about.data_explorer") }}
                             </a>
                         </li>
                     </ul>

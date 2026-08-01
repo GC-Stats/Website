@@ -75,6 +75,7 @@
                     ['route' => 'admin.about.index', 'pattern' => 'admin.about.*', 'label' => __('admin.nav.about'), 'icon' => 'fas-circle-info', 'can' => 'about.view'],
                     ['route' => 'admin.emotes.index', 'pattern' => 'admin.emotes.*', 'label' => __('admin.nav.emotes'), 'icon' => 'fas-face-smile', 'can' => 'emotes.view'],
                     ['route' => 'admin.api-keys.index', 'pattern' => 'admin.api-keys.*', 'label' => __('admin.nav.api_keys'), 'icon' => 'fas-key', 'can' => 'api-keys.view'],
+                    ['route' => 'admin.data-explorer.access', 'pattern' => 'admin.data-explorer.*', 'label' => __('admin.nav.data_explorer'), 'icon' => 'fas-comment-dots', 'can' => 'data-explorer.view'],
                 ],
             ],
         ];

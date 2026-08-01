@@ -18,6 +18,7 @@ return [
         'login' => 'Connexion',
         'profile' => 'Voir le profil',
         'settings' => 'Paramètres du compte',
+        'change_requests' => 'Mes demandes de modification',
         'admin' => 'Panneau admin',
         'no_admin_section' => "Votre rôle a des permissions admin, mais aucune section du dashboard n'est encore construite pour celle-ci.",
         'logout' => 'Déconnexion',
@@ -68,6 +69,7 @@ return [
             'about_us' => 'Qui sommes-nous',
             'dmca' => 'Faire une demande de retrait de contenu',
             'dev_doc' => 'Documentation Développeur',
+            'data_explorer' => 'Data Explorer',
             'transparency' => 'Transparence',
         ],
         'informations' => [
