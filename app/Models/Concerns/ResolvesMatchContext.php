@@ -91,6 +91,10 @@ trait ResolvesMatchContext
             $model->match_id = $model->match_id ?? $roundData->gameMap->match_id;
             $model->tournament_id = $model->tournament_id ?? $match->tournament_id;
             $model->phase_id = $model->phase_id ?? $match->phase_id;
+
+            if ($model->isFillable('game_map_id')) {
+                $model->game_map_id = $model->game_map_id ?? $roundData->gameMap->id;
+            }
         }
     }
 }

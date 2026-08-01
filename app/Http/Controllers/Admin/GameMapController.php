@@ -33,6 +33,7 @@ use App\Models\MatchVeto;
 use App\Models\Player;
 use App\Models\Tournament;
 use App\Services\MapStatsCalculator;
+use App\Services\RosterMismatchDetector;
 use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
@@ -48,7 +49,10 @@ use Illuminate\Validation\Rule;
 
 class GameMapController extends Controller
 {
-    public function __construct(private readonly MapStatsCalculator $mapStats) {}
+    public function __construct(
+        private readonly MapStatsCalculator $mapStats,
+        private readonly RosterMismatchDetector $rosterMismatchDetector,
+    ) {}
 
     public function show(Tournament $tournament, Matchs $match, GameMap $map): View
     {
@@ -598,6 +602,8 @@ class GameMapController extends Controller
 
         $this->saveMatchPlayerStats($gameMap, $players, $rounds, $roundKills, $teamAColor, $totalRounds, $content, $playerMapping);
         $this->computeAdvancedStats($gameMap, $players, $rounds, $roundKills, $teamAColor, $content, $playerMapping, $playerTeamMap);
+
+        $this->rosterMismatchDetector->detect($gameMap, $match, $playerTeamMap);
     }
 
     /**
@@ -696,6 +702,7 @@ class GameMapController extends Controller
                     'phase_id' => $match->phase_id,
                     'match_id' => $match->id,
                     'game_map_round_id' => $gameMapRound->id,
+                    'game_map_id' => $gameMapRound->game_map_id,
                     'event_type' => 'kill',
                     'game_map_round_kill_id' => $kill['id'],
                     'player_id' => $playerId,
@@ -739,6 +746,7 @@ class GameMapController extends Controller
                 'phase_id' => $match->phase_id,
                 'match_id' => $match->id,
                 'game_map_round_id' => $gameMapRound->id,
+                'game_map_id' => $gameMapRound->game_map_id,
                 'event_type' => $eventType,
                 'game_map_round_kill_id' => null,
                 'player_id' => $playerId,

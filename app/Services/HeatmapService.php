@@ -26,6 +26,7 @@
 namespace App\Services;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class HeatmapService
@@ -62,19 +63,28 @@ class HeatmapService
             return [];
         }
 
+        $gameMapIds = Cache::tags(['heatmap'])->remember(
+            "heatmap_map_ids_{$mapName}",
+            3600,
+            fn () => DB::table('game_maps')->whereRaw('LOWER(map_name) = ?', [$mapName])->pluck('id')
+        );
+
+        if ($gameMapIds->isEmpty()) {
+            return [];
+        }
+
         $rows = DB::table('game_map_round_player_positions as p')
             ->join('game_map_rounds as r', 'r.id', '=', 'p.game_map_round_id')
-            ->join('game_maps as gm', 'gm.id', '=', 'r.game_map_id')
             ->join('matches as m', 'm.id', '=', 'p.match_id')
             ->leftJoin('game_map_round_player_stats as s', function ($join) {
                 $join->on('s.game_map_round_id', '=', 'p.game_map_round_id')
                     ->on('s.player_id', '=', 'p.player_id');
             })
             ->leftJoin('game_player_stats as gps', function ($join) {
-                $join->on('gps.game_map_id', '=', 'gm.id')
+                $join->on('gps.game_map_id', '=', 'p.game_map_id')
                     ->on('gps.player_id', '=', 'p.player_id');
             })
-            ->whereRaw('LOWER(gm.map_name) = ?', [$mapName])
+            ->whereIn('p.game_map_id', $gameMapIds)
             ->when($tournamentId, fn ($q) => $q->where('p.tournament_id', $tournamentId))
             ->when($start && $end, fn ($q) => $q->whereBetween('m.scheduled_at', [$start, $end]))
             ->when($teamId, fn ($q) => $q->where('s.team_id', $teamId))

@@ -25,6 +25,7 @@ use App\Services\HeatmapService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class WidgetController extends Controller
@@ -192,10 +193,30 @@ class WidgetController extends Controller
         $end = $request->filled('end_date') ? Carbon::parse($request->end_date)->endOfDay() : null;
 
         $mapName = strtolower($request->string('map')->toString());
+        $tournamentId = $request->filled('tournament_id') ? (int) $request->tournament_id : null;
 
-        $positions = app(HeatmapService::class)->positions(
+        $cacheKey = 'heatmap_positions_'.md5(serialize([
             $mapName,
-            $request->filled('tournament_id') ? (int) $request->tournament_id : null,
+            $tournamentId,
+            $start?->toDateString(),
+            $end?->toDateString(),
+            $request->filled('side') ? $request->string('side')->toString() : null,
+            $request->filled('team_id') ? (int) $request->team_id : null,
+            $request->filled('player_id') ? (int) $request->player_id : null,
+            $request->string('event_type')->toString(),
+            $request->filled('agent') ? $request->string('agent')->toString() : null,
+            $request->filled('time_start') ? (int) $request->time_start : null,
+            $request->filled('time_end') ? (int) $request->time_end : null,
+        ]));
+
+        $tags = ['heatmap'];
+        if ($tournamentId) {
+            $tags[] = "tournament_{$tournamentId}";
+        }
+
+        $positions = Cache::tags($tags)->remember($cacheKey, 300, fn () => app(HeatmapService::class)->positions(
+            $mapName,
+            $tournamentId,
             $start,
             $end,
             $request->filled('side') ? $request->string('side')->toString() : null,
@@ -205,7 +226,7 @@ class WidgetController extends Controller
             $request->filled('agent') ? $request->string('agent')->toString() : null,
             $request->filled('time_start') ? (int) $request->time_start : null,
             $request->filled('time_end') ? (int) $request->time_end : null,
-        );
+        ));
 
         return response()
             ->view('public.widget.heatmap', [

@@ -25,7 +25,7 @@ class GameMapRoundPlayerPosition extends Model
     use HasFactory, ResolvesMatchContext;
 
     protected $fillable = [
-        'tournament_id', 'phase_id', 'match_id', 'game_map_round_id',
+        'tournament_id', 'phase_id', 'match_id', 'game_map_round_id', 'game_map_id',
         'event_type', 'game_map_round_kill_id', 'player_id', 'role',
         'x', 'y', 'view_radians', 'time_ms',
     ];
