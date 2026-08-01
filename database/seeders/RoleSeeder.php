@@ -15,7 +15,6 @@ namespace Database\Seeders;
 use App\Support\AdminPermissions;
 use App\Support\PermissionTeam;
 use App\Support\PublisherPermissions;
-use App\Support\TeamPermissions;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -29,7 +28,7 @@ class RoleSeeder extends Seeder
 
         PermissionTeam::global();
 
-        $catalog = [...AdminPermissions::all(), ...TeamPermissions::all()];
+        $catalog = [...AdminPermissions::all()];
 
         foreach ($catalog as $permission) {
             Permission::findOrCreate($permission);

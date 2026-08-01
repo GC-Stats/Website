@@ -7,7 +7,6 @@ use App\Http\Middleware\LogPageView;
 use App\Http\Middleware\SetDefaultPermissionTeam;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetPublisherPermissionContext;
-use App\Http\Middleware\SetTeamPermissionContext;
 use App\Http\Middleware\StaticPageCache;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
@@ -46,7 +45,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'static.cache' => StaticPageCache::class,
             'not-sanctioned' => EnsureAccountIsNotSanctioned::class,
             'not-sanctioned.team' => EnsureNotSanctionedForTeam::class,
-            'team.permission-context' => SetTeamPermissionContext::class,
             'publisher.permission-context' => SetPublisherPermissionContext::class,
         ]);
 
