@@ -55,6 +55,15 @@
         <livewire:entity-picker type="player" name="player_id" :label="__('widgets.builder.player')" :selected="$heatmapPlayer?->id" />
     </div>
 
+    <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('widgets.builder.time_reference') }}</label>
+        <select name="time_reference"
+                class="w-full py-2.5 px-4 text-xs rounded-sm bg-[#050505] border border-border-subtle text-white focus:outline-none focus:border-gc-yellow transition uppercase tracking-wider">
+            <option value="round" {{ $selectedTimeReference === 'round' ? 'selected' : '' }}>{{ __('widgets.builder.time_reference_round') }}</option>
+            <option value="plant" {{ $selectedTimeReference === 'plant' ? 'selected' : '' }}>{{ __('widgets.builder.time_reference_plant') }}</option>
+        </select>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
             <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('widgets.builder.time_start') }}</label>

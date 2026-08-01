@@ -565,6 +565,7 @@ class GameMapController extends Controller
                 'plant_site' => $plantInfo['site'],
                 'plant_x' => $plantInfo['x'],
                 'plant_y' => $plantInfo['y'],
+                'plant_time_ms' => $plantInfo['plant_time_ms'],
                 'atk_team' => $atkTeamId,
                 'def_team' => $defTeamId,
             ]);

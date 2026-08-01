@@ -49,6 +49,7 @@ class WidgetController extends Controller
             'color' => ['nullable', 'regex:/^#?[0-9a-fA-F]{6}$/'],
             'time_start' => ['nullable', 'integer', 'min:0'],
             'time_end' => ['nullable', 'integer', 'min:0', 'gte:time_start'],
+            'time_reference' => ['nullable', 'string', 'in:round,plant'],
         ]);
 
         $teamA = $request->filled('team_a') ? Team::find((int) $request->team_a) : null;
@@ -87,6 +88,7 @@ class WidgetController extends Controller
                 'color' => $request->string('color')->toString() ?: null,
                 'time_start' => $request->filled('time_start') ? (int) $request->time_start : null,
                 'time_end' => $request->filled('time_end') ? (int) $request->time_end : null,
+                'time_reference' => $request->string('time_reference')->toString() ?: null,
             ]));
         }
 
@@ -138,6 +140,7 @@ class WidgetController extends Controller
             'selectedColor' => ltrim($request->string('color')->toString(), '#') ?: null,
             'selectedTimeStart' => $request->filled('time_start') ? (int) $request->time_start : null,
             'selectedTimeEnd' => $request->filled('time_end') ? (int) $request->time_end : null,
+            'selectedTimeReference' => $request->string('time_reference')->toString() ?: 'round',
             'heatmapGeneratedUrl' => $heatmapGeneratedUrl,
         ]);
     }
@@ -187,6 +190,7 @@ class WidgetController extends Controller
             'color' => ['nullable', 'regex:/^#?[0-9a-fA-F]{6}$/'],
             'time_start' => ['nullable', 'integer', 'min:0'],
             'time_end' => ['nullable', 'integer', 'min:0', 'gte:time_start'],
+            'time_reference' => ['nullable', 'string', 'in:round,plant'],
         ]);
 
         $start = $request->filled('start_date') ? Carbon::parse($request->start_date)->startOfDay() : null;
@@ -194,6 +198,7 @@ class WidgetController extends Controller
 
         $mapName = strtolower($request->string('map')->toString());
         $tournamentId = $request->filled('tournament_id') ? (int) $request->tournament_id : null;
+        $timeReference = $request->filled('time_reference') ? $request->string('time_reference')->toString() : 'round';
 
         $cacheKey = 'heatmap_positions_'.md5(serialize([
             $mapName,
@@ -207,6 +212,7 @@ class WidgetController extends Controller
             $request->filled('agent') ? $request->string('agent')->toString() : null,
             $request->filled('time_start') ? (int) $request->time_start : null,
             $request->filled('time_end') ? (int) $request->time_end : null,
+            $timeReference,
         ]));
 
         $tags = ['heatmap'];
@@ -226,6 +232,7 @@ class WidgetController extends Controller
             $request->filled('agent') ? $request->string('agent')->toString() : null,
             $request->filled('time_start') ? (int) $request->time_start : null,
             $request->filled('time_end') ? (int) $request->time_end : null,
+            $timeReference,
         ));
 
         return response()

@@ -185,6 +185,35 @@ test('time range filters by the round-clock time_ms', function () {
     expect($service->positions('ascent', timeStart: 100))->toHaveCount(0);
 });
 
+test('time range with the plant reference measures from the round\'s plant_time_ms and drops unplanted rounds', function () {
+    $plantedRound = makeRound(roundAttributes: ['plant_time_ms' => 30000]);
+    $unplantedRound = makeRound();
+    $player = Player::factory()->create();
+
+    GameMapRoundPlayerPosition::create([
+        'game_map_round_id' => $plantedRound->id, 'event_type' => 'kill',
+        'player_id' => $player->id, 'role' => 'killer', 'x' => 100, 'y' => 100,
+        'time_ms' => 32000,
+    ]);
+    GameMapRoundPlayerPosition::create([
+        'game_map_round_id' => $plantedRound->id, 'event_type' => 'kill',
+        'player_id' => $player->id, 'role' => 'killer', 'x' => 200, 'y' => 200,
+        'time_ms' => 50000,
+    ]);
+    GameMapRoundPlayerPosition::create([
+        'game_map_round_id' => $unplantedRound->id, 'event_type' => 'kill',
+        'player_id' => $player->id, 'role' => 'killer', 'x' => 300, 'y' => 300,
+        'time_ms' => 10000,
+    ]);
+
+    $service = app(HeatmapService::class);
+
+    expect($service->positions('ascent'))->toHaveCount(3);
+    expect($service->positions('ascent', timeReference: 'plant'))->toHaveCount(2);
+    expect($service->positions('ascent', timeReference: 'plant', timeStart: 0, timeEnd: 5))->toHaveCount(1);
+    expect($service->positions('ascent', timeReference: 'plant', timeStart: 15, timeEnd: 25))->toHaveCount(1);
+});
+
 test('date range filters by the match scheduled_at', function () {
     $round = makeRound();
     $player = Player::factory()->create();
@@ -211,6 +240,8 @@ test('the heatmap widget route validates the map, agent, and color parameters', 
     $this->get('/widget/heatmap?map=ascent&color=not-a-hex')->assertSessionHasErrors('color');
     $this->get('/widget/heatmap?map=ascent&agent=Jett&color=ff0000')->assertStatus(200);
     $this->get('/widget/heatmap?map=ascent&color=%23ff0000')->assertStatus(200);
+    $this->get('/widget/heatmap?map=ascent&time_reference=not-a-reference')->assertSessionHasErrors('time_reference');
+    $this->get('/widget/heatmap?map=ascent&time_reference=plant')->assertStatus(200);
     $this->get('/widget/heatmap?map=ascent&time_start=60&time_end=10')->assertSessionHasErrors('time_end');
     $this->get('/widget/heatmap?map=ascent&time_start=10&time_end=60')->assertStatus(200);
 });

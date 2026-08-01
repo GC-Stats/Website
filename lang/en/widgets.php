@@ -51,9 +51,12 @@ return [
         'color' => 'Heatmap color',
         'color_hint' => 'Also settable directly in the URL via ?color=RRGGBB.',
 
-        'time_start' => 'Round time from (seconds)',
-        'time_end' => 'Round time to (seconds)',
-        'time_hint' => 'Restricts positions to a window of the round clock, e.g. the opening 20 seconds of each round.',
+        'time_reference' => 'Time window starts from',
+        'time_reference_round' => 'Round start',
+        'time_reference_plant' => 'Plant',
+        'time_start' => 'Time from (seconds)',
+        'time_end' => 'Time to (seconds)',
+        'time_hint' => 'Restricts positions to a window of the clock above, e.g. the opening 20 seconds of each round, or the first 10 seconds after each plant. The plant option excludes rounds that were never planted.',
     ],
 
     'result' => [

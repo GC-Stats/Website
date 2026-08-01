@@ -51,9 +51,12 @@ return [
         'color' => 'Couleur de la heatmap',
         'color_hint' => 'Modifiable aussi directement dans l\'URL via ?color=RRGGBB.',
 
-        'time_start' => 'Temps du round à partir de (secondes)',
-        'time_end' => 'Temps du round jusqu\'à (secondes)',
-        'time_hint' => 'Restreint les positions à une fenêtre du chrono du round, ex. les 20 premières secondes de chaque round.',
+        'time_reference' => 'La fenêtre de temps part de',
+        'time_reference_round' => 'Début du round',
+        'time_reference_plant' => 'Plant',
+        'time_start' => 'Temps à partir de (secondes)',
+        'time_end' => 'Temps jusqu\'à (secondes)',
+        'time_hint' => 'Restreint les positions à une fenêtre du chrono ci-dessus, ex. les 20 premières secondes de chaque round, ou les 10 premières secondes après chaque plant. L\'option "Plant" exclut les rounds où le spike n\'a jamais été posé.',
     ],
 
     'result' => [

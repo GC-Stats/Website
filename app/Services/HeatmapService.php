@@ -40,8 +40,12 @@ class HeatmapService
      * @param  string|null  $agent  agent_name from config('valorant.agents'), matched against game_player_stats
      *                              (one row per player per map — not tracked per round, so an agent swap mid-match
      *                              isn't distinguishable; filters to whatever agent that player used on that map)
-     * @param  int|null  $timeStart  round-clock lower bound in seconds, matched against p.time_ms
-     * @param  int|null  $timeEnd  round-clock upper bound in seconds, matched against p.time_ms
+     * @param  int|null  $timeStart  lower bound in seconds, relative to $timeReference
+     * @param  int|null  $timeEnd  upper bound in seconds, relative to $timeReference
+     * @param  string  $timeReference  'round' (default) measures from round start against p.time_ms directly;
+     *                                 'plant' measures from that round's plant instead, excluding rounds that
+     *                                 were never planted — useful for isolating post-plant positioning regardless
+     *                                 of how long the round ran before the plant happened
      * @return list<array{x: float, y: float, side: ?string, event_type: string, team_id: ?int, player_id: int}>
      */
     public function positions(
@@ -56,6 +60,7 @@ class HeatmapService
         ?string $agent = null,
         ?int $timeStart = null,
         ?int $timeEnd = null,
+        string $timeReference = 'round',
     ): array {
         $calibration = config('valorant_minimaps.'.$mapName);
 
@@ -73,6 +78,8 @@ class HeatmapService
             return [];
         }
 
+        $fromPlant = $timeReference === 'plant';
+
         $rows = DB::table('game_map_round_player_positions as p')
             ->join('game_map_rounds as r', 'r.id', '=', 'p.game_map_round_id')
             ->join('matches as m', 'm.id', '=', 'p.match_id')
@@ -85,14 +92,19 @@ class HeatmapService
                     ->on('gps.player_id', '=', 'p.player_id');
             })
             ->whereIn('p.game_map_id', $gameMapIds)
+            ->when($fromPlant, fn ($q) => $q->whereNotNull('r.plant_time_ms'))
             ->when($tournamentId, fn ($q) => $q->where('p.tournament_id', $tournamentId))
             ->when($start && $end, fn ($q) => $q->whereBetween('m.scheduled_at', [$start, $end]))
             ->when($teamId, fn ($q) => $q->where('s.team_id', $teamId))
             ->when($playerId, fn ($q) => $q->where('p.player_id', $playerId))
             ->when($eventTypes, fn ($q) => $q->whereIn('p.event_type', $eventTypes))
             ->when($agent, fn ($q) => $q->where('gps.agent_name', $agent))
-            ->when($timeStart !== null, fn ($q) => $q->where('p.time_ms', '>=', $timeStart * 1000))
-            ->when($timeEnd !== null, fn ($q) => $q->where('p.time_ms', '<=', $timeEnd * 1000))
+            ->when($timeStart !== null, fn ($q) => $fromPlant
+                ? $q->whereRaw('CAST(p.time_ms AS SIGNED) - CAST(r.plant_time_ms AS SIGNED) >= ?', [$timeStart * 1000])
+                : $q->where('p.time_ms', '>=', $timeStart * 1000))
+            ->when($timeEnd !== null, fn ($q) => $fromPlant
+                ? $q->whereRaw('CAST(p.time_ms AS SIGNED) - CAST(r.plant_time_ms AS SIGNED) <= ?', [$timeEnd * 1000])
+                : $q->where('p.time_ms', '<=', $timeEnd * 1000))
             ->when($side === 'atk', fn ($q) => $q->whereColumn('s.team_id', 'r.atk_team'))
             ->when($side === 'def', fn ($q) => $q->whereColumn('s.team_id', 'r.def_team'))
             ->select('p.x', 'p.y', 'p.event_type', 'p.player_id', 's.team_id', 'r.atk_team', 'r.def_team')

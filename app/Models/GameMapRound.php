@@ -33,6 +33,7 @@ class GameMapRound extends Model
         'plant_site',
         'plant_x',
         'plant_y',
+        'plant_time_ms',
         'atk_team',
         'def_team',
     ];
