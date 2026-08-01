@@ -33,7 +33,7 @@ use App\Models\MatchVeto;
 use App\Models\Player;
 use App\Models\Tournament;
 use App\Services\MapStatsCalculator;
-//use App\Services\RosterMismatchDetector;
+// use App\Services\RosterMismatchDetector;
 use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
@@ -604,7 +604,7 @@ class GameMapController extends Controller
         $this->saveMatchPlayerStats($gameMap, $players, $rounds, $roundKills, $teamAColor, $totalRounds, $content, $playerMapping);
         $this->computeAdvancedStats($gameMap, $players, $rounds, $roundKills, $teamAColor, $content, $playerMapping, $playerTeamMap);
 
-        //$this->rosterMismatchDetector->detect($gameMap, $match, $playerTeamMap);
+        // $this->rosterMismatchDetector->detect($gameMap, $match, $playerTeamMap);
     }
 
     /**
