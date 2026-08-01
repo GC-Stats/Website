@@ -2,10 +2,12 @@
 
 use App\Models\User;
 use App\Services\DataExplorerCubeService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     config(['services.gc_stats_api.base_url' => 'https://gc-stats-api.test']);
+    Cache::forget('data_explorer.cube_schema');
 });
 
 test('the builder page renders with the fetched schema', function () {
