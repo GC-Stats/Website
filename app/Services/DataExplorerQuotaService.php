@@ -30,8 +30,6 @@ use Illuminate\Support\Facades\DB;
 
 class DataExplorerQuotaService
 {
-    public const TOTAL_MONTHLY_QUOTA = 2;
-
     public const SOURCE_PLATFORM = 'platform';
 
     public const SOURCE_PERSONAL = 'personal';
@@ -40,7 +38,7 @@ class DataExplorerQuotaService
     {
         $authorizedCount = User::where('data_explorer_enabled', true)->count();
 
-        return intdiv(self::TOTAL_MONTHLY_QUOTA, max(1, $authorizedCount));
+        return intdiv(config('services.data_explorer.quota'), max(1, $authorizedCount));
     }
 
     /**
@@ -173,7 +171,7 @@ class DataExplorerQuotaService
 
         return [
             'total_used' => $usages->sum('platform_requests_count'),
-            'total_quota' => self::TOTAL_MONTHLY_QUOTA,
+            'total_quota' => config('services.data_explorer.quota'),
             'per_user' => $usages->sortByDesc(fn (DataExplorerUsage $usage) => $usage->totalRequestsCount())->values(),
         ];
     }

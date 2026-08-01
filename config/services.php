@@ -95,4 +95,8 @@ return [
     'gc_stats_api' => [
         'base_url' => env('GC_STATS_API_URL'),
     ],
+
+    'data_explorer' => [
+        'quota' => env('DATA_EXPLORER_QUOTA') ?? 0,
+    ],
 ];
