@@ -101,7 +101,7 @@
     <template x-teleport="body">
         <div x-show="open" x-cloak @click.outside="open = false" @scroll.window="open = false"
              :style="`top: ${rect.top}px; left: ${rect.left}px; width: ${rect.width}px;`"
-             class="fixed z-50 min-w-max bg-bg-card border border-white/10 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+             class="fixed z-[100] min-w-max bg-bg-card border border-white/10 rounded-lg shadow-xl max-h-64 overflow-y-auto">
             <template x-for="opt in options" :key="opt.value">
                 <button type="button" @click="select(opt.value)" x-text="opt.label"
                         class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white/5 transition"
