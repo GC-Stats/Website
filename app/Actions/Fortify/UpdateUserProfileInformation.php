@@ -6,6 +6,7 @@ use App\Models\SanctionIdentity;
 use App\Models\User;
 use App\Services\SanctionService;
 use App\Support\Activity\ActivityChangeSet;
+use App\Support\Pronouns;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -38,6 +39,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 'alpha_dash',
                 Rule::unique('users')->ignore($user->id),
             ],
+
+            'pronouns' => ['required', 'integer', Rule::in(Pronouns::OPTIONS)],
 
             'email' => [
                 'nullable',
@@ -78,20 +81,22 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $user->forceFill([
                 'name' => $input['name'],
                 'username' => $input['username'],
+                'pronouns' => $input['pronouns'],
                 'email' => $email,
             ])->save();
         }
 
-        if ($user->wasChanged(['name', 'username'])) {
+        if ($user->wasChanged(['name', 'username', 'pronouns'])) {
             activity('account')
                 ->performedOn($user)
                 ->causedBy($user)
-                ->withProperties(ActivityChangeSet::fromModel($user, ['name', 'username'])->toArray())
+                ->withProperties(ActivityChangeSet::fromModel($user, ['name', 'username', 'pronouns'])->toArray())
                 ->log('account.profile_updated');
         }
 
         if ($emailChanged && $email !== null) {
             $this->sanctions->propagateIdentity($user, SanctionIdentity::TYPE_EMAIL, $email);
+            $this->sanctions->transferNonBanSanctions($user, SanctionIdentity::TYPE_EMAIL, $email);
 
             activity('account')
                 ->performedOn($user)
@@ -111,6 +116,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $user->forceFill([
             'name' => $input['name'],
             'username' => $input['username'],
+            'pronouns' => $input['pronouns'],
             'email' => $email,
             'email_verified_at' => null,
         ])->save();

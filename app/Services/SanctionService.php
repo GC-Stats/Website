@@ -16,6 +16,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\SanctionRequiresSuperAdminException;
 use App\Models\Sanction;
 use App\Models\SanctionIdentity;
 use App\Models\User;
@@ -24,9 +25,15 @@ class SanctionService
 {
     /**
      * @param  array{type: string, reason: string, ends_at?: \DateTimeInterface|string|null, team_id?: ?int}  $data
+     *
+     * @throws SanctionRequiresSuperAdminException
      */
     public function issue(User $user, User $issuedBy, array $data): Sanction
     {
+        if ($user->hasGlobalRole() && ! $issuedBy->isSuperAdmin()) {
+            throw new SanctionRequiresSuperAdminException;
+        }
+
         $sanction = Sanction::create([
             'user_id' => $user->id,
             'team_id' => $data['team_id'] ?? null,
@@ -114,15 +121,64 @@ class SanctionService
     }
 
     /**
-     * Does this identity (email or provider id) match an active sanction,
-     * regardless of which account it was originally issued against?
+     * Does this identity (email or provider id) match an active suspension
+     * or ban, regardless of which account it was originally issued against?
+     * Lighter sanction types (warning/mute/note) don't block — they follow
+     * the user to the new account instead, see transferNonBanSanctions().
      */
     public function hasActiveSanctionFor(string $type, string $value): bool
     {
         return SanctionIdentity::where('type', $type)
             ->where('value', self::canonicalizeIdentity($type, $value))
-            ->whereHas('sanction', fn ($query) => $query->active())
+            ->whereHas('sanction', fn ($query) => $query->active()->whereIn('type', Sanction::BLOCKING_TYPES))
             ->exists();
+    }
+
+    /**
+     * Re-registration/relinking with an identity carrying a non-blocking
+     * sanction (warning/mute/note) isn't refused — the sanction simply
+     * follows the user onto the new account instead, so it can't be shed by
+     * making a fresh one. Blocking sanctions (suspension/ban) never reach
+     * this: hasActiveSanctionFor() already refuses the request before the
+     * new account/identity exists.
+     */
+    public function transferNonBanSanctions(User $user, string $type, string $value): void
+    {
+        $value = self::canonicalizeIdentity($type, $value);
+
+        $sanctions = Sanction::whereIn('id', SanctionIdentity::where('type', $type)->where('value', $value)->pluck('sanction_id'))
+            ->active()
+            ->whereNotIn('type', Sanction::BLOCKING_TYPES)
+            ->where(fn ($query) => $query->whereNull('user_id')->orWhere('user_id', '!=', $user->id))
+            ->get();
+
+        foreach ($sanctions as $sanction) {
+            $alreadyTransferred = Sanction::where('user_id', $user->id)
+                ->where('transferred_from', $sanction->id)
+                ->exists();
+
+            if ($alreadyTransferred) {
+                continue;
+            }
+
+            $transferred = Sanction::create([
+                'user_id' => $user->id,
+                'team_id' => $sanction->team_id,
+                'issued_by' => $sanction->issued_by,
+                'type' => $sanction->type,
+                'reason' => $sanction->reason,
+                'starts_at' => $sanction->starts_at,
+                'ends_at' => $sanction->ends_at,
+                'transferred_from' => $sanction->id,
+            ]);
+
+            $this->snapshotIdentities($transferred, $user);
+
+            activity('moderation')
+                ->performedOn($transferred)
+                ->withProperties(['type' => $transferred->type, 'transferred_from' => $sanction->id, 'target_user_id' => $user->id])
+                ->log('sanction.transferred');
+        }
     }
 
     /**

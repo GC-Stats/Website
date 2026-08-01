@@ -79,6 +79,7 @@ class SocialAuthController extends Controller
             }
 
             $sanctions->propagateIdentity($user, $provider, $providerId);
+            $sanctions->transferNonBanSanctions($user, $provider, $providerId);
 
             if ($provider === 'discord') {
                 $discordRoleSync->sync($user);
@@ -136,6 +137,12 @@ class SocialAuthController extends Controller
             $accountSecurity->linkProvider($user, $provider, $this->providerPayload($provider, $socialiteUser));
         } catch (SocialAccountAlreadyLinkedException $e) {
             return redirect()->route('login')->withErrors(['social' => $e->getMessage()]);
+        }
+
+        $sanctions->transferNonBanSanctions($user, $provider, $providerId);
+
+        if ($email !== null) {
+            $sanctions->transferNonBanSanctions($user, SanctionIdentity::TYPE_EMAIL, $email);
         }
 
         if ($provider === 'discord') {

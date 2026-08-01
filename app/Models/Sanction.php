@@ -44,6 +44,16 @@ class Sanction extends Model
         self::TYPE_BAN,
     ];
 
+    /**
+     * Sanction types severe enough to block registration/email/provider
+     * evasion outright (see SanctionService::hasActiveSanctionFor()) instead
+     * of simply following the user to their new account.
+     */
+    public const BLOCKING_TYPES = [
+        self::TYPE_SUSPENSION,
+        self::TYPE_BAN,
+    ];
+
     protected $fillable = [
         'user_id',
         'team_id',
@@ -54,6 +64,7 @@ class Sanction extends Model
         'ends_at',
         'revoked_at',
         'revoked_by',
+        'transferred_from',
     ];
 
     protected $casts = [
@@ -80,6 +91,15 @@ class Sanction extends Model
     public function revokedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'revoked_by');
+    }
+
+    /**
+     * The sanction this one was cloned from when a non-ban sanction followed
+     * its owner onto a different account, see SanctionService::transferNonBanSanctions().
+     */
+    public function transferredFrom(): BelongsTo
+    {
+        return $this->belongsTo(Sanction::class, 'transferred_from');
     }
 
     public function identities(): HasMany

@@ -101,6 +101,23 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
             ->first();
     }
 
+    /**
+     * Whether this user holds any global admin-panel role (moderator,
+     * editor, super-admin, or a custom one) — i.e. is site staff. Checked
+     * directly against the pivot table for the same reason as
+     * isSuperAdmin(): must not depend on whatever PermissionTeam context is
+     * currently active. Used to restrict sanctioning staff accounts to
+     * super admins only, see SanctionService::issue().
+     */
+    public function hasGlobalRole(): bool
+    {
+        return DB::table('model_has_roles')
+            ->where('model_id', $this->id)
+            ->where('model_type', static::class)
+            ->where('team_id', PermissionTeam::GLOBAL_ID)
+            ->exists();
+    }
+
     public function reportsReceived(): HasMany
     {
         return $this->hasMany(UserReport::class, 'reported_user_id');

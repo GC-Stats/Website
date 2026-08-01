@@ -90,6 +90,71 @@ test('registering through a social provider is blocked when the email matches a 
     expect(User::where('email', 'victim@example.com')->exists())->toBeFalse();
 });
 
+test('a warning does not block re-registration with the same email, but is transferred to the new account', function () {
+    $victim = User::factory()->create(['email' => 'warned@example.com']);
+    $sanctions = app(SanctionService::class);
+
+    $sanction = Sanction::create([
+        'user_id' => $victim->id,
+        'type' => Sanction::TYPE_WARNING,
+        'reason' => 'Chat abuse',
+        'starts_at' => now()->subDay(),
+    ]);
+    $sanctions->snapshotIdentities($sanction, $victim);
+
+    $victim->delete();
+
+    $newUser = app(CreateNewUser::class)->create([
+        'name' => 'New Name',
+        'username' => 'newname',
+        'email' => 'warned@example.com',
+        'password' => 'Correct-Horse-Battery-Staple-1!',
+        'password_confirmation' => 'Correct-Horse-Battery-Staple-1!',
+    ]);
+
+    expect($newUser->exists)->toBeTrue();
+
+    $transferred = Sanction::where('user_id', $newUser->id)->where('type', Sanction::TYPE_WARNING)->first();
+
+    expect($transferred)->not->toBeNull()
+        ->and($transferred->transferred_from)->toBe($sanction->id)
+        ->and($transferred->reason)->toBe('Chat abuse')
+        ->and($transferred->isActive())->toBeTrue();
+});
+
+test('registering through a social provider with a muted email transfers the mute instead of blocking', function () {
+    $victim = User::factory()->create(['email' => 'muted@example.com']);
+    $sanctions = app(SanctionService::class);
+
+    $sanction = Sanction::create([
+        'user_id' => $victim->id,
+        'type' => Sanction::TYPE_MUTE,
+        'reason' => 'Spam',
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDay(),
+    ]);
+    $sanctions->snapshotIdentities($sanction, $victim);
+
+    $victim->delete();
+
+    Socialite::shouldReceive('driver')
+        ->with('discord')
+        ->andReturnSelf();
+    Socialite::shouldReceive('user')
+        ->andReturn(fakeSocialiteUser('brand-new-discord-id-2', 'muted@example.com', ['verified' => true]));
+
+    $this->get(route('social.callback', 'discord'))->assertRedirect(route('home'));
+
+    $newUser = User::where('email', 'muted@example.com')->first();
+
+    expect($newUser)->not->toBeNull();
+
+    $transferred = Sanction::where('user_id', $newUser->id)->where('type', Sanction::TYPE_MUTE)->first();
+
+    expect($transferred)->not->toBeNull()
+        ->and($transferred->transferred_from)->toBe($sanction->id);
+});
+
 test('a globally sanctioned logged-in user cannot link a new social provider', function () {
     $user = User::factory()->create();
 

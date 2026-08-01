@@ -14,6 +14,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\SanctionRequiresSuperAdminException;
 use App\Http\Controllers\Public\Controller;
 use App\Models\Sanction;
 use App\Models\User;
@@ -69,11 +70,15 @@ class SanctionController extends Controller
 
         $user = User::where('username', $validated['username'])->firstOrFail();
 
-        $sanctions->issue($user, $request->user(), [
-            'type' => $validated['type'],
-            'reason' => $validated['reason'],
-            'ends_at' => $validated['ends_at'] ?? null,
-        ]);
+        try {
+            $sanctions->issue($user, $request->user(), [
+                'type' => $validated['type'],
+                'reason' => $validated['reason'],
+                'ends_at' => $validated['ends_at'] ?? null,
+            ]);
+        } catch (SanctionRequiresSuperAdminException $e) {
+            return back()->withErrors(['username' => $e->getMessage()]);
+        }
 
         return back()->with('status', 'sanction-issued');
     }

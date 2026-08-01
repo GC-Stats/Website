@@ -61,6 +61,8 @@ class CreateNewUser implements CreatesNewUsers
             'password' => Hash::make($input['password']),
         ]);
 
+        $this->sanctions->transferNonBanSanctions($user, SanctionIdentity::TYPE_EMAIL, $input['email']);
+
         activity('account')
             ->performedOn($user)
             ->causedBy($user)
