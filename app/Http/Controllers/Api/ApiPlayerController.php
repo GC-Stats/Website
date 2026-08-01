@@ -59,6 +59,7 @@ class ApiPlayerController extends Controller
             'country_code' => ['sometimes', 'nullable', 'string', 'size:2'],
             'bio' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'socials' => ['sometimes', 'array'],
+            'socials.*' => ['nullable', 'string', 'max:255'],
             'discord_id' => ['sometimes', 'nullable', 'string', 'max:20'],
             'vlr_id' => ['sometimes', 'nullable', 'integer', 'max:99999999'],
             'liquipedia_link' => ['sometimes', 'nullable', 'url', 'max:255'],

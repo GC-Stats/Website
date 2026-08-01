@@ -61,6 +61,7 @@ class ApiTeamController extends Controller
             'vlr_id' => ['sometimes', 'nullable', 'integer', 'max:99999999'],
             'liquipedia_link' => ['sometimes', 'nullable', 'url', 'max:255'],
             'socials' => ['sometimes', 'array'],
+            'socials.*' => ['nullable', 'string', 'max:255'],
         ]);
 
         $team->update($validated);

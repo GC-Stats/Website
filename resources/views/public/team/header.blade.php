@@ -83,7 +83,7 @@
                             @endif
 
                             @foreach($socials as $platform => $username)
-                                @if($username && $socialConfig->has($platform))
+                                @if($username && is_scalar($username) && $socialConfig->has($platform))
                                     @php $cfg = $socialConfig->get($platform); @endphp
                                     <a href="{{ $cfg['url'] . $username }}" target="_blank" rel="noopener noreferrer"
                                        aria-label="{{ ucfirst($platform) }}: {{ $username }}"

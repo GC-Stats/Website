@@ -78,7 +78,7 @@
                     @if(!empty($socials))
                         <div class="flex flex-col gap-1 min-w-[150px] justify-center border-t md:border-t-0 md:border-l border-border-subtle pt-4 md:pt-0 md:pl-6">
                             @foreach($socials as $platform => $username)
-                                @if($username && $socialConfig->has($platform))
+                                @if($username && is_scalar($username) && $socialConfig->has($platform))
                                     @php $cfg = $socialConfig->get($platform); @endphp
                                     <a href="{{ $cfg['url'] . $username }}" target="_blank" rel="noopener noreferrer"
                                        aria-label="{{ ucfirst($platform) }}: {{ $username }}"
