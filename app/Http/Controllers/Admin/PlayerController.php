@@ -26,6 +26,7 @@ use App\Services\PlayerProfileService;
 use App\Services\RosterService;
 use App\Support\Activity\ActivityChangeSet;
 use App\Support\Countries;
+use App\Support\Pronouns;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -218,6 +219,7 @@ class PlayerController extends Controller
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'country_code' => ['nullable', 'string', 'max:5'],
+            'pronouns' => ['required', 'integer', Rule::in(Pronouns::OPTIONS)],
             'bio' => ['nullable', 'string', 'max:2000'],
             'vlr_id' => ['nullable', 'integer'],
             'liquipedia_link' => ['nullable', 'url', 'max:255'],

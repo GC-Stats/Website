@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\Pronouns;
+
 return [
     'edit' => [
         'title' => 'Paramètres du compte',
@@ -10,8 +12,14 @@ return [
             'title' => 'Profil',
             'name_label' => "Nom d'affichage",
             'username_label' => "Nom d'utilisateur",
+            'pronouns_label' => 'Pronoms',
+            'pronouns_options' => [
+                Pronouns::FEMININE => 'Féminin (elle)',
+                Pronouns::MASCULINE => 'Masculin (il)',
+                Pronouns::NEUTRAL => 'Neutre / inclusif (iel)',
+            ],
             'email_label' => 'Adresse email',
-            'email_help' => "Utilisée pour la connexion et les notifications de compte. Laissez vide si vous vous connectez uniquement via un compte lié.",
+            'email_help' => 'Utilisée pour la connexion et les notifications de compte. Laissez vide si vous vous connectez uniquement via un compte lié.',
             'submit' => 'Enregistrer',
             'saved' => 'Profil mis à jour.',
         ],
@@ -21,8 +29,8 @@ return [
             'link_label' => 'gravatar.com',
         ],
         'team' => [
-            'title' => "Équipe favorite",
-            'body' => "Affichez une équipe que vous soutenez sur votre profil public, avec un des tags fan de cette équipe.",
+            'title' => 'Équipe favorite',
+            'body' => 'Affichez une équipe que vous soutenez sur votre profil public, avec un des tags fan de cette équipe.',
             'search_placeholder' => 'Rechercher une équipe…',
             'search_empty' => 'Aucune équipe trouvée.',
             'remove' => 'Retirer',
@@ -30,7 +38,7 @@ return [
             'tag_none' => 'Aucun',
             'no_tags' => "Cette équipe n'a pas encore de tag fan.",
             'submit' => 'Enregistrer',
-            'saved' => "Équipe favorite mise à jour.",
+            'saved' => 'Équipe favorite mise à jour.',
         ],
         'password' => [
             'title' => 'Mot de passe',
@@ -41,7 +49,7 @@ return [
             'set_submit' => 'Définir le mot de passe',
             'update_submit' => 'Mettre à jour le mot de passe',
             'remove_submit' => 'Retirer le mot de passe',
-            'remove_confirm' => "Retirer votre mot de passe ? Vous ne pourrez plus vous connecter que via un compte lié.",
+            'remove_confirm' => 'Retirer votre mot de passe ? Vous ne pourrez plus vous connecter que via un compte lié.',
             'remove_confirm_with_2fa' => "Retirer votre mot de passe ? Vous ne pourrez plus vous connecter que via un compte lié, et votre authentification à deux facteurs ainsi que vos clés d'accès seront supprimées car elles nécessitent un mot de passe.",
             'updated' => 'Mot de passe mis à jour.',
             'removed' => 'Mot de passe retiré.',
@@ -104,11 +112,11 @@ return [
         'password_requires_email' => "Vous devez d'abord ajouter un email à votre compte avant de définir un mot de passe.",
         'email_required_for_password' => "Vous ne pouvez pas retirer votre adresse email tant qu'un mot de passe est défini sur ce compte — retirez d'abord votre mot de passe, ou ajoutez une autre adresse.",
         'email_blocked' => 'Cette adresse email ne peut pas être utilisée pour créer un compte.',
-        'email_already_registered' => "Un compte existe déjà avec cette adresse email. Connectez-vous, puis liez ce fournisseur depuis les paramètres de votre compte.",
+        'email_already_registered' => 'Un compte existe déjà avec cette adresse email. Connectez-vous, puis liez ce fournisseur depuis les paramètres de votre compte.',
         'social_blocked' => 'Ce compte ne peut pas être utilisé pour créer un profil.',
         'sanctioned_global' => "Votre compte fait l'objet d'une sanction active : :reason",
         'sanctioned_team' => "Vous faites l'objet d'une sanction active sur cette équipe : :reason",
-        'cannot_report_user' => "Vous ne pouvez pas vous signaler vous-même.",
+        'cannot_report_user' => 'Vous ne pouvez pas vous signaler vous-même.',
         'invalid_team_tag' => "Ce tag n'appartient pas à l'équipe sélectionnée.",
     ],
 ];

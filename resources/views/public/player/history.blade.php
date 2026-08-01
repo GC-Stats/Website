@@ -51,7 +51,7 @@
                 </div>
             </a>
         @empty
-            <h3 class="text-center text-gray-400">{{ __('player.empty.players_history') }}</h3>
+            <h3 class="text-center text-gray-400">{{ \App\Support\Pronouns::trans('player.empty.players_history', $player['pronouns'] ?? \App\Support\Pronouns::FEMININE) }}</h3>
         @endforelse
 
         <div class="mt-8">

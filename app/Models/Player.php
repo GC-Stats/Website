@@ -33,6 +33,7 @@ class Player extends Model
         'first_name',
         'last_name',
         'country_code',
+        'pronouns',
         'bio',
         'photo_url',
         'discord_id',
@@ -46,6 +47,7 @@ class Player extends Model
 
     protected $casts = [
         'socials' => 'array',
+        'pronouns' => 'integer',
     ];
 
     public function stats(): HasMany

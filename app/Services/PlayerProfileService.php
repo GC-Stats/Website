@@ -18,6 +18,7 @@ namespace App\Services;
 use App\Models\Player;
 use App\Models\User;
 use App\Support\Activity\ActivityChangeSet;
+use App\Support\Pronouns;
 use Illuminate\Http\UploadedFile;
 
 class PlayerProfileService
@@ -30,7 +31,7 @@ class PlayerProfileService
      * fields — admins can only clear them, via resetValId()/resetDiscordId(),
      * never set or rewrite them, so this deliberately never touches either.
      *
-     * @param  array{handle: string, first_name?: ?string, last_name?: ?string, country_code?: ?string, bio?: ?string, vlr_id?: ?int, liquipedia_link?: ?string, is_active?: bool, socials?: array}  $data
+     * @param  array{handle: string, first_name?: ?string, last_name?: ?string, country_code?: ?string, pronouns?: int, bio?: ?string, vlr_id?: ?int, liquipedia_link?: ?string, is_active?: bool, socials?: array}  $data
      */
     public function updateProfile(Player $player, array $data, User $actor): void
     {
@@ -39,6 +40,7 @@ class PlayerProfileService
             'first_name' => $data['first_name'] ?? null,
             'last_name' => $data['last_name'] ?? null,
             'country_code' => $data['country_code'] ?? null,
+            'pronouns' => $data['pronouns'] ?? Pronouns::FEMININE,
             'bio' => $data['bio'] ?? null,
             'vlr_id' => $data['vlr_id'] ?? null,
             'liquipedia_link' => $data['liquipedia_link'] ?? null,
@@ -46,7 +48,7 @@ class PlayerProfileService
             'socials' => array_filter($data['socials'] ?? [], fn ($value) => filled($value)),
         ]);
 
-        $informationFields = ['handle', 'first_name', 'last_name', 'country_code', 'bio', 'vlr_id', 'liquipedia_link', 'is_active'];
+        $informationFields = ['handle', 'first_name', 'last_name', 'country_code', 'pronouns', 'bio', 'vlr_id', 'liquipedia_link', 'is_active'];
 
         if ($player->wasChanged($informationFields)) {
             activity('player')->performedOn($player)->causedBy($actor)

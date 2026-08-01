@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\Pronouns;
+
 return [
     'title' => [
         'index' => ':player',
@@ -29,8 +31,16 @@ return [
     ],
 
     'empty' => [
-        'matches_history' => "Cette joueuse n'a pas de matches à son actif",
-        'players_history' => "Cette joueuse n'a pas d'équipe",
+        'matches_history' => [
+            Pronouns::FEMININE => "Cette joueuse n'a pas de matches à son actif",
+            Pronouns::MASCULINE => "Ce joueur n'a pas de matches à son actif",
+            Pronouns::NEUTRAL => "Cette personne n'a pas de matches à son actif",
+        ],
+        'players_history' => [
+            Pronouns::FEMININE => "Cette joueuse n'a pas d'équipe",
+            Pronouns::MASCULINE => "Ce joueur n'a pas d'équipe",
+            Pronouns::NEUTRAL => "Cette personne n'a pas d'équipe",
+        ],
     ],
 
     'errors' => [
@@ -38,7 +48,11 @@ return [
     ],
 
     'nav' => [
-        'aria_label' => 'Navigation du joueur',
+        'aria_label' => [
+            Pronouns::FEMININE => 'Navigation de la joueuse',
+            Pronouns::MASCULINE => 'Navigation du joueur',
+            Pronouns::NEUTRAL => 'Navigation du joueur·se',
+        ],
         'overview' => "Vue d'ensemble",
         'matches' => 'Matchs',
         'stats' => 'Statistiques',
@@ -68,6 +82,12 @@ return [
             'country_code' => 'Code pays',
             'country_code_search' => 'Rechercher un pays…',
             'country_code_none' => 'Aucun pays / international',
+            'pronouns' => 'Pronoms',
+            'pronouns_options' => [
+                Pronouns::FEMININE => 'Féminin (elle)',
+                Pronouns::MASCULINE => 'Masculin (il)',
+                Pronouns::NEUTRAL => 'Neutre / inclusif (iel)',
+            ],
             'bio' => 'Description',
             'vlr_id' => 'ID VLR.gg',
             'vlr_id_info' => "Non affiché ni partagé publiquement — utilisé en interne pour simplifier notre travail.",

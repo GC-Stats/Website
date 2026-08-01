@@ -37,7 +37,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'username', 'email', 'password', 'team_id', 'team_tag'])]
+#[Fillable(['name', 'username', 'email', 'password', 'team_id', 'team_tag', 'pronouns'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUser
 {

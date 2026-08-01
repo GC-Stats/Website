@@ -56,7 +56,7 @@
                                     @svg('fas-gamepad', 'w-[11px] h-[11px] inline-block text-[11px]', ['aria-hidden' => 'true'])
                                 </div>
                                 <span class="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
-                                    {{ __('user.profile.view_player_profile') }}
+                                    {{ \App\Support\Pronouns::trans('user.profile.view_player_profile', $profileUser->player->pronouns ?? \App\Support\Pronouns::FEMININE) }}
                                 </span>
                             </a>
                         @endif

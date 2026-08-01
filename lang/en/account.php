@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\Pronouns;
+
 return [
     'edit' => [
         'title' => 'Account settings',
@@ -10,6 +12,12 @@ return [
             'title' => 'Profile',
             'name_label' => 'Display name',
             'username_label' => 'Username',
+            'pronouns_label' => 'Pronouns',
+            'pronouns_options' => [
+                Pronouns::FEMININE => 'Feminine (she)',
+                Pronouns::MASCULINE => 'Masculine (he)',
+                Pronouns::NEUTRAL => 'Neutral / inclusive (they)',
+            ],
             'email_label' => 'Email address',
             'email_help' => 'Used for sign-in and account notifications. Leave empty if you only sign in with a connected account.',
             'submit' => 'Save changes',

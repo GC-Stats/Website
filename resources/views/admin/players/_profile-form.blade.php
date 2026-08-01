@@ -45,6 +45,21 @@
         @enderror
     </div>
 
+    <div>
+        <label for="pronouns" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+            {{ __('player.edit.fields.pronouns') }}
+        </label>
+        <select id="pronouns" name="pronouns"
+                class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+            @foreach (__('player.edit.fields.pronouns_options') as $value => $label)
+                <option value="{{ $value }}" @selected((int) old('pronouns', $player->pronouns) === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+        @error('pronouns')
+            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+        @enderror
+    </div>
+
     @php
         $selectedCountryCode = Str::lower(old('country_code', $player->country_code) ?? '') ?: null;
         $selectedCountryName = $selectedCountryCode ? ($countries[$selectedCountryCode] ?? null) : null;

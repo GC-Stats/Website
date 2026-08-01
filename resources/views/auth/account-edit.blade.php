@@ -95,6 +95,21 @@
                     </div>
 
                     <div>
+                        <label for="pronouns" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+                            {{ __('account.edit.profile.pronouns_label') }}
+                        </label>
+                        <select id="pronouns" name="pronouns"
+                                class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                            @foreach (__('account.edit.profile.pronouns_options') as $value => $label)
+                                <option value="{{ $value }}" @selected((int) old('pronouns', $user->pronouns) === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('pronouns', 'updateProfileInformation')
+                            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
                         <label for="email" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
                             {{ __('account.edit.profile.email_label') }}
                         </label>

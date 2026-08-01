@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\Pronouns;
+
 return [
     'title' => [
         'index' => ':player',
@@ -29,8 +31,16 @@ return [
     ],
 
     'empty' => [
-        'matches_history' => 'This player has no matches',
-        'players_history' => 'This player has no past teams',
+        'matches_history' => [
+            Pronouns::FEMININE => 'This player has no matches',
+            Pronouns::MASCULINE => 'This player has no matches',
+            Pronouns::NEUTRAL => 'This player has no matches',
+        ],
+        'players_history' => [
+            Pronouns::FEMININE => 'This player has no past teams',
+            Pronouns::MASCULINE => 'This player has no past teams',
+            Pronouns::NEUTRAL => 'This player has no past teams',
+        ],
     ],
 
     'errors' => [
@@ -38,7 +48,11 @@ return [
     ],
 
     'nav' => [
-        'aria_label' => 'Player navigation',
+        'aria_label' => [
+            Pronouns::FEMININE => 'Player navigation',
+            Pronouns::MASCULINE => 'Player navigation',
+            Pronouns::NEUTRAL => 'Player navigation',
+        ],
         'overview' => 'Overview',
         'matches' => 'Matches',
         'stats' => 'Stats',
@@ -68,6 +82,12 @@ return [
             'country_code' => 'Country code',
             'country_code_search' => 'Search for a country…',
             'country_code_none' => 'No country / international',
+            'pronouns' => 'Pronouns',
+            'pronouns_options' => [
+                Pronouns::FEMININE => 'Feminine (she)',
+                Pronouns::MASCULINE => 'Masculine (he)',
+                Pronouns::NEUTRAL => 'Neutral / inclusive (they)',
+            ],
             'bio' => 'Description',
             'vlr_id' => 'VLR.gg ID',
             'vlr_id_info' => 'Not displayed or shared publicly — used internally to simplify our work.',
