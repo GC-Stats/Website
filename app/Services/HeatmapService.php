@@ -26,7 +26,6 @@
 namespace App\Services;
 
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class HeatmapService
@@ -68,11 +67,7 @@ class HeatmapService
             return [];
         }
 
-        $gameMapIds = Cache::tags(['heatmap'])->remember(
-            "heatmap_map_ids_{$mapName}",
-            3600,
-            fn () => DB::table('game_maps')->whereRaw('LOWER(map_name) = ?', [$mapName])->pluck('id')->all()
-        );
+        $gameMapIds = DB::table('game_maps')->whereRaw('LOWER(map_name) = ?', [$mapName])->pluck('id')->all();
 
         if (empty($gameMapIds)) {
             return [];
