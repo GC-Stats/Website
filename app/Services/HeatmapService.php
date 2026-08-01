@@ -71,10 +71,10 @@ class HeatmapService
         $gameMapIds = Cache::tags(['heatmap'])->remember(
             "heatmap_map_ids_{$mapName}",
             3600,
-            fn () => DB::table('game_maps')->whereRaw('LOWER(map_name) = ?', [$mapName])->pluck('id')
+            fn () => DB::table('game_maps')->whereRaw('LOWER(map_name) = ?', [$mapName])->pluck('id')->all()
         );
 
-        if ($gameMapIds->isEmpty()) {
+        if (empty($gameMapIds)) {
             return [];
         }
 
