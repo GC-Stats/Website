@@ -15,7 +15,20 @@
 --}}
 @props(['title', 'maxWidth' => 'max-w-md', 'openByDefault' => false])
 
-<div x-data="{ open: {{ $openByDefault ? 'true' : 'false' }} }" style="display: contents">
+<div x-data="{
+        open: {{ $openByDefault ? 'true' : 'false' }},
+        // The dialog itself is teleported to body, same as a x-styled-select's
+        // option list (see its own x-teleport) — so a click on that list is,
+        // structurally, a sibling click outside this dialog and would
+        // otherwise close it via @click.away on every selection.
+        // data-dropdown-portal marks any such teleported popover so it's
+        // excluded from the away-check instead.
+        closeUnlessPortalClick(event) {
+            if (! event.target.closest('[data-dropdown-portal]')) {
+                this.open = false;
+            }
+        },
+     }" style="display: contents">
     <span @click="open = true; $nextTick(() => $refs.search && ($refs.search.value = ''))" style="display: contents">
         {{ $trigger }}
     </span>
@@ -24,7 +37,7 @@
         <div x-show="open" x-cloak
              class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
              @keydown.escape.window="open = false">
-            <div @click.away="open = false" role="dialog" aria-modal="true"
+            <div @click.away="closeUnlessPortalClick($event)" role="dialog" aria-modal="true"
                  class="w-full {{ $maxWidth }} bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto text-left">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ $title }}</h2>

@@ -59,17 +59,6 @@ class Team extends Model
     }
 
     /**
-     * The ceiling of App\Support\TeamPermissions this team's own roles can
-     * ever be granted, set by a site admin — see Admin\TeamController.
-     *
-     * @return list<string>
-     */
-    public function maxPermissions(): array
-    {
-        return $this->max_permissions ?? [];
-    }
-
-    /**
      * SEO-friendly URL segment for this team — not stored, derived from
      * the name (falls back to the id for names with no Latin-
      * transliterable characters). Every team-scoped management route

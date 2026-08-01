@@ -61,14 +61,12 @@ class TeamController extends Controller
         $tag = "team_{$id}";
 
         $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id, $team) {
-            $roleOrder = ['player' => 0, 'sub' => 1, 'head coach' => 2, 'assistant coach' => 3, 'manager' => 4, 'staff' => 5];
-
             $currentRoster = $team->players()
                 ->select('players.id', 'players.handle')
                 ->withPivot('role', 'joined_at', 'left_at')
                 ->wherePivotNull('left_at')
                 ->get()
-                ->sortBy(fn ($player) => $roleOrder[strtolower($player->pivot->role ?? '')] ?? 99)
+                ->sortBy(fn ($player) => \App\Helpers\RosterRole::sortIndex($player->pivot->role ?? null))
                 ->values()
                 ->toArray();
 

@@ -48,9 +48,12 @@
 
                 <div class="space-y-2">
                     @foreach($pastPlayers as $player)
+                        @php $pastRosterRole = $player['pivot']['role'] ?? null; @endphp
                         <a href="{{ route('players.show', [$player['id'], str($player['handle'] ?? '')->slug()]) }}" class="group block mb-2">
-                            <div class="tournament-card bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
-                                <div class="flex items-center gap-4">
+                            <div class="tournament-card flex bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm overflow-hidden hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
+                                <div class="w-1 shrink-0 {{ \App\Helpers\RosterRole::barClass($pastRosterRole) }}"></div>
+
+                                <div class="flex items-center gap-4 p-3 min-w-0 flex-1">
                                     <div class="relative shrink-0">
                                         @if($player['profile_photo'])
                                             <img src="{{ $player['profile_photo'] }}" alt="{{ $player['handle'] }}"
@@ -69,12 +72,15 @@
                                             {{ $player['handle'] }}
                                         </p>
 
-                                        <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                            {{ \App\Helpers\RosterRole::label($player['pivot']['role'] ?? null) }}
-                                            <span class="w-1 h-1 bg-white/10 rounded-full"></span>
-                                            {{ \App\Helpers\PivotDate::format($player['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
-                                            - {{ isset($player['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($player['pivot']['left_at'], 'm/Y') ?? 'Now') : 'Now' }}
-                                        </p>
+                                        <div class="mt-1 flex items-center gap-2 min-w-0">
+                                            <span class="shrink-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm {{ \App\Helpers\RosterRole::badgeClass($pastRosterRole) }}">
+                                                {{ \App\Helpers\RosterRole::label($pastRosterRole) }}
+                                            </span>
+                                            <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest truncate">
+                                                {{ \App\Helpers\PivotDate::format($player['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
+                                                - {{ isset($player['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($player['pivot']['left_at'], 'm/Y') ?? 'Now') : 'Now' }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -103,11 +109,23 @@
                 <div class="h-px flex-grow" style="background: linear-gradient(90deg, rgba(228,174,34,0.5) 0%, rgba(228,174,34,0.05) 60%, transparent 100%)"></div>
             </div>
 
+            @php $previousRosterGroup = null; @endphp
+
             <div class="space-y-2">
                 @foreach($currentRoster as $player)
-                    <a href="{{ route('players.show', [$player['id'], str($player['handle'] ?? '')->slug()]) }}" class="group block mb-2">
-                        <div class="tournament-card bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
-                            <div class="flex items-center gap-4">
+                    @php
+                        $rosterRole = $player['pivot']['role'] ?? null;
+                        $rosterGroup = \App\Helpers\RosterRole::group($rosterRole);
+                        $startsNewGroup = $previousRosterGroup !== null && $previousRosterGroup !== $rosterGroup;
+                        $previousRosterGroup = $rosterGroup;
+                    @endphp
+
+                    <a href="{{ route('players.show', [$player['id'], str($player['handle'] ?? '')->slug()]) }}"
+                       class="group block mb-2 {{ $startsNewGroup ? 'mt-3' : '' }}">
+                        <div class="tournament-card flex bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm overflow-hidden hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
+                            <div class="w-1 shrink-0 {{ \App\Helpers\RosterRole::barClass($rosterRole) }}"></div>
+
+                            <div class="flex items-center gap-4 p-3 min-w-0 flex-1">
                                 <div class="relative shrink-0">
                                     @if($player['profile_photo'])
                                         <img src="{{ $player['profile_photo'] }}" alt="{{ $player['handle'] }}"
@@ -126,11 +144,14 @@
                                         {{ $player['handle'] }}
                                     </p>
 
-                                    <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                        {{ \App\Helpers\RosterRole::label($player['pivot']['role'] ?? null) }}
-                                        <span class="w-1 h-1 bg-white/10 rounded-full"></span>
-                                        Since {{ \App\Helpers\PivotDate::format($player['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
-                                    </p>
+                                    <div class="mt-1 flex items-center gap-2 min-w-0">
+                                        <span class="shrink-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm {{ \App\Helpers\RosterRole::badgeClass($rosterRole) }}">
+                                            {{ \App\Helpers\RosterRole::label($rosterRole) }}
+                                        </span>
+                                        <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest truncate">
+                                            Since {{ \App\Helpers\PivotDate::format($player['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>

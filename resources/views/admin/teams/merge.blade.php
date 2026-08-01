@@ -51,8 +51,7 @@
                       tournaments: [],
                       news: [],
                       logos: [],
-                      roles: [],
-                      total() { return this.roster.length + this.tournaments.length + this.news.length + this.logos.length + this.roles.length; },
+                      total() { return this.roster.length + this.tournaments.length + this.news.length + this.logos.length; },
                   }">
                 @csrf
 
@@ -167,30 +166,6 @@
                     </div>
                 @endif
 
-                @if ($roleItems->isNotEmpty())
-                    <div class="pt-4 border-t border-white/10 space-y-3">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox"
-                                   :checked="roles.length === {{ $roleItems->count() }}"
-                                   @change="roles = $event.target.checked ? @js($roleItems->map(fn ($item) => $item->role_id.':'.$item->user_id)) : []"
-                                   class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
-                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">{{ __('admin.teams.merge.categories.roles') }}</span>
-                        </label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            @foreach ($roleItems as $item)
-                                <label class="flex items-center gap-2 text-sm text-gray-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 cursor-pointer">
-                                    <input type="checkbox" name="roles[]" value="{{ $item->role_id }}:{{ $item->user_id }}" x-model="roles"
-                                           class="rounded-lg border-white/10 bg-white/5 text-gc-yellow focus:ring-gc-yellow">
-                                    {{ $item->user_name }}
-                                    @if ($item->user_username)
-                                        <span class="text-gray-500">{{ '@'.$item->user_username }}</span>
-                                    @endif
-                                    <span class="text-gray-500">({{ $item->role_name }})</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
                 </div>
 
                 <div class="pt-6">

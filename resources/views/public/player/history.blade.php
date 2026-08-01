@@ -23,9 +23,12 @@
         </div>
 
         @forelse($pastTeams as $team)
+            @php $teamHistoryRole = $team['pivot']['role'] ?? null; @endphp
             <a href="{{ route('teams.show', [$team['id'], str($team['name'] ?? '')->slug()]) }}" class="group block mb-2">
-                <div class="tournament-card bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
-                    <div class="flex items-center justify-between gap-4">
+                <div class="tournament-card flex bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm overflow-hidden hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
+                    <div class="w-1 shrink-0 {{ \App\Helpers\RosterRole::barClass($teamHistoryRole) }}"></div>
+
+                    <div class="flex items-center justify-between gap-4 p-3 min-w-0 flex-1">
                         <div class="flex items-center gap-4 min-w-0">
                             <div class="relative shrink-0">
                                 <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
@@ -34,9 +37,9 @@
 
                             <div class="min-w-0">
                                 <p class="text-base font-bold text-white truncate">{{ $team['name'] }}</p>
-                                <p class="text-xs text-gray-400 uppercase tracking-wide">
-                                    {{ \App\Helpers\RosterRole::label($team['pivot']['role'] ?? null) ?? 'Player' }}
-                                </p>
+                                <span class="inline-block mt-1 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm {{ \App\Helpers\RosterRole::badgeClass($teamHistoryRole) }}">
+                                    {{ \App\Helpers\RosterRole::label($teamHistoryRole) ?? 'Player' }}
+                                </span>
                             </div>
                         </div>
 

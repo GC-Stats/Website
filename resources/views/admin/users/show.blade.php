@@ -115,24 +115,6 @@
             </div>
         @endcan
 
-        @can('teams.view')
-            <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4">
-                <p class="text-[10px] font-black uppercase tracking-widest text-gc-yellow mb-3">{{ __('admin.users.team_roles_title') }}</p>
-                @forelse ($teamRoles as $team)
-                    <div class="flex items-center justify-between gap-3 py-1.5 border-b border-b-white/10 last:border-b-0">
-                        <a href="{{ route('admin.teams.show', $team['id']) }}" class="text-sm text-white hover:underline truncate">{{ $team['name'] }}</a>
-                        <div class="shrink-0">
-                            @foreach ($team['roles'] as $roleName)
-                                <span class="inline-block px-2 py-0.5 ml-1 text-[9px] font-bold uppercase tracking-widest rounded-lg bg-white/5 border border-white/10 text-gray-400">{{ $roleName }}</span>
-                            @endforeach
-                        </div>
-                    </div>
-                @empty
-                    <p class="text-xs text-gray-600">{{ __('admin.users.no_team_roles') }}</p>
-                @endforelse
-            </div>
-        @endcan
-
         @can('players.view')
             <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4">
                 <p class="text-[10px] font-black uppercase tracking-widest text-gc-yellow mb-3">{{ __('admin.users.player_title') }}</p>

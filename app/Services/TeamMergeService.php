@@ -6,8 +6,11 @@
  * Cross-table "team surgery" that doesn't belong in TeamProfileService
  * (scoped to editable profile fields/logo only): deleting a team outright,
  * and merging one team's data into another. Kept together since both
- * involve the same set of related tables (roster, team-scoped roles,
- * logos, tournament participation, news tags).
+ * involve the same set of related tables (roster, logos, tournament
+ * participation, news tags). delete()'s Role cleanup is a defensive
+ * leftover from when teams could hold their own Spatie roles — harmless
+ * now that nothing creates team-scoped 'web'-guard roles anymore, but kept
+ * in case any pre-existing rows still need cleaning up on delete.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -31,7 +34,6 @@ class TeamMergeService
     public function __construct(
         private readonly LogoUploadService $logoUploadService,
         private readonly RosterService $rosterService,
-        private readonly TeamRoleService $teamRoleService,
     ) {}
 
     /**
@@ -101,7 +103,7 @@ class TeamMergeService
      * tournament pulls both the tournament_teams row and every one of
      * $source's matches within that tournament over to $target.
      *
-     * @param  array{roster?: list<int>, tournaments?: list<int>, news?: list<int>, logos?: list<string>, roles?: list<string>}  $selection
+     * @param  array{roster?: list<int>, tournaments?: list<int>, news?: list<int>, logos?: list<string>}  $selection
      */
     public function merge(Team $source, Team $target, array $selection, User $actor): void
     {
@@ -122,10 +124,6 @@ class TeamMergeService
                 Logo::where('entity_type', 'team')->where('entity_id', $source->id)
                     ->whereIn('id', $selection['logos'])
                     ->update(['entity_id' => $target->id]);
-            }
-
-            if (! empty($selection['roles'])) {
-                $this->mergeRoles($source, $target, $selection['roles']);
             }
         });
 
@@ -244,69 +242,4 @@ class TeamMergeService
             ->update(['relationable_id' => $target->id]);
     }
 
-    /**
-     * Moves each selected (role, user) assignment from one of $source's
-     * team-scoped roles to the equivalent role on $target, provisioning
-     * $target's roles first if this is its first assignment. Only the
-     * team_owner/team_manager/team_editor role *names* carry over — the
-     * role rows themselves stay put, since each team always has its own
-     * (see TeamRoleService).
-     *
-     * $pairs entries are pre-validated by the DB lookup below (matched
-     * against model_has_roles for $source) rather than trusted as-is, so a
-     * tampered "roleId:userId" pair that doesn't correspond to a real
-     * assignment on $source is silently skipped.
-     *
-     * @param  list<string>  $pairs  each formatted "{role_id}:{user_id}"
-     */
-    private function mergeRoles(Team $source, Team $target, array $pairs): void
-    {
-        $roleIds = [];
-        $userIds = [];
-
-        foreach ($pairs as $pair) {
-            [$roleId, $userId] = array_pad(explode(':', $pair, 2), 2, null);
-
-            if (ctype_digit((string) $roleId) && ctype_digit((string) $userId)) {
-                $roleIds[] = (int) $roleId;
-                $userIds[] = (int) $userId;
-            }
-        }
-
-        if (empty($roleIds)) {
-            return;
-        }
-
-        $this->teamRoleService->ensureRolesExist($target);
-
-        $sourceRolesById = Role::where('team_id', $source->id)->whereIn('id', $roleIds)->get()->keyBy('id');
-        $targetRolesByName = Role::where('team_id', $target->id)->get()->keyBy('name');
-
-        $assignments = DB::table('model_has_roles')
-            ->where('team_id', $source->id)
-            ->where('model_type', User::class)
-            ->whereIn('role_id', $roleIds)
-            ->whereIn('model_id', $userIds)
-            ->get(['role_id', 'model_id']);
-
-        $usersById = User::whereIn('id', $assignments->pluck('model_id')->unique())->get()->keyBy('id');
-
-        foreach ($assignments as $assignment) {
-            $sourceRole = $sourceRolesById->get($assignment->role_id);
-            $targetRole = $sourceRole ? $targetRolesByName->get($sourceRole->name) : null;
-            $user = $targetRole ? $usersById->get($assignment->model_id) : null;
-
-            if (! $user) {
-                continue;
-            }
-
-            PermissionTeam::use($source->id);
-            $user->removeRole($sourceRole);
-
-            PermissionTeam::use($target->id);
-            $user->assignRole($targetRole);
-        }
-
-        PermissionTeam::global();
-    }
 }

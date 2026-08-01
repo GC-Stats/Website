@@ -19,7 +19,18 @@
     'submitClass' => 'bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20',
 ])
 
-<div x-data="{ open: false }" style="display: contents">
+<div x-data="{
+        open: false,
+        // See resources/views/components/modal.blade.php's closeUnlessPortalClick
+        // — the styled-select dropdown component teleports its option list to
+        // the body, so without this guard picking an option here would
+        // register as an outside click and close the modal.
+        closeUnlessPortalClick(event) {
+            if (! event.target.closest('[data-dropdown-portal]')) {
+                this.open = false;
+            }
+        },
+     }" style="display: contents">
     <button type="button" @click="open = true" {{ $attributes->merge(['class' => $triggerClass]) }}>
         {{ $triggerLabel }}
     </button>
@@ -27,7 +38,7 @@
     <div x-show="open" x-cloak
          class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
          @keydown.escape.window="open = false">
-        <div @click.away="open = false" role="dialog" aria-modal="true"
+        <div @click.away="closeUnlessPortalClick($event)" role="dialog" aria-modal="true"
              class="w-full max-w-sm bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4 text-left">
             <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ $title }}</h2>
             <p class="text-xs text-gray-500">{{ $body }}</p>

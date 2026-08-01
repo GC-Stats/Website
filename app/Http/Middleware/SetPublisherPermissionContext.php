@@ -7,10 +7,10 @@
  * param for the duration of the request, so hasRole()/can() checks inside
  * publisher-scoped routes (News\RoleController) resolve against that
  * publisher's own roles rather than the global ones. Mirrors
- * App\Http\Middleware\SetTeamPermissionContext — see its docblock for why
- * this switch is needed and why it's safe alongside Team's despite sharing
- * the same numeric scoping column (App\Support\PublisherPermissions uses a
- * distinct 'publisher' guard).
+ * App\Http\Middleware\SetOrganizationPermissionContext — see its docblock
+ * for why this switch is needed and why it's safe despite Team/Publisher/
+ * Organization rows sharing the same numeric scoping column
+ * (App\Support\PublisherPermissions uses a distinct 'publisher' guard).
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0

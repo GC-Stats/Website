@@ -4,12 +4,11 @@
  * GC-Stats — Admin: user directory
  *
  * Read-only: a searchable, filterable directory of accounts plus a detail
- * page summarizing everything about one account (global roles, team roles,
- * publisher roles, linked player, sanction history). Editing itself happens
- * on the dedicated screens that already own that logic — Admin\RoleController
- * (global roles), Team\RoleController (team roles) and News\RoleController
- * (publisher roles) — so this controller never mutates anything, only links
- * out to them.
+ * page summarizing everything about one account (global roles, publisher
+ * roles, linked player, sanction history). Editing itself happens on the
+ * dedicated screens that already own that logic — Admin\RoleController
+ * (global roles) and News\RoleController (publisher roles) — so this
+ * controller never mutates anything, only links out to them.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -21,9 +20,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Public\Controller;
 use App\Models\NewsPublisher;
-use App\Models\Team;
 use App\Models\User;
-use App\Services\TeamRoleService;
 use App\Support\PermissionTeam;
 use App\Support\PublisherPermissions;
 use App\Support\PublisherScope;
@@ -83,7 +80,6 @@ class UserController extends Controller
     {
         $viewer = $request->user();
 
-        $teamRoles = collect();
         $publisherRoles = collect();
         $player = null;
         $sanctions = collect();
@@ -97,13 +93,6 @@ class UserController extends Controller
 
             $publisherRoles = UserRoleSummary::rolesGroupedByTeam($user->id, PublisherPermissions::GUARD)
                 ->map(fn ($roleNames, $publisherId) => ['name' => $publisherNames[$publisherId] ?? "#{$publisherId}", 'id' => $publisherId, 'roles' => $roleNames]);
-        }
-
-        if ($viewer->can('teams.view')) {
-            $teamNames = Team::pluck('name', 'id');
-
-            $teamRoles = UserRoleSummary::rolesGroupedByTeam($user->id, 'web', TeamRoleService::ROLE_OWNER, TeamRoleService::ROLE_MANAGER, TeamRoleService::ROLE_EDITOR)
-                ->map(fn ($roleNames, $teamId) => ['name' => $teamNames[$teamId] ?? "#{$teamId}", 'id' => $teamId, 'roles' => $roleNames]);
         }
 
         if ($viewer->can('players.view')) {
@@ -134,7 +123,6 @@ class UserController extends Controller
 
         return view('admin.users.show', [
             'user' => $user,
-            'teamRoles' => $teamRoles,
             'publisherRoles' => $publisherRoles,
             'player' => $player,
             'sanctions' => $sanctions,

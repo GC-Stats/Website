@@ -136,6 +136,23 @@ class PlayerProfileService
             ->log('player.logo_updated');
     }
 
+    /**
+     * Links an already-uploaded logo pair (stored via
+     * LogoUploadService::storeLogoPair() at change-request submission time)
+     * to the player. Used by PlayerPhotoApplier: unlike updateLogo(), the
+     * file was written to disk long before this runs — moderation only
+     * gates whether it ever gets linked to the player, not whether it gets
+     * stored.
+     */
+    public function applyPendingPhoto(Player $player, string $uuid, User $actor): void
+    {
+        $this->logoUploadService->acceptWithHistory($player, 'player', $uuid);
+
+        activity('player')->performedOn($player)->causedBy($actor)
+            ->withProperties(['logo_id' => $uuid])
+            ->log('player.logo_updated');
+    }
+
     public function addLogoHistoryEntry(Player $player, UploadedFile $file, string $from, string $until, User $actor): void
     {
         $uuid = $this->logoUploadService->storeLogoPair($file, 'players');

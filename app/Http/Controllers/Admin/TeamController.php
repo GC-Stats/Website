@@ -3,10 +3,11 @@
 /**
  * GC-Stats — Admin: teams
  *
- * Assigns a team's owner and sets its max_permissions ceiling (the most
- * App\Support\TeamPermissions any of that team's own roles can ever hold —
- * see Team\RoleController, which does the per-role assignment within that
- * ceiling). Gated by `teams.view`/`teams.edit`/`teams.delete`/`teams.merge`.
+ * Full team management: profile/logo/tags/roster editing, merging, and
+ * deletion. There's no self-service equivalent — every field here is
+ * staff-only; a non-staff user's only way to affect a team's data is
+ * Auth\TeamChangeRequestController's suggestion queue (same as players).
+ * Gated by `teams.view`/`teams.edit`/`teams.delete`/`teams.merge`.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -19,23 +20,16 @@ namespace App\Http\Controllers\Admin;
 use App\Exceptions\TeamHasMatchesException;
 use App\Http\Controllers\Public\Controller;
 use App\Models\Team;
-use App\Models\User;
 use App\Services\RosterService;
 use App\Services\TeamMergeService;
 use App\Services\TeamProfileService;
-use App\Services\TeamRoleService;
 use App\Support\Activity\ActivityChangeSet;
 use App\Support\Countries;
-use App\Support\PermissionTeam;
-use App\Support\TeamPermissions;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role;
 
 class TeamController extends Controller
 {
@@ -126,34 +120,14 @@ class TeamController extends Controller
         return redirect()->route('admin.teams.index')->with('status', 'team-created')->with('created_team', $team->id);
     }
 
-    public function show(Request $request, Team $team, TeamRoleService $teamRoles, RosterService $rosterService, TeamMergeService $mergeService): View
+    public function show(Request $request, Team $team, RosterService $rosterService, TeamMergeService $mergeService): View
     {
-        $teamRoles->ensureRolesExist($team);
-
-        PermissionTeam::use($team->id);
-        $ownerRole = Role::where('team_id', $team->id)->where('name', TeamRoleService::ROLE_OWNER)->first();
-        $owners = $ownerRole?->users()->orderBy('name')->get() ?? collect();
-        PermissionTeam::global();
-
-        $search = $request->get('q');
         $history = $rosterService->history($team->id);
-
-        $existingOwnerIds = $ownerRole
-            ? DB::table('model_has_roles')->where('role_id', $ownerRole->id)->where('model_type', User::class)->pluck('model_id')
-            : collect();
 
         return view('admin.teams.show', [
             'team' => $team,
-            'owners' => $owners,
             'hasMatches' => $mergeService->hasMatches($team),
             'countries' => app(Countries::class)->list(),
-            'permissionGroups' => TeamPermissions::grouped(),
-            'search' => $search ?? '',
-            'searchResults' => $search
-                ? User::matching($search)
-                    ->whereNotIn('id', $existingOwnerIds)
-                    ->limit(10)->get()
-                : collect(),
             'roster' => $history->whereNull('left_at')->values(),
             'rosterHistory' => $history->whereNotNull('left_at')->values(),
         ]);
@@ -275,56 +249,6 @@ class TeamController extends Controller
         return back()->with('status', 'roster-synced');
     }
 
-    public function updateMaxPermissions(Request $request, Team $team): RedirectResponse
-    {
-        $validated = $request->validate([
-            'max_permissions' => ['array'],
-            'max_permissions.*' => ['string', Rule::in(TeamPermissions::all())],
-        ]);
-
-        $ceiling = $validated['max_permissions'] ?? [];
-        $team->update(['max_permissions' => $ceiling]);
-
-        PermissionTeam::use($team->id);
-        foreach (Role::where('team_id', $team->id)->where('guard_name', 'web')->get() as $role) {
-            $permissions = $role->name === TeamRoleService::ROLE_OWNER
-                ? $ceiling
-                : array_intersect($role->permissions->pluck('name')->all(), $ceiling);
-
-            $role->syncPermissions($permissions);
-        }
-        PermissionTeam::global();
-
-        activity('team')->performedOn($team)->causedBy($request->user())
-            ->withProperties(ActivityChangeSet::fromModel($team, ['max_permissions'])->toArray())
-            ->log('team.max_permissions_updated');
-
-        return back()->with('status', 'max-permissions-updated');
-    }
-
-    public function assignOwner(Request $request, Team $team, TeamRoleService $teamRoles): RedirectResponse
-    {
-        $validated = $request->validate(['user_id' => ['required', 'integer', 'exists:users,id']]);
-
-        $user = User::findOrFail($validated['user_id']);
-        $teamRoles->assign($user, $team, TeamRoleService::ROLE_OWNER);
-
-        activity('team')->performedOn($user)->causedBy($request->user())
-            ->withProperties(['team_id' => $team->id])->log('team.owner_assigned');
-
-        return redirect()->route('admin.teams.show', $team)->with('status', 'owner-assigned');
-    }
-
-    public function removeOwner(Request $request, Team $team, User $user, TeamRoleService $teamRoles): RedirectResponse
-    {
-        $teamRoles->revoke($user, $team, TeamRoleService::ROLE_OWNER);
-
-        activity('team')->performedOn($user)->causedBy($request->user())
-            ->withProperties(['team_id' => $team->id])->log('team.owner_removed');
-
-        return back()->with('status', 'owner-removed');
-    }
-
     public function destroy(Request $request, Team $team, TeamMergeService $mergeService): RedirectResponse
     {
         try {
@@ -352,24 +276,7 @@ class TeamController extends Controller
             'tournamentItems' => $team->tournaments()->orderByDesc('tournaments.id')->get(['tournaments.id', 'tournaments.name']),
             'newsItems' => $team->news()->orderByDesc('news.id')->get(['news.id', 'news.title']),
             'logoItems' => $team->logos()->orderByDesc('from')->get(),
-            'roleItems' => $this->roleItemsFor($team),
         ]);
-    }
-
-    /**
-     * Every (role, user) assignment on $team, for the merge picker — one
-     * checkbox per user per role, valued "{role_id}:{user_id}" since
-     * model_has_roles has no single-column id of its own.
-     */
-    private function roleItemsFor(Team $team): Collection
-    {
-        return DB::table('model_has_roles')
-            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
-            ->join('users', 'users.id', '=', 'model_has_roles.model_id')
-            ->where('model_has_roles.team_id', $team->id)
-            ->where('model_has_roles.model_type', User::class)
-            ->orderBy('roles.name')->orderBy('users.name')
-            ->get(['roles.id as role_id', 'roles.name as role_name', 'users.id as user_id', 'users.name as user_name', 'users.username as user_username']);
     }
 
     public function merge(Request $request, Team $team, TeamMergeService $mergeService): RedirectResponse
@@ -384,8 +291,6 @@ class TeamController extends Controller
             'news.*' => ['integer'],
             'logos' => ['array'],
             'logos.*' => ['string'],
-            'roles' => ['array'],
-            'roles.*' => ['string', 'regex:/^\d+:\d+$/'],
         ]);
 
         if ((int) $validated['target_id'] === $team->id) {
@@ -398,7 +303,6 @@ class TeamController extends Controller
             'roster' => $validated['roster'] ?? [],
             'tournaments' => $validated['tournaments'] ?? [],
             'news' => $validated['news'] ?? [],
-            'roles' => $validated['roles'] ?? [],
             'logos' => $validated['logos'] ?? [],
         ], $request->user());
 

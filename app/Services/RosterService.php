@@ -169,6 +169,66 @@ class RosterService
     }
 
     /**
+     * Update role/joined_at/left_at on a single `player_team` row, scoped to
+     * $playerId. Scoping to the player prevents a change-request applier
+     * (PlayerRosterHistoryApplier) resolved for one player from touching a
+     * different player's row by id. Unlike save(), this never inserts,
+     * deletes, or touches sibling rows — it's a targeted correction to one
+     * historical entry, not a roster resync.
+     *
+     * @param  array{role?: ?string, joined_at?: ?string, left_at?: ?string}  $data
+     */
+    public function updateEntry(int $playerId, int $id, array $data): bool
+    {
+        $row = DB::table('player_team')->where('id', $id)->where('player_id', $playerId)->first();
+
+        if (! $row) {
+            return false;
+        }
+
+        DB::table('player_team')->where('id', $id)->update([
+            'role' => $data['role'] ?? $row->role,
+            'joined_at' => $data['joined_at'] ?? $row->joined_at,
+            'left_at' => array_key_exists('left_at', $data) ? $data['left_at'] : $row->left_at,
+            'updated_at' => now(),
+        ]);
+
+        Cache::tags(["player_{$playerId}"])->flush();
+        Cache::tags(["team_{$row->team_id}"])->flush();
+
+        return true;
+    }
+
+    /**
+     * Update role/joined_at/left_at on a single `player_team` row, scoped to
+     * $team — the team-side counterpart to updateEntry() (player-scoped),
+     * used by TeamRosterHistoryApplier so a team's change-request proposal
+     * can never touch a different team's row by id.
+     *
+     * @param  array{role?: ?string, joined_at?: ?string, left_at?: ?string}  $data
+     */
+    public function updateEntryForTeam(Team $team, int $id, array $data): bool
+    {
+        $row = DB::table('player_team')->where('id', $id)->where('team_id', $team->id)->first();
+
+        if (! $row) {
+            return false;
+        }
+
+        DB::table('player_team')->where('id', $id)->update([
+            'role' => $data['role'] ?? $row->role,
+            'joined_at' => $data['joined_at'] ?? $row->joined_at,
+            'left_at' => array_key_exists('left_at', $data) ? $data['left_at'] : $row->left_at,
+            'updated_at' => now(),
+        ]);
+
+        Cache::tags(["player_{$row->player_id}"])->flush();
+        Cache::tags(["team_{$team->id}"])->flush();
+
+        return true;
+    }
+
+    /**
      * Delete a single `player_team` row by id, scoped to $team, and flush
      * related caches. Scoping to $team prevents a caller authorized to
      * manage one team's roster from deleting another team's row by id.

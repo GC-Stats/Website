@@ -62,9 +62,12 @@
                 </div>
                 @if(count($currentTeams) > 0)
                     @foreach($currentTeams as $currentTeam)
+                        @php $currentTeamRole = $currentTeam['pivot']['role'] ?? null; @endphp
                         <a href="{{ route('teams.show', [$currentTeam['id'], str($currentTeam['name'] ?? '')->slug()]) }}" class="group block mb-2">
-                            <div class="tournament-card bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
-                                <div class="flex items-center gap-4">
+                            <div class="tournament-card flex bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm overflow-hidden hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
+                                <div class="w-1 shrink-0 {{ \App\Helpers\RosterRole::barClass($currentTeamRole) }}"></div>
+
+                                <div class="flex items-center gap-4 p-3 flex-1 min-w-0">
                                     <div class="relative shrink-0">
                                         <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
                                         <img class="w-10 h-10 object-contain" src="{{ $currentTeam['logo'] ?? asset('storage/images/default-team.webp') }}" alt="">
@@ -75,11 +78,14 @@
                                             {{ $currentTeam['name'] }}
                                         </p>
 
-                                        <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                            {{ \App\Helpers\RosterRole::label($currentTeam['pivot']['role'] ?? null) }}
-                                            <span class="w-1 h-1 bg-white/10 rounded-full"></span>
-                                            Since {{ \App\Helpers\PivotDate::format($currentTeam['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
-                                        </p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm {{ \App\Helpers\RosterRole::badgeClass($currentTeamRole) }}">
+                                                {{ \App\Helpers\RosterRole::label($currentTeamRole) }}
+                                            </span>
+                                            <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">
+                                                Since {{ \App\Helpers\PivotDate::format($currentTeam['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -103,9 +109,12 @@
 
                     <div class="space-y-2">
                         @foreach($pastTeams as $oldTeam)
+                            @php $oldTeamRole = $oldTeam['pivot']['role'] ?? null; @endphp
                             <a href="{{ route('teams.show', [$oldTeam['id'], str($oldTeam['name'] ?? '')->slug()]) }}" class="group block mb-2">
-                                <div class="tournament-card bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm p-3 hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
-                                    <div class="flex items-center gap-4">
+                                <div class="tournament-card flex bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm overflow-hidden hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
+                                    <div class="w-1 shrink-0 {{ \App\Helpers\RosterRole::barClass($oldTeamRole) }}"></div>
+
+                                    <div class="flex items-center gap-4 p-3 flex-1 min-w-0">
                                         <div class="relative shrink-0">
                                             <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
                                             <img class="w-10 h-10 object-contain" src="{{ $oldTeam['logo'] ?? asset('storage/images/default-team.webp') }}" alt="">
@@ -116,12 +125,15 @@
                                                 {{ $oldTeam['name'] }}
                                             </p>
 
-                                            <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                                {{ \App\Helpers\RosterRole::label($oldTeam['pivot']['role'] ?? null) }}
-                                                <span class="w-1 h-1 bg-white/10 rounded-full"></span>
-                                                {{ \App\Helpers\PivotDate::format($oldTeam['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
-                                                - {{ isset($oldTeam['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($oldTeam['pivot']['left_at'], 'm/Y') ?? 'Now') : 'Now' }}
-                                            </p>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm {{ \App\Helpers\RosterRole::badgeClass($oldTeamRole) }}">
+                                                    {{ \App\Helpers\RosterRole::label($oldTeamRole) }}
+                                                </span>
+                                                <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">
+                                                    {{ \App\Helpers\PivotDate::format($oldTeam['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
+                                                    - {{ isset($oldTeam['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($oldTeam['pivot']['left_at'], 'm/Y') ?? 'Now') : 'Now' }}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

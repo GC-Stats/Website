@@ -3,9 +3,9 @@
 /**
  * GC-Stats — Permission catalog base
  *
- * Shared shape for the site-wide (AdminPermissions) and per-team
- * (TeamPermissions) permission catalogs: each just supplies its own
- * grouped() list and gets all() for free.
+ * Shared shape for the site-wide (AdminPermissions) and per-entity
+ * (OrganizationPermissions, PublisherPermissions) permission catalogs: each
+ * just supplies its own grouped() list and gets all() for free.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0

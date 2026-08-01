@@ -106,6 +106,17 @@ return [
         ],
     ],
 
+    'change_requests' => [
+        'title' => 'My change requests',
+        'intro' => 'Every correction you\'ve suggested, its status, and the moderation discussion for each.',
+        'empty' => 'You haven\'t submitted any change requests yet.',
+        'view' => 'View',
+        'back_to_list' => 'Back to my change requests',
+        'subject' => 'Subject',
+        'fields' => 'Fields',
+        'submitted_at' => 'Submitted',
+    ],
+
     'errors' => [
         'last_auth_method' => 'This login method cannot be removed: it is the last one left on this account.',
         'social_already_linked' => 'This account is already linked to another profile.',
@@ -117,6 +128,7 @@ return [
         'sanctioned_global' => 'Your account is currently under an active sanction: :reason',
         'sanctioned_team' => 'You are currently under an active sanction on this team: :reason',
         'cannot_report_user' => 'You cannot report yourself.',
+        'sanction_requires_super_admin' => 'This account holds a staff role — only a super admin can sanction it.',
         'invalid_team_tag' => 'This tag does not belong to the selected team.',
     ],
 ];

@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\AboutController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\ApiKeyController;
+use App\Http\Controllers\Admin\ChangeRequestController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmoteController;
 use App\Http\Controllers\Admin\FinanceController;
@@ -55,6 +56,29 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
     Route::patch('/reports/{userReport}', [ReportController::class, 'resolve'])
         ->middleware('can:reports.resolve')->name('reports.resolve');
 
+    Route::prefix('change-requests')->name('change-requests.')->group(function () {
+        Route::middleware(['can:change-requests.view'])->group(function () {
+            Route::get('/', [ChangeRequestController::class, 'index'])->name('index');
+        });
+        Route::middleware(['can:change-requests.create'])->group(function () {
+            Route::get('/create', [ChangeRequestController::class, 'create'])->name('create');
+            Route::post('/', [ChangeRequestController::class, 'store'])->name('store');
+        });
+        Route::middleware(['can:change-requests.view'])->group(function () {
+            Route::get('/{changeRequest}', [ChangeRequestController::class, 'show'])->name('show');
+        });
+        Route::post('/{changeRequest}/messages', [ChangeRequestController::class, 'storeMessage'])
+            ->middleware('can:change-requests.comment')->name('messages.store');
+        Route::post('/items/{changeRequestItem}/accept', [ChangeRequestController::class, 'acceptItem'])
+            ->middleware('can:change-requests.approve')->name('items.accept');
+        Route::post('/items/{changeRequestItem}/reject', [ChangeRequestController::class, 'rejectItem'])
+            ->middleware('can:change-requests.reject')->name('items.reject');
+        Route::post('/{changeRequest}/withdraw', [ChangeRequestController::class, 'withdraw'])
+            ->middleware('can:change-requests.reject')->name('withdraw');
+        Route::post('/{changeRequest}/sanction', [ChangeRequestController::class, 'sanction'])
+            ->middleware('can:change-requests.reject')->name('sanction');
+    });
+
     Route::get('/activity', [ActivityLogController::class, 'index'])
         ->middleware('can:activity.view')->name('activity.index');
 
@@ -90,10 +114,6 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
                 Route::put('/history/{logo}', [TeamController::class, 'updateLogoEntry'])->name('history.update');
                 Route::delete('/history/{logo}', [TeamController::class, 'destroyLogoEntry'])->name('history.destroy');
             });
-            Route::put('/{team}/max-permissions', [TeamController::class, 'updateMaxPermissions'])->name('max-permissions.update');
-            Route::post('/{team}/owner', [TeamController::class, 'assignOwner'])->name('owner.store');
-            Route::delete('/{team}/owner/{user}', [TeamController::class, 'removeOwner'])->name('owner.destroy');
-
             Route::prefix('{team}/roster')->name('roster.')->group(function () {
                 Route::post('/', [TeamController::class, 'storeRosterMember'])->name('store');
                 Route::put('/', [TeamController::class, 'syncRoster'])->name('sync');

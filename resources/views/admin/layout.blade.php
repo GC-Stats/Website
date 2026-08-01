@@ -46,6 +46,7 @@
             [
                 'label' => __('admin.nav.group_content'),
                 'items' => [
+                    ['route' => 'admin.change-requests.index', 'pattern' => 'admin.change-requests.*', 'label' => __('admin.nav.change_requests'), 'icon' => 'fas-code-compare', 'can' => 'change-requests.view'],
                     ['route' => 'admin.tournaments.index', 'pattern' => ['admin.tournaments.*', 'admin.matches.*'], 'label' => __('admin.nav.tournaments'), 'icon' => 'fas-trophy', 'can' => 'tournaments.view'],
                     ['route' => 'admin.point-types.index', 'pattern' => 'admin.point-types.*', 'label' => __('admin.nav.point_types'), 'icon' => 'fas-coins', 'can' => 'tournaments.view'],
                     ['route' => 'admin.teams.index', 'pattern' => 'admin.teams.*', 'label' => __('admin.nav.teams'), 'icon' => 'fas-people-group', 'can' => 'teams.view'],

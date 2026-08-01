@@ -13,9 +13,12 @@
  */
 
 use App\Http\Controllers\Auth\AccountSettingsController;
+use App\Http\Controllers\Auth\PlayerChangeRequestController;
 use App\Http\Controllers\Auth\ResendVerificationController;
 use App\Http\Controllers\Auth\SocialAccountController;
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Auth\TeamChangeRequestController;
+use App\Http\Controllers\Auth\UserChangeRequestController;
 use App\Http\Controllers\Auth\UserReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +46,13 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/settings/account', [AccountSettingsController::class, 'destroyAccount'])
         ->name('account.destroy');
 
+    // Always reachable, even for a sanctioned account — tracking one's own
+    // past requests is read access, not a new action to gate.
+    Route::get('/settings/change-requests', [UserChangeRequestController::class, 'index'])
+        ->name('account.change-requests.index');
+    Route::get('/settings/change-requests/{changeRequest}', [UserChangeRequestController::class, 'show'])
+        ->name('account.change-requests.show');
+
     Route::middleware(['not-sanctioned'])->group(function () {
         Route::delete('/settings/social/{socialAccount}', [SocialAccountController::class, 'destroy'])
             ->name('social.destroy');
@@ -55,8 +65,24 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/settings/account/team', [AccountSettingsController::class, 'updateFanTeam'])
             ->name('account.team.update');
 
+        Route::post('/settings/change-requests/{changeRequest}/messages', [UserChangeRequestController::class, 'storeMessage'])
+            ->middleware('throttle:30,60')
+            ->name('account.change-requests.messages.store');
+
         Route::post('/users/{user}/report', [UserReportController::class, 'store'])
             ->middleware('throttle:15,60')
             ->name('users.report');
+
+        Route::get('/players/{player}/change-requests/create', [PlayerChangeRequestController::class, 'create'])
+            ->name('players.change-requests.create');
+        Route::post('/players/{player}/change-requests', [PlayerChangeRequestController::class, 'store'])
+            ->middleware('throttle:15,60')
+            ->name('players.change-requests.store');
+
+        Route::get('/teams/{team}/change-requests/create', [TeamChangeRequestController::class, 'create'])
+            ->name('teams.change-requests.create');
+        Route::post('/teams/{team}/change-requests', [TeamChangeRequestController::class, 'store'])
+            ->middleware('throttle:15,60')
+            ->name('teams.change-requests.store');
     });
 });

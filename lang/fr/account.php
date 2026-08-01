@@ -106,6 +106,17 @@ return [
         ],
     ],
 
+    'change_requests' => [
+        'title' => 'Mes demandes de modification',
+        'intro' => 'Chaque correction que vous avez suggérée, son statut, et la discussion de modération associée.',
+        'empty' => "Vous n'avez soumis aucune demande de modification pour le moment.",
+        'view' => 'Voir',
+        'back_to_list' => 'Retour à mes demandes',
+        'subject' => 'Concerne',
+        'fields' => 'Champs',
+        'submitted_at' => 'Envoyée',
+    ],
+
     'errors' => [
         'last_auth_method' => "Impossible de retirer ce moyen de connexion : c'est le dernier restant sur ce compte.",
         'social_already_linked' => 'Ce compte est déjà lié à un autre profil.',
@@ -117,6 +128,7 @@ return [
         'sanctioned_global' => "Votre compte fait l'objet d'une sanction active : :reason",
         'sanctioned_team' => "Vous faites l'objet d'une sanction active sur cette équipe : :reason",
         'cannot_report_user' => 'Vous ne pouvez pas vous signaler vous-même.',
+        'sanction_requires_super_admin' => 'Ce compte détient un rôle staff — seul un super admin peut le sanctionner.',
         'invalid_team_tag' => "Ce tag n'appartient pas à l'équipe sélectionnée.",
     ],
 ];
