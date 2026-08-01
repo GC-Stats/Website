@@ -36,7 +36,7 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'username', 'email', 'password', 'team_id', 'team_tag', 'pronouns'])]
+#[Fillable(['name', 'username', 'email', 'password', 'team_id', 'team_tag', 'pronouns', 'data_explorer_enabled'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUser
 {
