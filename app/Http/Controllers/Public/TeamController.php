@@ -14,6 +14,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Helpers\RosterRole;
 use App\Models\GameMap;
 use App\Models\Matchs;
 use App\Models\News;
@@ -66,7 +67,7 @@ class TeamController extends Controller
                 ->withPivot('role', 'joined_at', 'left_at')
                 ->wherePivotNull('left_at')
                 ->get()
-                ->sortBy(fn ($player) => \App\Helpers\RosterRole::sortIndex($player->pivot->role ?? null))
+                ->sortBy(fn ($player) => RosterRole::sortIndex($player->pivot->role ?? null))
                 ->values()
                 ->toArray();
 

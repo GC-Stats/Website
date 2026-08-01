@@ -241,5 +241,4 @@ class TeamMergeService
             ->whereIn('news_id', $newsIds)->whereNotIn('news_id', $targetNewsIds)
             ->update(['relationable_id' => $target->id]);
     }
-
 }
