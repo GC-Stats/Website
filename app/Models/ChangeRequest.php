@@ -55,10 +55,12 @@ class ChangeRequest extends Model
         'status',
         'closed_by',
         'closed_at',
+        'sanctioned_at',
     ];
 
     protected $casts = [
         'closed_at' => 'datetime',
+        'sanctioned_at' => 'datetime',
     ];
 
     public function subject(): MorphTo

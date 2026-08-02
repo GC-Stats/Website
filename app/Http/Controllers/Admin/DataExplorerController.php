@@ -48,7 +48,8 @@ class DataExplorerController extends Controller
 
     public function toggleAccess(Request $request, User $user): RedirectResponse
     {
-        $user->update(['data_explorer_enabled' => ! $user->data_explorer_enabled]);
+        $user->data_explorer_enabled = ! $user->data_explorer_enabled;
+        $user->save();
 
         activity('administration')
             ->performedOn($user)

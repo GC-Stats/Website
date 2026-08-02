@@ -197,6 +197,7 @@ return [
             'reason_label' => 'Reason',
             'submit' => 'Ban requester',
             'confirm' => 'Ban the requester of this request?',
+            'already_issued' => 'A sanction was already issued from this request on :date.',
         ],
         'resolution_note_label' => 'Note (optional)',
         'resolved_by' => 'Resolved by :name on :date',

@@ -17,6 +17,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\ChangeRequestItemAlreadyResolvedException;
 use App\Exceptions\SanctionRequiresSuperAdminException;
 use App\Http\Controllers\Public\Controller;
 use App\Models\ChangeRequest;
@@ -33,6 +34,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ChangeRequestController extends Controller
@@ -126,11 +128,17 @@ class ChangeRequestController extends Controller
 
     public function acceptItem(Request $request, ChangeRequestItem $changeRequestItem, ChangeRequestService $changeRequests): RedirectResponse
     {
+        abort_if($changeRequestItem->status !== ChangeRequestItem::STATUS_PENDING, 409, 'This item has already been resolved.');
+
         $validated = $request->validate([
             'resolution_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $changeRequests->acceptItem($changeRequestItem, $request->user(), $validated['resolution_note'] ?? null);
+        try {
+            $changeRequests->acceptItem($changeRequestItem, $request->user(), $validated['resolution_note'] ?? null);
+        } catch (ChangeRequestItemAlreadyResolvedException $e) {
+            abort(409, $e->getMessage());
+        }
 
         return redirect()->route('admin.change-requests.show', $changeRequestItem->change_request_id)
             ->with('status', 'change-request-item-accepted');
@@ -138,11 +146,17 @@ class ChangeRequestController extends Controller
 
     public function rejectItem(Request $request, ChangeRequestItem $changeRequestItem, ChangeRequestService $changeRequests): RedirectResponse
     {
+        abort_if($changeRequestItem->status !== ChangeRequestItem::STATUS_PENDING, 409, 'This item has already been resolved.');
+
         $validated = $request->validate([
             'resolution_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $changeRequests->rejectItem($changeRequestItem, $request->user(), $validated['resolution_note'] ?? null);
+        try {
+            $changeRequests->rejectItem($changeRequestItem, $request->user(), $validated['resolution_note'] ?? null);
+        } catch (ChangeRequestItemAlreadyResolvedException $e) {
+            abort(409, $e->getMessage());
+        }
 
         return redirect()->route('admin.change-requests.show', $changeRequestItem->change_request_id)
             ->with('status', 'change-request-item-rejected');
@@ -172,11 +186,22 @@ class ChangeRequestController extends Controller
         ]);
 
         try {
-            $sanctions->issue($changeRequest->requestedBy, $request->user(), [
-                'type' => Sanction::TYPE_SUSPENSION,
-                'reason' => sprintf('[Change request #%d] %s', $changeRequest->id, $validated['reason']),
-                'ends_at' => $validated['duration'] === 'permanent' ? null : now()->addDays((int) $validated['duration']),
-            ]);
+            // Locks the row before the already-sanctioned check so two
+            // concurrent submits (double-click) can't both pass the check
+            // before either writes sanctioned_at.
+            DB::transaction(function () use ($changeRequest, $validated, $request, $sanctions) {
+                $locked = ChangeRequest::whereKey($changeRequest->id)->lockForUpdate()->first();
+
+                abort_if($locked->sanctioned_at !== null, 409, 'A sanction has already been issued from this request.');
+
+                $sanctions->issue($changeRequest->requestedBy, $request->user(), [
+                    'type' => Sanction::TYPE_SUSPENSION,
+                    'reason' => sprintf('[Change request #%d] %s', $changeRequest->id, $validated['reason']),
+                    'ends_at' => $validated['duration'] === 'permanent' ? null : now()->addDays((int) $validated['duration']),
+                ]);
+
+                $locked->update(['sanctioned_at' => now()]);
+            });
         } catch (SanctionRequiresSuperAdminException $e) {
             return back()->withErrors(['reason' => $e->getMessage()]);
         }

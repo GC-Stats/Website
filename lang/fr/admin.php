@@ -192,6 +192,7 @@ return [
             'reason_label' => 'Raison',
             'submit' => 'Bannir le demandeur',
             'confirm' => 'Bannir le demandeur de cette demande ?',
+            'already_issued' => 'Une sanction a déjà été émise depuis cette demande le :date.',
         ],
         'resolution_note_label' => 'Note (optionnel)',
         'resolved_by' => 'Résolu par :name le :date',

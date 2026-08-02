@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Middleware\EnsureAccountIsNotSanctioned;
-use App\Http\Middleware\EnsureNotSanctionedForTeam;
 use App\Http\Middleware\InternalServiceAuth;
 use App\Http\Middleware\LogPageView;
 use App\Http\Middleware\SetDefaultPermissionTeam;
@@ -47,7 +46,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'internal.service' => InternalServiceAuth::class,
             'static.cache' => StaticPageCache::class,
             'not-sanctioned' => EnsureAccountIsNotSanctioned::class,
-            'not-sanctioned.team' => EnsureNotSanctionedForTeam::class,
             'publisher.permission-context' => SetPublisherPermissionContext::class,
         ]);
 

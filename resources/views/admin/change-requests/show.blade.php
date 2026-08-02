@@ -82,7 +82,11 @@
                         </form>
                     @endunless
 
-                    @if (! $request->isSystemGenerated() && $request->requestedBy)
+                    @if ($request->sanctioned_at)
+                        <p class="text-xs text-gray-500 pt-3 border-t border-white/10">
+                            {{ __('admin.change_requests.sanction.already_issued', ['date' => $request->sanctioned_at->format('Y-m-d H:i')]) }}
+                        </p>
+                    @elseif (! $request->isSystemGenerated() && $request->requestedBy)
                         <form method="POST" action="{{ route('admin.change-requests.sanction', $request) }}"
                               onsubmit="return confirm('{{ __('admin.change_requests.sanction.confirm') }}')"
                               class="flex flex-wrap items-end gap-2 pt-3 border-t border-white/10">

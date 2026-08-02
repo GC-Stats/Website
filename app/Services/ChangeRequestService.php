@@ -20,6 +20,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\ChangeRequestItemAlreadyResolvedException;
 use App\Models\ChangeRequest;
 use App\Models\ChangeRequestItem;
 use App\Models\ChangeRequestMessage;
@@ -151,14 +152,29 @@ class ChangeRequestService
         $this->addMessage($request, null, $body, ChangeRequestMessage::TYPE_SYSTEM);
     }
 
+    /**
+     * Locks the item's row and re-checks its status before writing, closing
+     * the race a plain update() would leave open between two concurrent
+     * accept/reject requests for the same item (e.g. a double-click) —
+     * whichever loses the lock throws instead of silently re-applying an
+     * already-resolved item.
+     */
     private function resolveItem(ChangeRequestItem $item, string $status, User $moderator, ?string $note, string $activityEvent): void
     {
-        $item->update([
-            'status' => $status,
-            'resolved_by' => $moderator->id,
-            'resolved_at' => now(),
-            'resolution_note' => $note,
-        ]);
+        DB::transaction(function () use ($item, $status, $moderator, $note) {
+            $locked = ChangeRequestItem::whereKey($item->getKey())->lockForUpdate()->first();
+
+            if ($locked === null || $locked->status !== ChangeRequestItem::STATUS_PENDING) {
+                throw new ChangeRequestItemAlreadyResolvedException;
+            }
+
+            $item->update([
+                'status' => $status,
+                'resolved_by' => $moderator->id,
+                'resolved_at' => now(),
+                'resolution_note' => $note,
+            ]);
+        });
 
         activity('change_request')
             ->performedOn($item->changeRequest)

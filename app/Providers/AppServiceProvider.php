@@ -43,10 +43,12 @@ use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Cache\TaggableStore;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -92,6 +94,7 @@ class AppServiceProvider extends ServiceProvider
 
         $this->configureDefaults();
         $this->configureBunnyStorage();
+        $this->ensureCacheStoreSupportsTagging();
         Paginator::useTailwind();
 
         if ($this->app->runningUnitTests() && ($token = ParallelTesting::token())) {
@@ -226,6 +229,24 @@ class AppServiceProvider extends ServiceProvider
                 ])
                 ->log('account.login_failed');
         });
+    }
+
+    /**
+     * Cache::tags() is relied on throughout the app (see the Observers and
+     * *MergeService/RosterService classes) as the only invalidation
+     * mechanism for per-entity cached data — it silently throws
+     * BadMethodCallException on drivers that don't support tagging
+     * (database, file). Fail loudly at boot instead of letting a
+     * misconfigured CACHE_STORE surface as random 500s across the site.
+     */
+    protected function ensureCacheStoreSupportsTagging(): void
+    {
+        if (! Cache::getStore() instanceof TaggableStore) {
+            throw new \RuntimeException(sprintf(
+                'CACHE_STORE="%s" does not support Cache::tags(), which this application relies on throughout for cache invalidation. Use redis, memcached, or array.',
+                config('cache.default'),
+            ));
+        }
     }
 
     /**

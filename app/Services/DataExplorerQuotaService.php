@@ -25,6 +25,7 @@ namespace App\Services;
 use App\Exceptions\DataExplorerQuotaExceededException;
 use App\Models\DataExplorerUsage;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -109,11 +110,17 @@ class DataExplorerQuotaService
             return $usage;
         }
 
-        DataExplorerUsage::create([
-            'user_id' => $user->id,
-            'year' => $now->year,
-            'month' => $now->month,
-        ]);
+        try {
+            DataExplorerUsage::create([
+                'user_id' => $user->id,
+                'year' => $now->year,
+                'month' => $now->month,
+            ]);
+        } catch (QueryException $e) {
+            if ($e->getCode() !== '23000') {
+                throw $e;
+            }
+        }
 
         return DataExplorerUsage::where('user_id', $user->id)
             ->where('year', $now->year)
