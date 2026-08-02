@@ -16,7 +16,7 @@ test('the builder page renders with the fetched schema', function () {
         'dimensions' => ['kill_stats.player_name'],
     ], 200)]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['data_explorer_enabled' => true]);
 
     $this->actingAs($user)->get(route('data-explorer.builder'))->assertOk();
 });
@@ -34,7 +34,7 @@ test('the schema fetch is cached instead of hitting GC-Stats-API on every page l
 });
 
 test('an empty query (no measures or dimensions) is rejected before reaching GC-Stats-API', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(['data_explorer_enabled' => true]);
 
     $response = $this->actingAs($user)->postJson(route('data-explorer.builder.execute'), [
         'measures' => [],
@@ -50,7 +50,7 @@ test('a valid builder query is forwarded and the result returned', function () {
         'result' => [['kill_stats.kill_count' => '42']],
     ], 200)]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['data_explorer_enabled' => true]);
 
     $response = $this->actingAs($user)->postJson(route('data-explorer.builder.execute'), [
         'measures' => ['kill_stats.kill_count'],
@@ -67,7 +67,7 @@ test('an unknown-field error from GC-Stats-API surfaces the real reason to the u
         'message' => 'unknown measure: not_a_real_field',
     ], 422)]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['data_explorer_enabled' => true]);
 
     $response = $this->actingAs($user)->postJson(route('data-explorer.builder.execute'), [
         'measures' => ['not_a_real_field'],

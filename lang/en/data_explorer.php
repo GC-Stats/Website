@@ -125,6 +125,14 @@ return [
         'using_personal_key' => 'You are currently using your own linked API key — usage is billed to you, not shared with anyone else.',
     ],
 
+    'early_access' => [
+        'title' => 'Data Explorer',
+        'badge' => 'Early access',
+        'body' => 'Data Explorer is currently in early access and temporarily unavailable while we finish testing it. It will open up to more people soon.',
+        'contact' => 'If you want to use it, reach out on our Discord.',
+        'dev_doc_link' => 'Developer documentation',
+    ],
+
     'errors' => [
         'quota_exceeded' => 'The monthly quota has been reached and no personal API key is linked.',
         'upstream_failed' => 'The query could not be completed. Please try again.',

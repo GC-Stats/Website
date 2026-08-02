@@ -5,17 +5,27 @@ use App\Models\DataExplorerApiKey;
 use App\Models\User;
 use App\Services\DataExplorerQuotaService;
 
-test('the query screen is reachable by any authenticated user, authorized or not', function () {
+test('an unauthorized user is shown the early-access placeholder instead of the query screen', function () {
     $user = User::factory()->create(['data_explorer_enabled' => false]);
 
-    $this->actingAs($user)->get(route('data-explorer.index'))->assertOk();
+    $this->actingAs($user)->get(route('data-explorer.index'))
+        ->assertOk()
+        ->assertViewIs('data-explorer.early-access');
 });
 
-test('the settings and docs pages render for an unauthorized user too', function () {
+test('the settings and docs pages are also gated for an unauthorized user', function () {
     $user = User::factory()->create(['data_explorer_enabled' => false]);
 
-    $this->actingAs($user)->get(route('data-explorer.settings'))->assertOk();
-    $this->actingAs($user)->get(route('data-explorer.docs'))->assertOk();
+    $this->actingAs($user)->get(route('data-explorer.settings'))->assertViewIs('data-explorer.early-access');
+    $this->actingAs($user)->get(route('data-explorer.docs'))->assertViewIs('data-explorer.early-access');
+});
+
+test('an authorized user reaches the actual query screen', function () {
+    $user = User::factory()->create(['data_explorer_enabled' => true]);
+
+    $this->actingAs($user)->get(route('data-explorer.index'))
+        ->assertOk()
+        ->assertViewIs('data-explorer.index');
 });
 
 test('an unauthorized user has no path to the platform key even if there is unused quota', function () {

@@ -3,11 +3,15 @@
 /**
  * GC-Stats — Data Explorer routes
  *
- * The AI query screen is open to every authenticated user — what's
- * restricted is use of the platform's own API key (see
- * DataExplorerQuotaService::claimRequestSlot(), driven by the per-user
- * data_explorer_enabled flag toggled from the admin panel). Anyone else needs
- * their own linked key from the dedicated settings page below.
+ * The whole feature is currently early access: only users with the
+ * per-user data_explorer_enabled flag (toggled from the admin panel, see
+ * Admin\DataExplorerController and EnsureDataExplorerIsEnabled) can reach
+ * any of the routes below — everyone else gets an early-access
+ * placeholder instead. That same flag also governs use of the platform's
+ * own API key once inside (see DataExplorerQuotaService::claimRequestSlot()).
+ * Anyone without it needs their own linked key from the dedicated
+ * settings page below — except settings/docs aren't reachable either
+ * while access is closed.
  *
  * Both execute() routes carry a per-minute throttle on top of the hourly
  * one — the hourly cap alone doesn't stop a burst (e.g. a script firing 15
@@ -29,7 +33,7 @@ use App\Http\Controllers\DataExplorer\QueryController;
 use App\Http\Controllers\DataExplorer\SettingsController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->prefix('data-explorer')->name('data-explorer.')->group(function () {
+Route::middleware(['auth', 'data-explorer.enabled'])->prefix('data-explorer')->name('data-explorer.')->group(function () {
     Route::get('/', [QueryController::class, 'index'])->name('index');
 
     Route::get('/builder', [BuilderController::class, 'index'])->name('builder');

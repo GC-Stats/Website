@@ -595,6 +595,9 @@
                             <a href="{{ route('data-explorer.index') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center justify-center md:justify-start gap-2 group">
                                 <span class="w-0 h-[1px] bg-[var(--brand-yellow)] transition-all group-hover:w-3"></span>
                                 {{ __("layout.footer.about.data_explorer") }}
+                                @unless(auth()->user()?->data_explorer_enabled)
+                                    <span class="px-1.5 py-0.5 rounded-sm border border-[var(--brand-yellow)]/40 text-[9px] text-[var(--brand-yellow)] normal-case tracking-normal">{{ __('data_explorer.early_access.badge') }}</span>
+                                @endunless
                             </a>
                         </li>
                     </ul>

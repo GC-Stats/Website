@@ -125,6 +125,14 @@ return [
         'using_personal_key' => 'Vous utilisez actuellement votre propre clé API liée — la consommation vous est facturée, elle n\'est partagée avec personne d\'autre.',
     ],
 
+    'early_access' => [
+        'title' => 'Data Explorer',
+        'badge' => 'Accès anticipé',
+        'body' => 'Data Explorer est actuellement en accès anticipé et temporairement indisponible le temps que l\'on termine les tests. La fonctionnalité s\'ouvrira à plus de monde bientôt.',
+        'contact' => 'Si vous voulez l\'utiliser, passez sur notre Discord.',
+        'dev_doc_link' => 'Documentation développeur',
+    ],
+
     'errors' => [
         'quota_exceeded' => 'Le quota mensuel est atteint et aucune clé API personnelle n\'est liée.',
         'upstream_failed' => 'La requête n\'a pas pu aboutir. Merci de réessayer.',

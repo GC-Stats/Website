@@ -14,7 +14,7 @@ test('a builder upstream failure is logged with the same request_id returned to 
         'error' => 'cube_execution_failed', 'message' => 'boom',
     ], 502)]);
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['data_explorer_enabled' => true]);
 
     $response = $this->actingAs($user)->postJson(route('data-explorer.builder.execute'), [
         'measures' => ['matches.count'],
