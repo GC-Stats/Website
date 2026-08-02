@@ -111,6 +111,11 @@ body {
  * SCROLLBAR
  */
 
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #333 var(--color-bg-main);
+}
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--color-bg-main); }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }

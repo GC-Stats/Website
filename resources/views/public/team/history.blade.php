@@ -45,7 +45,11 @@
                                 </div>
 
                                 <div class="min-w-0">
-                                    <p class="text-base font-bold text-white truncate">{{ $player['handle'] }}</p>
+                                    <p class="flex items-center gap-1.5 text-base font-bold text-white truncate">
+                                        <span class="fi fi-{{ blank($player['country_code']) || $player['country_code'] === 'inter' ? 'un' : strtolower($player['country_code']) }} shadow-sm shrink-0"
+                                              aria-label="{{ $player['country_code'] ?? '' }}" role="img"></span>
+                                        {{ $player['handle'] }}
+                                    </p>
                                     <span class="inline-block mt-1 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm {{ \App\Helpers\RosterRole::badgeClass($historyRosterRole) }}">
                                         {{ \App\Helpers\RosterRole::label($historyRosterRole) ?? 'Player' }}
                                     </span>

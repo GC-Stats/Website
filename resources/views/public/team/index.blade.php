@@ -68,7 +68,9 @@
                                     </div>
 
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-black tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                        <p class="flex items-center gap-1.5 text-sm font-black tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                            <span class="fi fi-{{ blank($player['country_code']) || $player['country_code'] === 'inter' ? 'un' : strtolower($player['country_code']) }} shadow-sm shrink-0"
+                                                  aria-label="{{ $player['country_code'] ?? '' }}" role="img"></span>
                                             {{ $player['handle'] }}
                                         </p>
 
@@ -140,7 +142,9 @@
                                 </div>
 
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-black tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                    <p class="flex items-center gap-1.5 text-sm font-black tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                        <span class="fi fi-{{ blank($player['country_code']) || $player['country_code'] === 'inter' ? 'un' : strtolower($player['country_code']) }} shadow-sm shrink-0"
+                                              aria-label="{{ $player['country_code'] ?? '' }}" role="img"></span>
                                         {{ $player['handle'] }}
                                     </p>
 

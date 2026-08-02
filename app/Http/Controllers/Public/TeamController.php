@@ -63,7 +63,7 @@ class TeamController extends Controller
 
         $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id, $team) {
             $currentRoster = $team->players()
-                ->select('players.id', 'players.handle')
+                ->select('players.id', 'players.handle', 'players.country_code')
                 ->withPivot('role', 'joined_at', 'left_at')
                 ->wherePivotNull('left_at')
                 ->get()
@@ -72,7 +72,7 @@ class TeamController extends Controller
                 ->toArray();
 
             $pastPlayers = $team->players()
-                ->select('players.id', 'players.handle')
+                ->select('players.id', 'players.handle', 'players.country_code')
                 ->withPivot('role', 'joined_at', 'left_at')
                 ->wherePivotNotNull('left_at')
                 ->orderByPivot('left_at', 'desc')
@@ -133,7 +133,7 @@ class TeamController extends Controller
 
         $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($team) {
             $paginated = $team->players()
-                ->select('players.id', 'players.handle')
+                ->select('players.id', 'players.handle', 'players.country_code')
                 ->withPivot('role', 'joined_at', 'left_at')
                 ->wherePivotNotNull('left_at')
                 ->orderByPivot('left_at', 'desc')
