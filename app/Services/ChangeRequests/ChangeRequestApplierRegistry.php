@@ -58,6 +58,7 @@ class ChangeRequestApplierRegistry
             Player::class => [
                 'first_name' => new SimpleAttributeApplier('first_name'),
                 'last_name' => new SimpleAttributeApplier('last_name'),
+                'pronouns' => new SimpleAttributeApplier('pronouns'),
                 'country_code' => new SimpleAttributeApplier('country_code'),
                 'bio' => new SimpleAttributeApplier('bio'),
                 'socials' => new SimpleAttributeApplier('socials'),

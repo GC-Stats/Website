@@ -35,6 +35,7 @@ use App\Services\ChangeRequestService;
 use App\Services\LogoUploadService;
 use App\Services\RosterService;
 use App\Support\Countries;
+use App\Support\Pronouns;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -48,7 +49,7 @@ class PlayerChangeRequestController extends Controller
      * self-service-appropriate profile attributes. `roster` is handled
      * separately below since it needs a team/role/date, not a text diff.
      */
-    private const EDITABLE_FIELDS = ['first_name', 'last_name', 'country_code', 'bio'];
+    private const EDITABLE_FIELDS = ['first_name', 'last_name', 'pronouns', 'country_code', 'bio'];
 
     /** Social platforms the header/admin profile form both understand — see resources/views/public/player/header.blade.php's $socialConfig. */
     private const SOCIAL_PLATFORMS = ['twitter', 'twitch', 'tiktok', 'instagram', 'youtube', 'discord'];
@@ -72,6 +73,7 @@ class PlayerChangeRequestController extends Controller
         $validated = $request->validate([
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
+            'pronouns' => ['nullable', 'integer', Rule::in(Pronouns::OPTIONS)],
             'country_code' => ['nullable', 'string', 'max:5'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'socials' => ['nullable', 'array'],
@@ -151,9 +153,11 @@ class PlayerChangeRequestController extends Controller
         }
 
         foreach (self::EDITABLE_FIELDS as $field) {
-            $newValue = $field === 'country_code'
-                ? (blank($validated[$field] ?? null) ? null : strtolower($validated[$field]))
-                : ($validated[$field] ?? null);
+            $newValue = match ($field) {
+                'country_code' => blank($validated[$field] ?? null) ? null : strtolower($validated[$field]),
+                'pronouns' => isset($validated[$field]) ? (int) $validated[$field] : null,
+                default => $validated[$field] ?? null,
+            };
 
             if ($newValue !== $player->{$field}) {
                 $items[] = [
