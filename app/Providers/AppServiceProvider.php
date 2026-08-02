@@ -241,6 +241,15 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function ensureCacheStoreSupportsTagging(): void
     {
+        // composer's post-autoload-dump runs `artisan package:discover` (and
+        // `vendor:publish` on post-update-cmd) before a .env exists — e.g. on
+        // a fresh `composer install` in CI — which boots every provider with
+        // whatever CACHE_STORE default happens to apply. Neither command
+        // touches Cache::tags(), so don't fail the install over it.
+        if ($this->app->runningInConsole() && in_array($_SERVER['argv'][1] ?? null, ['package:discover', 'vendor:publish'], true)) {
+            return;
+        }
+
         if (! Cache::getStore() instanceof TaggableStore) {
             throw new \RuntimeException(sprintf(
                 'CACHE_STORE="%s" does not support Cache::tags(), which this application relies on throughout for cache invalidation. Use redis, memcached, or array.',
