@@ -22,9 +22,11 @@ namespace App\Services;
 use App\Models\ChangeRequest;
 use App\Models\ChangeRequestItem;
 use App\Models\GameMap;
+use App\Models\GamePlayerStat;
 use App\Models\Matchs;
 use App\Models\Player;
 use App\Models\Team;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class RosterMismatchDetector
@@ -65,7 +67,7 @@ class RosterMismatchDetector
             return;
         }
 
-        $joinedAt = $match->scheduled_at?->toDateString() ?? now()->toDateString();
+        $joinedAt = $this->joinedAtForObservedTeam($playerId, $observedTeamId, $match);
 
         $reason = sprintf(
             "Detected while fetching %s on %s: %s played for %s in this match, but their current roster team is %s.\nSuggested change: move %s to %s as of %s.",
@@ -84,6 +86,42 @@ class RosterMismatchDetector
             'old_value' => $currentTeam ? ['team_id' => $currentTeam->id, 'team_name' => $currentTeam->name] : null,
             'new_value' => ['team_id' => $observedTeam->id, 'team_name' => $observedTeam->name, 'role' => 'player', 'joined_at' => $joinedAt],
         ]]);
+    }
+
+    /**
+     * Rather than always dating the move to the match that triggered
+     * detection, walk the player's match history (via game_player_stats,
+     * which records the team they actually played for on each map)
+     * backwards from this match and find the start of the current
+     * unbroken run on $observedTeamId. A player can have two separate
+     * stints on the same team (left and later rejoined), so we stop at
+     * the first earlier match where they were on a *different* team
+     * rather than just taking their first-ever match with this team.
+     */
+    private function joinedAtForObservedTeam(int $playerId, int $observedTeamId, Matchs $match): string
+    {
+        $history = GamePlayerStat::query()
+            ->where('player_id', $playerId)
+            ->join('matches', 'matches.id', '=', 'game_player_stats.match_id')
+            ->select('game_player_stats.match_id', 'game_player_stats.team_id', 'matches.scheduled_at')
+            ->distinct()
+            ->orderBy('matches.scheduled_at')
+            ->orderBy('game_player_stats.match_id')
+            ->get();
+
+        $currentIndex = $history->search(fn ($row) => (int) $row->match_id === $match->id);
+
+        if ($currentIndex === false) {
+            return $match->scheduled_at?->toDateString() ?? now()->toDateString();
+        }
+
+        $earliest = $history[$currentIndex];
+
+        for ($i = $currentIndex; $i >= 0 && (int) $history[$i]->team_id === $observedTeamId; $i--) {
+            $earliest = $history[$i];
+        }
+
+        return Carbon::parse($earliest->scheduled_at)->toDateString();
     }
 
     private function hasPendingRosterRequest(int $playerId, int $observedTeamId): bool
