@@ -41,6 +41,7 @@ class ChangeRequestController extends Controller
 {
     private const STATUSES = [
         ChangeRequest::STATUS_PENDING,
+        ChangeRequest::STATUS_AWAITING_REQUESTER_REPLY,
         ChangeRequest::STATUS_PARTIALLY_ACCEPTED,
         ChangeRequest::STATUS_ACCEPTED,
         ChangeRequest::STATUS_REJECTED,
@@ -217,7 +218,7 @@ class ChangeRequestController extends Controller
             'body' => ['required', 'string', 'max:2000'],
         ]);
 
-        $changeRequests->addMessage($changeRequest, $request->user(), $validated['body']);
+        $changeRequests->addMessage($changeRequest, $request->user(), $validated['body'], needsRequesterReply: $request->boolean('needs_requester_reply'));
 
         return redirect()->route('admin.change-requests.show', $changeRequest)->with('status', 'change-request-message-added');
     }

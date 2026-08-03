@@ -19,6 +19,7 @@ return [
         'profile' => 'Voir le profil',
         'settings' => 'Paramètres du compte',
         'change_requests' => 'Mes demandes de modification',
+        'notifications' => 'Notifications',
         'admin' => 'Panneau admin',
         'no_admin_section' => "Votre rôle a des permissions admin, mais aucune section du dashboard n'est encore construite pour celle-ci.",
         'logout' => 'Déconnexion',

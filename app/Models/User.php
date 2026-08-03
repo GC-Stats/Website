@@ -86,6 +86,16 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
         return $this->hasMany(Sanction::class);
     }
 
+    /**
+     * In-app notifications addressed to this user (see NotificationService)
+     * — overrides Notifiable's own notifications() relation, which targets
+     * Illuminate's database notification channel and is unused here.
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class)->orderByDesc('id');
+    }
+
     /** Change requests this user has submitted (see ChangeRequest::requested_by), across any subject type. */
     public function changeRequests(): HasMany
     {

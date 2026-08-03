@@ -201,6 +201,11 @@
                         @csrf
                         <textarea name="body" rows="3" placeholder="{{ __('admin.change_requests.message_placeholder') }}" required
                                   class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition"></textarea>
+                        <label class="flex items-center gap-2 text-xs text-gray-400">
+                            <input type="checkbox" name="needs_requester_reply" value="1" checked
+                                   class="rounded border-white/20 bg-white/5 text-gc-yellow focus:ring-gc-yellow focus:ring-offset-0">
+                            {{ __('admin.change_requests.needs_requester_reply') }}
+                        </label>
                         <button type="submit"
                                 class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                             {{ __('admin.change_requests.message_submit') }}

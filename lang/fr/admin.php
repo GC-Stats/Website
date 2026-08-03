@@ -135,6 +135,7 @@ return [
         'status_label' => 'Statut',
         'status' => [
             'pending' => 'En attente',
+            'awaiting_requester_reply' => 'En attente de réponse du demandeur',
             'partially_accepted' => 'Partiellement acceptée',
             'accepted' => 'Acceptée',
             'rejected' => 'Refusée',
@@ -1408,6 +1409,7 @@ return [
         'about-project-deleted' => 'Projet retiré.',
         'phase-qualification-created' => 'Qualification créée.',
         'phase-qualification-deleted' => 'Qualification supprimée.',
+        'data-explorer-access-updated' => "Accès au Data Explorer mis à jour.",
     ],
     'news' => [
         'title' => 'Actualités',

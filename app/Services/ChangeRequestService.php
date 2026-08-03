@@ -27,13 +27,18 @@ use App\Models\ChangeRequestMessage;
 use App\Models\User;
 use App\Services\ChangeRequests\ChangeRequestApplierRegistry;
 use App\Services\ChangeRequests\RejectableFieldApplier;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Throwable;
 
 class ChangeRequestService
 {
-    public function __construct(private readonly ChangeRequestApplierRegistry $appliers) {}
+    public function __construct(
+        private readonly ChangeRequestApplierRegistry $appliers,
+        private readonly NotificationService $notifications,
+    ) {}
 
     /**
      * @param  array<int, array{field: string, old_value?: mixed, new_value: mixed}>  $items
@@ -136,20 +141,164 @@ class ChangeRequestService
             ->performedOn($request)
             ->causedBy($actor)
             ->log('change_request.withdrawn');
+
+        $this->notifyRequesterOfStatusChange($request, NotificationService::TYPE_CHANGE_REQUEST_WITHDRAWN, 'change_request_withdrawn', $actor);
     }
 
-    public function addMessage(ChangeRequest $request, ?User $author, string $body, string $type = ChangeRequestMessage::TYPE_COMMENT): ChangeRequestMessage
+    /**
+     * @param  bool  $needsRequesterReply  Only meaningful for a moderator's
+     *                                      TYPE_COMMENT (the admin comment
+     *                                      form's "needs the requester's
+     *                                      reply" checkbox, checked by
+     *                                      default) — moves the request to
+     *                                      STATUS_AWAITING_REQUESTER_REPLY
+     *                                      until the requester replies, see
+     *                                      maybeAwaitRequesterReply().
+     */
+    public function addMessage(ChangeRequest $request, ?User $author, string $body, string $type = ChangeRequestMessage::TYPE_COMMENT, bool $needsRequesterReply = false): ChangeRequestMessage
     {
-        return $request->messages()->create([
+        $message = $request->messages()->create([
             'user_id' => $author?->id,
             'type' => $type,
             'body' => $body,
         ]);
+
+        $this->notifyRequesterOfComment($request, $author, $body, $type);
+        $this->maybeAwaitRequesterReply($request, $author, $type, $needsRequesterReply);
+        $this->maybeResumeFromRequesterReply($request, $author, $type);
+
+        return $message;
+    }
+
+    /**
+     * Notify the requester when a moderator comments on their change
+     * request — never the reverse (a moderator isn't a single fixed
+     * recipient here, see App\Http\Controllers\Admin\ChangeRequestController
+     * for the moderation queue instead), and never when the requester is
+     * commenting on their own request. The comment body itself (truncated)
+     * is the notification's description, so the requester can see what was
+     * said without opening the request.
+     */
+    private function notifyRequesterOfComment(ChangeRequest $request, ?User $author, string $body, string $type): void
+    {
+        if ($type !== ChangeRequestMessage::TYPE_COMMENT || $request->requested_by === null || $author?->id === $request->requested_by) {
+            return;
+        }
+
+        $requester = $request->requestedBy;
+
+        if ($requester === null) {
+            return;
+        }
+
+        $this->notifications->notify(
+            recipient: $requester,
+            type: NotificationService::TYPE_CHANGE_REQUEST_COMMENT,
+            title: __('notifications.change_request_comment.title'),
+            description: __('notifications.change_request_comment.description', [
+                'author' => $author?->name ?? __('notifications.from_system'),
+                'body' => Str::limit($body, 150),
+            ]),
+            link: route('account.change-requests.show', $request),
+            author: $author,
+            data: ['change_request_id' => $request->id],
+        );
+    }
+
+    /**
+     * A moderator commenting with the "needs the requester's reply" flag on
+     * moves the request into STATUS_AWAITING_REQUESTER_REPLY — a discussion-
+     * still-open sub-state of pending (see ChangeRequest::isResolved()) —
+     * so the queue makes it obvious the ball is in the requester's court.
+     * Never triggered by the requester's own comment, and never once the
+     * request is already resolved (guarded by the controllers before
+     * addMessage() is even called).
+     */
+    private function maybeAwaitRequesterReply(ChangeRequest $request, ?User $author, string $type, bool $needsRequesterReply): void
+    {
+        if (! $needsRequesterReply || $type !== ChangeRequestMessage::TYPE_COMMENT || $request->requested_by === null) {
+            return;
+        }
+
+        if ($author?->id === $request->requested_by || $request->isResolved()) {
+            return;
+        }
+
+        $request->update(['status' => ChangeRequest::STATUS_AWAITING_REQUESTER_REPLY]);
+    }
+
+    /**
+     * The requester replying while awaiting_requester_reply resumes the
+     * request to whatever its items actually say (pending or
+     * partially_accepted) — the same derivation refreshStatus() uses, kept
+     * in sync via deriveStatus() so the two can never disagree.
+     */
+    private function maybeResumeFromRequesterReply(ChangeRequest $request, ?User $author, string $type): void
+    {
+        if ($type !== ChangeRequestMessage::TYPE_COMMENT || $author === null || $author->id !== $request->requested_by) {
+            return;
+        }
+
+        if ($request->status !== ChangeRequest::STATUS_AWAITING_REQUESTER_REPLY) {
+            return;
+        }
+
+        $request->update(['status' => $this->deriveStatus($request->items)]);
     }
 
     private function addSystemMessage(ChangeRequest $request, string $body): void
     {
         $this->addMessage($request, null, $body, ChangeRequestMessage::TYPE_SYSTEM);
+    }
+
+    /**
+     * Shared by refreshStatus() and maybeResumeFromRequesterReply() so a
+     * request's status is always derived from its items the same way,
+     * regardless of what triggered the recalculation.
+     *
+     * @param  Collection<int, ChangeRequestItem>  $items
+     */
+    private function deriveStatus(Collection $items): string
+    {
+        $allAccepted = $items->every(fn (ChangeRequestItem $i) => $i->status === ChangeRequestItem::STATUS_ACCEPTED);
+        $allRejected = $items->every(fn (ChangeRequestItem $i) => $i->status === ChangeRequestItem::STATUS_REJECTED);
+        $anyPending = $items->contains(fn (ChangeRequestItem $i) => $i->status === ChangeRequestItem::STATUS_PENDING);
+
+        return match (true) {
+            $allAccepted => ChangeRequest::STATUS_ACCEPTED,
+            $allRejected => ChangeRequest::STATUS_REJECTED,
+            $anyPending => ChangeRequest::STATUS_PENDING,
+            default => ChangeRequest::STATUS_PARTIALLY_ACCEPTED,
+        };
+    }
+
+    /**
+     * Notify the requester once a request lands on a terminal outcome
+     * (accepted/rejected/withdrawn) — not for partially_accepted, which is
+     * a mixed outcome rather than one of the three moderator actions
+     * (accept/reject/withdraw) this covers.
+     */
+    private function notifyRequesterOfStatusChange(ChangeRequest $request, string $notificationType, string $langKey, ?User $actor): void
+    {
+        if ($request->requested_by === null) {
+            return;
+        }
+
+        $requester = $request->requestedBy;
+
+        if ($requester === null) {
+            return;
+        }
+
+        $this->notifications->notify(
+            recipient: $requester,
+            type: $notificationType,
+            title: __("notifications.{$langKey}.title"),
+            description: __("notifications.{$langKey}.description"),
+            link: route('account.change-requests.show', $request),
+            author: $actor,
+            data: ['change_request_id' => $request->id],
+        );
     }
 
     /**
@@ -216,17 +365,8 @@ class ChangeRequestService
             return;
         }
 
-        $allAccepted = $items->every(fn (ChangeRequestItem $i) => $i->status === ChangeRequestItem::STATUS_ACCEPTED);
-        $allRejected = $items->every(fn (ChangeRequestItem $i) => $i->status === ChangeRequestItem::STATUS_REJECTED);
-        $anyPending = $items->contains(fn (ChangeRequestItem $i) => $i->status === ChangeRequestItem::STATUS_PENDING);
-
-        $status = match (true) {
-            $allAccepted => ChangeRequest::STATUS_ACCEPTED,
-            $allRejected => ChangeRequest::STATUS_REJECTED,
-            $anyPending => ChangeRequest::STATUS_PENDING,
-            default => ChangeRequest::STATUS_PARTIALLY_ACCEPTED,
-        };
-
+        $previousStatus = $request->status;
+        $status = $this->deriveStatus($items);
         $isClosed = in_array($status, [ChangeRequest::STATUS_ACCEPTED, ChangeRequest::STATUS_REJECTED], true);
 
         $request->update([
@@ -234,5 +374,15 @@ class ChangeRequestService
             'closed_by' => $isClosed ? $actor?->id : null,
             'closed_at' => $isClosed ? now() : null,
         ]);
+
+        if ($status === $previousStatus) {
+            return;
+        }
+
+        match ($status) {
+            ChangeRequest::STATUS_ACCEPTED => $this->notifyRequesterOfStatusChange($request, NotificationService::TYPE_CHANGE_REQUEST_ACCEPTED, 'change_request_accepted', $actor),
+            ChangeRequest::STATUS_REJECTED => $this->notifyRequesterOfStatusChange($request, NotificationService::TYPE_CHANGE_REQUEST_REJECTED, 'change_request_rejected', $actor),
+            default => null,
+        };
     }
 }

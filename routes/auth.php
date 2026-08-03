@@ -13,6 +13,7 @@
  */
 
 use App\Http\Controllers\Auth\AccountSettingsController;
+use App\Http\Controllers\Auth\NotificationController;
 use App\Http\Controllers\Auth\PlayerChangeRequestController;
 use App\Http\Controllers\Auth\ResendVerificationController;
 use App\Http\Controllers\Auth\SocialAccountController;
@@ -52,6 +53,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('account.change-requests.index');
     Route::get('/settings/change-requests/{changeRequest}', [UserChangeRequestController::class, 'show'])
         ->name('account.change-requests.show');
+
+    // Always reachable, even for a sanctioned account
+    Route::get('/settings/notifications', [NotificationController::class, 'index'])
+        ->name('account.notifications.index');
+    Route::post('/settings/notifications/read-all', [NotificationController::class, 'markAllRead'])
+        ->name('account.notifications.read-all');
+    Route::get('/settings/notifications/{notification}/open', [NotificationController::class, 'open'])
+        ->name('account.notifications.open');
 
     Route::middleware(['not-sanctioned'])->group(function () {
         Route::delete('/settings/social/{socialAccount}', [SocialAccountController::class, 'destroy'])

@@ -20,6 +20,7 @@ return [
         'profile' => 'View profile',
         'settings' => 'Account settings',
         'change_requests' => 'My change requests',
+        'notifications' => 'Notifications',
         'admin' => 'Admin panel',
         'developers' => 'Developers panel',
         'no_admin_section' => 'Your role has admin permissions, but no dashboard section is built for it yet.',

@@ -140,6 +140,7 @@ return [
         'status_label' => 'Status',
         'status' => [
             'pending' => 'Pending',
+            'awaiting_requester_reply' => 'Awaiting requester reply',
             'partially_accepted' => 'Partially accepted',
             'accepted' => 'Accepted',
             'rejected' => 'Rejected',
@@ -1448,6 +1449,7 @@ return [
         'about-project-deleted' => 'Project removed.',
         'phase-qualification-created' => 'Qualification created.',
         'phase-qualification-deleted' => 'Qualification deleted.',
+        'data-explorer-access-updated' => 'Data Explorer access updated.',
     ],
 
     'news' => [

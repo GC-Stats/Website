@@ -23,6 +23,8 @@ use App\Models\User;
 
 class SanctionService
 {
+    public function __construct(private readonly NotificationService $notifications) {}
+
     /**
      * @param  array{type: string, reason: string, ends_at?: \DateTimeInterface|string|null, team_id?: ?int}  $data
      *
@@ -50,6 +52,16 @@ class SanctionService
             ->causedBy($issuedBy)
             ->withProperties(['type' => $sanction->type, 'team_id' => $sanction->team_id, 'target_user_id' => $user->id])
             ->log('sanction.issued');
+
+        $this->notifications->notify(
+            recipient: $user,
+            type: NotificationService::TYPE_SANCTION_ISSUED,
+            title: __('notifications.sanction_issued.title'),
+            description: __('notifications.sanction_issued.description', ['type' => __('admin.sanctions.type.'.$sanction->type)]),
+            link: route('account.edit'),
+            author: $issuedBy,
+            data: ['sanction_id' => $sanction->id, 'sanction_type' => $sanction->type],
+        );
 
         return $sanction;
     }

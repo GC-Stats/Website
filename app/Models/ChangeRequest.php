@@ -31,6 +31,8 @@ class ChangeRequest extends Model
 
     public const STATUS_PENDING = 'pending';
 
+    public const STATUS_AWAITING_REQUESTER_REPLY = 'awaiting_requester_reply';
+
     public const STATUS_PARTIALLY_ACCEPTED = 'partially_accepted';
 
     public const STATUS_ACCEPTED = 'accepted';
@@ -41,6 +43,7 @@ class ChangeRequest extends Model
 
     public const STATUSES = [
         self::STATUS_PENDING,
+        self::STATUS_AWAITING_REQUESTER_REPLY,
         self::STATUS_PARTIALLY_ACCEPTED,
         self::STATUS_ACCEPTED,
         self::STATUS_REJECTED,
@@ -103,16 +106,19 @@ class ChangeRequest extends Model
      * regardless of whether the outcome was uniform (isClosed(): accepted/
      * rejected/withdrawn) or mixed (partially_accepted, per
      * ChangeRequestService::refreshStatus() only reached once nothing is
-     * pending anymore). Used to close the discussion thread: once nothing
-     * is left to decide, there's nothing left to discuss.
+     * pending anymore). awaiting_requester_reply is deliberately excluded:
+     * it's a discussion-still-open sub-state of pending (see
+     * ChangeRequestService::maybeAwaitRequesterReply()), not a resolution.
+     * Used to close the discussion thread: once nothing is left to decide,
+     * there's nothing left to discuss.
      */
     public function isResolved(): bool
     {
-        return $this->status !== self::STATUS_PENDING;
+        return in_array($this->status, [self::STATUS_ACCEPTED, self::STATUS_REJECTED, self::STATUS_WITHDRAWN, self::STATUS_PARTIALLY_ACCEPTED], true);
     }
 
     public function scopePending(Builder $query): Builder
     {
-        return $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_PARTIALLY_ACCEPTED]);
+        return $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_AWAITING_REQUESTER_REPLY, self::STATUS_PARTIALLY_ACCEPTED]);
     }
 }
