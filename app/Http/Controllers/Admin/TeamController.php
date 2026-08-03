@@ -210,22 +210,6 @@ class TeamController extends Controller
         return back()->with('status', 'logo-history-removed');
     }
 
-    public function storeRosterMember(Request $request, Team $team, RosterService $rosterService): RedirectResponse
-    {
-        $validated = $request->validate([
-            'player_id' => ['required', 'integer', 'exists:players,id'],
-            'role' => ['nullable', 'string', Rule::in(RosterService::ROLES)],
-            'joined_at' => ['required', 'date'],
-        ]);
-
-        $rosterService->addMember($team, $validated['player_id'], $validated['role'] ?? null, $validated['joined_at']);
-
-        activity('team')->performedOn($team)->causedBy($request->user())
-            ->withProperties(['team_id' => $team->id, 'player_id' => $validated['player_id']])->log('team.roster.member_added');
-
-        return redirect()->route('admin.teams.show', $team)->with('status', 'roster-member-added');
-    }
-
     public function syncRoster(Request $request, Team $team, RosterService $rosterService): RedirectResponse
     {
         $validated = $request->validate([

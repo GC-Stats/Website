@@ -8,7 +8,6 @@
 @props([
     'current',
     'history',
-    'addUrl',
     'syncUrl',
     'roles',
     'title',
@@ -18,7 +17,6 @@
     'joinedAtLabel',
     'leftAtLabel',
     'saveLabel',
-    'assignLabel',
     'removeLabel',
     'removeConfirmBody',
     'currentEmptyLabel',
@@ -26,52 +24,59 @@
     'headingTag' => 'h3',
     'pickerType' => 'player',
     'pivotField' => 'player_id',
+    'maxNewSlots' => 6,
 ])
 
-@php $entryIndex = 0; @endphp
+@php
+    $entryIndex = 0;
+    // New-slot indices are reserved above every real entry's index up front
+    // (current + history counts, known before either loop runs) so they
+    // never collide regardless of render order — see roster-new-entry-card.
+    $newSlotBase = $current->count() + $history->count();
+@endphp
 
 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
-    <div class="flex items-center justify-between gap-4">
-        <{{ $headingTag }} class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ $title }}</{{ $headingTag }}>
-
-        <x-modal :title="$addLabel" max-width="max-w-lg">
-            <x-slot:trigger>
-                <button type="button"
-                        class="shrink-0 font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
-                    {{ $addLabel }}
-                </button>
-            </x-slot:trigger>
-
-            <form method="POST" action="{{ $addUrl }}" class="space-y-4">
-                @csrf
-
-                <livewire:entity-picker :type="$pickerType" :name="$pivotField" />
-
-                <div class="flex flex-wrap items-center gap-2">
-                    <x-styled-select name="role" class="flex-1 min-w-[8rem]" :options="$roles" />
-                    <input type="date" name="joined_at" value="{{ now()->format('Y-m-d') }}" aria-label="{{ $joinedAtLabel }}"
-                           class="bg-black/40 border border-border-subtle rounded-sm px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition [color-scheme:dark]">
-                </div>
-
-                <button type="submit"
-                        class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
-                    {{ $assignLabel }}
-                </button>
-            </form>
-        </x-modal>
-    </div>
+    <{{ $headingTag }} class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ $title }}</{{ $headingTag }}>
 
     <form method="POST" action="{{ $syncUrl }}" class="space-y-4">
         @csrf
         @method('PUT')
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-            @forelse ($current as $entry)
-                @include('components.partials.roster-entry-card', ['entry' => $entry, 'index' => $entryIndex])
-                @php $entryIndex++; @endphp
-            @empty
-                <p class="text-xs text-gray-500 col-span-full">{{ $currentEmptyLabel }}</p>
-            @endforelse
+        {{-- New members: a fixed pool of pre-mounted entity-pickers, each
+             individually shown/hidden — a Livewire component can't be
+             instantiated dynamically from a plain Alpine x-for, so "add"
+             reveals the next free slot in this pool (capped at
+             $maxNewSlots) and each slot's own "remove" hides just that one.
+             Nothing hits the server until the whole panel's Save is
+             pressed, same as change-request.blade.php's roster section. --}}
+        <div class="space-y-3" x-data="{
+                activeSlots: [],
+                addSlot() {
+                    for (let i = 0; i < {{ $maxNewSlots }}; i++) {
+                        if (! this.activeSlots.includes(i)) { this.activeSlots.push(i); break; }
+                    }
+                },
+                removeSlot(i) { this.activeSlots = this.activeSlots.filter(slot => slot !== i); },
+             }">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                @forelse ($current as $entry)
+                    @include('components.partials.roster-entry-card', ['entry' => $entry, 'index' => $entryIndex])
+                    @php $entryIndex++; @endphp
+                @empty
+                    <p class="text-xs text-gray-500 col-span-full" x-show="activeSlots.length === 0">{{ $currentEmptyLabel }}</p>
+                @endforelse
+
+                @for ($i = 0; $i < $maxNewSlots; $i++)
+                    <template x-if="activeSlots.includes({{ $i }})">
+                        @include('components.partials.roster-new-entry-card', ['index' => $newSlotBase + $i, 'slot' => $i])
+                    </template>
+                @endfor
+            </div>
+
+            <button type="button" @click="addSlot()" x-show="activeSlots.length < {{ $maxNewSlots }}"
+                    class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                {{ $addLabel }}
+            </button>
         </div>
 
         <div class="pt-4 border-t border-border-subtle space-y-3">

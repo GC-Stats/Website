@@ -100,7 +100,6 @@
             <x-admin.roster-panel
                 :current="$currentTeams"
                 :history="$teamHistory"
-                :add-url="route('admin.players.team-history.store', $player)"
                 :sync-url="route('admin.players.team-history.sync', $player)"
                 :roles="__('team.roster.roles')"
                 :title="__('player.edit.team_history.title')"
@@ -110,7 +109,6 @@
                 :joined-at-label="__('team.roster.joined_at')"
                 :left-at-label="__('team.roster.left_at')"
                 :save-label="__('team.roster.save')"
-                :assign-label="__('team.roster.assign')"
                 :remove-label="__('team.roster.remove')"
                 :remove-confirm-body="fn ($entry) => __('player.edit.team_history.remove_confirm', ['team' => $entry->team_name])"
                 :current-empty-label="__('player.edit.team_history.current_empty')"

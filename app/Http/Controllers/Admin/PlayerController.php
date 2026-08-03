@@ -147,22 +147,6 @@ class PlayerController extends Controller
         ]);
     }
 
-    public function storeTeamHistory(Request $request, Player $player, RosterService $rosterService): RedirectResponse
-    {
-        $validated = $request->validate([
-            'team_id' => ['required', 'integer', 'exists:teams,id'],
-            'role' => ['nullable', 'string', Rule::in(RosterService::ROLES)],
-            'joined_at' => ['required', 'date'],
-        ]);
-
-        $rosterService->addMember(Team::findOrFail($validated['team_id']), $player->id, $validated['role'] ?? null, $validated['joined_at']);
-
-        activity('player')->performedOn($player)->causedBy($request->user())
-            ->withProperties(['player_id' => $player->id, 'team_id' => $validated['team_id']])->log('player.team_history.member_added');
-
-        return redirect()->route('admin.players.show', $player)->with('status', 'team-history-added');
-    }
-
     public function syncTeamHistory(Request $request, Player $player, RosterService $rosterService): RedirectResponse
     {
         $validated = $request->validate([
