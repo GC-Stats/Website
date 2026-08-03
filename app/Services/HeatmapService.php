@@ -103,6 +103,8 @@ class HeatmapService
             ->when($side === 'atk', fn ($q) => $q->whereColumn('s.team_id', 'r.atk_team'))
             ->when($side === 'def', fn ($q) => $q->whereColumn('s.team_id', 'r.def_team'))
             ->select('p.x', 'p.y', 'p.event_type', 'p.player_id', 's.team_id', 'r.atk_team', 'r.def_team')
+            ->orderByDesc('p.id')
+            ->limit(5000)
             ->get();
 
         return $rows->map(function ($row) use ($calibration) {

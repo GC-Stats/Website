@@ -17,6 +17,8 @@ return [
 
     'configure' => 'Configurer',
     'no_preview' => 'Aucun aperçu disponible pour le moment',
+    'free_to_use_note' => 'Ces widgets sont libres d\'utilisation, conformément à nos :terms_link. Aucune attribution n\'est obligatoire, mais elle est toujours appréciée !',
+    'terms_of_use' => 'conditions d\'utilisation',
 
     'builder' => [
         'team_a' => 'Équipe A',

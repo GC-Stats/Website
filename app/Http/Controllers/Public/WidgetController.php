@@ -15,7 +15,6 @@
 
 namespace App\Http\Controllers\Public;
 
-use App\Models\GameMap;
 use App\Models\Matchs;
 use App\Models\Player;
 use App\Models\Team;
@@ -26,7 +25,6 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class WidgetController extends Controller
 {
@@ -98,12 +96,6 @@ class WidgetController extends Controller
             ->latest('scheduled_at')
             ->first();
 
-        $previewMap = GameMap::query()
-            ->whereIn(DB::raw('LOWER(map_name)'), array_keys(config('valorant_minimaps')))
-            ->where('is_completed', true)
-            ->latest('id')
-            ->first();
-
         $widgets = [
             [
                 'key' => 'head-to-head',
@@ -117,9 +109,7 @@ class WidgetController extends Controller
                 'key' => 'heatmap',
                 'name' => __('widgets.available.heatmap.name'),
                 'description' => __('widgets.available.heatmap.description'),
-                'preview_url' => $previewMap
-                    ? route('widget.heatmap', ['map' => strtolower($previewMap->map_name)])
-                    : null,
+                'preview_url' => route('widget.heatmap.preview'),
             ],
         ];
 
@@ -243,6 +233,62 @@ class WidgetController extends Controller
                 'color' => ltrim($request->string('color')->toString(), '#') ?: null,
             ])
             ->header('Cache-Control', 'public, max-age=300, s-maxage=300');
+    }
+
+    /**
+     * The widgets directory's grid preview and the builder modal's "no
+     * filters chosen yet" state both need a heatmap thumbnail that renders
+     * instantly and never depends on the shape of live data — an unfiltered
+     * HeatmapService query scans a map's entire position history and can
+     * exhaust PHP's memory limit (see HeatmapService::positions()), which is
+     * exactly what a directory-page thumbnail must never risk. This renders
+     * the same view with fabricated positions instead of touching the DB.
+     */
+    public function heatmapPreview()
+    {
+        $mapName = 'ascent';
+
+        $clusters = [
+            ['x' => 0.30, 'y' => 0.24], // A site
+            ['x' => 0.62, 'y' => 0.71], // B site
+            ['x' => 0.46, 'y' => 0.48], // mid
+        ];
+
+        $eventTypes = ['kill', 'plant', 'defuse'];
+
+        $positions = [];
+        foreach (range(1, 260) as $i) {
+            $cluster = $clusters[array_rand($clusters)];
+            $positions[] = [
+                'x' => min(1, max(0, $cluster['x'] + $this->gaussianJitter())),
+                'y' => min(1, max(0, $cluster['y'] + $this->gaussianJitter())),
+                'side' => $i % 2 === 0 ? 'atk' : 'def',
+                'event_type' => $eventTypes[array_rand($eventTypes)],
+                'team_id' => null,
+                'player_id' => 0,
+            ];
+        }
+
+        return response()
+            ->view('public.widget.heatmap', [
+                'mapName' => $mapName,
+                'image' => config('valorant_minimaps.'.$mapName.'.image'),
+                'positions' => $positions,
+                'color' => null,
+            ])
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    }
+
+    /**
+     * Box-Muller transform, scaled down to a small spread so points cluster
+     * plausibly around a site/mid marker instead of scattering uniformly.
+     */
+    private function gaussianJitter(): float
+    {
+        $u1 = max(1e-9, mt_rand() / mt_getrandmax());
+        $u2 = mt_rand() / mt_getrandmax();
+
+        return sqrt(-2 * log($u1)) * cos(2 * M_PI * $u2) * 0.06;
     }
 
     /**

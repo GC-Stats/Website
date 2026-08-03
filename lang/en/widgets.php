@@ -17,6 +17,8 @@ return [
 
     'configure' => 'Configure',
     'no_preview' => 'No preview available yet',
+    'free_to_use_note' => 'These widgets are free to use, in line with our :terms_link. No attribution required, but it\'s always appreciated!',
+    'terms_of_use' => 'terms of use',
 
     'builder' => [
         'team_a' => 'Team A',

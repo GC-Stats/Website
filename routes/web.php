@@ -112,6 +112,7 @@ Route::middleware(['throttle:60,1'])->prefix('/widget')->name('widget.')->group(
     Route::get('/', [WidgetController::class, 'index'])->name('index');
     Route::get('/head-to-head', [WidgetController::class, 'headToHead'])->name('head-to-head');
     Route::get('/heatmap', [WidgetController::class, 'heatmap'])->name('heatmap');
+    Route::get('/heatmap/preview', [WidgetController::class, 'heatmapPreview'])->name('heatmap.preview');
 });
 
 Route::get('/search', [SearchController::class, 'index'])->name('search.results');

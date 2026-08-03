@@ -120,6 +120,12 @@
                     </div>
                 @endforeach
             </div>
+
+            <p class="text-xs text-gray-500 leading-relaxed text-center mt-4">
+                {!! __('widgets.free_to_use_note', [
+                    'terms_link' => '<a href="' . route('terms') . '" class="underline hover:text-gray-300 transition-colors">' . __('widgets.terms_of_use') . '</a>',
+                ]) !!}
+            </p>
         </section>
     </div>
 @endsection
