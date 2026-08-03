@@ -147,13 +147,13 @@ class ChangeRequestService
 
     /**
      * @param  bool  $needsRequesterReply  Only meaningful for a moderator's
-     *                                      TYPE_COMMENT (the admin comment
-     *                                      form's "needs the requester's
-     *                                      reply" checkbox, checked by
-     *                                      default) — moves the request to
-     *                                      STATUS_AWAITING_REQUESTER_REPLY
-     *                                      until the requester replies, see
-     *                                      maybeAwaitRequesterReply().
+     *                                     TYPE_COMMENT (the admin comment
+     *                                     form's "needs the requester's
+     *                                     reply" checkbox, checked by
+     *                                     default) — moves the request to
+     *                                     STATUS_AWAITING_REQUESTER_REPLY
+     *                                     until the requester replies, see
+     *                                     maybeAwaitRequesterReply().
      */
     public function addMessage(ChangeRequest $request, ?User $author, string $body, string $type = ChangeRequestMessage::TYPE_COMMENT, bool $needsRequesterReply = false): ChangeRequestMessage
     {
