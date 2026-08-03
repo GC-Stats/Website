@@ -12,6 +12,21 @@ return [
     'from' => 'From :name',
     'from_system' => 'System',
 
+    'email' => [
+        'view_action' => 'View details',
+        'preferences_hint' => 'You are receiving this because you enabled email notifications for this category. Manage your preferences at',
+    ],
+
+    'email_preferences' => [
+        'title' => 'Email notifications',
+        'intro' => 'Choose which of the notifications above should also be sent to your email address.',
+        'sanction' => 'Sanctions issued against my account',
+        'change_request' => 'Updates on my change requests',
+        'social' => 'Social activity',
+        'submit' => 'Save preferences',
+        'saved' => 'Email notification preferences updated.',
+    ],
+
     'sanction_issued' => [
         'title' => 'A sanction was issued against your account',
         'description' => 'A :type was issued against your account. See your account settings for details.',

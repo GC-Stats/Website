@@ -16,8 +16,11 @@
 
 namespace App\Services;
 
+use App\Mail\UserNotificationMail;
 use App\Models\Notification;
 use App\Models\User;
+use App\Support\EmailNotificationPreferences;
+use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
@@ -32,6 +35,20 @@ class NotificationService
     public const TYPE_CHANGE_REQUEST_WITHDRAWN = 'change_request.withdrawn';
 
     /**
+     * Maps each notification type to the email-preference category that
+     * gates whether it also gets emailed — see EmailNotificationPreferences.
+     * A type with no entry here (e.g. a future 'social.*' type) is never
+     * emailed even if a category toggle for it exists.
+     */
+    private const EMAIL_CATEGORIES = [
+        self::TYPE_SANCTION_ISSUED => EmailNotificationPreferences::CATEGORY_SANCTION,
+        self::TYPE_CHANGE_REQUEST_COMMENT => EmailNotificationPreferences::CATEGORY_CHANGE_REQUEST,
+        self::TYPE_CHANGE_REQUEST_ACCEPTED => EmailNotificationPreferences::CATEGORY_CHANGE_REQUEST,
+        self::TYPE_CHANGE_REQUEST_REJECTED => EmailNotificationPreferences::CATEGORY_CHANGE_REQUEST,
+        self::TYPE_CHANGE_REQUEST_WITHDRAWN => EmailNotificationPreferences::CATEGORY_CHANGE_REQUEST,
+    ];
+
+    /**
      * @param  array<string, mixed>  $data
      */
     public function notify(
@@ -43,7 +60,7 @@ class NotificationService
         ?User $author = null,
         array $data = [],
     ): Notification {
-        return Notification::create([
+        $notification = Notification::create([
             'user_id' => $recipient->id,
             'author_id' => $author?->id,
             'type' => $type,
@@ -52,6 +69,25 @@ class NotificationService
             'link' => $link,
             'data' => $data,
         ]);
+
+        $this->maybeSendEmail($recipient, $type, $title, $description, $link);
+
+        return $notification;
+    }
+
+    private function maybeSendEmail(User $recipient, string $type, string $title, string $description, ?string $link): void
+    {
+        $category = self::EMAIL_CATEGORIES[$type] ?? null;
+
+        if ($category === null || ! $recipient->email || ! EmailNotificationPreferences::enabled($recipient, $category)) {
+            return;
+        }
+
+        Mail::to($recipient->email)->send(new UserNotificationMail(
+            title: $title,
+            description: $description,
+            link: $link,
+        ));
     }
 
     public function markAsRead(Notification $notification): void

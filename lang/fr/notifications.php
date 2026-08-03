@@ -12,6 +12,21 @@ return [
     'from' => 'De :name',
     'from_system' => 'Système',
 
+    'email' => [
+        'view_action' => 'Voir les détails',
+        'preferences_hint' => 'Vous recevez cet email car vous avez activé les notifications par email pour cette catégorie. Gérez vos préférences sur',
+    ],
+
+    'email_preferences' => [
+        'title' => 'Notifications par email',
+        'intro' => 'Choisissez lesquelles des notifications ci-dessus doivent aussi vous être envoyées par email.',
+        'sanction' => 'Sanctions émises contre mon compte',
+        'change_request' => 'Mises à jour de mes demandes de modification',
+        'social' => 'Activité sociale',
+        'submit' => 'Enregistrer les préférences',
+        'saved' => 'Préférences de notifications par email mises à jour.',
+    ],
+
     'sanction_issued' => [
         'title' => 'Une sanction a été émise contre votre compte',
         'description' => 'Un(e) :type a été émis(e) contre votre compte. Consultez les paramètres de votre compte pour plus de détails.',

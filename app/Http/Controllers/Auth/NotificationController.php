@@ -18,6 +18,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Public\Controller;
 use App\Models\Notification;
 use App\Services\NotificationService;
+use App\Support\EmailNotificationPreferences;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ class NotificationController extends Controller
 
         return view('auth.notifications.index', [
             'notifications' => $notifications,
+            'emailCategories' => EmailNotificationPreferences::CATEGORIES,
         ]);
     }
 
@@ -42,6 +44,18 @@ class NotificationController extends Controller
         $notifications->markAllAsRead($request->user());
 
         return back();
+    }
+
+    public function updateEmailPreferences(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'categories' => ['array'],
+            'categories.*' => ['string', 'in:'.implode(',', EmailNotificationPreferences::CATEGORIES)],
+        ]);
+
+        EmailNotificationPreferences::update($request->user(), $validated['categories'] ?? []);
+
+        return back()->with('status', 'email-preferences-updated');
     }
 
     /**

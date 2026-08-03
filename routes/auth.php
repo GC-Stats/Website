@@ -59,6 +59,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('account.notifications.index');
     Route::post('/settings/notifications/read-all', [NotificationController::class, 'markAllRead'])
         ->name('account.notifications.read-all');
+    Route::put('/settings/notifications/email-preferences', [NotificationController::class, 'updateEmailPreferences'])
+        ->name('account.notifications.email-preferences.update');
     Route::get('/settings/notifications/{notification}/open', [NotificationController::class, 'open'])
         ->name('account.notifications.open');
 
