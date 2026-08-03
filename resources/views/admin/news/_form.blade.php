@@ -23,7 +23,7 @@
     <div>
         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.news.form.publisher_label') }}</label>
         <x-styled-select name="publisher_id" :selected="old('publisher_id', $article?->publisher_id)"
-            :options="collect(['' => '—'])->merge($publishers->mapWithKeys(fn ($publisher) => [$publisher->id => $publisher->name]))" />
+            :options="collect(['' => '—'])->union($publishers->mapWithKeys(fn ($publisher) => [$publisher->id => $publisher->name]))" />
     </div>
     <div>
         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.news.form.lang_label') }}</label>

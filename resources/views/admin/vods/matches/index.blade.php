@@ -123,7 +123,7 @@
                                                     <div>
                                                         <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.vods.fields.publisher') }}</label>
                                                         <x-styled-select name="publisher_id" :selected="$vod->publisher_id"
-                                                            :options="collect(['' => __('admin.vods.fields.publisher_none')])->merge($vodPublishers->mapWithKeys(fn ($publisherOption) => [$publisherOption->id => $publisherOption->name]))" />
+                                                            :options="collect(['' => __('admin.vods.fields.publisher_none')])->union($vodPublishers->mapWithKeys(fn ($publisherOption) => [$publisherOption->id => $publisherOption->name]))" />
                                                     </div>
                                                 @else
                                                     <input type="hidden" name="publisher_id" value="{{ $vod->publisher_id ?? $vodPublishers->first()?->id }}">

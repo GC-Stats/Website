@@ -81,7 +81,7 @@
         <label class="block">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.streams.fields.publisher') }}</span>
             <x-styled-select name="publisher_id" :selected="old('publisher_id', $channel->publisher_id ?? '')"
-                :options="collect(['' => __('admin.streams.fields.publisher_none')])->merge($publishers->mapWithKeys(fn ($publisherOption) => [$publisherOption->id => $publisherOption->name]))" />
+                :options="collect(['' => __('admin.streams.fields.publisher_none')])->union($publishers->mapWithKeys(fn ($publisherOption) => [$publisherOption->id => $publisherOption->name]))" />
             @error('publisher_id')
                 <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
             @enderror

@@ -70,7 +70,7 @@
     <label class="block">
         <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.emotes.fields.team') }}</span>
         <x-styled-select name="team_id" :selected="old('team_id')"
-            :options="collect(['' => __('admin.emotes.fields.team_none')])->merge($teams->mapWithKeys(fn ($team) => [$team->id => $team->name]))" />
+            :options="collect(['' => __('admin.emotes.fields.team_none')])->union($teams->mapWithKeys(fn ($team) => [$team->id => $team->name]))" />
         <span class="block text-xs text-gray-500 mt-1">{{ __('admin.emotes.fields.team_help') }}</span>
         @error('team_id')
             <p class="text-xs text-red-400 mt-1">{{ $message }}</p>

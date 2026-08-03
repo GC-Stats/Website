@@ -33,7 +33,7 @@
                     <x-admin.team-select class="w-44" name="team" :teams="$teams" :selected="$team" :placeholder="__('admin.matches.all_teams')" />
 
                     <x-styled-select name="phase" :selected="$phase" class="w-44"
-                        :options="collect(['' => __('admin.matches.all_phases')])->merge($phases->mapWithKeys(fn ($p) => [$p->id => $p->name]))" />
+                        :options="collect(['' => __('admin.matches.all_phases')])->union($phases->mapWithKeys(fn ($p) => [$p->id => $p->name]))" />
 
                     <input type="text" name="round_name" value="{{ $round_name }}" placeholder="{{ __('admin.matches.round_name') }}"
                            class="w-32 h-[42px] bg-white/5 border border-white/10 rounded-lg px-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">

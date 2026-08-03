@@ -348,7 +348,7 @@
                                         <tr class="border-b border-white/5">
                                             <td class="py-1.5 pr-2">
                                                 <x-styled-select x-model="stat.player_id" class="w-full"
-                                                    :options="collect(['' => '—'])->merge($pickerPlayers->mapWithKeys(fn ($p) => [$p['id'] => $p['handle']]))" />
+                                                    :options="collect(['' => '—'])->union($pickerPlayers->mapWithKeys(fn ($p) => [$p['id'] => $p['handle']]))" />
                                             </td>
                                             <td class="py-1.5 pr-2">
                                                 <x-styled-select x-model="stat.agent_name" class="w-full"
@@ -476,7 +476,7 @@
                                             <tr class="border-b border-white/5">
                                                 <td class="py-1.5 pr-2">
                                                     <x-styled-select x-model="ps.player_id" class="w-28"
-                                                        :options="collect(['' => '—'])->merge($pickerPlayers->mapWithKeys(fn ($p) => [$p['id'] => $p['handle']]))" />
+                                                        :options="collect(['' => '—'])->union($pickerPlayers->mapWithKeys(fn ($p) => [$p['id'] => $p['handle']]))" />
                                                 </td>
                                                 <td class="py-1.5 pr-2"><input type="number" x-model="ps.kills" min="0" class="w-12 h-8 rounded-md border border-white/10 bg-white/5 px-1 text-center text-[11px] text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"></td>
                                                 <td class="py-1.5 pr-2"><input type="number" x-model="ps.assists" min="0" class="w-12 h-8 rounded-md border border-white/10 bg-white/5 px-1 text-center text-[11px] text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"></td>

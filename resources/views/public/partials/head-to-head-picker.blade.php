@@ -36,12 +36,12 @@
                 <div>
                     <label class="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('head_to_head.picker.team_a') }}</label>
                     <x-styled-select name="h2h_team_a" :selected="request()->query('h2h_team_a')"
-                        :options="collect(['' => '—'])->merge($tournamentTeams->mapWithKeys(fn ($t) => [$t->id => $t->name]))" />
+                        :options="collect(['' => '—'])->union($tournamentTeams->mapWithKeys(fn ($t) => [$t->id => $t->name]))" />
                 </div>
                 <div>
                     <label class="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('head_to_head.picker.team_b') }}</label>
                     <x-styled-select name="h2h_team_b" :selected="request()->query('h2h_team_b')"
-                        :options="collect(['' => '—'])->merge($tournamentTeams->mapWithKeys(fn ($t) => [$t->id => $t->name]))" />
+                        :options="collect(['' => '—'])->union($tournamentTeams->mapWithKeys(fn ($t) => [$t->id => $t->name]))" />
                 </div>
             </div>
         @else

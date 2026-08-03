@@ -52,7 +52,7 @@
                             <label class="block mb-3">
                                 <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.phase') }}</span>
                                 <x-styled-select name="phase_id"
-                                    :options="collect(['' => __('admin.matches.all_phases')])->merge($phases->mapWithKeys(fn ($p) => [$p->id => $p->name]))" />
+                                    :options="collect(['' => __('admin.matches.all_phases')])->union($phases->mapWithKeys(fn ($p) => [$p->id => $p->name]))" />
                             </label>
 
                             <div class="grid grid-cols-2 gap-3">

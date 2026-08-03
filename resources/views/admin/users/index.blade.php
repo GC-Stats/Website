@@ -20,7 +20,7 @@
             :options="collect(['' => __('admin.users.all_roles')])->merge($roles->mapWithKeys(fn ($role) => [$role->name => $role->name]))" />
 
         <x-styled-select name="publisher" :selected="$publisherFilter" autosubmit class="w-40"
-            :options="collect(['' => __('admin.users.all_publishers')])->merge($publishers->mapWithKeys(fn ($publisher) => [(string) $publisher->id => $publisher->name]))" />
+            :options="collect(['' => __('admin.users.all_publishers')])->union($publishers->mapWithKeys(fn ($publisher) => [(string) $publisher->id => $publisher->name]))" />
 
         @if ($search || $roleFilter || $publisherFilter)
             <a href="{{ route('admin.users.index') }}"

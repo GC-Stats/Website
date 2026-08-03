@@ -108,7 +108,7 @@
         <label class="block">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.point_type') }}</span>
             <x-styled-select name="point_type_id" :selected="old('point_type_id', $tournament->point_type_id ?? '')"
-                :options="collect(['' => __('admin.tournaments.point_type_none')])->merge($pointTypes->mapWithKeys(fn ($pointType) => [$pointType->id => $pointType->name]))" />
+                :options="collect(['' => __('admin.tournaments.point_type_none')])->union($pointTypes->mapWithKeys(fn ($pointType) => [$pointType->id => $pointType->name]))" />
         </label>
 
         @if ($tournament ?? null)

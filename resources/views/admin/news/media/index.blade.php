@@ -54,7 +54,7 @@
                             @csrf
                             @method('PUT')
                             <x-styled-select name="news_id" :selected="$image->news_id" autosubmit
-                                :options="collect(['' => __('admin.news.media.unattached')])->merge($linkableArticles->mapWithKeys(fn ($linkable) => [$linkable->id => $linkable->title]))" />
+                                :options="collect(['' => __('admin.news.media.unattached')])->union($linkableArticles->mapWithKeys(fn ($linkable) => [$linkable->id => $linkable->title]))" />
                         </form>
                         <button
                             type="button"
