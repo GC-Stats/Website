@@ -28,7 +28,9 @@ class TournamentStandings
      */
     public static function compute(array $matches, array $teams, bool $useBuchholz = false): Collection
     {
-        $matchesColl = collect($matches);
+        $matchesColl = collect($matches)->filter(function ($m) {
+            return ($m['status'] ?? null) === 'finished';
+        });
         $allTeamsColl = collect($teams);
         $standings = collect();
 

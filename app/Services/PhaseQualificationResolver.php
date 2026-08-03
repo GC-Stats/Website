@@ -82,6 +82,7 @@ class PhaseQualificationResolver
         $phaseFormat = TournamentPhase::where('id', $phaseId)->value('format');
 
         $matches = Matchs::where('phase_id', $phaseId)->with('game_maps')->get()->map(fn ($m) => [
+            'status' => $m->status,
             'team_a_id' => $m->team_a_id,
             'team_b_id' => $m->team_b_id,
             'team_a_score' => $m->team_a_score,
