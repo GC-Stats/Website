@@ -137,4 +137,22 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Server Identity
+    |--------------------------------------------------------------------------
+    |
+    | Identifies which physical server answered the request. Set per
+    | deployment (EU/NA/Oracle) and displayed on the legal notice page
+    | for hosting transparency ("Where am I").
+    |
+    */
+
+    'server' => [
+        'name' => env('APP_SERVER_NAME'),
+        'location' => env('APP_SERVER_LOCATION'),
+        'provider' => env('APP_SERVER_PROVIDER'),
+        'role' => env('APP_SERVER_ROLE'),
+    ],
+
 ];

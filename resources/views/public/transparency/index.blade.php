@@ -95,6 +95,46 @@
                         </div>
                     @endforeach
                 </div>
+
+                @if(config('app.server.name'))
+                    <div class="flex gap-4 bg-bg-card border border-gc-yellow/40 rounded-sm p-5 mt-4">
+                        <div class="shrink-0 w-10 h-10 rounded-sm bg-bg-main border border-border-subtle flex items-center justify-center">
+                            <x-fas-location-dot class="w-4 h-4 text-gc-yellow" aria-hidden="true" />
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm font-black text-white">
+                                    {{ __('transparency.where_am_i.title') }}
+                                </p>
+                                <span class="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-green-500">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                    {{ __('transparency.where_am_i.live') }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-400 leading-relaxed mt-2">
+                                {{ __('transparency.where_am_i.text') }}
+                            </p>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+                                <div>
+                                    <p class="text-[9px] font-black uppercase tracking-widest text-gray-500">{{ __('transparency.where_am_i.server') }}</p>
+                                    <p class="text-xs text-white font-bold mt-0.5">{{ config('app.server.name') }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-black uppercase tracking-widest text-gray-500">{{ __('transparency.where_am_i.location') }}</p>
+                                    <p class="text-xs text-white font-bold mt-0.5">{{ config('app.server.location') }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-black uppercase tracking-widest text-gray-500">{{ __('transparency.where_am_i.provider') }}</p>
+                                    <p class="text-xs text-white font-bold mt-0.5">{{ config('app.server.provider') }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-black uppercase tracking-widest text-gray-500">{{ __('transparency.where_am_i.role') }}</p>
+                                    <p class="text-xs text-white font-bold mt-0.5">{{ config('app.server.role') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div class="space-y-3">

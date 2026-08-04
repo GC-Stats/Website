@@ -45,6 +45,15 @@ return [
             ],
         ],
     ],
+    'where_am_i' => [
+        'title' => 'Où suis-je ?',
+        'live' => 'En direct',
+        'text' => 'GC Stats fonctionne sur plusieurs serveurs situés dans différents pays. Voici précisément lequel répond actuellement à votre requête :',
+        'server' => 'Serveur',
+        'location' => 'Localisation',
+        'provider' => 'Prestataire',
+        'role' => 'Rôle',
+    ],
     'data' => [
         'title' => 'Données collectées',
         'body' => "Nous documentons publiquement l'ensemble des données que nous stockons : joueurs, équipes, tournois et matchs. Aucune donnée n'est collectée sans raison liée au fonctionnement du site.",

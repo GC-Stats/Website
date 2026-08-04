@@ -45,6 +45,15 @@ return [
             ],
         ],
     ],
+    'where_am_i' => [
+        'title' => 'Where Am I?',
+        'live' => 'Live',
+        'text' => 'GC Stats runs on several servers in different countries. Here is exactly which one is currently answering your request:',
+        'server' => 'Server',
+        'location' => 'Location',
+        'provider' => 'Provider',
+        'role' => 'Role',
+    ],
     'data' => [
         'title' => 'Data collected',
         'body' => "We publicly document every piece of data we store: players, teams, tournaments and matches. No data is collected without a reason tied to the site's operation.",
