@@ -227,6 +227,13 @@ class MapStatsCalculator
             }
 
             $attackerColor = $this->attackerColorForRoundIndex($index, $firstHalfAttackerColor, $teamAColor, $teamBColor);
+
+            if (! $attackerColor) {
+                $timeline[$index] = [];
+
+                continue;
+            }
+
             $defenderColor = $attackerColor === $teamAColor ? $teamBColor : $teamAColor;
             $winnerSide = $round['winningTeam'] === $attackerColor ? 'atk' : 'def';
 
