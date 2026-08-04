@@ -2,6 +2,7 @@
 
 return [
     'title' => ':teamA vs :teamB',
+    'vs' => 'VS',
     'all_maps' => 'All Maps',
     'veto' => 'Veto Process',
     'no_veto' => 'No veto information available',
@@ -38,6 +39,7 @@ return [
         'headshot_percentage' => 'HS%',
         'agent_name' => 'Agent',
         'player' => 'Player',
+        'mvp' => 'MVP',
         'caption' => ':team player statistics',
     ],
     'encounters' => [
@@ -46,6 +48,7 @@ return [
     ],
     'patch' => 'Patch :patch',
     'performance' => 'Performance Summary',
+    'multi_kills' => 'Multi-kills',
     'economy' => ':team Economy',
     'streams' => [
         'title' => 'Streams',

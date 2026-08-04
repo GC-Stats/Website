@@ -1233,6 +1233,7 @@ return [
             'score' => 'Score',
             'api_match_id' => 'Riot match ID',
             'api_match_id_duplicate' => 'This Riot match ID is already linked to another map.',
+            'started_at' => 'Started at',
             'completed' => 'Completed',
             'yes' => 'Yes',
             'no' => 'No',

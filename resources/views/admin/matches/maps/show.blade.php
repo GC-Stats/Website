@@ -207,7 +207,15 @@
 
             <div x-show="!loading">
             <div class="flex items-center justify-between mb-4 gap-2 flex-wrap">
-                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.matches.maps.info_title') }}</h2>
+                <div>
+                    <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.matches.maps.info_title') }}</h2>
+                    @if ($map->started_at)
+                        <p class="mt-1 text-xs text-gray-400">
+                            {{ __('admin.matches.maps.started_at') }}:
+                            <span class="font-bold text-white">{{ $map->started_at->copy()->utc()->format('Y-m-d H:i') }} UTC</span>
+                        </p>
+                    @endif
+                </div>
                 <div class="flex gap-2">
                     @can('maps.fetch')
                         <button type="button" @click="fetchMap()" :disabled="loading || {{ $fetchLocked ? 'true' : 'false' }}"

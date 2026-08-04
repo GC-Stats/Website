@@ -230,6 +230,7 @@ class MatchController extends Controller
                     if (! isset($target[$playerId])) {
                         $target[$playerId] = $s;
                         $target[$playerId]['maps_played'] = 1;
+                        $target[$playerId]['agents'] = [$s['agent_name']];
                     } else {
                         $target[$playerId]['kills'] += $s['kills'];
                         $target[$playerId]['deaths'] += $s['deaths'];
@@ -241,6 +242,10 @@ class MatchController extends Controller
                         $target[$playerId]['kast_percentage'] += $s['kast_percentage'];
                         $target[$playerId]['headshot_percentage'] += $s['headshot_percentage'];
                         $target[$playerId]['maps_played']++;
+
+                        if (! in_array($s['agent_name'], $target[$playerId]['agents'], true)) {
+                            $target[$playerId]['agents'][] = $s['agent_name'];
+                        }
                     }
                 }
             }

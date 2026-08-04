@@ -1177,6 +1177,7 @@ return [
             'score' => 'Score',
             'api_match_id' => 'ID de match Riot',
             'api_match_id_duplicate' => 'Cet ID de match Riot est déjà lié à une autre map.',
+            'started_at' => 'Début',
             'completed' => 'Terminée',
             'yes' => 'Oui',
             'no' => 'Non',

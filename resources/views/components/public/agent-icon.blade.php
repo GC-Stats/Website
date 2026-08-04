@@ -9,12 +9,12 @@
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
-@props(['agent', 'size' => 'w-6 h-6'])
+@props(['agent', 'size' => 'w-6 h-6', 'rounded' => true])
 
 @php
     $slug = \App\Helpers\AgentRoles::slug($agent);
 @endphp
 
 <img src="/storage/agents/{{ $slug }}.webp"
-     class="{{ $size }} rounded-full border border-gray-900 bg-bg-main shrink-0"
+     class="{{ $size }} {{ $rounded ? 'rounded-full' : 'rounded-sm' }} border border-gray-900 bg-bg-main shrink-0"
      alt="{{ $agent }}" title="{{ $agent }}" loading="lazy">

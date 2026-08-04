@@ -2,6 +2,7 @@
 
 return [
     'title' => ':teamA vs :teamB',
+    'vs' => 'VS',
     'all_maps' => 'Toutes les cartes',
     'no_veto' => 'Aucune information de veto disponible',
     'upcoming' => 'Match à venir',
@@ -37,6 +38,7 @@ return [
         'headshot_percentage' => 'HS%',
         'agent_name' => 'Agent',
         'player' => 'Joueuse',
+        'mvp' => 'MVP',
         'caption' => 'Statistiques joueuses de :team',
     ],
     'encounters' => [
@@ -45,6 +47,7 @@ return [
     ],
     'patch' => 'Patch :patch',
     'performance' => 'Résumé des performances',
+    'multi_kills' => 'Multi-kills',
     'economy' => 'Économie de :team',
     'veto' => 'Processus de veto',
     'streams' => [
