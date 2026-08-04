@@ -10,7 +10,7 @@ return [
     'old_team' => '',
     'no_team' => '',
     'news' => 'Nachrichten',
-    'seemore' => '',
+    'seemore' => 'mehr anzeigen',
     // Other pages text
     'matches_history' => '',
     'teams_history' => '',
@@ -29,9 +29,9 @@ return [
     ],
     'nav' => [
         'aria_label' => '',
-        'overview' => '',
-        'matches' => '',
-        'stats' => '',
+        'overview' => 'Übersicht',
+        'matches' => 'Spiele',
+        'stats' => 'Statistiken',
         'teams_history' => '',
     ],
     'edit' => [

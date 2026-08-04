@@ -9,7 +9,7 @@ return [
     'players' => '',
     'old_players' => '',
     'news' => 'Nachrichten',
-    'seemore' => '',
+    'seemore' => 'mehr anzeigen',
     // Other pages text
     'matches_history' => '',
     'players_history' => '',
@@ -20,9 +20,9 @@ return [
     ],
     'nav' => [
         'aria_label' => '',
-        'overview' => '',
-        'matches' => '',
-        'maps' => '',
+        'overview' => 'Übersicht',
+        'matches' => 'Spiele',
+        'maps' => 'Karten',
         'players_history' => '',
     ],
     'maps' => [
