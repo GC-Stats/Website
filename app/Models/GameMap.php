@@ -24,7 +24,11 @@ class GameMap extends Model
 {
     use HasFactory, ResolvesMatchContext;
 
-    protected $fillable = ['tournament_id', 'phase_id', 'match_id', 'map_name', 'api_match_id', 'team_a_score', 'team_b_score', 'order', 'is_completed'];
+    protected $fillable = ['tournament_id', 'phase_id', 'match_id', 'map_name', 'api_match_id', 'team_a_score', 'team_b_score', 'order', 'is_completed', 'started_at'];
+
+    protected $casts = [
+        'started_at' => 'datetime',
+    ];
 
     protected static function booted()
     {

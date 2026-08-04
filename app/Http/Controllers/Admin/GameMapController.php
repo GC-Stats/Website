@@ -35,6 +35,7 @@ use App\Models\Tournament;
 use App\Services\MapStatsCalculator;
 use App\Services\RosterMismatchDetector;
 use App\Support\Activity\ActivityChangeSet;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -517,6 +518,9 @@ class GameMapController extends Controller
             'team_a_score' => $scoreA,
             'team_b_score' => $scoreB,
             'is_completed' => $matchInfo['isCompleted'] ?? true,
+            'started_at' => isset($matchInfo['gameStartMillis'])
+                ? Carbon::createFromTimestampMsUTC($matchInfo['gameStartMillis'])
+                : $gameMap->started_at,
         ]);
 
         $this->backfillVetoSide($gameMap, $rounds, $players, $teamAColor);
