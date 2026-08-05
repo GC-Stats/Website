@@ -44,7 +44,7 @@ class RoleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100', 'alpha_dash', Rule::unique('roles', 'name')->where('team_id', PermissionTeam::GLOBAL_ID)],
+            'name' => ['required', 'string', 'max:100', 'regex:/\S/', Rule::unique('roles', 'name')->where('team_id', PermissionTeam::GLOBAL_ID)],
         ]);
 
         $role = Role::create(['name' => $validated['name']]);
