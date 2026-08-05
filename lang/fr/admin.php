@@ -1178,6 +1178,8 @@ return [
             'api_match_id' => 'ID de match Riot',
             'api_match_id_duplicate' => 'Cet ID de match Riot est déjà lié à une autre map.',
             'started_at' => 'Début',
+            'note' => 'Note',
+            'note_placeholder' => 'Note optionnelle affichée aux visiteurs sur la page publique du match…',
             'completed' => 'Terminée',
             'yes' => 'Oui',
             'no' => 'Non',

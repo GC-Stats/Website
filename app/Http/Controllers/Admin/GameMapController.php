@@ -196,6 +196,7 @@ class GameMapController extends Controller
             'team_b_score' => ['sometimes', 'nullable', 'integer'],
             'order' => ['sometimes', 'integer'],
             'is_completed' => ['sometimes', 'boolean'],
+            'note' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ], [
             'api_match_id.unique' => __('admin.matches.maps.api_match_id_duplicate'),
         ]);

@@ -1234,6 +1234,8 @@ return [
             'api_match_id' => 'Riot match ID',
             'api_match_id_duplicate' => 'This Riot match ID is already linked to another map.',
             'started_at' => 'Started at',
+            'note' => 'Note',
+            'note_placeholder' => 'Optional note shown to visitors on the public match page…',
             'completed' => 'Completed',
             'yes' => 'Yes',
             'no' => 'No',
