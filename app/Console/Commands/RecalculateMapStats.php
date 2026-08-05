@@ -23,7 +23,6 @@
 namespace App\Console\Commands;
 
 use App\Models\GameMap;
-use App\Models\GamePlayerStat;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 
