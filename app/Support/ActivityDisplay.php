@@ -41,7 +41,13 @@ class ActivityDisplay
             $value = $subject->getAttribute($attribute);
 
             if (filled($value)) {
-                return (string) $value;
+                if (is_array($value)) {
+                    $value = $value[app()->getLocale()] ?? reset($value);
+                }
+
+                if (filled($value)) {
+                    return (string) $value;
+                }
             }
         }
 
