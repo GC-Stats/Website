@@ -43,6 +43,7 @@
         return collect($stats)
             ->map(fn ($s) => ($s['agents'][0] ?? null) ?? ($s['agent_name'] ?? null))
             ->filter()
+            ->unique()
             ->values()
             ->all();
     };
