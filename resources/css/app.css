@@ -23,6 +23,7 @@
 @import './accent/pride.css';
 
 @source '../views';
+@source '../../app';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 
