@@ -27,6 +27,18 @@
         </aside>
 
         <section class="col-span-12 lg:col-span-9 space-y-4">
+            @if ($profileUser->bio || ! empty($profileUser->socials))
+                <div class="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-4">
+                    @if ($profileUser->bio)
+                        <p class="text-sm text-gray-300 leading-relaxed whitespace-pre-line">
+                            {{ $profileUser->bio }}
+                        </p>
+                    @endif
+
+                    <x-social-links :socials="$profileUser->socials" />
+                </div>
+            @endif
+
             {{-- TBD: additional public profile content (activity, badges, etc.) --}}
         </section>
     </div>

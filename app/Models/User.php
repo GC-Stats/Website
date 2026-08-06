@@ -36,7 +36,7 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'username', 'email', 'password', 'team_id', 'team_tag', 'pronouns'])]
+#[Fillable(['name', 'username', 'email', 'password', 'team_id', 'team_tag', 'pronouns', 'bio', 'socials'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUser
 {
@@ -57,6 +57,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
             'discord_synced_at' => 'datetime',
             'data_explorer_enabled' => 'boolean',
             'pronouns' => 'integer',
+            'socials' => 'array',
         ];
     }
 
@@ -133,6 +134,28 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
             ->where('model_type', static::class)
             ->where('team_id', PermissionTeam::GLOBAL_ID)
             ->exists();
+    }
+
+    /**
+     * Whether this user is currently allowed to set a public bio/socials —
+     * either they're staff (see hasGlobalRole()), or their account has
+     * proven itself old enough: 30 days normally, or only 15 days if it's
+     * backed by a linked OAuth provider (harder to throwaway than an
+     * email/password signup).
+     */
+    public function isEligibleForBio(): bool
+    {
+        if ($this->hasGlobalRole()) {
+            return true;
+        }
+
+        $accountAgeDays = $this->created_at->diffInDays(now());
+
+        if ($this->socialAccounts()->exists()) {
+            return $accountAgeDays >= 15;
+        }
+
+        return $accountAgeDays >= 30;
     }
 
     public function reportsReceived(): HasMany

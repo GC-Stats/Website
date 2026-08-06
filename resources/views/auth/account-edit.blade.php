@@ -18,6 +18,8 @@
         'twitch' => ['label' => 'Twitch', 'icon' => 'fab-twitch', 'color' => '#9146FF'],
         'twitter' => ['label' => 'X', 'icon' => 'fab-twitter', 'color' => '#000000'],
     ];
+
+    $socialPlatforms = ['twitter', 'twitch', 'tiktok', 'instagram', 'youtube', 'discord', 'email'];
 @endphp
 
 @section('content')
@@ -54,6 +56,7 @@
                     'password-removed' => 'account.edit.password.removed',
                     'provider-unlinked' => 'account.edit.connected.unlinked',
                     'team-tag-updated' => 'account.edit.team.saved',
+                    'bio-updated' => 'account.edit.bio.saved',
                     default => null,
                 };
             @endphp
@@ -166,6 +169,54 @@
                         {{ __('account.edit.team.submit') }}
                     </button>
                 </form>
+            </div>
+
+            {{-- Bio & social links --}}
+            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('account.edit.bio.title') }}</h2>
+                <p class="text-xs text-gray-500">{{ __('account.edit.bio.body') }}</p>
+
+                @if ($user->isEligibleForBio())
+                    <form method="POST" action="{{ route('account.bio.update') }}" class="space-y-4">
+                        @csrf
+                        @method('PUT')
+
+                        <div>
+                            <label for="bio" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+                                {{ __('account.edit.bio.bio_label') }}
+                            </label>
+                            <textarea id="bio" name="bio" rows="4" maxlength="1000"
+                                      class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">{{ old('bio', $user->bio) }}</textarea>
+                            @error('bio')
+                                <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+                                {{ __('account.edit.bio.socials_label') }}
+                            </label>
+                            <div class="grid grid-cols-2 gap-2">
+                                @foreach ($socialPlatforms as $platform)
+                                    <input type="text" name="socials[{{ $platform }}]"
+                                           placeholder="{{ __('account.edit.bio.social.'.$platform) }}"
+                                           value="{{ old('socials.'.$platform, $user->socials[$platform] ?? '') }}"
+                                           class="w-full bg-[#050505] border border-border-subtle rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
+                                @endforeach
+                            </div>
+                            @error('socials.*')
+                                <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <button type="submit"
+                                class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                            {{ __('account.edit.bio.submit') }}
+                        </button>
+                    </form>
+                @else
+                    <p class="text-xs text-gray-500">{{ __('account.edit.bio.not_eligible') }}</p>
+                @endif
             </div>
 
             {{-- Password --}}

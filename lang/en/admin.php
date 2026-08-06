@@ -315,6 +315,8 @@ return [
             'account_data_exported' => 'Data exported',
             'account_deleted' => 'Account deleted',
 
+            'user_bio_updated' => 'Bio & social links updated',
+
             'team_information_updated' => 'Team information updated',
             'team_socials_updated' => 'Team social links updated',
             'team_tags_updated' => 'Team tags updated',
@@ -1723,20 +1725,9 @@ return [
         'title_label' => 'Title',
         'content_label' => 'Content',
 
-        'team_title' => 'Team',
         'edit' => 'Edit',
-        'inactive' => 'Inactive',
-        'add_member' => 'Add member',
-        'member_name_label' => 'Name',
-        'member_role_label' => 'Role',
-        'member_bio_label' => 'Bio',
-        'member_photo' => 'Photo',
-        'upload_photo' => 'Upload photo',
         'order_label' => 'Order',
         'active_label' => 'Active',
-        'remove_member' => 'Remove',
-        'remove_member_confirm' => 'Remove this team member?',
-        'no_members' => 'No team members yet.',
 
         'projects_title' => 'Projects',
         'add_project' => 'Add project',
@@ -1749,17 +1740,6 @@ return [
         'remove_project' => 'Remove',
         'remove_project_confirm' => 'Remove this project?',
         'no_projects' => 'No projects yet.',
-
-        'socials_label' => 'Social links',
-        'social' => [
-            'twitter' => 'Twitter / X',
-            'youtube' => 'YouTube',
-            'twitch' => 'Twitch',
-            'discord' => 'Discord',
-            'instagram' => 'Instagram',
-            'tiktok' => 'TikTok',
-            'email' => 'Email',
-        ],
     ],
 
     'users' => [
@@ -1777,6 +1757,8 @@ return [
         'all_publishers' => 'All publishers',
         'clear_filters' => 'Clear filters',
         'back_to_list' => 'Back to users',
+        'bio_title' => 'Bio',
+        'socials_title' => 'Socials',
         'account_title' => 'Account',
         'email' => 'Email',
         'login_methods_title' => 'Login methods',

@@ -24,32 +24,9 @@
         return $value[$locale] ?? $value['en'] ?? reset($value);
     };
 
-    $linkify = function (?string $text) {
-        if (! $text) {
-            return $text;
-        }
+    $linkify = fn (?string $text) => \App\Support\TextLinkifier::linkify($text);
 
-        return preg_replace_callback(
-            '/(https?:\/\/[^\s<]+)/i',
-            function ($matches) {
-                $url = rtrim($matches[1], '.,)');
-                $trailing = substr($matches[1], strlen($url));
-
-                return '<a href="' . $url . '" target="_blank" rel="noopener noreferrer nofollow" class="text-gc-yellow underline hover:no-underline break-all">' . $url . '</a>' . $trailing;
-            },
-            nl2br(e($text))
-        );
-    };
-
-    $socialConfig = collect([
-        'twitter' => ['url' => 'https://x.com/', 'icon' => 'fab-x-twitter'],
-        'twitch' => ['url' => 'https://twitch.tv/', 'icon' => 'fab-twitch'],
-        'tiktok' => ['url' => 'https://tiktok.com/@', 'icon' => 'fab-tiktok'],
-        'instagram' => ['url' => 'https://instagram.com/', 'icon' => 'fab-instagram'],
-        'youtube' => ['url' => 'https://youtube.com/@', 'icon' => 'fab-youtube'],
-        'discord' => ['url' => '#', 'icon' => 'fab-discord'],
-        'email' => ['url' => 'mailto:', 'icon' => 'fas-envelope'],
-    ]);
+    $socialConfig = \App\Support\SocialLinkConfig::map();
 
     $projectTypeConfig = collect([
         'website' => ['icon' => 'fas-globe', 'color' => '#e4ae22'],
@@ -93,31 +70,28 @@
                     </div>
                     <div class="flex flex-wrap justify-center gap-4">
                         @foreach($team as $member)
-                            <div class="group relative bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-xl hover:bg-white/[0.05] hover:border-[var(--brand-yellow)]/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center overflow-hidden w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)]">
+                            <a href="{{ route('users.show', $member->username) }}"
+                               class="group relative bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-xl hover:bg-white/[0.05] hover:border-[var(--brand-yellow)]/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center overflow-hidden w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)]">
                                 <div class="absolute top-0 right-0 w-24 h-24 bg-white/[0.02] -rotate-45 translate-x-12 -translate-y-12 pointer-events-none"></div>
 
                                 <div class="relative shrink-0 mb-4">
                                     <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
-                                    <img src="{{ $member->photo_url ?? asset('storage/images/default-player.webp') }}"
-                                         alt="{{ $member->name }}"
-                                         class="relative w-20 h-20 rounded-full object-cover border-2 border-white/10 bg-black/60 shadow-lg group-hover:border-[var(--brand-yellow)]/40 group-hover:scale-105 transition-all duration-300">
+                                    <x-user-avatar :user="$member" class="relative w-20 h-20 rounded-full border-2 border-white/10 bg-black/60 shadow-lg group-hover:border-[var(--brand-yellow)]/40 group-hover:scale-105 transition-all duration-300 text-xl" />
                                 </div>
 
                                 <h3 class="relative text-sm font-black text-white uppercase tracking-wide">
                                     {{ $member->name }}
                                 </h3>
 
-                                @php $role = $translate($member->role); @endphp
-                                @if($role)
+                                @if($member->roles->isNotEmpty())
                                     <p class="relative text-[10px] font-bold uppercase tracking-widest text-gc-yellow mt-1">
-                                        {{ $role }}
+                                        {{ $member->roles->pluck('name')->join(', ') }}
                                     </p>
                                 @endif
 
-                                @php $bio = $translate($member->bio); @endphp
-                                @if($bio)
-                                    <p class="relative text-xs text-gray-400 leading-relaxed mt-3">
-                                        {!! $linkify($bio) !!}
+                                @if($member->bio)
+                                    <p class="relative text-xs text-gray-400 leading-relaxed mt-3 whitespace-pre-line">
+                                        {{ $member->bio }}
                                     </p>
                                 @endif
 
@@ -126,16 +100,15 @@
                                         @foreach($member->socials as $platform => $username)
                                             @if($username && $socialConfig->has($platform))
                                                 @php $cfg = $socialConfig->get($platform); @endphp
-                                                <a href="{{ $cfg['url'] . $username }}" target="_blank" rel="noopener noreferrer"
-                                                   aria-label="{{ ucfirst($platform) }}: {{ $username }}"
-                                                   class="w-8 h-8 bg-white/5 border border-white/10 rounded-md flex items-center justify-center text-gray-400 hover:text-gc-yellow hover:border-gc-yellow/40 transition-colors">
+                                                <span aria-label="{{ ucfirst($platform) }}: {{ $username }}"
+                                                      class="w-8 h-8 bg-white/5 border border-white/10 rounded-md flex items-center justify-center text-gray-400 group-hover:text-gc-yellow group-hover:border-gc-yellow/40 transition-colors">
                                                     @svg($cfg['icon'], 'w-3 h-3 inline-block', ['aria-hidden' => 'true'])
-                                                </a>
+                                                </span>
                                             @endif
                                         @endforeach
                                     </div>
                                 @endif
-                            </div>
+                            </a>
                         @endforeach
                     </div>
                 </div>
