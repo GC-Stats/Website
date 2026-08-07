@@ -43,21 +43,19 @@
             @include('public.news._sidebar', ['news' => $newsItems, 'newsFeatured' => $newsFeatured])
         </aside>
 
-        <section class="col-span-12 lg:col-span-6 space-y-6" aria-label="{{ __('index.matches') }}" x-data="{ statusFilter: 'all' }">
+        <section class="col-span-12 lg:col-span-6 space-y-6" aria-label="{{ __('index.matches') }}">
             <div class="flex bg-white/[0.03] p-1 rounded-lg border border-white/5 gap-1 w-fit">
                 @foreach(['all' => 'match.status.all', 'upcoming' => 'match.status.upcoming', 'finished' => 'match.status.finished'] as $statusOption => $statusLabel)
-                    <button type="button" @click="statusFilter = '{{ $statusOption }}'"
-                            class="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all duration-300"
-                            :class="statusFilter === '{{ $statusOption }}' ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-500 hover:text-white hover:bg-white/5'">
+                    <a href="{{ route('home', $statusOption === 'all' ? [] : ['status' => $statusOption]) }}"
+                       class="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-md transition-all duration-300 {{ $statusFilter === $statusOption ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-500 hover:text-white hover:bg-white/5' }}">
                         {{ __($statusLabel) }}
-                    </button>
+                    </a>
                 @endforeach
             </div>
 
             <div class="space-y-4">
                 @foreach($matches as $match)
-                    <div class="{{ $loop->iteration > 4 ? 'hidden lg:block' : '' }}"
-                         x-show="statusFilter === 'all' || statusFilter === '{{ $match['status'] }}'">
+                    <div class="{{ $loop->iteration > 4 ? 'hidden lg:block' : '' }}">
                         <x-public.match :match="$match" />
                     </div>
                 @endforeach
