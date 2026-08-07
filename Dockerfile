@@ -9,6 +9,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY resources/ resources/
+COPY app/ app/
 COPY vite.config.* ./
 COPY tailwind.config.* ./
 COPY postcss.config.* ./
