@@ -96,6 +96,32 @@ class RoleController extends Controller
         return back()->with('status', 'permissions-updated');
     }
 
+    /**
+     * Renaming is allowed even for the protected super-admin role — unlike
+     * update()/destroy(), which stay locked down by ensureEditable() — since
+     * the role's identity is tracked via is_super_admin, not its name.
+     */
+    public function updateName(Request $request, Role $role): RedirectResponse
+    {
+        $this->ensureGlobal($role);
+
+        $validated = $request->validate([
+            'name' => [
+                'required', 'string', 'max:100', 'regex:/\S/',
+                Rule::unique('roles', 'name')->where('team_id', PermissionTeam::GLOBAL_ID)->ignore($role->id),
+            ],
+        ]);
+
+        $before = $role->name;
+        $role->update(['name' => $validated['name']]);
+
+        activity('administration')->causedBy($request->user())
+            ->withProperties(ActivityChangeSet::make()->add('name', $before, $role->name)->toArray())
+            ->log('role.renamed');
+
+        return back()->with('status', 'role-renamed');
+    }
+
     public function destroy(Request $request, Role $role): RedirectResponse
     {
         $this->ensureGlobal($role);
@@ -132,9 +158,9 @@ class RoleController extends Controller
     {
         $this->ensureGlobal($role);
 
-        if ($user->id === $request->user()->id && $role->name === 'super-admin') {
+        if ($user->id === $request->user()->id && $role->is_super_admin) {
             throw ValidationException::withMessages([
-                'role' => __('admin.roles.errors.self_demote'),
+                'role' => __('admin.roles.errors.self_demote', ['role' => $role->name]),
             ]);
         }
 
@@ -198,9 +224,9 @@ class RoleController extends Controller
 
     private function ensureEditable(Role $role): void
     {
-        if ($role->name === 'super-admin') {
+        if ($role->is_super_admin) {
             throw ValidationException::withMessages([
-                'role' => __('admin.roles.errors.protected_role'),
+                'role' => __('admin.roles.errors.protected_role', ['role' => $role->name]),
             ]);
         }
     }

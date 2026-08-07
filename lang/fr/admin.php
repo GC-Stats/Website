@@ -495,7 +495,11 @@ return [
     'roles' => [
         'title' => 'Rôles',
         'member_count' => ':count membre|:count membres',
-        'protected_note' => "super-admin a toujours accès à tout et ne peut pas être modifié.",
+        'protected_note' => ':role a toujours accès à tout et ne peut pas être modifié.',
+        'rename' => [
+            'title' => 'Nom du rôle',
+            'save' => 'Renommer le rôle',
+        ],
         'manage' => 'Gérer',
         'delete' => 'Supprimer le rôle',
         'delete_confirm' => 'Supprimer le rôle :role ? Il sera retiré de tous les membres qui le possèdent.',
@@ -532,8 +536,8 @@ return [
             'current' => 'Lié au rôle Discord ID :id',
         ],
         'errors' => [
-            'self_demote' => 'Vous ne pouvez pas retirer votre propre rôle super-admin.',
-            'protected_role' => 'Le rôle super-admin a déjà accès à tout et ne peut pas être modifié ni supprimé.',
+            'self_demote' => 'Vous ne pouvez pas retirer votre propre rôle :role.',
+            'protected_role' => 'Le rôle :role a déjà accès à tout et ne peut pas être modifié ni supprimé.',
         ],
     ],
     'teams' => [
@@ -839,6 +843,7 @@ return [
         'deactivate_confirm' => 'Désactiver ce tournoi ? Il sera masqué du site public.',
         'category_custom' => 'Personnalisée…',
         'finished_locked' => 'Ce tournoi est terminé — la permission "modifier les tournois terminés" est requise pour le modifier.',
+        'inactive_locked' => 'Ce tournoi est inactif — la permission "modifier les tournois inactifs" est requise pour le modifier.',
         'status' => [
             'upcoming' => 'À venir',
             'live' => 'En cours',
@@ -1341,6 +1346,7 @@ return [
         'role-removed' => 'Rôle retiré.',
         'role-created' => 'Rôle créé.',
         'role-deleted' => 'Rôle supprimé.',
+        'role-renamed' => 'Rôle renommé.',
         'permissions-updated' => 'Permissions mises à jour.',
         'discord-mapping-updated' => 'Liaison Discord enregistrée.',
         'discord-mapping-removed' => 'Liaison Discord retirée.',

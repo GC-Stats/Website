@@ -204,11 +204,13 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
     }
 
     /**
-     * Whether this user holds the global 'super-admin' role — checked
+     * Whether this user holds the protected super-admin role — checked
      * directly against the pivot table rather than hasRole(), which is
      * scoped to whatever PermissionTeam context is currently active (e.g.
      * a team's own role-management pages switch context to that team).
-     * Site-wide super-admin status must never depend on that.
+     * Site-wide super-admin status must never depend on that. Matched via
+     * the is_super_admin flag rather than name, since the role's name is
+     * editable (see RoleController).
      */
     private ?bool $isSuperAdminCache = null;
 
@@ -218,7 +220,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
             return $this->isSuperAdminCache;
         }
 
-        $roleId = Role::where('name', 'super-admin')->where('team_id', PermissionTeam::GLOBAL_ID)->value('id');
+        $roleId = Role::where('is_super_admin', true)->where('team_id', PermissionTeam::GLOBAL_ID)->value('id');
 
         if ($roleId === null) {
             return $this->isSuperAdminCache = false;

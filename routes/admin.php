@@ -451,6 +451,7 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::post('/', [RoleController::class, 'store'])->name('store');
         Route::get('/{role}', [RoleController::class, 'show'])->name('show');
         Route::put('/{role}', [RoleController::class, 'update'])->name('update');
+        Route::put('/{role}/name', [RoleController::class, 'updateName'])->name('name.update');
         Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
 
         Route::post('/{role}/members', [RoleController::class, 'addMember'])->name('members.store');

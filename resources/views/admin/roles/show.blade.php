@@ -9,7 +9,7 @@
 
 @section('title', $role->name)
 
-@php $protected = $role->name === 'super-admin'; @endphp
+@php $protected = $role->is_super_admin; @endphp
 
 @section('content')
     <a href="{{ route('admin.roles.index') }}" class="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-white transition mb-6">
@@ -37,7 +37,7 @@
 
     @if ($protected)
         <div class="bg-gc-yellow/10 border border-gc-yellow/30 text-gc-yellow text-sm rounded-lg px-4 py-3 mb-6">
-            {{ __('admin.roles.protected_note') }}
+            {{ __('admin.roles.protected_note', ['role' => $role->name]) }}
         </div>
     @endif
 
@@ -50,7 +50,7 @@
                 :title="__('admin.roles.permissions.title')"
                 :save-label="__('admin.roles.permissions.save')"
                 :editable="!$protected"
-                :empty-message="__('admin.roles.protected_note')"
+                :empty-message="__('admin.roles.protected_note', ['role' => $role->name])"
             />
 
             <x-admin.role-members-panel
@@ -74,6 +74,26 @@
         </div>
 
         <div class="space-y-6">
+            <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
+                <h3 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.roles.rename.title') }}</h3>
+
+                <form method="POST" action="{{ route('admin.roles.name.update', $role) }}" class="space-y-3">
+                    @csrf
+                    @method('PUT')
+                    <div>
+                        <input type="text" name="name" value="{{ old('name', $role->name) }}" required maxlength="100"
+                               class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                        @error('name')
+                            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <button type="submit"
+                            class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
+                        {{ __('admin.roles.rename.save') }}
+                    </button>
+                </form>
+            </div>
+
             @unless ($protected)
                 <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                     <h3 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.roles.discord_mapping.title') }}</h3>

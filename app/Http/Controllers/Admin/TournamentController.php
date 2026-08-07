@@ -6,6 +6,9 @@
  * CRUD over tournaments and their phases/participating teams. Editing a
  * finished tournament requires the extra `tournaments.finished.edit`
  * permission on top of `tournaments.edit` — see the `update()` guard.
+ * Editing, deleting, or managing teams on an inactive tournament (active
+ * = false) similarly requires `tournaments.inactive.edit` /
+ * `.delete` / `.teams.manage` on top of the base permission.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -163,6 +166,12 @@ class TournamentController extends Controller
             'Only a user with tournaments.finished.edit can edit a finished tournament.'
         );
 
+        abort_unless(
+            $tournament->active || $request->user()->can('tournaments.inactive.edit'),
+            403,
+            'Only a user with tournaments.inactive.edit can edit an inactive tournament.'
+        );
+
         $validated = $this->resolveCustomCategory($this->validateTournament($request, true));
 
         $phasesBefore = isset($validated['phases']) ? $this->phaseSnapshot($tournament) : null;
@@ -191,6 +200,12 @@ class TournamentController extends Controller
 
     public function destroy(Request $request, Tournament $tournament): RedirectResponse
     {
+        abort_unless(
+            $tournament->active || $request->user()->can('tournaments.inactive.delete'),
+            403,
+            'Only a user with tournaments.inactive.delete can delete an inactive tournament.'
+        );
+
         $name = $tournament->name;
         $tournament->delete();
 
@@ -213,6 +228,12 @@ class TournamentController extends Controller
 
     public function attachTeam(Request $request, Tournament $tournament): RedirectResponse
     {
+        abort_unless(
+            $tournament->active || $request->user()->can('tournaments.inactive.teams.manage'),
+            403,
+            'Only a user with tournaments.inactive.teams.manage can manage teams on an inactive tournament.'
+        );
+
         $validated = $request->validate([
             'team_id' => ['required', 'integer', 'exists:teams,id'],
         ]);
@@ -242,6 +263,12 @@ class TournamentController extends Controller
 
     public function detachTeam(Request $request, Tournament $tournament, Team $team): RedirectResponse
     {
+        abort_unless(
+            $tournament->active || $request->user()->can('tournaments.inactive.teams.manage'),
+            403,
+            'Only a user with tournaments.inactive.teams.manage can manage teams on an inactive tournament.'
+        );
+
         TournamentTeam::where('tournament_id', $tournament->id)->where('team_id', $team->id)->delete();
 
         $tournament->touch();
@@ -463,6 +490,12 @@ class TournamentController extends Controller
 
     public function quickCreateTeam(Request $request, Tournament $tournament): RedirectResponse
     {
+        abort_unless(
+            $tournament->active || $request->user()->can('tournaments.inactive.teams.manage'),
+            403,
+            'Only a user with tournaments.inactive.teams.manage can manage teams on an inactive tournament.'
+        );
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
         ]);

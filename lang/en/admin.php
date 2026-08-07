@@ -502,7 +502,11 @@ return [
     'roles' => [
         'title' => 'Roles',
         'member_count' => ':count member|:count members',
-        'protected_note' => 'super-admin always has full access to everything and cannot be edited.',
+        'protected_note' => ':role always has full access to everything and cannot be edited.',
+        'rename' => [
+            'title' => 'Role name',
+            'save' => 'Rename role',
+        ],
         'manage' => 'Manage',
         'delete' => 'Delete role',
         'delete_confirm' => 'Delete the :role role? This removes it from every member who has it.',
@@ -539,8 +543,8 @@ return [
             'current' => 'Linked to Discord role ID :id',
         ],
         'errors' => [
-            'self_demote' => 'You cannot remove your own super-admin role.',
-            'protected_role' => 'The super-admin role already has full access and cannot be edited or deleted.',
+            'self_demote' => 'You cannot remove your own :role role.',
+            'protected_role' => 'The :role role already has full access and cannot be edited or deleted.',
         ],
     ],
 
@@ -851,6 +855,7 @@ return [
         'deactivate_confirm' => 'Deactivate this tournament? It will be hidden from the public site.',
         'category_custom' => 'Custom…',
         'finished_locked' => 'This tournament is finished — you need the "edit finished tournaments" permission to change it.',
+        'inactive_locked' => 'This tournament is inactive — you need the "edit inactive tournaments" permission to change it.',
         'status' => [
             'upcoming' => 'Upcoming',
             'live' => 'Live',
@@ -1381,6 +1386,7 @@ return [
         'role-removed' => 'Role removed.',
         'role-created' => 'Role created.',
         'role-deleted' => 'Role deleted.',
+        'role-renamed' => 'Role renamed.',
         'permissions-updated' => 'Permissions updated.',
         'discord-mapping-updated' => 'Discord mapping saved.',
         'discord-mapping-removed' => 'Discord mapping removed.',

@@ -44,6 +44,11 @@ class RoleSeeder extends Seeder
 
         Permission::where('guard_name', PublisherPermissions::GUARD)->whereNotIn('name', $publisherCatalog)->get()->each->delete();
 
-        Role::findOrCreate('super-admin');
+        if (! Role::where('team_id', PermissionTeam::GLOBAL_ID)->where('is_super_admin', true)->exists()) {
+            // Only reachable on a fresh install, or a DB seeded before the
+            // is_super_admin flag existed — once flagged, the role is found
+            // above regardless of subsequent renames.
+            Role::findOrCreate('super-admin')->update(['is_super_admin' => true]);
+        }
     }
 }

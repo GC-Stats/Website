@@ -91,6 +91,29 @@ test('the super-admin role itself cannot be edited or deleted even by a super-ad
     expect(Role::where('name', 'super-admin')->where('team_id', 0)->exists())->toBeTrue();
 });
 
+test('the super-admin role can be renamed, and still grants super-admin access under its new name', function () {
+    $superAdmin = makeSuperAdmin();
+
+    PermissionTeam::global();
+    $role = Role::where('name', 'super-admin')->where('team_id', 0)->firstOrFail();
+
+    $this->actingAs($superAdmin)
+        ->put(route('admin.roles.name.update', $role), ['name' => 'owner'])
+        ->assertSessionDoesntHaveErrors();
+
+    expect($role->fresh()->name)->toBe('owner');
+    expect($superAdmin->fresh()->isSuperAdmin())->toBeTrue();
+
+    $this->actingAs($superAdmin)
+        ->get(route('admin.roles.index'))
+        ->assertOk();
+
+    // Permissions and deletion stay locked under the new name too.
+    $this->actingAs($superAdmin)
+        ->put(route('admin.roles.update', $role), ['permissions' => []])
+        ->assertSessionHasErrors('role');
+});
+
 test('a role update cannot grant a permission outside the AdminPermissions catalog', function () {
     $superAdmin = makeSuperAdmin();
 

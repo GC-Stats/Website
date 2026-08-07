@@ -51,6 +51,7 @@ class AdminPermissions extends PermissionCatalog
             'tournaments' => [
                 'tournaments.view', 'tournaments.create', 'tournaments.edit', 'tournaments.delete',
                 'tournaments.teams.manage', 'tournaments.finished.edit', 'tournaments.activate',
+                'tournaments.inactive.edit', 'tournaments.inactive.delete', 'tournaments.inactive.teams.manage',
             ],
             'matches' => [
                 'matches.view',
