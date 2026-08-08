@@ -221,7 +221,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(Failed::class, function (Failed $event) {
-            activity('moderation')
+            activity('account')
                 ->withProperties([
                     'guard' => $event->guard,
                     'identifier' => $event->credentials[config('fortify.username')] ?? null,
