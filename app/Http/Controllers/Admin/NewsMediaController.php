@@ -6,10 +6,19 @@
  * Upload/browse/delete news cover images (App\Models\NewsImage) and link
  * them to an article. Reuses the same App\Services\LogoUploadService storage
  * logic as the internal API's Api\ApiNewsImageController — see its docblock.
- * Reachable by site editors (news.media.*) or a publisher's own member
- * managing their publisher's media — see
- * App\Http\Controllers\Concerns\ManagesPublisherScopedNews. Having a
+ * Reachable by site editors (news.media.*) or an organization's own member
+ * managing their organization's media — see
+ * App\Http\Controllers\Concerns\ManagesNewsAccess. Having a
  * NewsAuthor profile grants no media capability by itself.
+ *
+ * Dual-context like Admin\NewsController: index() backs both
+ * admin.news.media.index (flat, cross-organization) and
+ * organization-dashboard.news.media.index (scoped to the {organization}
+ * bound in the dashboard URL) — see that controller's docblock for the
+ * general pattern. store()/link()/setCover()/destroy() don't need the same
+ * treatment: they're id-based mutations that redirect back() to whichever
+ * page posted to them, and their authorization (via ManagesNewsAccess) is
+ * already independent of which route the request came from.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -19,11 +28,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Concerns\ManagesPublisherScopedNews;
+use App\Http\Controllers\Concerns\ManagesNewsAccess;
 use App\Http\Controllers\Public\Controller;
 use App\Models\News;
 use App\Models\NewsImage;
+use App\Models\Organization;
 use App\Services\LogoUploadService;
+use App\Services\OrganizationAccessService;
 use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -32,40 +43,72 @@ use Illuminate\Support\Str;
 
 class NewsMediaController extends Controller
 {
-    use ManagesPublisherScopedNews;
+    use ManagesNewsAccess;
 
-    public function index(Request $request): View
+    private function isDashboard(): bool
+    {
+        return request()->routeIs('organization-dashboard.*');
+    }
+
+    private function routePrefix(): string
+    {
+        return $this->isDashboard() ? 'organization-dashboard.news.media.' : 'admin.news.media.';
+    }
+
+    private function viewName(string $page): string
+    {
+        return $this->isDashboard() ? "organization.dashboard.news.media.{$page}" : "admin.news.media.{$page}";
+    }
+
+    public function index(Request $request, ?Organization $organization = null): View
     {
         $user = $request->user();
-        $allowedPublisherIds = $user->can('news.media.view') ? null : $this->allowedPublisherIds($request, 'publisher.media.view');
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        if ($organization) {
+            $access = app(OrganizationAccessService::class);
+            abort_unless($access->hasOrganizationPermission($user, $organization, 'news.media.view', 'organization.media.view'), 403);
+
+            $allowedOrganizationIds = collect([$organization->id]);
+            $canUpload = $access->hasOrganizationPermission($user, $organization, 'news.media.upload', 'organization.media.upload');
+            $editableOrganizationIds = $access->hasOrganizationPermission($user, $organization, 'news.edit', 'organization.news.edit') ? collect([$organization->id]) : collect();
+            $deletableOrganizationIds = $access->hasOrganizationPermission($user, $organization, 'news.media.delete', 'organization.media.delete') ? collect([$organization->id]) : collect();
+            $linkableOrganizationIds = $allowedOrganizationIds;
+        } else {
+            $allowedOrganizationIds = $user->can('news.media.view') ? null : $this->allowedOrganizationIds($request, 'organization.media.view');
+            abort_if($allowedOrganizationIds !== null && $allowedOrganizationIds->isEmpty(), 403);
+
+            $canUpload = $user->can('news.media.action.upload');
+            $editableOrganizationIds = $user->can('news.edit') ? collect() : $this->allowedOrganizationIds($request, 'organization.news.edit');
+            $deletableOrganizationIds = $user->can('news.media.delete') ? collect() : $this->allowedOrganizationIds($request, 'organization.media.delete');
+            $linkableOrganizationIds = $user->can('news.media.upload') ? null : $this->allowedOrganizationIds($request, 'organization.media.upload');
+        }
 
         $unattachedOnly = $request->boolean('unattached');
 
         $images = NewsImage::query()
             ->with(['author', 'news'])
-            ->when($allowedPublisherIds !== null, fn ($query) => $query->where(function ($query) use ($allowedPublisherIds) {
+            ->when($allowedOrganizationIds !== null, fn ($query) => $query->where(function ($query) use ($allowedOrganizationIds) {
                 // Unattached uploads have no `news` row to scope by yet —
                 // without this branch, an image is invisible to its own
                 // uploader from the moment it's uploaded until it's linked.
                 $query->whereNull('news_id')
-                    ->orWhereHas('news', fn ($query) => $query->whereIn('publisher_id', $allowedPublisherIds));
+                    ->orWhereHas('news', fn ($query) => $query->whereIn('organization_id', $allowedOrganizationIds));
             }))
             ->when($unattachedOnly, fn ($query) => $query->whereNull('news_id'))
             ->orderByDesc('created_at')
             ->paginate(40)
             ->withQueryString();
 
-        $linkablePublisherIds = $user->can('news.media.upload') ? null : $this->allowedPublisherIds($request, 'publisher.media.upload');
-
-        return view('admin.news.media.index', [
+        return view($this->viewName('index'), [
+            'organization' => $organization,
+            'routePrefix' => $this->routePrefix(),
             'images' => $images,
             'unattachedOnly' => $unattachedOnly,
-            'deletablePublisherIds' => $user->can('news.media.delete') ? collect() : $this->allowedPublisherIds($request, 'publisher.media.delete'),
-            'editablePublisherIds' => $user->can('news.edit') ? collect() : $this->allowedPublisherIds($request, 'publisher.news.edit'),
+            'canUpload' => $canUpload,
+            'deletableOrganizationIds' => $deletableOrganizationIds,
+            'editableOrganizationIds' => $editableOrganizationIds,
             'linkableArticles' => News::query()
-                ->when($linkablePublisherIds !== null, fn ($query) => $query->whereIn('publisher_id', $linkablePublisherIds))
+                ->when($linkableOrganizationIds !== null, fn ($query) => $query->whereIn('organization_id', $linkableOrganizationIds))
                 ->orderByDesc('id')
                 ->limit(300)
                 ->get(['id', 'title']),
@@ -76,7 +119,7 @@ class NewsMediaController extends Controller
     {
         $user = $request->user();
 
-        abort_unless($user->can('news.media.upload') || $this->allowedPublisherIds($request, 'publisher.media.upload')->isNotEmpty(), 403);
+        abort_unless($user->can('news.media.upload') || $this->allowedOrganizationIds($request, 'organization.media.upload')->isNotEmpty(), 403);
 
         $validated = $request->validate([
             'image' => ['required', 'file', 'image', 'max:10240'],
@@ -84,7 +127,7 @@ class NewsMediaController extends Controller
         ]);
 
         if (! empty($validated['news_id'])) {
-            $this->ensureCanManageArticle($request, News::findOrFail($validated['news_id']), 'news.media.upload', 'publisher.media.upload');
+            $this->ensureCanManageArticle($request, News::findOrFail($validated['news_id']), 'news.media.upload', 'organization.media.upload');
         }
 
         $uuid = (string) Str::uuid();
@@ -113,7 +156,7 @@ class NewsMediaController extends Controller
             // Unlinking only requires being able to manage the image's
             // *current* article — same rule as everywhere else.
             if ($image->news) {
-                $this->ensureCanManageArticle($request, $image->news, 'news.media.upload', 'publisher.media.upload');
+                $this->ensureCanManageArticle($request, $image->news, 'news.media.upload', 'organization.media.upload');
             }
 
             $image->update(['news_id' => null]);
@@ -127,14 +170,14 @@ class NewsMediaController extends Controller
 
         // Re-linking an image already attached elsewhere also requires
         // being able to manage its *current* article, not just the target
-        // one — otherwise a publisher member could re-point another
-        // publisher's media onto their own article by guessing its id.
+        // one — otherwise an organization member could re-point another
+        // organization's media onto their own article by guessing its id.
         if ($image->news) {
-            $this->ensureCanManageArticle($request, $image->news, 'news.media.upload', 'publisher.media.upload');
+            $this->ensureCanManageArticle($request, $image->news, 'news.media.upload', 'organization.media.upload');
         }
 
         $article = News::findOrFail($validated['news_id']);
-        $this->ensureCanManageArticle($request, $article, 'news.media.upload', 'publisher.media.upload');
+        $this->ensureCanManageArticle($request, $article, 'news.media.upload', 'organization.media.upload');
 
         $image->update(['news_id' => $article->id]);
 
@@ -147,7 +190,7 @@ class NewsMediaController extends Controller
 
     public function setCover(Request $request, News $article, NewsImage $image): RedirectResponse
     {
-        $this->ensureCanManageArticle($request, $article, 'news.edit', 'publisher.news.edit');
+        $this->ensureCanManageArticle($request, $article, 'news.edit', 'organization.news.edit');
 
         abort_unless($image->news_id === $article->id, 404);
 
@@ -164,7 +207,7 @@ class NewsMediaController extends Controller
     {
         if (! $request->user()->can('news.media.delete')) {
             abort_unless($image->news, 403);
-            $this->ensureCanManageArticle($request, $image->news, 'news.media.delete', 'publisher.media.delete');
+            $this->ensureCanManageArticle($request, $image->news, 'news.media.delete', 'organization.media.delete');
         }
 
         $newsId = $image->news_id;

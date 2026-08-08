@@ -42,6 +42,7 @@ class Tournament extends Model
         'active',
         'liquipedia_link',
         'point_type_id',
+        'organized_by',
     ];
 
     protected $casts = [
@@ -106,9 +107,20 @@ class Tournament extends Model
         return $this->belongsTo(PointType::class);
     }
 
+    public function organizer(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'organized_by');
+    }
+
     public function logos(): MorphMany
     {
         return $this->morphMany(Logo::class, 'entity');
+    }
+
+    /** Declared staff participations for this tournament — see StaffAssignment. */
+    public function staffAssignments(): MorphMany
+    {
+        return $this->morphMany(StaffAssignment::class, 'assignable');
     }
 
     public function getLogoAttribute(): string

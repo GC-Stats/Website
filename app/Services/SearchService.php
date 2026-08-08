@@ -25,7 +25,9 @@
 namespace App\Services;
 
 use App\Models\Emote;
+use App\Models\Organization;
 use App\Models\Player;
+use App\Models\Staff;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\User;
@@ -368,6 +370,38 @@ class SearchService
                     ['label' => 'Active', 'value' => $m->is_active ? 'Yes' : 'No'],
                 ],
             ],
+            'staff' => [
+                'model' => Staff::class,
+                'columns' => ['handle', 'first_name', 'last_name'],
+                'order' => 'handle',
+                'title' => fn (Staff $m) => $m->handle,
+                'subtitle' => fn (Staff $m) => trim("{$m->first_name} {$m->last_name}") ?: null,
+                'image' => fn (Staff $m) => $m->photo ?: null,
+                'imageKind' => 'photo',
+                'countryCode' => fn (Staff $m) => $m->country_code,
+                'fields' => fn (Staff $m) => [
+                    ['label' => 'Full name', 'value' => trim("{$m->first_name} {$m->last_name}") ?: null],
+                    ['label' => 'Country', 'value' => $m->country_code],
+                    ['label' => 'Bio', 'value' => $m->bio],
+                    ['label' => 'Liquipedia', 'value' => $m->liquipedia_link],
+                ],
+            ],
+            'organization' => [
+                'model' => Organization::class,
+                'columns' => ['name'],
+                'order' => 'name',
+                'title' => fn (Organization $m) => $m->name,
+                'subtitle' => fn (Organization $m) => implode(', ', $m->types()) ?: null,
+                'image' => fn (Organization $m) => $m->logo,
+                'imageKind' => 'logo',
+                'countryCode' => fn (Organization $m) => $m->country_code,
+                'load' => ['currentStaff'],
+                'fields' => fn (Organization $m) => [
+                    ['label' => 'Type', 'value' => implode(', ', $m->types()) ?: null],
+                    ['label' => 'Country', 'value' => $m->country_code],
+                    ['label' => 'Staff size', 'value' => (string) $m->currentStaff->count()],
+                ],
+            ],
         ];
 
         if (! isset($configs[$type])) {
@@ -382,7 +416,7 @@ class SearchService
      */
     public function entityTypes(): array
     {
-        return ['player', 'team', 'tournament', 'user', 'emote'];
+        return ['player', 'team', 'tournament', 'user', 'emote', 'staff', 'organization'];
     }
 
     /**

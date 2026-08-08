@@ -5,7 +5,7 @@
     title, author · date, and a chevron. Used for all non-featured published news.
 
     Props:
-      $news — array  (with author and publisher arrays)
+      $news — array  (with author and organization arrays)
 
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
@@ -17,8 +17,8 @@
     $url           = route('news.show', $news['slug']);
     $authorName    = $news['author']['name'] ?? 'GC-Stats';
     $authorAvatar  = $news['author']['logo'] ?? null;
-    $publisherName = $news['publisher']['name'] ?? null;
-    $publisherLogo = $news['publisher']['logo'] ?? null;
+    $publisherName = $news['organization']['name'] ?? null;
+    $publisherLogo = $news['organization']['logo'] ?? null;
     $date          = $news['published_at'] ? \Carbon\Carbon::parse($news['published_at'])->translatedFormat('d M Y') : '';
 @endphp
 

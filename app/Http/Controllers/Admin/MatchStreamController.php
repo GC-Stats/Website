@@ -11,16 +11,25 @@
  *
  * Deliberately separate from channel CRUD (Admin\StreamChannelController)
  * and gated by its own permission pair — streams.matches.link /
- * publisher.streams.link — so a publisher's editor can be granted the right
- * to link their own channels to matches without also being able to
+ * organization.streams.link — so an organization's editor can be granted the
+ * right to link their own channels to matches without also being able to
  * create/edit/delete channels, and vice versa.
  *
  * These routes live under the admin.matches.* prefix but are NOT gated by
- * matches.view: a publisher's own member has no access to the admin match
- * list/show pages at all, so the "link a stream" button lives on the public
- * match page instead (see resources/views/match.blade.php) and posts here
- * directly — authorization is fully self-contained in ensureCanLink()/
+ * matches.view: an organization's own member has no access to the admin
+ * match list/show pages at all, so the "link a stream" button lives on the
+ * public match page instead (see resources/views/match.blade.php) and posts
+ * here directly — authorization is fully self-contained in ensureCanLink()/
  * search(), independent of which page the request came from.
+ *
+ * index()/create() are additionally dual-context like Admin\NewsController
+ * — reachable at both admin.streams.matches.* (flat, cross-organization)
+ * and organization-dashboard.streams.matches.* (scoped to the
+ * {organization} bound in the dashboard URL). store()/update()/destroy()/
+ * linkMany()/search() don't need the same treatment: they're id-based
+ * mutations/lookups whose forms already point at fixed routes regardless of
+ * which page posted to them, and their authorization (ensureCanLink()) is
+ * already independent of the route.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -33,9 +42,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\SearchesMatchesForLinking;
 use App\Http\Controllers\Public\Controller;
 use App\Models\Matchs;
+use App\Models\Organization;
 use App\Models\StreamChannel;
 use App\Models\Tournament;
-use App\Support\PublisherScope;
+use App\Services\OrganizationAccessService;
+use App\Support\OrganizationScope;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -51,35 +62,51 @@ class MatchStreamController extends Controller
 
     private const SORTABLE = ['scheduled_at', 'tournament'];
 
+    private function isDashboard(): bool
+    {
+        return request()->routeIs('organization-dashboard.*');
+    }
+
+    private function routePrefix(): string
+    {
+        return $this->isDashboard() ? 'organization-dashboard.streams.matches.' : 'admin.streams.matches.';
+    }
+
+    private function viewName(string $page): string
+    {
+        return $this->isDashboard() ? "organization.dashboard.streams.matches.{$page}" : "admin.streams.matches.{$page}";
+    }
+
     /**
      * "Liste tout" — every match that currently has at least one stream
      * linked, grouped by match (a match may carry several channels/
      * languages). Restricted to channels the current user can see when
-     * they're a publisher-scoped editor rather than a full site editor.
+     * they're an organization-scoped editor rather than a full site editor
+     * (or, in dashboard mode, to that one organization specifically).
      *
      * Finished matches are hidden by default (?status=all / =finished
      * overrides this) — once a match is over a VOD replaces the stream
      * link in practice, so keeping finished matches out by default keeps
      * this list focused on what's actually still worth managing.
      */
-    public function index(Request $request): View
+    public function index(Request $request, ?Organization $organization = null): View
     {
-        $allowedPublisherIds = $this->allowedPublisherIds($request);
+        $allowedOrganizationIds = $this->allowedOrganizationIds($request, $organization);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedOrganizationIds !== null && $allowedOrganizationIds->isEmpty(), 403);
 
         $status = $request->get('status', 'active');
         [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'scheduled_at', 'desc');
 
         $matches = Matchs::query()
             ->select('matches.*')
-            ->whereHas('streams', fn ($query) => $this->scopeToAllowedPublishers($query, $allowedPublisherIds))
+            ->whereHas('streams', fn ($query) => $this->scopeToAllowedOrganizations($query, $allowedOrganizationIds))
             ->when($status === 'active', fn ($query) => $query->where('matches.status', '!=', 'finished'))
             ->when(in_array($status, ['upcoming', 'live', 'finished'], true), fn ($query) => $query->where('matches.status', $status))
             ->with([
                 'teamA:id,name,short_name', 'teamB:id,name,short_name', 'tournament:id,name',
                 'tournamentPhase.parent.parent.parent.parent',
-                'streams' => fn ($query) => $this->scopeToAllowedPublishers($query, $allowedPublisherIds)->with('publisher'),
+                'streams' => fn ($query) => $this->scopeToAllowedOrganizations($query, $allowedOrganizationIds)->with('organization'),
             ])
             ->when($sort === 'tournament', fn ($query) => $query
                 ->leftJoin('tournaments', 'tournaments.id', '=', 'matches.tournament_id')
@@ -88,34 +115,43 @@ class MatchStreamController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return view('admin.streams.matches.index', ['matches' => $matches, 'status' => $status, 'sort' => $sort, 'direction' => $direction]);
+        return view($this->viewName('index'), [
+            'matches' => $matches, 'status' => $status, 'sort' => $sort, 'direction' => $direction, 'organization' => $organization,
+        ]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request, ?Organization $organization = null): View
     {
-        $allowedPublisherIds = $this->allowedPublisherIds($request);
+        $allowedOrganizationIds = $this->allowedOrganizationIds($request, $organization);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedOrganizationIds !== null && $allowedOrganizationIds->isEmpty(), 403);
 
-        return view('admin.streams.matches.create');
+        return view($this->viewName('create'), ['organization' => $organization, 'routePrefix' => $this->routePrefix()]);
     }
 
     /**
      * @return Collection<int, int>|null null means unrestricted (site admin)
      */
-    private function allowedPublisherIds(Request $request): ?Collection
+    private function allowedOrganizationIds(Request $request, ?Organization $organization = null): ?Collection
     {
         $user = $request->user();
 
-        return $user->can(self::LINK_PERMISSION) ? null : PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.link');
+        if ($organization) {
+            $allowed = app(OrganizationAccessService::class)
+                ->hasOrganizationPermission($user, $organization, self::LINK_PERMISSION, 'organization.streams.link');
+
+            return $allowed ? collect([$organization->id]) : collect();
+        }
+
+        return $user->can(self::LINK_PERMISSION) ? null : OrganizationScope::organizationIdsWithPermission($user->id, 'organization.streams.link');
     }
 
     /**
-     * @param  Collection<int, int>|null  $allowedPublisherIds
+     * @param  Collection<int, int>|null  $allowedOrganizationIds
      */
-    private function scopeToAllowedPublishers($query, ?Collection $allowedPublisherIds)
+    private function scopeToAllowedOrganizations($query, ?Collection $allowedOrganizationIds)
     {
-        return $allowedPublisherIds === null ? $query : $query->whereIn('publisher_id', $allowedPublisherIds);
+        return $allowedOrganizationIds === null ? $query : $query->whereIn('organization_id', $allowedOrganizationIds);
     }
 
     public function search(Request $request): JsonResponse
@@ -125,9 +161,9 @@ class MatchStreamController extends Controller
             'match_id' => ['nullable', 'integer', 'exists:matches,id'],
         ]);
 
-        $allowedPublisherIds = $this->allowedPublisherIds($request);
+        $allowedOrganizationIds = $this->allowedOrganizationIds($request);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedOrganizationIds !== null && $allowedOrganizationIds->isEmpty(), 403);
 
         $alreadyLinkedIds = isset($validated['match_id'])
             ? Matchs::findOrFail($validated['match_id'])->streams()->pluck('stream_channels.id')
@@ -136,7 +172,7 @@ class MatchStreamController extends Controller
         $channels = StreamChannel::query()
             ->active()
             ->where('name', 'like', '%'.$this->escapeLike($validated['q']).'%')
-            ->when($allowedPublisherIds !== null, fn ($query) => $query->whereIn('publisher_id', $allowedPublisherIds))
+            ->when($allowedOrganizationIds !== null, fn ($query) => $query->whereIn('organization_id', $allowedOrganizationIds))
             ->whereNotIn('id', $alreadyLinkedIds)
             ->orderBy('name')
             ->limit(10)
@@ -193,7 +229,7 @@ class MatchStreamController extends Controller
      * Matches/channels are both identified by id in the body rather than
      * via route binding, since there's no single {match} in the URL here.
      */
-    public function linkMany(Request $request): RedirectResponse
+    public function linkMany(Request $request, ?Organization $organization = null): RedirectResponse
     {
         $validated = $request->validate([
             'match_id' => ['required', 'array', 'min:1'],
@@ -220,7 +256,7 @@ class MatchStreamController extends Controller
                 ->log('match.streams_linked');
         }
 
-        return redirect()->route('admin.streams.matches.index')->with('status', 'stream-linked');
+        return redirect()->route($this->routePrefix().'index', $organization ?? [])->with('status', 'stream-linked');
     }
 
     /**
@@ -279,8 +315,8 @@ class MatchStreamController extends Controller
             return;
         }
 
-        $allowed = $channel->publisher_id
-            && PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.link')->contains($channel->publisher_id);
+        $allowed = $channel->organization_id
+            && OrganizationScope::organizationIdsWithPermission($user->id, 'organization.streams.link')->contains($channel->organization_id);
 
         abort_unless($allowed, 403);
     }

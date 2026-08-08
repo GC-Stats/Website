@@ -18,8 +18,10 @@ use App\Http\Controllers\Public\FinanceController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\MatchController;
 use App\Http\Controllers\Public\NewsController;
+use App\Http\Controllers\Public\OrganizationController;
 use App\Http\Controllers\Public\PlayerController;
 use App\Http\Controllers\Public\SearchController;
+use App\Http\Controllers\Public\StaffController;
 use App\Http\Controllers\Public\TeamController;
 use App\Http\Controllers\Public\ThemePreferenceController;
 use App\Http\Controllers\Public\TournamentController;
@@ -32,6 +34,7 @@ require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/developers.php';
 require __DIR__.'/data_explorer.php';
+require __DIR__.'/organization.php';
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -101,6 +104,17 @@ Route::prefix('/player/{player}/{slug?}')->name('players.')->group(function () {
     Route::get('/', [PlayerController::class, 'index'])->name('show');
 });
 
+Route::prefix('/organization/{organization}/{slug?}')->name('organizations.')->group(function () {
+    Route::get('/experience', [OrganizationController::class, 'experience'])->name('experience');
+    Route::get('/', [OrganizationController::class, 'index'])->name('show');
+});
+
+Route::prefix('/staff/{staffMember}/{slug?}')->name('staff.')->group(function () {
+    Route::get('/experience/{role}', [StaffController::class, 'experienceByRole'])->name('experience.role');
+    Route::get('/experience', [StaffController::class, 'experience'])->name('experience');
+    Route::get('/', [StaffController::class, 'index'])->name('show');
+});
+
 Route::prefix('/user/{user:username}')->name('users.')->group(function () {
     Route::get('/', [UserProfileController::class, 'show'])->name('show');
     Route::get('/news', [UserProfileController::class, 'news'])->name('news');
@@ -120,7 +134,7 @@ Route::get('/search', [SearchController::class, 'index'])->name('search.results'
 Route::prefix('/news')->name('news.')->group(function () {
     Route::get('/{slug}', [NewsController::class, 'show'])->name('show');
     Route::get('/author/{slug}', [NewsController::class, 'author'])->name('author');
-    Route::get('/publisher/{slug}', [NewsController::class, 'publisher'])->name('publisher');
+    Route::get('/organization/{id}/{slug?}', [NewsController::class, 'organization'])->name('organization');
 });
 
 Route::middleware(['throttle:30,1'])->group(function () {

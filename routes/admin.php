@@ -29,7 +29,7 @@ use App\Http\Controllers\Admin\MatchVodController;
 use App\Http\Controllers\Admin\NewsAuthorController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\NewsMediaController;
-use App\Http\Controllers\Admin\NewsPublisherController;
+use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\PhaseQualificationController;
 use App\Http\Controllers\Admin\PlayerController;
 use App\Http\Controllers\Admin\PointTypeController;
@@ -37,12 +37,13 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SanctionController;
+use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\StreamChannelController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\TournamentOperationController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\News\RoleController as PublisherRoleController;
+use App\Http\Controllers\Organization\RoleController as OrganizationRoleController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -118,6 +119,9 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             Route::prefix('{team}/roster')->name('roster.')->group(function () {
                 Route::put('/', [TeamController::class, 'syncRoster'])->name('sync');
             });
+            Route::prefix('{team}/staff')->name('staff.')->group(function () {
+                Route::put('/', [TeamController::class, 'syncStaff'])->name('sync');
+            });
         });
 
         Route::delete('/{team}', [TeamController::class, 'destroy'])
@@ -163,6 +167,73 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             ->middleware('can:players.merge')->name('merge.execute');
     });
 
+    Route::prefix('organizations')->name('organizations.')->group(function () {
+        Route::get('/', [OrganizationController::class, 'index'])->name('index');
+
+        Route::middleware(['can:organizations.edit'])->group(function () {
+            Route::post('/', [OrganizationController::class, 'store'])->name('store');
+        });
+
+        Route::get('/{organization}', [OrganizationController::class, 'show'])->name('show');
+        Route::put('/{organization}', [OrganizationController::class, 'update'])->name('update');
+        Route::post('/{organization}/logo', [OrganizationController::class, 'updateLogo'])->name('logo.update');
+        Route::put('/{organization}/staff', [OrganizationController::class, 'syncStaff'])->name('staff.sync');
+
+        Route::middleware(['can:organizations.permissions.manage'])->group(function () {
+            Route::put('/{organization}/max-permissions', [OrganizationController::class, 'updateMaxPermissions'])->name('max-permissions.update');
+        });
+        Route::middleware(['can:organizations.owner.manage'])->group(function () {
+            Route::post('/{organization}/owner', [OrganizationController::class, 'assignOwner'])->name('owner.store');
+            Route::delete('/{organization}/owner/{user}', [OrganizationController::class, 'removeOwner'])->name('owner.destroy');
+        });
+        Route::delete('/{organization}', [OrganizationController::class, 'destroy'])
+            ->middleware('can:organizations.delete')->name('destroy');
+
+        Route::prefix('{organization}/roles')->name('roles.')
+            ->middleware(['organization.permission-context', 'can:organization.roles.manage'])
+            ->group(function () {
+                Route::get('/', [OrganizationRoleController::class, 'index'])->name('index');
+                Route::post('/', [OrganizationRoleController::class, 'store'])->name('store');
+                Route::get('/{role}', [OrganizationRoleController::class, 'show'])->name('show');
+                Route::put('/{role}', [OrganizationRoleController::class, 'update'])->name('update');
+                Route::delete('/{role}', [OrganizationRoleController::class, 'destroy'])->name('destroy');
+
+                Route::post('/{role}/members', [OrganizationRoleController::class, 'addMember'])->name('members.store');
+                Route::delete('/{role}/members/{user}', [OrganizationRoleController::class, 'removeMember'])->name('members.destroy');
+            });
+    });
+
+    Route::prefix('staff')->name('staff.')->group(function () {
+        Route::middleware(['can:staff.view'])->group(function () {
+            Route::get('/', [StaffController::class, 'index'])->name('index');
+            Route::get('/{staffMember}', [StaffController::class, 'show'])->name('show');
+        });
+
+        Route::post('/', [StaffController::class, 'store'])
+            ->middleware('can:staff.create')->name('store');
+
+        Route::middleware(['can:staff.edit'])->group(function () {
+            Route::put('/{staffMember}', [StaffController::class, 'updateProfile'])->name('update');
+            Route::put('/{staffMember}/user', [StaffController::class, 'linkUser'])->name('user.update');
+            Route::delete('/{staffMember}/user', [StaffController::class, 'unlinkUser'])->name('user.destroy');
+            Route::put('/{staffMember}/player', [StaffController::class, 'linkPlayer'])->name('player.update');
+            Route::delete('/{staffMember}/player', [StaffController::class, 'unlinkPlayer'])->name('player.destroy');
+            Route::post('/{staffMember}/logo', [StaffController::class, 'updateLogo'])->name('logo.update');
+            Route::prefix('{staffMember}/organizations')->name('organizations.')->group(function () {
+                Route::put('/', [StaffController::class, 'syncOrganizationHistory'])->name('sync');
+            });
+            Route::prefix('{staffMember}/teams')->name('teams.')->group(function () {
+                Route::put('/', [StaffController::class, 'syncTeamHistory'])->name('sync');
+            });
+        });
+
+        Route::put('/{staffMember}/experience', [StaffController::class, 'syncExperience'])
+            ->middleware('can:staff.assignments.manage')->name('experience.sync');
+
+        Route::delete('/{staffMember}', [StaffController::class, 'destroy'])
+            ->middleware('can:staff.delete')->name('destroy');
+    });
+
     Route::prefix('tournaments')->name('tournaments.')->group(function () {
         Route::middleware(['can:tournaments.view'])->group(function () {
             Route::get('/', [TournamentController::class, 'index'])->name('index');
@@ -201,6 +272,11 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         // PhaseQualificationController::destroy() for the per-rule permission check.
         Route::delete('/{tournament}/qualifications/{qualification}', [PhaseQualificationController::class, 'destroy'])
             ->name('qualifications.destroy');
+
+        Route::put('/{tournament}/staff-experience', [TournamentController::class, 'syncStaffAssignments'])
+            ->middleware('can:staff.assignments.manage')->name('staff-experience.sync');
+        Route::get('/{tournament}/matches-options', [TournamentController::class, 'matchesOptions'])
+            ->middleware('can:staff.assignments.manage')->name('matches-options');
     });
 
     Route::prefix('point-types')->name('point-types.')->group(function () {
@@ -265,6 +341,9 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::post('/{match}/qualifications', [PhaseQualificationController::class, 'storeForMatch'])
             ->middleware('can:matches.edit')->name('qualifications.store');
 
+        Route::put('/{match}/staff-experience', [MatchController::class, 'syncStaffAssignments'])
+            ->middleware('can:staff.assignments.manage')->name('staff-experience.sync');
+
         Route::prefix('{match}/streams')->name('streams.')->group(function () {
             Route::post('/', [MatchStreamController::class, 'store'])->name('store');
             Route::put('/', [MatchStreamController::class, 'update'])->name('update');
@@ -307,6 +386,13 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::delete('/{article}', [NewsController::class, 'destroy'])->name('destroy');
         Route::post('/{article}/publish', [NewsController::class, 'publish'])->name('publish');
         Route::post('/{article}/archive', [NewsController::class, 'archive'])->name('archive');
+        Route::post('/{article}/validate', [NewsController::class, 'markValidated'])->name('validate');
+
+        Route::prefix('{article}/comments')->name('comments.')->group(function () {
+            Route::post('/', [NewsController::class, 'storeComment'])->name('store');
+            Route::put('/{comment}', [NewsController::class, 'resolveComment'])->name('resolve');
+            Route::delete('/{comment}', [NewsController::class, 'destroyComment'])->name('destroy');
+        });
 
         Route::middleware(['can:news.edit'])->group(function () {
             Route::post('/{article}/feature', [NewsController::class, 'toggleFeature'])->name('feature');
@@ -319,41 +405,6 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
             Route::put('/{image}/link', [NewsMediaController::class, 'link'])->name('link');
             Route::put('/{article}/cover/{image}', [NewsMediaController::class, 'setCover'])->name('cover.update');
             Route::delete('/{image}', [NewsMediaController::class, 'destroy'])->name('destroy');
-        });
-
-        Route::prefix('publishers')->name('publishers.')->group(function () {
-            Route::get('/', [NewsPublisherController::class, 'index'])->name('index');
-
-            Route::middleware(['can:news.publishers.edit'])->group(function () {
-                Route::post('/', [NewsPublisherController::class, 'store'])->name('store');
-            });
-
-            Route::get('/{publisher}', [NewsPublisherController::class, 'show'])->name('show');
-            Route::put('/{publisher}', [NewsPublisherController::class, 'update'])->name('update');
-            Route::post('/{publisher}/logo', [NewsPublisherController::class, 'updateLogo'])->name('logo.update');
-
-            Route::middleware(['can:news.publishers.edit'])->group(function () {
-                Route::put('/{publisher}/max-permissions', [NewsPublisherController::class, 'updateMaxPermissions'])->name('max-permissions.update');
-            });
-            Route::middleware(['can:news.publishers.owner.manage'])->group(function () {
-                Route::post('/{publisher}/owner', [NewsPublisherController::class, 'assignOwner'])->name('owner.store');
-                Route::delete('/{publisher}/owner/{user}', [NewsPublisherController::class, 'removeOwner'])->name('owner.destroy');
-            });
-            Route::delete('/{publisher}', [NewsPublisherController::class, 'destroy'])
-                ->middleware('can:news.publishers.delete')->name('destroy');
-
-            Route::prefix('{publisher}/roles')->name('roles.')
-                ->middleware(['publisher.permission-context', 'can:publisher.roles.manage'])
-                ->group(function () {
-                    Route::get('/', [PublisherRoleController::class, 'index'])->name('index');
-                    Route::post('/', [PublisherRoleController::class, 'store'])->name('store');
-                    Route::get('/{role}', [PublisherRoleController::class, 'show'])->name('show');
-                    Route::put('/{role}', [PublisherRoleController::class, 'update'])->name('update');
-                    Route::delete('/{role}', [PublisherRoleController::class, 'destroy'])->name('destroy');
-
-                    Route::post('/{role}/members', [PublisherRoleController::class, 'addMember'])->name('members.store');
-                    Route::delete('/{role}/members/{user}', [PublisherRoleController::class, 'removeMember'])->name('members.destroy');
-                });
         });
 
         Route::prefix('authors')->name('authors.')->group(function () {

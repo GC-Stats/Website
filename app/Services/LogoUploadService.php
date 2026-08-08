@@ -6,7 +6,7 @@
  * Centralises the boilerplate that was previously duplicated across the
  * various Api*LogoController classes (ApiTeamLogoController,
  * ApiPlayerLogoController, ApiTournamentLogoController,
- * ApiAuthorLogoController, ApiPublisherLogoController)
+ * ApiAuthorLogoController)
  * and ApiAboutController::uploadImage: decoding an uploaded image, resizing
  * it, encoding it to WebP, storing it on disk, and (for the "logo" family)
  * recording/removing rows in the `logos` table.
@@ -26,8 +26,8 @@
  *    Tournament logos) — closes out the currently-open logo and opens a new
  *    one, or inserts a dated historical entry when `until` is given.
  *  - acceptReplacing(): no history — deletes any previous logo(s) for the
- *    entity before creating the new one (NewsAuthor, NewsMedia,
- *    NewsPublisher logos).
+ *    entity before creating the new one (NewsAuthor, NewsMedia, Organization
+ *    logos).
  *
  * All disk/folder/dimension/quality values are passed in by the caller
  * rather than hard-coded here, since some entities may use different
@@ -202,7 +202,7 @@ class LogoUploadService
 
     /**
      * Accept a pending logo upload for an entity that keeps no history
-     * (NewsAuthor, NewsMedia, NewsPublisher): deletes any previous logo(s)
+     * (NewsAuthor, NewsMedia, Organization): deletes any previous logo(s)
      * from disk and the DB before creating the new one. Expects the entity
      * to expose a `logos` relation.
      */

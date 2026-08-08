@@ -20,7 +20,7 @@ use App\Models\User;
 use App\Services\HeadToHeadService;
 use App\Support\CurrentTheme;
 use App\Support\MatchPresenter;
-use App\Support\PublisherScope;
+use App\Support\OrganizationScope;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -439,28 +439,28 @@ class MatchController extends Controller
         $user = auth()->user();
 
         return [
-            'canLinkStreams' => $this->canLinkPermission($user, 'streams.matches.link', 'publisher.streams.link'),
-            'canLinkVods' => $this->canLinkPermission($user, 'vods.matches.link', 'publisher.vods.link'),
+            'canLinkStreams' => $this->canLinkPermission($user, 'streams.matches.link', 'organization.streams.link'),
+            'canLinkVods' => $this->canLinkPermission($user, 'vods.matches.link', 'organization.vods.link'),
         ];
     }
 
     /**
      * Whether the current visitor may link a stream channel/VOD to a match
      * from the public match page — site editors with the admin permission,
-     * or a publisher's own member with the matching publisher permission
-     * (see Admin\MatchStreamController/Admin\MatchVodController, reused as-is:
-     * they authorize per-channel/per-VOD regardless of which page the
-     * request came from). Publishers have no access to the admin match
-     * list/show pages (gated by matches.view), so this is their only way to
-     * link their own channels/VODs.
+     * or an organization's own member with the matching organization
+     * permission (see Admin\MatchStreamController/Admin\MatchVodController,
+     * reused as-is: they authorize per-channel/per-VOD regardless of which
+     * page the request came from). Organization members have no access to
+     * the admin match list/show pages (gated by matches.view), so this is
+     * their only way to link their own channels/VODs.
      */
-    private function canLinkPermission(?User $user, string $adminPermission, string $publisherPermission): bool
+    private function canLinkPermission(?User $user, string $adminPermission, string $organizationPermission): bool
     {
         if (! $user) {
             return false;
         }
 
         return $user->can($adminPermission)
-            || PublisherScope::publisherIdsWithPermission($user->id, $publisherPermission)->isNotEmpty();
+            || OrganizationScope::organizationIdsWithPermission($user->id, $organizationPermission)->isNotEmpty();
     }
 }

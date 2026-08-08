@@ -3,11 +3,11 @@
 
     Mirrors player/header.blade.php's format (size, structure, nav bar).
     The "socials" column is repurposed here to link out to this user's
-    player profile and publishers instead of social media accounts, since a
-    User doesn't have those. The "News" nav tab (only shown when the user
+    player profile and organizations instead of social media accounts, since
+    a User doesn't have those. The "News" nav tab (only shown when the user
     has a linked News\Author profile) replaces what used to be a separate
     news.author page — see UserProfileController::news(). Expects
-    $profileUser and $publishers (see UserProfileController::sharedData()).
+    $profileUser and $organizations (see UserProfileController::sharedData()).
 
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
@@ -47,7 +47,7 @@
                     </div>
                 </div>
 
-                @if ($profileUser->player || $publishers->isNotEmpty())
+                @if ($profileUser->player || $organizations->isNotEmpty())
                     <div class="flex flex-col gap-1 min-w-[180px] justify-center w-full md:w-auto border-t md:border-t-0 md:border-l border-border-subtle pt-4 md:pt-0 md:pl-6 mr-4/">
                         @if ($profileUser->player)
                             <a href="{{ route('players.show', [$profileUser->player->id, Str::routeSlug($profileUser->player->handle, $profileUser->player->id)]) }}"
@@ -61,18 +61,18 @@
                             </a>
                         @endif
 
-                        @foreach ($publishers as $publisher)
-                            <a href="{{ route('news.publisher', $publisher->slug) }}"
+                        @foreach ($organizations as $organization)
+                            <a href="{{ route('organizations.show', [$organization->id, $organization->routeSlug()]) }}"
                                class="flex items-center gap-2 text-gray-400 hover:text-gc-yellow transition-colors group/socials py-0.5">
                                 <div class="w-6 h-6 flex items-center justify-center bg-bg-body rounded-sm group-hover/socials:bg-gc-yellow/10 flex-shrink-0">
-                                    @if ($publisher->logo)
-                                        <img src="{{ $publisher->logo }}" alt="{{ $publisher->name }}" class="w-full h-full object-contain">
+                                    @if ($organization->logo)
+                                        <img src="{{ $organization->logo }}" alt="{{ $organization->name }}" class="w-full h-full object-contain">
                                     @else
-                                        @svg('fas-newspaper', 'w-[11px] h-[11px] inline-block text-[11px]', ['aria-hidden' => 'true'])
+                                        @svg('fas-building', 'w-[11px] h-[11px] inline-block text-[11px]', ['aria-hidden' => 'true'])
                                     @endif
                                 </div>
                                 <span class="text-[10px] font-bold uppercase tracking-wider truncate max-w-[140px]">
-                                    {{ $publisher->name }}
+                                    {{ $organization->name }}
                                 </span>
                             </a>
                         @endforeach

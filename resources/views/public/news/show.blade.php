@@ -30,7 +30,7 @@
     ],
     'publisher' => [
         '@type' => 'Organization',
-        'name' => $publisher['name'] ?? config('app.name'),
+        'name' => $organization['name'] ?? config('app.name'),
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}
 </script>
@@ -44,9 +44,6 @@
     $authorUsername  = $author['username'] ?? null;
     $authorSlug      = $author['slug'] ?? null;
     $authorBio       = $author['bio'] ?? null;
-    $publisherName   = $publisher['name'] ?? null;
-    $publisherLogo   = $publisher['logo'] ?? null;
-    $publisherSlug   = $publisher['slug'] ?? null;
     $socialConfig = [
         'twitter'   => ['url' => 'https://x.com/',        'icon' => 'fab-x-twitter'],
         'instagram' => ['url' => 'https://instagram.com/', 'icon' => 'fab-instagram'],
@@ -57,8 +54,6 @@
     ];
 
     $authorSocials    = $author['socials'] ?? [];
-    $publisherSocials = $publisher['socials'] ?? [];
-    $publisherWebsite = $publisherSocials['website'] ?? null;
 @endphp
 
 <div class="max-w-4xl mx-auto">
@@ -92,13 +87,13 @@
                 <span class="text-[7px] font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm text-gray-400 border border-white/10">
                     {{ strtoupper($lang) }}
                 </span>
-                @if($publisherName)
-                    <a href="{{ route('news.publisher', $publisherSlug) }}"
+                @if($organization)
+                    <a href="{{ route('news.organization', [$organization['id'], $organization['routeSlug']]) }}"
                        class="inline-flex items-center gap-1.5 text-[7px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm text-gray-300 border border-white/10 hover:border-[var(--brand-yellow)]/40 hover:text-white transition-all">
-                        @if($publisherLogo)
-                            <img src="{{ $publisherLogo }}" alt="" class="h-2.5 w-auto object-contain">
+                        @if($organization['logo'])
+                            <img src="{{ $organization['logo'] }}" alt="" class="h-2.5 w-auto object-contain">
                         @endif
-                        {{ $publisherName }}
+                        {{ $organization['name'] }}
                     </a>
                 @endif
                 <span class="text-[7px] font-bold uppercase tracking-widest text-gray-600">{{ $date }}</span>
@@ -216,44 +211,24 @@
             </div>
         @endif
 
-        {{-- Publisher --}}
-        @if($publisher)
+        {{-- Organization --}}
+        @if($organization)
             <div class="flex items-start gap-4 bg-white/[0.02] border border-white/[0.06] rounded-xl p-4">
-                @if($publisherLogo)
+                @if($organization['logo'])
                     <div class="w-12 h-12 rounded-lg bg-white/[0.04] border border-white/10 flex items-center justify-center p-2 shrink-0">
-                        <img src="{{ $publisherLogo }}" alt="{{ $publisherName }}" class="w-full h-full object-contain">
+                        <img src="{{ $organization['logo'] }}" alt="{{ $organization['name'] }}" class="w-full h-full object-contain">
                     </div>
                 @else
                     <div class="w-12 h-12 rounded-lg bg-[var(--brand-yellow)]/10 border border-[var(--brand-yellow)]/20 flex items-center justify-center shrink-0">
-                        @svg('fas-newspaper', 'w-5 h-5 text-[var(--brand-yellow)]/50', ['aria-hidden' => 'true'])
+                        @svg('fas-building', 'w-5 h-5 text-[var(--brand-yellow)]/50', ['aria-hidden' => 'true'])
                     </div>
                 @endif
                 <div class="flex-1 min-w-0">
-                    <span class="text-[8px] font-black uppercase tracking-[0.25em] text-gray-600 block mb-1">{{ __('news.publisher') }}</span>
-                    <a href="{{ route('news.publisher', $publisherSlug) }}"
+                    <span class="text-[8px] font-black uppercase tracking-[0.25em] text-gray-600 block mb-1">{{ __('news.organization') }}</span>
+                    <a href="{{ route('news.organization', [$organization['id'], $organization['routeSlug']]) }}"
                        class="text-[13px] font-black uppercase tracking-tight text-white hover:text-[var(--brand-yellow)] transition-colors block truncate mb-1">
-                        {{ $publisherName }}
+                        {{ $organization['name'] }}
                     </a>
-                    @if($publisherWebsite)
-                        <a href="{{ $publisherWebsite }}" target="_blank" rel="noopener noreferrer"
-                           class="text-[10px] text-gray-500 hover:text-gray-300 transition-colors truncate block mb-2">
-                            {{ parse_url($publisherWebsite, PHP_URL_HOST) }}
-                        </a>
-                    @endif
-                    @if(!empty($publisherSocials))
-                        <div class="flex items-center gap-1 flex-wrap">
-                            @foreach($publisherSocials as $platform => $value)
-                                @if($value && isset($socialConfig[$platform]) && $platform !== 'website')
-                                    @php $cfg = $socialConfig[$platform]; @endphp
-                                    <a href="{{ $cfg['url'] . $value }}" target="_blank" rel="noopener noreferrer"
-                                       aria-label="{{ ucfirst($platform) }}"
-                                       class="w-6 h-6 flex items-center justify-center rounded bg-white/[0.04] border border-white/[0.06] text-gray-500 hover:text-[var(--brand-yellow)] hover:border-[var(--brand-yellow)]/30 transition-all">
-                                        @svg($cfg['icon'], 'w-3 h-3', ['aria-hidden' => 'true'])
-                                    </a>
-                                @endif
-                            @endforeach
-                        </div>
-                    @endif
                 </div>
             </div>
         @endif

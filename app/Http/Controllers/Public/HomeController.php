@@ -122,7 +122,7 @@ class HomeController extends Controller
         $locale = app()->getLocale();
 
         $newsData = Cache::remember("home_news_{$locale}", now()->addMinutes(10), function () use ($locale) {
-            $featured = News::with(['author', 'publisher'])
+            $featured = News::with(['author', 'organization'])
                 ->published()
                 ->forLocale($locale)
                 ->onHome()
@@ -130,7 +130,7 @@ class HomeController extends Controller
                 ->latest('published_at')
                 ->first()?->toArray();
 
-            $newsItems = News::with(['author', 'publisher'])
+            $newsItems = News::with(['author', 'organization'])
                 ->published()
                 ->forLocale($locale)
                 ->onHome()

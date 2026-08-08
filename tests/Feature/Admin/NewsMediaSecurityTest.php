@@ -3,11 +3,11 @@
 use App\Models\News;
 use App\Models\NewsAuthor;
 use App\Models\NewsImage;
-use App\Models\NewsPublisher;
+use App\Models\Organization;
 use App\Models\User;
-use App\Services\PublisherRoleService;
+use App\Services\OrganizationRoleService;
+use App\Support\OrganizationPermissions;
 use App\Support\PermissionTeam;
-use App\Support\PublisherPermissions;
 use Database\Seeders\RoleSeeder;
 
 beforeEach(function () {
@@ -23,23 +23,24 @@ function newsAdmin(array $permissions): User
     return $user;
 }
 
-function makePublisher(string $slug): NewsPublisher
+function makeOrganization(string $slug): Organization
 {
-    return NewsPublisher::create([
+    return Organization::create([
         'name' => $slug,
         'slug' => $slug,
+        'types' => ['media'],
         'socials' => [],
-        'max_permissions' => PublisherPermissions::all(),
+        'max_permissions' => OrganizationPermissions::all(),
     ]);
 }
 
-function makeArticle(NewsPublisher $publisher, array $overrides = []): News
+function makeArticle(Organization $organization, array $overrides = []): News
 {
     return News::create(array_merge([
-        'publisher_id' => $publisher->id,
+        'organization_id' => $organization->id,
         'lang' => 'en',
-        'title' => 'Article for '.$publisher->slug,
-        'slug' => 'article-'.$publisher->id.'-'.uniqid(),
+        'title' => 'Article for '.$organization->slug,
+        'slug' => 'article-'.$organization->id.'-'.uniqid(),
         'excerpt' => 'Excerpt',
         'content' => '<p>Content</p>',
         'status' => 'draft',
@@ -76,23 +77,23 @@ test('a plain https url in a news author\'s socials is accepted', function () {
     expect($author->refresh()->socials)->toBe(['website' => 'https://example.com/author']);
 });
 
-test('re-linking media already attached to another publisher\'s article requires managing the original article too', function () {
-    $publisherA = makePublisher('publisher-a');
-    $publisherB = makePublisher('publisher-b');
+test('re-linking media already attached to another organization\'s article requires managing the original article too', function () {
+    $organizationA = makeOrganization('organization-a');
+    $organizationB = makeOrganization('organization-b');
 
-    $articleA = makeArticle($publisherA);
-    $articleB = makeArticle($publisherB);
+    $articleA = makeArticle($organizationA);
+    $articleB = makeArticle($organizationB);
 
     $image = NewsImage::create(['news_id' => $articleA->id]);
 
     // Site-wide news.media.upload is intentionally NOT granted — only
-    // scoped publisher membership, so this exercises the publisher-scoped
-    // branch of ensureCanManageArticle().
+    // scoped organization membership, so this exercises the
+    // organization-scoped branch of ensureCanManageArticle().
     $user = User::factory()->create();
-    app(PublisherRoleService::class)->assign(
+    app(OrganizationRoleService::class)->assign(
         $user,
-        $publisherB,
-        PublisherRoleService::ROLE_OWNER
+        $organizationB,
+        OrganizationRoleService::ROLE_OWNER
     );
     PermissionTeam::global();
 
@@ -105,16 +106,16 @@ test('re-linking media already attached to another publisher\'s article requires
     expect($image->refresh()->news_id)->toBe($articleA->id);
 });
 
-test('a publisher member can still link their own unattached upload to their own article', function () {
-    $publisher = makePublisher('publisher-c');
-    $article = makeArticle($publisher);
+test('an organization member can still link their own unattached upload to their own article', function () {
+    $organization = makeOrganization('organization-c');
+    $article = makeArticle($organization);
     $image = NewsImage::create(['news_id' => null]);
 
     $user = User::factory()->create();
-    app(PublisherRoleService::class)->assign(
+    app(OrganizationRoleService::class)->assign(
         $user,
-        $publisher,
-        PublisherRoleService::ROLE_OWNER
+        $organization,
+        OrganizationRoleService::ROLE_OWNER
     );
     PermissionTeam::global();
 

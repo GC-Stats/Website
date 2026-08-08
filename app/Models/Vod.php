@@ -8,8 +8,8 @@
  * = covers the whole match). Unlike StreamChannel, a VOD is not a reusable
  * entity — each row is a one-off link created for a single match, so there
  * is no separate "channel" CRUD, just Admin\MatchVodController's
- * store()/destroy(). publisher_id is nullable so a site admin can add a
- * VOD with no publisher attached, same pattern as StreamChannel/News.
+ * store()/destroy(). organization_id is nullable so a site admin can add a
+ * VOD with no organization attached, same pattern as StreamChannel/News.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -27,7 +27,7 @@ class Vod extends Model
     protected $fillable = [
         'match_id',
         'game_map_id',
-        'publisher_id',
+        'organization_id',
         'url',
         'language_code',
     ];
@@ -49,9 +49,9 @@ class Vod extends Model
         return $this->belongsTo(GameMap::class, 'game_map_id');
     }
 
-    public function publisher(): BelongsTo
+    public function organization(): BelongsTo
     {
-        return $this->belongsTo(NewsPublisher::class, 'publisher_id');
+        return $this->belongsTo(Organization::class);
     }
 
     /**

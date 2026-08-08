@@ -4,9 +4,9 @@
  * GC-Stats — Stream channel model
  *
  * A streaming channel (YouTube/Twitch/TikTok) that can be linked to one or
- * more matches (see Matchs::streams()). Optionally owned by a NewsPublisher
- * — publisher_id is nullable so a site admin can create a channel with no
- * publisher attached, same pattern as News::publisher_id.
+ * more matches (see Matchs::streams()). Optionally owned by an Organization
+ * — organization_id is nullable so a site admin can create a channel with no
+ * organization attached, same pattern as News::organization_id.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -32,7 +32,7 @@ class StreamChannel extends Model
     public const PLATFORMS = [self::PLATFORM_YOUTUBE, self::PLATFORM_TWITCH, self::PLATFORM_TIKTOK];
 
     protected $fillable = [
-        'publisher_id',
+        'organization_id',
         'name',
         'platform',
         'url',
@@ -51,9 +51,9 @@ class StreamChannel extends Model
      */
     protected $appends = ['icon'];
 
-    public function publisher(): BelongsTo
+    public function organization(): BelongsTo
     {
-        return $this->belongsTo(NewsPublisher::class, 'publisher_id');
+        return $this->belongsTo(Organization::class);
     }
 
     public function matches(): BelongsToMany

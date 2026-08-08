@@ -5,7 +5,7 @@
     placeholder), used exclusively for news where is_featured = true.
 
     Props:
-      $news — array  (with author and publisher arrays)
+      $news — array  (with author and organization arrays)
 
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
@@ -18,7 +18,7 @@
     $hasCover      = !empty($news['image_cover']);
     $authorName    = $news['author']['name'] ?? 'GC-Stats';
     $authorAvatar  = $news['author']['logo'] ?? null;
-    $publisherName = $news['publisher']['name'] ?? null;
+    $publisherName = $news['organization']['name'] ?? null;
     $date        = $news['published_at'] ? \Carbon\Carbon::parse($news['published_at'])->translatedFormat('d M Y') : '';
 @endphp
 

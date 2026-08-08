@@ -327,7 +327,7 @@ class ExportPublicDataset extends Command
 
     private function exportNews()
     {
-        return News::with(['author', 'publisher', 'images', 'players', 'teams', 'tournaments'])
+        return News::with(['author', 'organization', 'images', 'players', 'teams', 'tournaments'])
             ->where('status', 'published')
             ->orderByDesc('published_at')
             ->get()
@@ -349,11 +349,11 @@ class ExportPublicDataset extends Command
                     'logo' => $news->author->logo,
                     'socials' => $news->author->socials,
                 ] : null,
-                'publisher' => $news->publisher ? [
-                    'name' => $news->publisher->name,
-                    'slug' => $news->publisher->slug,
-                    'logo' => $news->publisher->logo,
-                    'socials' => $news->publisher->socials,
+                'organization' => $news->organization ? [
+                    'name' => $news->organization->name,
+                    'slug' => $news->organization->slug,
+                    'logo' => $news->organization->logo,
+                    'socials' => $news->organization->socials,
                 ] : null,
                 'images' => $news->images->map(fn (NewsImage $image) => [
                     'id' => $image->id,

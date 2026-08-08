@@ -51,13 +51,14 @@
                     ['route' => 'admin.point-types.index', 'pattern' => 'admin.point-types.*', 'label' => __('admin.nav.point_types'), 'icon' => 'fas-coins', 'can' => 'tournaments.view'],
                     ['route' => 'admin.teams.index', 'pattern' => 'admin.teams.*', 'label' => __('admin.nav.teams'), 'icon' => 'fas-people-group', 'can' => 'teams.view'],
                     ['route' => 'admin.players.index', 'pattern' => 'admin.players.*', 'label' => __('admin.nav.players'), 'icon' => 'fas-user', 'can' => 'players.view'],
+                    ['route' => 'admin.organizations.index', 'pattern' => 'admin.organizations.*', 'label' => __('admin.nav.organizations'), 'icon' => 'fas-building-shield', 'can' => 'organizations.view'],
+                    ['route' => 'admin.staff.index', 'pattern' => 'admin.staff.*', 'label' => __('admin.nav.staff'), 'icon' => 'fas-headset', 'can' => 'staff.view'],
                 ],
             ],
             [
                 'label' => __('admin.nav.news'),
                 'items' => [
                     ['route' => 'admin.news.index', 'pattern' => 'admin.news.*', 'label' => __('admin.nav.news'), 'icon' => 'fas-newspaper', 'can' => 'news.nav.articles'],
-                    ['route' => 'admin.news.publishers.index', 'pattern' => 'admin.news.publishers.*', 'label' => __('admin.nav.news_publishers'), 'icon' => 'fas-building', 'can' => 'news.nav.publishers'],
                     ['route' => 'admin.news.authors.index', 'pattern' => 'admin.news.authors.*', 'label' => __('admin.nav.news_authors'), 'icon' => 'fas-pen', 'can' => 'news.nav.authors'],
                     ['route' => 'admin.news.media.index', 'pattern' => 'admin.news.media.*', 'label' => __('admin.nav.news_media'), 'icon' => 'fas-images', 'can' => 'news.nav.media'],
                     ['route' => 'admin.streams.index', 'pattern' => ['admin.streams.index', 'admin.streams.create', 'admin.streams.edit'], 'label' => __('admin.nav.streams'), 'icon' => 'fas-tower-broadcast', 'can' => 'streams.nav.channels'],

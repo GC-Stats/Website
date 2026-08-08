@@ -3,8 +3,8 @@
 /**
  * GC-Stats — News controller
  *
- * Handles the public news article page and the publisher page (listing all
- * published articles from that outlet). An author's own published articles
+ * Handles the public news article page and the organization page (listing
+ * all published articles from that organization). An author's own published articles
  * are listed on their linked user profile's "News" tab instead of a
  * standalone page — see UserProfileController::news() — but authors with no
  * linked User account (still a supported NewsAuthor state, see
@@ -21,33 +21,33 @@
 
 namespace App\Http\Controllers\Public;
 
-use App\Http\Controllers\Concerns\ManagesPublisherScopedNews;
+use App\Http\Controllers\Concerns\ManagesNewsAccess;
 use App\Models\News;
 use App\Models\NewsAuthor;
-use App\Models\NewsPublisher;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class NewsController extends Controller
 {
-    use ManagesPublisherScopedNews;
+    use ManagesNewsAccess;
 
     public function show(Request $request, string $slug)
     {
         $locale = app()->getLocale();
 
-        $newsMeta = News::where('slug', $slug)->first(['id', 'publisher_id', 'status', 'updated_at']);
+        $newsMeta = News::where('slug', $slug)->first(['id', 'organization_id', 'author_id', 'status', 'updated_at']);
         abort_unless($newsMeta, 404);
 
         $canPreview = false;
         if ($newsMeta->status !== 'published') {
             $canPreview = $request->user()
-                && $this->canManageArticle($request, $newsMeta, 'news.view', 'publisher.news.view');
+                && $this->canManageArticle($request, $newsMeta, 'news.view', 'organization.news.view');
             abort_unless($canPreview, 404);
         }
 
         $build = function () use ($slug) {
-            $news = News::with(['author.currentLogo', 'author.user:id,username', 'publisher.currentLogo', 'players', 'teams', 'tournaments'])
+            $news = News::with(['author.currentLogo', 'author.user:id,username', 'organization', 'players', 'teams', 'tournaments'])
                 ->where('slug', $slug)
                 ->firstOrFail();
 
@@ -69,13 +69,12 @@ class NewsController extends Controller
                         : null,
                     'socials' => $news->author->socials,
                 ] : null,
-                'publisher' => $news->publisher ? [
-                    'name' => $news->publisher->name,
-                    'slug' => $news->publisher->slug,
-                    'logo' => $news->publisher->currentLogo
-                        ? asset('storage/publishers/'.$news->publisher->currentLogo->id.'/200x200.webp')
-                        : null,
-                    'socials' => $news->publisher->socials,
+                'organization' => $news->organization ? [
+                    'id' => $news->organization->id,
+                    'name' => $news->organization->name,
+                    'slug' => $news->organization->slug,
+                    'routeSlug' => $news->organization->routeSlug(),
+                    'logo' => $news->organization->logo ?: null,
                 ] : null,
                 'players' => $news->players->map(fn ($p) => ['id' => $p->id, 'handle' => $p->handle])->all(),
                 'teams' => $news->teams->map(fn ($t) => ['id' => $t->id, 'name' => $t->name])->all(),
@@ -124,7 +123,7 @@ class NewsController extends Controller
             'socials' => $model->socials,
         ]);
 
-        $articles = News::with(['publisher.currentLogo', 'author.currentLogo'])
+        $articles = News::with(['organization', 'author.currentLogo'])
             ->where('author_id', $author['id'])
             ->where('status', 'published')
             ->orderByDesc('published_at')
@@ -136,31 +135,40 @@ class NewsController extends Controller
             ->header('Vary', 'Accept-Language');
     }
 
-    public function publisher(string $slug)
+    /**
+     * The entity News is attributed to — Organization replaces the legacy
+     * NewsPublisher concept entirely (see the 0122 migration).
+     */
+    public function organization(int $id, ?string $slug = null)
     {
-        $model = NewsPublisher::with('currentLogo')->where('slug', $slug)->firstOrFail();
+        $model = Organization::findOrFail($id);
 
-        $cacheKey = "news_publisher_{$slug}_{$model->updated_at->timestamp}";
-        $publisher = Cache::remember($cacheKey, now()->addDay(), function () use ($model) {
-            return [
-                'id' => $model->id,
-                'name' => $model->name,
-                'slug' => $model->slug,
-                'logo' => $model->currentLogo
-                    ? asset('storage/publishers/'.$model->currentLogo->id.'/200x200.webp')
-                    : null,
-                'socials' => $model->socials,
-            ];
-        });
+        $canonical = $model->routeSlug();
+        if ($slug !== $canonical) {
+            return redirect()->route('news.organization', [$id, $canonical], 301);
+        }
 
-        $articles = News::with(['author.currentLogo', 'publisher.currentLogo'])
-            ->where('publisher_id', $publisher['id'])
+        $cacheKey = "news_organization_{$id}_{$model->updated_at->timestamp}";
+        $organization = Cache::remember($cacheKey, now()->addDay(), fn () => [
+            'id' => $model->id,
+            'name' => $model->name,
+            'slug' => $model->slug,
+            'routeSlug' => $canonical,
+            'logo' => $model->logo ?: null,
+            'socials' => $model->socials,
+        ]);
+
+        $articles = News::with(['author.currentLogo', 'organization'])
             ->where('status', 'published')
+            ->where(function ($query) use ($organization) {
+                $query->where('organization_id', $organization['id'])
+                    ->orWhereHas('organizations', fn ($q) => $q->where('organization.id', $organization['id']));
+            })
             ->orderByDesc('published_at')
             ->paginate(12);
 
         return response()
-            ->view('public.news.publisher', compact('publisher', 'articles'))
+            ->view('public.news.organization', compact('organization', 'articles'))
             ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
             ->header('Vary', 'Accept-Language');
     }

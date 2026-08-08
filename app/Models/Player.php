@@ -18,7 +18,9 @@ use App\Models\Concerns\HasLogo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Player extends Model
@@ -60,12 +62,23 @@ class Player extends Model
         return $this->belongsTo(User::class);
     }
 
+    /** The staff profile this player is also active as, if any — same real person, both roles. */
+    public function staff(): HasOne
+    {
+        return $this->hasOne(Staff::class);
+    }
+
     public function teams()
     {
         return $this->belongsToMany(Team::class, 'player_team')
             ->withPivot('role', 'joined_at', 'left_at')
             ->orderBy('joined_at', 'desc')
             ->withTimestamps();
+    }
+
+    public function currentTeams(): BelongsToMany
+    {
+        return $this->teams()->wherePivot('left_at', null);
     }
 
     public function news()

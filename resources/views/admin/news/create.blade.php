@@ -10,30 +10,15 @@
 @section('title', __('admin.news.create'))
 
 @section('content')
-    <a href="{{ route('admin.news.index') }}" class="inline-flex items-center gap-2 text-xs text-gray-400 hover:text-white transition mb-6">
-        &larr; {{ __('admin.news.title') }}
-    </a>
-
-    <h1 class="text-2xl font-black uppercase tracking-tighter text-white mb-6">{{ __('admin.news.create') }}</h1>
-
-    @if ($errors->any())
-        <div class="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3 mb-6">
-            <ul class="list-disc list-inside">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <form method="POST" action="{{ route('admin.news.store') }}" class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-6">
-        @csrf
-        @php $article = null; @endphp
-        @include('admin.news._form')
-
-        <button type="submit"
-                class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
-            {{ __('admin.news.form.save') }}
-        </button>
-    </form>
+    @include('news._create', [
+        'routePrefix' => $routePrefix,
+        'organization' => $organization,
+        'organizations' => $organizations,
+        'canAttributePersonally' => $canAttributePersonally,
+        'selectedPlayers' => $selectedPlayers,
+        'selectedTeams' => $selectedTeams,
+        'selectedTournaments' => $selectedTournaments,
+        'backUrl' => route('admin.news.index'),
+        'backLabel' => __('admin.news.title'),
+    ])
 @endsection

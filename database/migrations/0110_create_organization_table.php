@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->string('type');
+            $table->json('types')->default(new Expression('(JSON_ARRAY())'));
             $table->string('country_code', 3)->nullable();
             $table->json('socials')->default(new Expression('(JSON_OBJECT())'));
             $table->json('max_permissions')->nullable();

@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Matchs extends Model
 {
@@ -108,5 +109,11 @@ class Matchs extends Model
     public function vods(): HasMany
     {
         return $this->hasMany(Vod::class, 'match_id');
+    }
+
+    /** Declared staff participations for this match — see StaffAssignment. */
+    public function staffAssignments(): MorphMany
+    {
+        return $this->morphMany(StaffAssignment::class, 'assignable');
     }
 }

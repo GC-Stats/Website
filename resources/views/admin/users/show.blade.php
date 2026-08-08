@@ -99,18 +99,18 @@
             </div>
 
             <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4">
-                <p class="text-[10px] font-black uppercase tracking-widest text-gc-yellow mb-3">{{ __('admin.users.publisher_roles_title') }}</p>
-                @forelse ($publisherRoles as $publisher)
+                <p class="text-[10px] font-black uppercase tracking-widest text-gc-yellow mb-3">{{ __('admin.users.organization_roles_title') }}</p>
+                @forelse ($organizationRoles as $organization)
                     <div class="flex items-center justify-between gap-3 py-1.5 border-b border-b-white/10 last:border-b-0">
-                        <a href="{{ route('admin.news.publishers.show', $publisher['id']) }}" class="text-sm text-white hover:underline truncate">{{ $publisher['name'] }}</a>
+                        <a href="{{ route('admin.organizations.show', $organization['id']) }}" class="text-sm text-white hover:underline truncate">{{ $organization['name'] }}</a>
                         <div class="shrink-0">
-                            @foreach ($publisher['roles'] as $roleName)
+                            @foreach ($organization['roles'] as $roleName)
                                 <span class="inline-block px-2 py-0.5 ml-1 text-[9px] font-bold uppercase tracking-widest rounded-lg bg-white/5 border border-white/10 text-gray-400">{{ $roleName }}</span>
                             @endforeach
                         </div>
                     </div>
                 @empty
-                    <p class="text-xs text-gray-600">{{ __('admin.users.no_publisher_roles') }}</p>
+                    <p class="text-xs text-gray-600">{{ __('admin.users.no_organization_roles') }}</p>
                 @endforelse
             </div>
         @endcan

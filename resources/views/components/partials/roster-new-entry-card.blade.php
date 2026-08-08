@@ -22,7 +22,7 @@
 
     <div>
         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ $roleLabel }}</label>
-        <x-styled-select name="entries[{{ $index }}][role]" :options="$roles" />
+        <x-styled-select name="entries[{{ $index }}][role]" :options="$roles" searchable />
     </div>
 
     <div>

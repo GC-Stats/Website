@@ -23,6 +23,7 @@ return [
         'notifications' => 'Notifications',
         'admin' => 'Admin panel',
         'developers' => 'Developers panel',
+        'organization' => 'Organization dashboard',
         'no_admin_section' => 'Your role has admin permissions, but no dashboard section is built for it yet.',
         'logout' => 'Sign out',
     ],

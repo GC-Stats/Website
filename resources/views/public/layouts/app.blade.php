@@ -209,6 +209,14 @@
                                             {{ __('layout.account.developers') }}
                                         </a>
                                     @endcan
+                                    @php $firstOrganizationId = \App\Support\OrganizationScope::organizationIdsForUser(auth()->id())->first(); @endphp
+                                    @if ($firstOrganizationId)
+                                        <a href="{{ route('organization-dashboard.index', $firstOrganizationId) }}" role="menuitem"
+                                           class="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
+                                            <x-fas-building class="w-3.5 h-3.5" aria-hidden="true" />
+                                            {{ __('layout.account.organization') }}
+                                        </a>
+                                    @endif
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit" role="menuitem"
@@ -371,6 +379,14 @@
                             {{ __('layout.account.admin') }}
                         </a>
                     @endcan
+                    @php $firstOrganizationIdMobile = \App\Support\OrganizationScope::organizationIdsForUser(auth()->id())->first(); @endphp
+                    @if ($firstOrganizationIdMobile)
+                        <a href="{{ route('organization-dashboard.index', $firstOrganizationIdMobile) }}"
+                           class="flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all text-gray-400 bg-white/5">
+                            <x-fas-building class="w-3.5 h-3.5" aria-hidden="true" />
+                            {{ __('layout.account.organization') }}
+                        </a>
+                    @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"

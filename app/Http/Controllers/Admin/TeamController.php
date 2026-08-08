@@ -21,6 +21,7 @@ use App\Exceptions\TeamHasMatchesException;
 use App\Http\Controllers\Public\Controller;
 use App\Models\Team;
 use App\Services\RosterService;
+use App\Services\StaffTeamService;
 use App\Services\TeamMergeService;
 use App\Services\TeamProfileService;
 use App\Support\Activity\ActivityChangeSet;
@@ -120,9 +121,10 @@ class TeamController extends Controller
         return redirect()->route('admin.teams.index')->with('status', 'team-created')->with('created_team', $team->id);
     }
 
-    public function show(Request $request, Team $team, RosterService $rosterService, TeamMergeService $mergeService): View
+    public function show(Request $request, Team $team, RosterService $rosterService, TeamMergeService $mergeService, StaffTeamService $staffTeams): View
     {
         $history = $rosterService->history($team->id);
+        $staffHistory = $staffTeams->history($team->id);
 
         return view('admin.teams.show', [
             'team' => $team,
@@ -130,7 +132,32 @@ class TeamController extends Controller
             'countries' => app(Countries::class)->list(),
             'roster' => $history->whereNull('left_at')->values(),
             'rosterHistory' => $history->whereNotNull('left_at')->values(),
+            'currentStaff' => $staffHistory->whereNull('left_at')->values(),
+            'staffHistory' => $staffHistory->whereNotNull('left_at')->values(),
         ]);
+    }
+
+    public function syncStaff(Request $request, Team $team, StaffTeamService $staffTeams): RedirectResponse
+    {
+        $validated = $request->validate([
+            'entries' => ['array'],
+            'entries.*.id' => ['nullable', 'integer', Rule::exists('staff_teams', 'id')->where('team_id', $team->id)],
+            'entries.*.staff_id' => ['required', 'integer', 'exists:staff,id'],
+            'entries.*.role' => ['nullable', 'string', Rule::in(StaffTeamService::ROLES)],
+            'entries.*.joined_at' => ['required', 'date'],
+            'entries.*.left_at' => ['nullable', 'date'],
+        ]);
+
+        $entries = collect($validated['entries'] ?? [])
+            ->map(fn (array $entry) => [...$entry, 'team_id' => $team->id])
+            ->all();
+
+        $staffTeams->save('team_id', $team->id, $entries);
+
+        activity('team')->performedOn($team)->causedBy($request->user())
+            ->withProperties(['team_id' => $team->id])->log('team.staff.synced');
+
+        return back()->with('status', 'team-staff-synced');
     }
 
     public function updateProfile(Request $request, Team $team, TeamProfileService $service): RedirectResponse

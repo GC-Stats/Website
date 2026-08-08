@@ -82,6 +82,19 @@ class Team extends Model
         return $this->players()->wherePivot('left_at', null);
     }
 
+    /** Staff working directly for this team, no organization involved — see StaffTeam. */
+    public function staff(): BelongsToMany
+    {
+        return $this->belongsToMany(Staff::class, 'staff_teams')
+            ->withPivot('role', 'joined_at', 'left_at')
+            ->withTimestamps();
+    }
+
+    public function currentStaff(): BelongsToMany
+    {
+        return $this->staff()->wherePivot('left_at', null);
+    }
+
     public function tournaments(): BelongsToMany
     {
         return $this->belongsToMany(Tournament::class, 'tournament_teams')
@@ -108,6 +121,12 @@ class Team extends Model
     public function pointEntries(): HasMany
     {
         return $this->hasMany(PointEntry::class);
+    }
+
+    /** Declared staff participations for this team — see StaffAssignment. Separate from the ongoing staff() roster above. */
+    public function staffAssignments(): MorphMany
+    {
+        return $this->morphMany(StaffAssignment::class, 'assignable');
     }
 
     public function getLogoAttribute(): string

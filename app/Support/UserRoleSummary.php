@@ -3,12 +3,12 @@
 /**
  * GC-Stats — User role summary
  *
- * Shared "every role a user holds, grouped by which team/publisher it's
+ * Shared "every role a user holds, grouped by which team/organization it's
  * scoped to" query, used by both Admin\UserController's user detail page
  * and the public user profile page. Extracted so both read the exact same
  * model_has_roles join rather than drifting apart — see
- * tests/Feature/Admin/TeamPublisherRoleIsolationTest.php for why guard_name
- * must always be filtered alongside team_id (Team and NewsPublisher ids
+ * tests/Feature/Admin/TeamOrganizationRoleIsolationTest.php for why guard_name
+ * must always be filtered alongside team_id (Team and Organization ids
  * share the same numeric space in that column).
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
@@ -28,7 +28,7 @@ class UserRoleSummary
     /**
      * Every role this user holds under the given guard, excluding the
      * global context (team_id 0 — see PermissionTeam), grouped by the
-     * team/publisher id it's scoped to. Optionally narrowed to specific
+     * team/organization id it's scoped to. Optionally narrowed to specific
      * role names.
      *
      * @return Collection<int, list<string>>

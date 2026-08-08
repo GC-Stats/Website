@@ -17,15 +17,18 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ValidatesStaffExperienceRoles;
 use App\Http\Controllers\Public\Controller;
 use App\Models\GameMap;
 use App\Models\Matchs;
-use App\Models\NewsPublisher;
+use App\Models\Organization;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
+use App\Services\StaffAssignmentService;
 use App\Support\Activity\ActivityChangeSet;
 use App\Support\Countries;
-use App\Support\PublisherScope;
+use App\Support\OrganizationScope;
+use App\Support\StaffRoleMetadata;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,6 +37,8 @@ use Illuminate\Validation\Rule;
 
 class MatchController extends Controller
 {
+    use ValidatesStaffExperienceRoles;
+
     public const MAP_POOL = ['Abyss', 'Ascent', 'Bind', 'Breeze', 'Corrode', 'Fracture', 'Haven', 'Icebox', 'Lotus', 'Pearl', 'Split', 'Summit', 'Sunset'];
 
     /** Default veto sequence per best-of format, used to pre-fill a brand new (empty) veto. */
@@ -107,35 +112,64 @@ class MatchController extends Controller
         ]);
     }
 
-    public function show(Request $request, Tournament $tournament, Matchs $match): View
+    public function show(Request $request, Tournament $tournament, Matchs $match, StaffAssignmentService $staffAssignments): View
     {
         $this->ensureBelongsToTournament($tournament, $match);
 
         $match->load([
             'teamA', 'teamB', 'tournamentPhase', 'game_maps' => fn ($q) => $q->orderBy('order'),
             'qualifications.destinationPhase.tournament',
-            'streams.publisher',
-            'vods.publisher', 'vods.gameMap',
+            'streams.organization',
+            'vods.organization', 'vods.gameMap',
         ]);
 
         $user = $request->user();
         $canLinkStreamsAny = $user->can('streams.matches.link');
-        $linkableStreamPublisherIds = $canLinkStreamsAny ? null : PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.link');
+        $linkableStreamOrganizationIds = $canLinkStreamsAny ? null : OrganizationScope::organizationIdsWithPermission($user->id, 'organization.streams.link');
 
         $canLinkVodsAny = $user->can('vods.matches.link');
-        $linkableVodPublisherIds = $canLinkVodsAny ? null : PublisherScope::publisherIdsWithPermission($user->id, 'publisher.vods.link');
+        $linkableVodOrganizationIds = $canLinkVodsAny ? null : OrganizationScope::organizationIdsWithPermission($user->id, 'organization.vods.link');
 
         return view('admin.matches.show', [
             'tournament' => $tournament,
             'match' => $match,
-            'canLinkStreams' => $canLinkStreamsAny || ($linkableStreamPublisherIds && $linkableStreamPublisherIds->isNotEmpty()),
-            'canLinkVods' => $canLinkVodsAny || ($linkableVodPublisherIds && $linkableVodPublisherIds->isNotEmpty()),
+            'canLinkStreams' => $canLinkStreamsAny || ($linkableStreamOrganizationIds && $linkableStreamOrganizationIds->isNotEmpty()),
+            'canLinkVods' => $canLinkVodsAny || ($linkableVodOrganizationIds && $linkableVodOrganizationIds->isNotEmpty()),
             'vodsRestricted' => ! $canLinkVodsAny,
-            'vodPublishers' => NewsPublisher::query()
-                ->when(! $canLinkVodsAny, fn ($query) => $query->whereIn('id', $linkableVodPublisherIds))
+            'vodOrganizations' => Organization::query()
+                ->when(! $canLinkVodsAny, fn ($query) => $query->whereIn('id', $linkableVodOrganizationIds))
                 ->orderBy('name')->get(['id', 'name']),
             'countries' => app(Countries::class)->list(),
+            'staffAssignments' => $staffAssignments->forAssignable($match),
         ]);
+    }
+
+    public function syncStaffAssignments(Request $request, Tournament $tournament, Matchs $match, StaffAssignmentService $staffAssignments): RedirectResponse
+    {
+        $this->ensureBelongsToTournament($tournament, $match);
+
+        $validated = $request->validate([
+            'entries' => ['array'],
+            'entries.*.id' => ['nullable', 'integer', Rule::exists('staff_assignments', 'id')->where('assignable_type', 'match')->where('assignable_id', $match->id)],
+            'entries.*.staff_id' => ['required', 'integer', 'exists:staff,id'],
+            'entries.*.team_id' => ['nullable', 'integer', 'exists:teams,id', 'required_without:entries.*.organization_id'],
+            'entries.*.organization_id' => ['nullable', 'integer', 'exists:organization,id', 'required_without:entries.*.team_id'],
+            'entries.*.role' => ['required', 'string', $this->roleMatchesRepresentedEntity($request)],
+            'entries.*.metadata' => ['nullable', 'array'],
+            'entries.*.metadata.language' => ['nullable', 'string', Rule::in(array_keys(StaffRoleMetadata::LANGUAGES))],
+        ]);
+
+        $entries = collect($validated['entries'] ?? [])
+            ->map(fn (array $entry) => [...$entry, 'assignable_type' => 'match', 'assignable_id' => $match->id])
+            ->all();
+
+        $staffAssignments->save(['assignable_type' => 'match', 'assignable_id' => $match->id], $entries);
+
+        activity('staff')->performedOn($match)->causedBy($request->user())
+            ->withProperties(['match_id' => $match->id])
+            ->log('staff.experience.synced');
+
+        return back()->with('status', 'staff-experience-synced');
     }
 
     public function edit(Tournament $tournament, Matchs $match): View

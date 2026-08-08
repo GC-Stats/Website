@@ -55,7 +55,7 @@ return [
             'provider' => 'users',
         ],
 
-        'publisher' => [
+        'organization' => [
             'driver' => 'session',
             'provider' => 'users',
         ],

@@ -4,7 +4,7 @@
  * GC-Stats — News model observer
  *
  * Purges CDN cache and flushes related app-level caches (home news feed,
- * article page, author/publisher pages) whenever a news article is saved
+ * article page, author/organization pages) whenever a news article is saved
  * or deleted, so edits and status changes show up immediately on the
  * homepage and on any player/team/tournament page it's linked to.
  *
@@ -36,7 +36,7 @@ class NewsObserver
     {
         $slugs = array_unique(array_filter([$news->slug, $news->getOriginal('slug')]));
 
-        $news->loadMissing(['author', 'publisher', 'players', 'teams', 'tournaments']);
+        $news->loadMissing(['author', 'organization', 'players', 'teams', 'tournaments']);
 
         $baseUrl = rtrim((string) config('app.url'), '/');
 
@@ -47,8 +47,8 @@ class NewsObserver
             $urls[] = "{$baseUrl}/news/author/{$news->author->slug}";
         }
 
-        if ($news->publisher) {
-            $urls[] = "{$baseUrl}/news/publisher/{$news->publisher->slug}";
+        if ($news->organization) {
+            $urls[] = "{$baseUrl}/news/organization/{$news->organization->id}/{$news->organization->routeSlug()}";
         }
 
         foreach ($news->players as $player) {
@@ -77,8 +77,8 @@ class NewsObserver
             Cache::forget("news_author_{$news->author->slug}");
         }
 
-        if ($news->publisher) {
-            Cache::forget("news_publisher_{$news->publisher->slug}");
+        if ($news->organization) {
+            Cache::forget("news_organization_{$news->organization->id}_{$news->organization->updated_at->timestamp}");
         }
     }
 }

@@ -17,9 +17,9 @@
 namespace App\Http\Controllers\Public;
 
 use App\Models\News;
-use App\Models\NewsPublisher;
+use App\Models\Organization;
 use App\Models\User;
-use App\Support\PublisherPermissions;
+use App\Support\OrganizationPermissions;
 use App\Support\UserRoleSummary;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -45,7 +45,7 @@ class UserProfileController extends Controller
 
         $filters = array_filter($request->only(['lang', 'from', 'until']), fn ($v) => $v !== null && $v !== '');
 
-        $articles = News::with(['publisher.currentLogo', 'author.currentLogo'])
+        $articles = News::with(['organization', 'author.currentLogo'])
             ->where('author_id', $user->newsAuthor->id)
             ->where('status', 'published')
             ->when(isset($filters['lang']), fn ($q) => $q->where('lang', $filters['lang']))
@@ -66,17 +66,17 @@ class UserProfileController extends Controller
     }
 
     /**
-     * @return array{profileUser: User, publishers: Collection}
+     * @return array{profileUser: User, organizations: Collection}
      */
     private function sharedData(User $user): array
     {
         $user->load(['player', 'team', 'roles:id,name', 'newsAuthor']);
 
-        $publisherIds = UserRoleSummary::rolesGroupedByTeam($user->id, PublisherPermissions::GUARD)->keys()->all();
+        $organizationIds = UserRoleSummary::rolesGroupedByTeam($user->id, OrganizationPermissions::GUARD)->keys()->all();
 
         return [
             'profileUser' => $user,
-            'publishers' => NewsPublisher::whereIn('id', $publisherIds)->orderBy('name')->get(['id', 'name', 'slug']),
+            'organizations' => Organization::whereIn('id', $organizationIds)->orderBy('name')->get(['id', 'name', 'slug']),
         ];
     }
 }

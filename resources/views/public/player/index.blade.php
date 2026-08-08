@@ -62,10 +62,13 @@
                 </div>
                 @if(count($currentTeams) > 0)
                     @foreach($currentTeams as $currentTeam)
-                        @php $currentTeamRole = $currentTeam['pivot']['role'] ?? null; @endphp
+                        @php
+                            $currentTeamRole = $currentTeam['pivot']['role'] ?? null;
+                            $currentTeamRoleHelper = ($currentTeam['source'] ?? 'player') === 'staff' ? \App\Helpers\StaffRoleLabel::class : \App\Helpers\RosterRole::class;
+                        @endphp
                         <a href="{{ route('teams.show', [$currentTeam['id'], str($currentTeam['name'] ?? '')->slug()]) }}" class="group block mb-2">
                             <div class="tournament-card flex bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm overflow-hidden hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
-                                <div class="w-1 shrink-0 {{ \App\Helpers\RosterRole::barClass($currentTeamRole) }}"></div>
+                                <div class="w-1 shrink-0 {{ $currentTeamRoleHelper::barClass($currentTeamRole) }}"></div>
 
                                 <div class="flex items-center gap-4 p-3 flex-1 min-w-0">
                                     <div class="relative shrink-0">
@@ -79,8 +82,8 @@
                                         </p>
 
                                         <div class="flex items-center gap-2 mt-1">
-                                            <span class="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm {{ \App\Helpers\RosterRole::badgeClass($currentTeamRole) }}">
-                                                {{ \App\Helpers\RosterRole::label($currentTeamRole) }}
+                                            <span class="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm {{ $currentTeamRoleHelper::badgeClass($currentTeamRole) }}">
+                                                {{ $currentTeamRoleHelper::label($currentTeamRole, $player['staff']['pronouns'] ?? null) }}
                                             </span>
                                             <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">
                                                 Since {{ \App\Helpers\PivotDate::format($currentTeam['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
@@ -95,6 +98,44 @@
                     <p class="text-xs font-bold text-gray-500">{{ __("player.no_team") }}</p>
                 @endif
             </div>
+
+            @if(count($staffOrganizations ?? []) > 0)
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-[9px] font-black uppercase tracking-[0.25em] text-white/60 shrink-0">{{ __('staff.organizations') }}</span>
+                        <div class="h-px flex-grow" style="background: linear-gradient(90deg, rgba(228,174,34,0.5) 0%, rgba(228,174,34,0.05) 60%, transparent 100%)"></div>
+                    </div>
+                    @foreach($staffOrganizations as $organization)
+                        @php $organizationRole = $organization['pivot']['role'] ?? null; @endphp
+                        <a href="{{ route('organizations.show', [$organization['id'], str($organization['name'])->slug()]) }}" class="group block mb-2">
+                            <div class="tournament-card flex bg-[#050505] hover:bg-bg-main border border-white/5 rounded-sm overflow-hidden hover:border-[var(--brand-yellow)]/30 transition-all duration-300 shadow-lg">
+                                <div class="w-1 shrink-0 {{ \App\Helpers\StaffRoleLabel::barClass($organizationRole) }}"></div>
+
+                                <div class="flex items-center gap-4 p-3 flex-1 min-w-0">
+                                    <div class="relative shrink-0">
+                                        <img class="w-10 h-10 object-contain" src="{{ $organization['logo'] ?? asset('storage/images/default-team.webp') }}" alt="">
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-black tracking-tight text-white group-hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                            {{ $organization['name'] }}
+                                        </p>
+
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm {{ \App\Helpers\StaffRoleLabel::badgeClass($organizationRole) }}">
+                                                {{ \App\Helpers\StaffRoleLabel::label($organizationRole, $player['staff']['pronouns'] ?? null) }}
+                                            </span>
+                                            <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">
+                                                Since {{ \App\Helpers\PivotDate::format($organization['pivot']['joined_at'] ?? null, 'm/Y') ?? 'UNKNOWN' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
 
             @if(count($pastTeams) > 0)
                 <div>
@@ -142,6 +183,7 @@
                     </div>
                 </div>
             @endif
+
         </aside>
     </div>
 @endsection

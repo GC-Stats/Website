@@ -111,6 +111,15 @@
                 :options="collect(['' => __('admin.tournaments.point_type_none')])->union($pointTypes->mapWithKeys(fn ($pointType) => [$pointType->id => $pointType->name]))" />
         </label>
 
+        <div>
+            <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.organized_by') }}</span>
+            <livewire:entity-picker
+                type="organization"
+                name="organized_by"
+                :selected="old('organized_by', $tournament->organized_by ?? null)"
+            />
+        </div>
+
         @if ($tournament ?? null)
             <label class="block">
                 <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.status_column') }}</span>

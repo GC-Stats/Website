@@ -40,11 +40,18 @@
     `x-bind:` form instead, which passes straight through untouched:
         <x-styled-select x-model="row.team" x-bind:name="`maps[${index}][team]`" x-bind:disabled="!canPickSide(row)" :options="..." />
 
+    5. Searchable — adds a filter input at the top of the dropdown (same
+       teleport/positioning as the plain mode), for option lists long enough
+       that scrolling to find one is annoying (role pickers, etc.). Filters
+       by label, case-insensitive, client-side. Pattern lifted from the
+       map-veto picker (resources/views/admin/matches/veto.blade.php):
+        <x-styled-select name="role" :options="$roles" searchable />
+
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
-@props(['name' => null, 'options' => [], 'selected' => null, 'autosubmit' => false, 'navigate' => false, 'disabled' => false])
+@props(['name' => null, 'options' => [], 'selected' => null, 'autosubmit' => false, 'navigate' => false, 'disabled' => false, 'searchable' => false])
 
 @php
     $optionList = collect($options)->map(fn ($label, $value) => ['value' => (string) $value, 'label' => $label])->values();
@@ -53,6 +60,8 @@
 <div
     x-data="{
         open: false,
+        searchable: {{ \Illuminate\Support\Js::from((bool) $searchable) }},
+        query: '',
         value: {{ \Illuminate\Support\Js::from((string) $selected) }},
         options: {{ \Illuminate\Support\Js::from($optionList) }},
         rect: { top: 0, left: 0, width: 0 },
@@ -60,13 +69,23 @@
             const found = this.options.find(o => o.value === String(this.value));
             return found ? found.label : this.value;
         },
-
+        get visibleOptions() {
+            if (! this.searchable || ! this.query) {
+                return this.options;
+            }
+            const q = this.query.toLowerCase();
+            return this.options.filter(o => o.label.toLowerCase().includes(q));
+        },
 
         toggle(event) {
             this.open = ! this.open;
             if (this.open) {
                 const r = event.currentTarget.getBoundingClientRect();
                 this.rect = { top: r.bottom + 4, left: r.left, width: r.width };
+                this.query = '';
+                if (this.searchable) {
+                    this.$nextTick(() => this.$refs.search?.focus());
+                }
             }
         },
         select(v) {
@@ -102,12 +121,23 @@
         <div x-show="open" x-cloak @click.outside="open = false" @scroll.window="open = false"
              data-dropdown-portal
              :style="`top: ${rect.top}px; left: ${rect.left}px; width: ${rect.width}px;`"
-             class="fixed z-[100] min-w-max bg-bg-card border border-white/10 rounded-lg shadow-xl max-h-64 overflow-y-auto">
-            <template x-for="opt in options" :key="opt.value">
-                <button type="button" @click="select(opt.value)" x-text="opt.label"
-                        class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white/5 transition"
-                        :class="opt.value === String(value) && 'bg-white/5'"></button>
-            </template>
+             class="fixed z-[100] min-w-max bg-bg-card border border-white/10 rounded-lg shadow-xl overflow-hidden">
+            @if($searchable)
+                <div class="p-2 border-b border-white/10">
+                    <input type="text" x-ref="search" x-model="query"
+                           placeholder="{{ __('components.styled_select.search_placeholder') }}"
+                           class="w-full bg-white/5 border border-white/10 rounded-md px-3 py-1.5 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
+                </div>
+            @endif
+            <div class="max-h-64 overflow-y-auto">
+                <template x-for="opt in visibleOptions" :key="opt.value">
+                    <button type="button" @click="select(opt.value)" x-text="opt.label"
+                            class="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white/5 transition"
+                            :class="opt.value === String(value) && 'bg-white/5'"></button>
+                </template>
+                <p x-show="searchable && visibleOptions.length === 0" x-cloak
+                   class="px-4 py-2 text-xs text-gray-500">{{ __('components.styled_select.no_results') }}</p>
+            </div>
         </div>
     </template>
 

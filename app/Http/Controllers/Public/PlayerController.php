@@ -118,10 +118,11 @@ class PlayerController extends Controller
         $tag = "player_{$id}";
 
         $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($id, $player) {
-            $mapTeam = fn ($team) => [
+            $mapTeam = fn ($team, string $source = 'player') => [
                 'id' => $team->id,
                 'name' => $team->name,
                 'logo' => $team->logo,
+                'source' => $source,
                 'pivot' => [
                     'role' => $team->pivot->role,
                     'joined_at' => $team->pivot->joined_at ? Carbon::parse($team->pivot->joined_at)->toDateString() : null,
@@ -145,8 +146,32 @@ class PlayerController extends Controller
                 ->limit(5)
                 ->get();
 
+            $player->loadMissing(['staff.currentOrganizations', 'staff.currentTeams']);
+
             $currentTeams = $currentTeamModel->map($mapTeam)->all();
             $pastTeams = $pastTeamsModels->map($mapTeam)->all();
+
+            // A staff member's direct team affiliations (coach, analyst, ...) read
+            // as "current teams" too, from the same real person — merged into the
+            // same list as the player's own roster spot, distinguished by 'source'.
+            if ($player->staff) {
+                $currentTeams = array_merge(
+                    $currentTeams,
+                    $player->staff->currentTeams->map(fn ($team) => $mapTeam($team, 'staff'))->all()
+                );
+            }
+
+            $staffOrganizations = $player->staff
+                ? $player->staff->currentOrganizations->map(fn ($organization) => [
+                    'id' => $organization->id,
+                    'name' => $organization->name,
+                    'logo' => $organization->logo,
+                    'pivot' => [
+                        'role' => $organization->pivot->role,
+                        'joined_at' => $organization->pivot->joined_at ? Carbon::parse($organization->pivot->joined_at)->toDateString() : null,
+                    ],
+                ])->all()
+                : [];
 
             $baseMatchQuery = $this->playerMatchesQuery($id);
 
@@ -175,13 +200,14 @@ class PlayerController extends Controller
                 'player' => $player->makeHidden(['teams'])->toArray(),
                 'currentTeams' => $currentTeams,
                 'pastTeams' => $pastTeams,
+                'staffOrganizations' => $staffOrganizations,
                 'upcomingMatches' => $processMatches($upcomingMatchesRaw),
                 'pastMatches' => $processMatches($pastMatchesRaw),
                 'achievements' => Achievements::forEntity($player),
             ];
         });
 
-        $news = News::with(['author', 'publisher'])
+        $news = News::with(['author', 'organization'])
             ->published()
             ->forLocale(app()->getLocale())
             ->whereHas('players', fn ($q) => $q->where('players.id', $id))
@@ -208,6 +234,8 @@ class PlayerController extends Controller
         $tag = "player_{$id}";
 
         $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($player) {
+            $player->loadMissing('staff');
+
             $paginated = $player->teams()
                 ->select('teams.id', 'teams.name')
                 ->withPivot('role', 'joined_at', 'left_at')
@@ -268,7 +296,7 @@ class PlayerController extends Controller
         }
 
         $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id) {
-            $player = Player::findOrFail($id)->toArray();
+            $player = Player::with('staff')->findOrFail($id)->toArray();
 
             $paginated = $this->playerMatchesQuery($id)
                 ->orderBy('matches.scheduled_at', 'desc')
@@ -346,7 +374,7 @@ class PlayerController extends Controller
         }
 
         $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $start, $end, $isAllTime) {
-            $player = Player::findOrFail($id);
+            $player = Player::with('staff')->findOrFail($id);
 
             $stats = GamePlayerStat::query()
                 ->selectRaw('
