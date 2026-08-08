@@ -19,12 +19,14 @@ use App\Models\News;
 use App\Models\Tournament;
 use App\Support\CurrentTheme;
 use App\Support\MatchDisplay;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
-    protected function matchesQuery(): \Illuminate\Database\Eloquent\Builder
+    protected function matchesQuery(): Builder
     {
         return Matchs::query()
             ->select([
@@ -55,7 +57,7 @@ class HomeController extends Controller
             ]);
     }
 
-    protected function mapMatches(\Illuminate\Support\Collection $matches): array
+    protected function mapMatches(Collection $matches): array
     {
         return $matches
             ->map(fn ($m) => [
