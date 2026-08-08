@@ -26,8 +26,6 @@
 
     $linkify = fn (?string $text) => \App\Support\TextLinkifier::linkify($text);
 
-    $socialConfig = \App\Support\SocialLinkConfig::map();
-
     $projectTypeConfig = collect([
         'website' => ['icon' => 'fas-globe', 'color' => '#e4ae22'],
         'api' => ['icon' => 'fas-code', 'color' => '#F54927'],
@@ -70,45 +68,36 @@
                     </div>
                     <div class="flex flex-wrap justify-center gap-4">
                         @foreach($team as $member)
-                            <a href="{{ route('users.show', $member->username) }}"
-                               class="group relative bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-xl hover:bg-white/[0.05] hover:border-[var(--brand-yellow)]/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center overflow-hidden w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)]">
+                            <div class="group relative bg-white/[0.03] border border-white/10 rounded-2xl p-6 shadow-xl hover:bg-white/[0.05] hover:border-[var(--brand-yellow)]/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center overflow-hidden w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)]">
+                                <a href="{{ route('users.show', $member->username) }}" class="absolute inset-0" aria-label="{{ $member->name }}"></a>
+
                                 <div class="absolute top-0 right-0 w-24 h-24 bg-white/[0.02] -rotate-45 translate-x-12 -translate-y-12 pointer-events-none"></div>
 
-                                <div class="relative shrink-0 mb-4">
+                                <div class="relative shrink-0 mb-4 pointer-events-none">
                                     <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
                                     <x-user-avatar :user="$member" class="relative w-20 h-20 rounded-full border-2 border-white/10 bg-black/60 shadow-lg group-hover:border-[var(--brand-yellow)]/40 group-hover:scale-105 transition-all duration-300 text-xl" />
                                 </div>
 
-                                <h3 class="relative text-sm font-black text-white uppercase tracking-wide">
+                                <h3 class="relative text-sm font-black text-white uppercase tracking-wide pointer-events-none">
                                     {{ $member->name }}
                                 </h3>
 
                                 @if($member->roles->isNotEmpty())
-                                    <p class="relative text-[10px] font-bold uppercase tracking-widest text-gc-yellow mt-1">
+                                    <p class="relative text-[10px] font-bold uppercase tracking-widest text-gc-yellow mt-1 pointer-events-none">
                                         {{ $member->roles->pluck('name')->join(', ') }}
                                     </p>
                                 @endif
 
                                 @if($member->bio)
-                                    <p class="relative text-xs text-gray-400 leading-relaxed mt-3 whitespace-pre-line">
+                                    <p class="relative text-xs text-gray-400 leading-relaxed mt-3 whitespace-pre-line pointer-events-none">
                                         {{ $member->bio }}
                                     </p>
                                 @endif
 
                                 @if(! empty($member->socials))
-                                    <div class="relative flex gap-2 mt-4">
-                                        @foreach($member->socials as $platform => $username)
-                                            @if($username && $socialConfig->has($platform))
-                                                @php $cfg = $socialConfig->get($platform); @endphp
-                                                <span aria-label="{{ ucfirst($platform) }}: {{ $username }}"
-                                                      class="w-8 h-8 bg-white/5 border border-white/10 rounded-md flex items-center justify-center text-gray-400 group-hover:text-gc-yellow group-hover:border-gc-yellow/40 transition-colors">
-                                                    @svg($cfg['icon'], 'w-3 h-3 inline-block', ['aria-hidden' => 'true'])
-                                                </span>
-                                            @endif
-                                        @endforeach
-                                    </div>
+                                    <x-social-links :socials="$member->socials" class="relative z-10 mt-4" />
                                 @endif
-                            </a>
+                            </div>
                         @endforeach
                     </div>
                 </div>
