@@ -35,6 +35,7 @@ require __DIR__.'/admin.php';
 require __DIR__.'/developers.php';
 require __DIR__.'/data_explorer.php';
 require __DIR__.'/organization.php';
+require __DIR__.'/personal-dashboard.php';
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 

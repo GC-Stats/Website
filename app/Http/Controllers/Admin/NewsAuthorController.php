@@ -24,6 +24,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ResolvesDashboardContext;
 use App\Http\Controllers\Public\Controller;
 use App\Models\NewsAuthor;
 use App\Models\Organization;
@@ -40,19 +41,20 @@ use Illuminate\Validation\ValidationException;
 
 class NewsAuthorController extends Controller
 {
-    private function isDashboard(): bool
-    {
-        return request()->routeIs('organization-dashboard.*');
-    }
+    use ResolvesDashboardContext;
 
     private function routePrefix(): string
     {
-        return $this->isDashboard() ? 'organization-dashboard.news.author.' : 'admin.news.authors.';
+        return $this->dashboardContext('organization-dashboard.news.author.', 'personal-dashboard.news.author.', 'admin.news.authors.');
     }
 
     private function viewName(string $page): string
     {
-        return $this->isDashboard() ? "organization.dashboard.news.author.{$page}" : "admin.news.authors.{$page}";
+        return $this->dashboardContext(
+            "organization.dashboard.news.author.{$page}",
+            "personal-dashboard.news.author.{$page}",
+            "admin.news.authors.{$page}",
+        );
     }
 
     public function index(Request $request): View|RedirectResponse

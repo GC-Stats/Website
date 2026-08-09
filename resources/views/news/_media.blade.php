@@ -85,7 +85,7 @@
                         class="shrink-0 font-bold uppercase text-[10px] tracking-widest px-2 py-1.5 rounded-lg transition active:scale-95 border"
                         :class="copied ? 'bg-green-500/10 border-green-500/40 text-green-400' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'"
                     >{{ __('admin.news.media.copy') }}</button>
-                    @if ($image->news && (auth()->user()->can('news.edit') || $editableOrganizationIds->contains($image->news->organization_id)) && $image->url !== $image->news->image_cover)
+                    @if ($image->news && (auth()->user()->can('news.edit') || $editableOrganizationIds->contains($image->news->organization_id) || (! $image->news->organization_id && $image->news->author_id === auth()->user()->newsAuthor?->id && auth()->user()->can('news.author'))) && $image->url !== $image->news->image_cover)
                         <form method="POST" action="{{ route('admin.news.media.cover.update', [$image->news, $image]) }}">
                             @csrf
                             @method('PUT')
@@ -96,7 +96,8 @@
                         </form>
                     @endif
                     @if (auth()->user()->can('news.media.delete')
-                            || ($image->news && $deletableOrganizationIds->contains($image->news->organization_id)))
+                            || ($image->news && $deletableOrganizationIds->contains($image->news->organization_id))
+                            || ($image->news && ! $image->news->organization_id && $image->news->author_id === auth()->user()->newsAuthor?->id && auth()->user()->can('news.author')))
                         <form method="POST" action="{{ route('admin.news.media.destroy', $image) }}">
                             @csrf
                             @method('DELETE')

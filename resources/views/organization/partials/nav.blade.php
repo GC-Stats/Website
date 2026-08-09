@@ -6,8 +6,9 @@
     are already pre-filtered by permission via array_filter() in
     organization/layout.blade.php (no per-item 'can' Gate lookup here,
     since visibility depends on the *specific organization* being viewed,
-    not a global ability), and every route() call carries $organization as
-    its route parameter. Each group's collapsed/expanded state persists
+    not a global ability), and every route() call carries $routeParams (the
+    layout's $homeRouteParams — [$organization], or [] in personal-dashboard
+    mode) as its route parameters. Each group's collapsed/expanded state persists
     per-browser in localStorage, keyed by index — open by default so a
     first-time visitor sees everything.
 
@@ -26,7 +27,7 @@
             </button>
             <div x-show="open" x-collapse.duration.150ms class="space-y-0.5">
                 @foreach ($group['items'] as $item)
-                    <a href="{{ route($item['route'], $organization) }}"
+                    <a href="{{ route($item['route'], $routeParams) }}"
                        @if(request()->routeIs($item['pattern'])) aria-current="page" @endif
                        class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs($item['pattern']) ? 'bg-gc-yellow text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
                         @svg($item['icon'], 'w-3.5 h-3.5 shrink-0', ['aria-hidden' => 'true'])

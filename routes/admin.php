@@ -448,6 +448,11 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
     Route::prefix('users')->name('users.')->middleware(['can:users.view'])->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('/{user}', [UserController::class, 'show'])->name('show');
+
+        // Role-less grant: see UserController::toggleNewsAuthor()'s docblock
+        // for why this bypasses Admin\RoleController entirely.
+        Route::put('/{user}/news-author', [UserController::class, 'toggleNewsAuthor'])
+            ->middleware('can:manage-roles')->name('news-author.toggle');
     });
 
     Route::prefix('about')->name('about.')->group(function () {

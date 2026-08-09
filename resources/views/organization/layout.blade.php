@@ -5,12 +5,30 @@
     fixed sidebar + top bar principle as admin.layout/developers.layout, but
     scoped to a single organization and reachable by anyone holding a role
     on it (see App\Services\OrganizationAccessService), not just site admins.
-    Expects $organization to be in scope on every page that extends this.
+
+    Also doubles as the shell for dashboard/me (routes/personal-dashboard.php)
+    — a lone author with no organization at all — by accepting
+    $organization === null (or simply unset) as "personal mode". Every place
+    that would otherwise read $organization->name/logo/id or hardcode an
+    'organization-dashboard.*' route name goes through the $isPersonal/
+    $routePrefix/$homeRouteParams/$dashboardTitle/$dashboardLogo variables
+    computed below instead, so this one file serves both contexts without
+    scattering an `$organization ? ... : ...` at every call site.
 
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
+@php
+    $organization = $organization ?? null;
+    $isPersonal = $organization === null;
+    $routePrefix = $isPersonal ? 'personal-dashboard.' : 'organization-dashboard.';
+    $homeRouteParams = $isPersonal ? [] : [$organization];
+    $dashboardTitle = $isPersonal
+        ? (auth()->user()->newsAuthor?->name ?? auth()->user()->name)
+        : $organization->name;
+    $dashboardLogo = $isPersonal ? auth()->user()->newsAuthor?->logo : $organization->logo;
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -27,7 +45,7 @@
         })();
     </script>
 
-    <title>@yield('title', '') | {{ $organization->name }} | {{ config('app.name') }}</title>
+    <title>@yield('title', '') | {{ $dashboardTitle }} | {{ config('app.name') }}</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -37,42 +55,43 @@
     <x-public.verify-email-banner />
 
     @php
-        $canManageRoles = auth()->user()->can('organizations.roles.manage')
-            || app(\App\Services\OrganizationAccessService::class)->hasOrganizationPermission(auth()->user(), $organization, null, 'organization.roles.manage');
+        $canManageRoles = ! $isPersonal && (auth()->user()->can('organizations.roles.manage')
+            || app(\App\Services\OrganizationAccessService::class)->hasOrganizationPermission(auth()->user(), $organization, null, 'organization.roles.manage'));
 
-        $canViewNews = app(\App\Services\OrganizationAccessService::class)
-            ->hasOrganizationPermission(auth()->user(), $organization, 'news.view', 'organization.news.view');
+        $canViewNews = $isPersonal
+            ? auth()->user()->can('news.author')
+            : app(\App\Services\OrganizationAccessService::class)->hasOrganizationPermission(auth()->user(), $organization, 'news.view', 'organization.news.view');
 
-        $canViewStreams = app(\App\Services\OrganizationAccessService::class)
+        $canViewStreams = ! $isPersonal && app(\App\Services\OrganizationAccessService::class)
             ->hasOrganizationPermission(auth()->user(), $organization, 'streams.channels.view', 'organization.streams.view');
 
-        $canLinkVods = app(\App\Services\OrganizationAccessService::class)
+        $canLinkVods = ! $isPersonal && app(\App\Services\OrganizationAccessService::class)
             ->hasOrganizationPermission(auth()->user(), $organization, 'vods.matches.link', 'organization.vods.link');
 
-        $canViewApiKeys = app(\App\Services\OrganizationAccessService::class)
+        $canViewApiKeys = ! $isPersonal && app(\App\Services\OrganizationAccessService::class)
             ->hasOrganizationPermission(auth()->user(), $organization, 'api-keys.view', 'organization.api-keys.view');
 
-        $canManageExperience = app(\App\Services\OrganizationAccessService::class)->canManageExperience(auth()->user(), $organization);
+        $canManageExperience = ! $isPersonal && app(\App\Services\OrganizationAccessService::class)->canManageExperience(auth()->user(), $organization);
 
         $navGroups = [
             [
                 'label' => __('organization.dashboard.nav.group_news'),
                 'items' => array_filter([
                     $canViewNews ? [
-                        'route' => 'organization-dashboard.news.index',
-                        'pattern' => ['organization-dashboard.news.index', 'organization-dashboard.news.create', 'organization-dashboard.news.edit', 'organization-dashboard.news.update', 'organization-dashboard.news.destroy', 'organization-dashboard.news.publish', 'organization-dashboard.news.archive', 'organization-dashboard.news.validate', 'organization-dashboard.news.comments.*'],
+                        'route' => $routePrefix.'news.index',
+                        'pattern' => [$routePrefix.'news.index', $routePrefix.'news.create', $routePrefix.'news.edit', $routePrefix.'news.update', $routePrefix.'news.destroy', $routePrefix.'news.publish', $routePrefix.'news.archive', $routePrefix.'news.validate', $routePrefix.'news.comments.*'],
                         'label' => __('organization.dashboard.nav.news'),
                         'icon' => 'fas-newspaper',
                     ] : null,
                     $canViewNews ? [
-                        'route' => 'organization-dashboard.news.media.index',
-                        'pattern' => 'organization-dashboard.news.media.*',
+                        'route' => $routePrefix.'news.media.index',
+                        'pattern' => $routePrefix.'news.media.*',
                         'label' => __('organization.dashboard.nav.news_media'),
                         'icon' => 'fas-images',
                     ] : null,
                     $canViewNews ? [
-                        'route' => 'organization-dashboard.news.author.my',
-                        'pattern' => 'organization-dashboard.news.author.*',
+                        'route' => $routePrefix.'news.author.my',
+                        'pattern' => $routePrefix.'news.author.*',
                         'label' => __('organization.dashboard.nav.news_author'),
                         'icon' => 'fas-pen',
                     ] : null,
@@ -118,30 +137,41 @@
 
     <div class="flex min-h-screen">
         <aside class="hidden lg:flex lg:flex-col w-64 shrink-0 border-r border-white/10 bg-black/40 backdrop-blur-xl h-screen sticky top-0">
-            <a href="{{ route('organization-dashboard.index', $organization) }}" class="flex items-center gap-2 px-6 h-16 border-b border-white/10 shrink-0 min-w-0">
-                <img src="{{ $organization->logo }}" alt="" class="w-6 h-6 object-contain shrink-0">
-                <span class="text-sm font-black tracking-tight text-white uppercase truncate">{{ $organization->name }}</span>
+            <a href="{{ route($routePrefix.'index', $homeRouteParams) }}" class="flex items-center gap-2 px-6 h-16 border-b border-white/10 shrink-0 min-w-0">
+                @if ($dashboardLogo)
+                    <img src="{{ $dashboardLogo }}" alt="" class="w-6 h-6 object-contain shrink-0">
+                @else
+                    @svg('fas-pen', 'w-4 h-4 text-[var(--brand-yellow)] shrink-0', ['aria-hidden' => 'true'])
+                @endif
+                <span class="text-sm font-black tracking-tight text-white uppercase truncate">{{ $dashboardTitle }}</span>
             </a>
 
             <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-5">
                 <div class="pb-5 mb-5 border-b border-white/10">
-                    <a href="{{ route('organization-dashboard.index', $organization) }}"
-                       @if(request()->routeIs('organization-dashboard.index')) aria-current="page" @endif
-                       class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs('organization-dashboard.index') ? 'bg-gc-yellow text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
+                    <a href="{{ route($routePrefix.'index', $homeRouteParams) }}"
+                       @if(request()->routeIs($routePrefix.'index')) aria-current="page" @endif
+                       class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs($routePrefix.'index') ? 'bg-gc-yellow text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
                         @svg('fas-building', 'w-3.5 h-3.5 shrink-0', ['aria-hidden' => 'true'])
                         <span class="truncate">{{ __('organization.dashboard.nav.overview') }}</span>
                     </a>
                 </div>
 
-                @include('organization.partials.nav', ['navGroups' => $navGroups, 'organization' => $organization])
+                @include('organization.partials.nav', ['navGroups' => $navGroups, 'routeParams' => $homeRouteParams])
             </nav>
 
             <div class="border-t border-white/10 p-3 space-y-1">
-                <a href="{{ route('organizations.show', [$organization->id, $organization->routeSlug()]) }}" target="_blank" rel="noopener"
-                   class="flex items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-all">
-                    @svg('fas-arrow-up-right-from-square', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
-                    {{ __('organization.dashboard.nav.public_page') }}
-                </a>
+                @php
+                    $publicPageRoute = $isPersonal
+                        ? (auth()->user()->newsAuthor ? route('news.author', auth()->user()->newsAuthor->slug) : null)
+                        : route('organizations.show', [$organization->id, $organization->routeSlug()]);
+                @endphp
+                @if ($publicPageRoute)
+                    <a href="{{ $publicPageRoute }}" target="_blank" rel="noopener"
+                       class="flex items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-all">
+                        @svg('fas-arrow-up-right-from-square', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
+                        {{ __('organization.dashboard.nav.public_page') }}
+                    </a>
+                @endif
                 <a href="{{ route('home') }}" class="flex items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-widest rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-all">
                     @svg('fas-arrow-left', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
                     {{ __('organization.dashboard.nav.back_to_site') }}
@@ -155,22 +185,22 @@
         <aside x-show="sidebarOpen" x-cloak x-transition
                class="lg:hidden fixed inset-y-0 left-0 z-[95] w-64 bg-bg-main border-r border-white/10 flex flex-col">
             <div class="flex items-center justify-between px-6 h-16 border-b border-white/10">
-                <span class="text-sm font-black tracking-tight text-white uppercase truncate">{{ $organization->name }}</span>
+                <span class="text-sm font-black tracking-tight text-white uppercase truncate">{{ $dashboardTitle }}</span>
                 <button @click="sidebarOpen = false" aria-label="{{ __('layout.nav.close_menu') }}">
                     @svg('fas-xmark', 'w-4 h-4 text-gray-400', ['aria-hidden' => 'true'])
                 </button>
             </div>
             <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-5">
                 <div class="pb-5 mb-5 border-b border-white/10">
-                    <a href="{{ route('organization-dashboard.index', $organization) }}"
-                       @if(request()->routeIs('organization-dashboard.index')) aria-current="page" @endif
-                       class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs('organization-dashboard.index') ? 'bg-gc-yellow text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
+                    <a href="{{ route($routePrefix.'index', $homeRouteParams) }}"
+                       @if(request()->routeIs($routePrefix.'index')) aria-current="page" @endif
+                       class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs($routePrefix.'index') ? 'bg-gc-yellow text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
                         @svg('fas-building', 'w-3.5 h-3.5 shrink-0', ['aria-hidden' => 'true'])
                         <span class="truncate">{{ __('organization.dashboard.nav.overview') }}</span>
                     </a>
                 </div>
 
-                @include('organization.partials.nav', ['navGroups' => $navGroups, 'organization' => $organization])
+                @include('organization.partials.nav', ['navGroups' => $navGroups, 'routeParams' => $homeRouteParams])
             </nav>
         </aside>
 
@@ -180,7 +210,7 @@
                     <button @click="sidebarOpen = true" class="lg:hidden" aria-label="{{ __('layout.nav.open_menu') }}">
                         @svg('fas-bars', 'w-4 h-4 text-gray-400', ['aria-hidden' => 'true'])
                     </button>
-                    <h1 class="text-sm font-black uppercase tracking-widest text-white truncate">@yield('title', $organization->name)</h1>
+                    <h1 class="text-sm font-black uppercase tracking-widest text-white truncate">@yield('title', $dashboardTitle)</h1>
                 </div>
             </header>
 

@@ -48,6 +48,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\ManagesNewsAccess;
+use App\Http\Controllers\Concerns\ResolvesDashboardContext;
 use App\Http\Controllers\Public\Controller;
 use App\Models\News;
 use App\Models\NewsComment;
@@ -70,24 +71,24 @@ use Illuminate\Validation\Rule;
 class NewsController extends Controller
 {
     use ManagesNewsAccess;
+    use ResolvesDashboardContext;
 
     private const SORTABLE = ['title', 'author', 'organization', 'status'];
 
     public const REVIEWABLE_FIELDS = ['title', 'excerpt', 'content', 'image_cover'];
 
-    private function isDashboard(): bool
-    {
-        return request()->routeIs('organization-dashboard.*');
-    }
-
     private function routePrefix(): string
     {
-        return $this->isDashboard() ? 'organization-dashboard.news.' : 'admin.news.';
+        return $this->dashboardContext('organization-dashboard.news.', 'personal-dashboard.news.', 'admin.news.');
     }
 
     private function viewName(string $page): string
     {
-        return $this->isDashboard() ? "organization.dashboard.news.{$page}" : "admin.news.{$page}";
+        return $this->dashboardContext(
+            "organization.dashboard.news.{$page}",
+            "personal-dashboard.news.{$page}",
+            "admin.news.{$page}",
+        );
     }
 
     public function index(Request $request, ?Organization $organization = null): View
@@ -95,10 +96,20 @@ class NewsController extends Controller
         $user = $request->user();
         $access = app(OrganizationAccessService::class);
 
+        $ownAuthorId = null;
+
         if ($organization) {
             abort_unless($access->hasOrganizationPermission($user, $organization, 'news.view', 'organization.news.view'), 403);
             $editableOrganizationIds = null;
             $canEditArticle = fn () => $access->hasOrganizationPermission($user, $organization, 'news.edit', 'organization.news.edit');
+        } elseif ($this->isPersonalDashboard()) {
+            // No abort here: reaching this route at all already requires
+            // news.author (see routes/personal-dashboard.php), and the
+            // listing is always scoped to the user's own author id below —
+            // there's nothing left to further restrict.
+            $ownAuthorId = $user->newsAuthor?->id;
+            $editableOrganizationIds = collect();
+            $canEditArticle = fn () => true;
         } else {
             $allowedOrganizationIds = $user->can('news.view') ? null : $this->allowedOrganizationIds($request, 'organization.news.view');
             abort_if($allowedOrganizationIds !== null && $allowedOrganizationIds->isEmpty(), 403);
@@ -117,6 +128,13 @@ class NewsController extends Controller
         $news = News::query()
             ->with(['author', 'organization'])
             ->when($organization, fn ($query) => $query->where('organization_id', $organization->id))
+            ->when($this->isPersonalDashboard(), fn ($query) => $ownAuthorId
+                ? $query->where('author_id', $ownAuthorId)
+                // No profile yet (see the isPersonalDashboard() branch above) —
+                // an Eloquent where() against a null value turns into
+                // whereNull(), which would otherwise return every
+                // unattributed article site-wide instead of none.
+                : $query->whereRaw('1 = 0'))
             ->when($search, fn ($query) => $query->where('title', 'like', '%'.$this->escapeLike($search).'%')
                 ->orWhere('slug', 'like', '%'.$this->escapeLike($search).'%'))
             ->when($status, fn ($query) => $query->where('status', $status))
@@ -147,9 +165,11 @@ class NewsController extends Controller
             'direction' => $direction,
             'routePrefix' => $this->routePrefix(),
             'canEditArticle' => $canEditArticle,
-            'canCreate' => $organization
-                ? $access->hasOrganizationPermission($user, $organization, 'news.create', 'organization.news.edit')
-                : $user->can('news.action.create'),
+            'canCreate' => match (true) {
+                (bool) $organization => $access->hasOrganizationPermission($user, $organization, 'news.create', 'organization.news.edit'),
+                $this->isPersonalDashboard() => true,
+                default => $user->can('news.action.create'),
+            },
         ]);
     }
 

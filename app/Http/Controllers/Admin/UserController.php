@@ -26,6 +26,7 @@ use App\Support\OrganizationScope;
 use App\Support\PermissionTeam;
 use App\Support\UserRoleSummary;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Spatie\Permission\Models\Role;
@@ -86,6 +87,8 @@ class UserController extends Controller
         $reportsReceived = collect();
         $reportsSubmitted = collect();
 
+        $isIndependentAuthor = false;
+
         if ($viewer->can('users.view.details')) {
             $user->load(['roles:id,name', 'socialAccounts', 'passkeys']);
 
@@ -93,6 +96,9 @@ class UserController extends Controller
 
             $organizationRoles = UserRoleSummary::rolesGroupedByTeam($user->id, OrganizationPermissions::GUARD)
                 ->map(fn ($roleNames, $organizationId) => ['name' => $organizationNames[$organizationId] ?? "#{$organizationId}", 'id' => $organizationId, 'roles' => $roleNames]);
+
+            PermissionTeam::global();
+            $isIndependentAuthor = $user->hasPermissionTo('news.author');
         }
 
         if ($viewer->can('players.view')) {
@@ -128,7 +134,37 @@ class UserController extends Controller
             'sanctions' => $sanctions,
             'reportsReceived' => $reportsReceived,
             'reportsSubmitted' => $reportsSubmitted,
+            'isIndependentAuthor' => $isIndependentAuthor,
         ]);
+    }
+
+    /**
+     * Grants/revokes 'news.author' (the site-wide permission behind
+     * dashboard/me, see routes/personal-dashboard.php) directly on the user
+     * — deliberately not via a Role, unlike every other permission in the
+     * app. App\Http\Controllers\Public\AboutController lists anyone holding
+     * a *global role* as site staff on the public "About Us" page; an
+     * independent author who just wants to publish their own articles isn't
+     * staff, so this must never create a model_has_roles row. Gated by the
+     * same super-admin-only 'manage-roles' gate as Admin\RoleController,
+     * since it's still a permission grant.
+     */
+    public function toggleNewsAuthor(Request $request, User $user): RedirectResponse
+    {
+        PermissionTeam::global();
+
+        if ($user->hasPermissionTo('news.author')) {
+            $user->revokePermissionTo('news.author');
+            $status = 'news-author-revoked';
+        } else {
+            $user->givePermissionTo('news.author');
+            $status = 'news-author-granted';
+        }
+
+        activity('administration')->performedOn($user)->causedBy($request->user())
+            ->log($status === 'news-author-granted' ? 'news_author_permission.granted' : 'news_author_permission.revoked');
+
+        return back()->with('status', $status);
     }
 
     /**

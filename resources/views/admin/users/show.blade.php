@@ -120,6 +120,25 @@
                 @empty
                     <p class="text-xs text-gray-600">{{ __('admin.users.no_global_roles') }}</p>
                 @endforelse
+
+                @can('manage-roles')
+                    <div class="mt-4 pt-4 border-t border-white/10">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-white">{{ __('admin.users.independent_author_title') }}</p>
+                                <p class="text-[11px] text-gray-500 leading-relaxed mt-0.5">{{ __('admin.users.independent_author_hint') }}</p>
+                            </div>
+                            <form method="POST" action="{{ route('admin.users.news-author.toggle', $user) }}" class="shrink-0">
+                                @csrf
+                                @method('PUT')
+                                <button type="submit"
+                                        class="font-bold uppercase text-[10px] tracking-widest px-3 py-2 rounded-lg transition active:scale-95 border {{ $isIndependentAuthor ? 'bg-transparent border-red-500/40 text-red-400 hover:bg-red-500/10' : 'bg-gc-yellow border-gc-yellow text-black hover:scale-105' }}">
+                                    {{ $isIndependentAuthor ? __('admin.users.independent_author_revoke') : __('admin.users.independent_author_grant') }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endcan
             </div>
 
             <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-4">
