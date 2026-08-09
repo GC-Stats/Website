@@ -22,13 +22,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('stream_channels', function (Blueprint $table) {
-            $table->foreignId('organization_id')->nullable()->after('publisher_id')->constrained('organization')->nullOnDelete();
-        });
+        if (! Schema::hasColumn('stream_channels', 'organization_id')) {
+            Schema::table('stream_channels', function (Blueprint $table) {
+                $table->foreignId('organization_id')->nullable()->after('publisher_id')->constrained('organization')->nullOnDelete();
+            });
+        }
 
-        Schema::table('vods', function (Blueprint $table) {
-            $table->foreignId('organization_id')->nullable()->after('publisher_id')->constrained('organization')->nullOnDelete();
-        });
+        if (! Schema::hasColumn('vods', 'organization_id')) {
+            Schema::table('vods', function (Blueprint $table) {
+                $table->foreignId('organization_id')->nullable()->after('publisher_id')->constrained('organization')->nullOnDelete();
+            });
+        }
 
         $existingSlugs = DB::table('organization')->pluck('slug')->all();
 
@@ -65,17 +69,23 @@ return new class extends Migration
             DB::table('vods')->where('publisher_id', $publisherId)->update(['organization_id' => $organizationId]);
         }
 
-        Schema::table('news', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('publisher_id');
-        });
+        if (Schema::hasColumn('news', 'publisher_id')) {
+            Schema::table('news', function (Blueprint $table) {
+                $table->dropConstrainedForeignId('publisher_id');
+            });
+        }
 
-        Schema::table('stream_channels', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('publisher_id');
-        });
+        if (Schema::hasColumn('stream_channels', 'publisher_id')) {
+            Schema::table('stream_channels', function (Blueprint $table) {
+                $table->dropConstrainedForeignId('publisher_id');
+            });
+        }
 
-        Schema::table('vods', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('publisher_id');
-        });
+        if (Schema::hasColumn('vods', 'publisher_id')) {
+            Schema::table('vods', function (Blueprint $table) {
+                $table->dropConstrainedForeignId('publisher_id');
+            });
+        }
 
         Schema::dropIfExists('news_publishers');
 
