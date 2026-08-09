@@ -125,6 +125,7 @@ return [
             'api_keys' => 'Clés API',
             'public_page' => 'Page publique',
             'back_to_site' => 'Retour au site',
+            'switch_organization' => 'Changer d\'organisation',
         ],
         'edit' => [
             'title' => 'Modifier',

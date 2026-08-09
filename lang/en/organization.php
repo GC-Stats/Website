@@ -83,6 +83,7 @@ return [
             'api_keys' => 'API Keys',
             'public_page' => 'Public page',
             'back_to_site' => 'Back to site',
+            'switch_organization' => 'Switch organization',
         ],
         'edit' => [
             'title' => 'Edit',

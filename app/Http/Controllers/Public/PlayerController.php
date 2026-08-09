@@ -347,9 +347,9 @@ class PlayerController extends Controller
 
             $periodKey = 'range_'.$start->format('Ymd').'_'.$end->format('Ymd');
         } else {
-            $days = $request->get('days', '0');
+            $days = (int) $request->get('days', 0);
 
-            if ($days === '0') {
+            if ($days === 0) {
                 $isAllTime = true;
                 $periodKey = 'all_time';
             } else {

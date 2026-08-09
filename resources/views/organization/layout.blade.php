@@ -73,6 +73,11 @@
 
         $canManageExperience = ! $isPersonal && app(\App\Services\OrganizationAccessService::class)->canManageExperience(auth()->user(), $organization);
 
+        $switchableOrganizations = $isPersonal ? collect() : \App\Models\Organization::query()
+            ->whereIn('id', \App\Support\OrganizationScope::organizationIdsForUser(auth()->id())->push($organization->id))
+            ->orderBy('name')
+            ->get();
+
         $navGroups = [
             [
                 'label' => __('organization.dashboard.nav.group_news'),
@@ -205,13 +210,60 @@
         </aside>
 
         <div class="flex-1 flex flex-col min-w-0">
-            <header class="flex items-center justify-between h-16 px-4 lg:px-8 border-b border-white/10 bg-black/20 backdrop-blur-xl shrink-0">
+            <header class="relative z-20 flex items-center justify-between h-16 px-4 lg:px-8 border-b border-white/10 bg-black/20 backdrop-blur-xl shrink-0">
                 <div class="flex items-center gap-4 min-w-0">
                     <button @click="sidebarOpen = true" class="lg:hidden" aria-label="{{ __('layout.nav.open_menu') }}">
                         @svg('fas-bars', 'w-4 h-4 text-gray-400', ['aria-hidden' => 'true'])
                     </button>
                     <h1 class="text-sm font-black uppercase tracking-widest text-white truncate">@yield('title', $dashboardTitle)</h1>
                 </div>
+
+                @if ($switchableOrganizations->count() > 1)
+                    <div class="relative shrink-0" x-data="{ open: false }" @click.away="open = false">
+                        <button
+                            @click="open = !open"
+                            aria-haspopup="true"
+                            :aria-expanded="open.toString()"
+                            class="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-[var(--brand-yellow)]/50 transition-all max-w-[200px]">
+                            @if ($organization->logo)
+                                <img src="{{ $organization->logo }}" alt="" class="w-5 h-5 rounded object-contain shrink-0">
+                            @else
+                                @svg('fas-building', 'w-4 h-4 text-gray-400 shrink-0', ['aria-hidden' => 'true'])
+                            @endif
+                            <span class="text-xs font-bold text-white truncate">{{ $organization->name }}</span>
+                            @svg('fas-chevron-down', 'w-2.5 h-2.5 text-gray-400 shrink-0', ['aria-hidden' => 'true'])
+                        </button>
+
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             role="menu"
+                             aria-label="{{ __('organization.dashboard.nav.switch_organization') }}"
+                             class="absolute right-0 mt-1.5 w-52 max-w-[90vw] bg-bg-main/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] z-50 overflow-hidden origin-top-right"
+                             x-cloak>
+                            <div class="max-h-72 overflow-y-auto py-1">
+                                @foreach ($switchableOrganizations as $switchableOrganization)
+                                    <a href="{{ route('organization-dashboard.index', $switchableOrganization) }}" role="menuitem"
+                                       class="flex items-center gap-2.5 px-3 py-2 hover:bg-white/5 transition-all {{ $switchableOrganization->id === $organization->id ? 'bg-white/[0.03]' : '' }}">
+                                        @if ($switchableOrganization->logo)
+                                            <img src="{{ $switchableOrganization->logo }}" alt="" class="w-5 h-5 rounded object-contain shrink-0">
+                                        @else
+                                            @svg('fas-building', 'w-3 h-3 text-gray-400 shrink-0', ['aria-hidden' => 'true'])
+                                        @endif
+                                        <span class="text-xs font-semibold text-white truncate flex-1">{{ $switchableOrganization->name }}</span>
+                                        @if ($switchableOrganization->id === $organization->id)
+                                            @svg('fas-check', 'w-3 h-3 text-[var(--brand-yellow)] shrink-0', ['aria-hidden' => 'true'])
+                                        @endif
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </header>
 
             <main class="flex-1 p-4 lg:p-8 min-w-0">
