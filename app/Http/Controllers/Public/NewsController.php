@@ -42,7 +42,7 @@ class NewsController extends Controller
         $canPreview = false;
         if ($newsMeta->status !== 'published') {
             $canPreview = $request->user()
-                && $this->canManageArticle($request, $newsMeta, 'news.view', 'organization.news.view');
+                && $this->canManageArticle($request, $newsMeta, 'news.view', 'organization.news.view', 'news.author');
             abort_unless($canPreview, 404);
         }
 

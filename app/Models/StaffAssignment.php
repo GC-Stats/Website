@@ -91,6 +91,26 @@ class StaffAssignment extends Model
     }
 
     /**
+     * Org-held entries only (staff_id null) — organization_id is the entry's
+     * *holder* here, not "org a staff member represented". See this class's
+     * docblock for the organization_id overload this scope disambiguates.
+     */
+    public function scopeOrgHeld($query)
+    {
+        return $query->whereNull('staff_id');
+    }
+
+    /**
+     * Staff-held entries representing the given organization (staff_id set,
+     * organization_id names which org they represented) — the complement of
+     * scopeOrgHeld(), see this class's docblock.
+     */
+    public function scopeRepresentingOrganization($query, int $organizationId)
+    {
+        return $query->whereNotNull('staff_id')->where('organization_id', $organizationId);
+    }
+
+    /**
      * The date this entry displays as — always derived from the linked
      * tournament's start_date, never stored: directly for a tournament-level
      * entry, via the match's own tournament for a match-level one.

@@ -42,21 +42,9 @@ class StaffRoleLabel
             return $role;
         }
 
-        $roles = __('staff.roster.roles');
+        $key = self::langKey($role);
 
-        $entry = ($roles['team'][$role] ?? null) ?? ($roles['org'][$role] ?? null);
-
-        if ($entry === null) {
-            return $role;
-        }
-
-        if (is_array($entry)) {
-            return ($pronouns !== null ? ($entry[$pronouns] ?? null) : null)
-                ?? $entry[Pronouns::FEMININE]
-                ?? (string) reset($entry);
-        }
-
-        return $entry;
+        return $key ? Pronouns::trans($key, $pronouns) : $role;
     }
 
     /**
@@ -71,18 +59,25 @@ class StaffRoleLabel
      */
     public static function options(array $roles): array
     {
-        $lookup = __('staff.roster.roles');
-        $map = array_merge($lookup['team'] ?? [], $lookup['org'] ?? []);
-
         $options = [];
         foreach ($roles as $role) {
-            $entry = $map[$role] ?? $role;
-            $options[$role] = is_array($entry)
-                ? ($entry[Pronouns::NEUTRAL] ?? $entry[Pronouns::FEMININE] ?? (string) reset($entry))
-                : $entry;
+            $key = self::langKey($role);
+            $options[$role] = $key ? Pronouns::trans($key, Pronouns::NEUTRAL) : $role;
         }
 
         return $options;
+    }
+
+    /** The lang key for $role's entry in staff.roster.roles.{team,org}, or null if it's in neither map. */
+    private static function langKey(string $role): ?string
+    {
+        $roles = __('staff.roster.roles');
+
+        return match (true) {
+            isset($roles['team'][$role]) => "staff.roster.roles.team.{$role}",
+            isset($roles['org'][$role]) => "staff.roster.roles.org.{$role}",
+            default => null,
+        };
     }
 
     public static function group(?string $role): string

@@ -104,10 +104,16 @@ class Organization extends Model
         return $this->hasMany(StaffOrganization::class);
     }
 
-    /** Participation declarations (tournament/match/team) this organization has made on behalf of its staff — see StaffAssignment. */
-    public function staffAssignments(): HasMany
+    /** This organization's own XP entries (e.g. "this org organized Tournament Y") — see StaffAssignment::isOrgHeld(). */
+    public function ownXpEntries(): HasMany
     {
-        return $this->hasMany(StaffAssignment::class);
+        return $this->hasMany(StaffAssignment::class)->orgHeld();
+    }
+
+    /** XP entries where a staff member represented this organization — see StaffAssignment. */
+    public function staffXpEntries(): HasMany
+    {
+        return $this->hasMany(StaffAssignment::class)->whereNotNull('staff_id');
     }
 
     public function apiKeys(): HasMany

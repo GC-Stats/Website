@@ -489,7 +489,10 @@ class NewsController extends Controller
     private function attributionOptions(Request $request, ?Organization $organization = null): array
     {
         if ($organization) {
-            return ['organizationIds' => collect([$organization->id]), 'personal' => false];
+            $canAttribute = app(OrganizationAccessService::class)
+                ->hasOrganizationPermission($request->user(), $organization, 'news.create', 'organization.news.edit');
+
+            return ['organizationIds' => $canAttribute ? collect([$organization->id]) : collect(), 'personal' => false];
         }
 
         $user = $request->user();
