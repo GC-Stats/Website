@@ -23,6 +23,7 @@ use App\Helpers\StaffRoleLabel;
 use App\Models\News;
 use App\Models\Organization;
 use App\Models\Staff;
+use App\Models\StaffAssignment;
 use App\Models\Team;
 use App\Services\StaffAssignmentService;
 use App\Services\StaffOrganizationService;
@@ -202,7 +203,7 @@ class StaffController extends Controller
      * get a cast-language breakdown, the only role carrying structured
      * metadata (see StaffRoleMetadata).
      *
-     * @param  Collection<int, \App\Models\StaffAssignment>  $filtered
+     * @param  Collection<int, StaffAssignment>  $filtered
      * @param  Collection<int, array>  $groups  Same tournament groups built for the list below — reused so category counts don't re-walk the assignable relation.
      */
     private function roleStats(Collection $filtered, Collection $groups, string $roleFilter): array

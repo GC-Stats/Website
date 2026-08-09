@@ -2,7 +2,10 @@
 
 use App\Models\News;
 use App\Models\NewsAuthor;
+use App\Models\Organization;
 use App\Models\User;
+use App\Services\OrganizationRoleService;
+use App\Support\OrganizationPermissions;
 use App\Support\PermissionTeam;
 use Database\Seeders\RoleSeeder;
 
@@ -136,16 +139,16 @@ test('a lone author can view their personal media library', function () {
 });
 
 test('the organization dashboard still works unaffected by the shared layout accepting a null organization', function () {
-    $organization = \App\Models\Organization::create([
+    $organization = Organization::create([
         'name' => 'personal-dashboard-regression-org',
         'slug' => 'personal-dashboard-regression-org',
         'types' => ['media'],
         'socials' => [],
-        'max_permissions' => \App\Support\OrganizationPermissions::all(),
+        'max_permissions' => OrganizationPermissions::all(),
     ]);
 
     $user = User::factory()->create();
-    app(\App\Services\OrganizationRoleService::class)->assign($user, $organization, \App\Services\OrganizationRoleService::ROLE_OWNER);
+    app(OrganizationRoleService::class)->assign($user, $organization, OrganizationRoleService::ROLE_OWNER);
     PermissionTeam::global();
 
     $this->actingAs($user)

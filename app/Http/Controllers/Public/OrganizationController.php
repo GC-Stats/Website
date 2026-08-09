@@ -19,6 +19,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Models\Matchs;
 use App\Models\Organization;
 use App\Models\StaffAssignment;
 use App\Services\OrganizationAccessService;
@@ -75,7 +76,7 @@ class OrganizationController extends Controller
         $entries = StaffAssignment::where('organization_id', $id)
             ->whereNull('staff_id')
             ->whereIn('assignable_type', StaffAssignment::ASSIGNABLE_TYPES)
-            ->with(['assignable' => fn ($morphTo) => $morphTo->morphWith([\App\Models\Matchs::class => ['tournament', 'teamA', 'teamB']])])
+            ->with(['assignable' => fn ($morphTo) => $morphTo->morphWith([Matchs::class => ['tournament', 'teamA', 'teamB']])])
             ->get();
 
         $groups = $entries

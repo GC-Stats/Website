@@ -30,6 +30,7 @@ use App\Services\StaffAssignmentService;
 use App\Support\Activity\ActivityChangeSet;
 use App\Support\StaffRoleMetadata;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -158,7 +159,7 @@ class TournamentController extends Controller
      * searchable via entity-picker (see App\Services\SearchService), so this
      * is a small dedicated endpoint instead.
      */
-    public function matchesOptions(Tournament $tournament): \Illuminate\Http\JsonResponse
+    public function matchesOptions(Tournament $tournament): JsonResponse
     {
         $options = $tournament->matches()
             ->orderByDesc('scheduled_at')

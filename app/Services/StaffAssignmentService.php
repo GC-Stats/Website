@@ -25,6 +25,7 @@
 
 namespace App\Services;
 
+use App\Models\Matchs;
 use App\Models\StaffAssignment;
 use App\Support\StaffRoleMetadata;
 use Illuminate\Database\Eloquent\Model;
@@ -58,7 +59,7 @@ class StaffAssignmentService
             // no such relation — morphWith() applies the eager load only to
             // the Matchs branch of the polymorphic result set.
             ->with(['team', 'organization'])
-            ->with(['assignable' => fn ($morphTo) => $morphTo->morphWith([\App\Models\Matchs::class => ['tournament', 'teamA', 'teamB']])])
+            ->with(['assignable' => fn ($morphTo) => $morphTo->morphWith([Matchs::class => ['tournament', 'teamA', 'teamB']])])
             ->orderByDesc('id')
             ->get();
     }
