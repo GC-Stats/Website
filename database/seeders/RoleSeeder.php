@@ -13,8 +13,8 @@
 namespace Database\Seeders;
 
 use App\Support\AdminPermissions;
+use App\Support\OrganizationPermissions;
 use App\Support\PermissionTeam;
-use App\Support\PublisherPermissions;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -36,13 +36,13 @@ class RoleSeeder extends Seeder
 
         Permission::where('guard_name', 'web')->whereNotIn('name', $catalog)->get()->each->delete();
 
-        $publisherCatalog = PublisherPermissions::all();
+        $organizationCatalog = OrganizationPermissions::all();
 
-        foreach ($publisherCatalog as $permission) {
-            Permission::findOrCreate($permission, PublisherPermissions::GUARD);
+        foreach ($organizationCatalog as $permission) {
+            Permission::findOrCreate($permission, OrganizationPermissions::GUARD);
         }
 
-        Permission::where('guard_name', PublisherPermissions::GUARD)->whereNotIn('name', $publisherCatalog)->get()->each->delete();
+        Permission::where('guard_name', OrganizationPermissions::GUARD)->whereNotIn('name', $organizationCatalog)->get()->each->delete();
 
         if (! Role::where('team_id', PermissionTeam::GLOBAL_ID)->where('is_super_admin', true)->exists()) {
             // Only reachable on a fresh install, or a DB seeded before the

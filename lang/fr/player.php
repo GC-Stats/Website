@@ -15,6 +15,7 @@ return [
     'no_team' => 'Aucune Équipe',
     'news' => 'Actualités',
     'seemore' => 'Voir plus',
+    'also_staff_as' => 'Également staff sous :staff',
 
     // Other pages text
     'matches_history' => ':player - Historiques des matches',

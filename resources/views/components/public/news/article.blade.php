@@ -18,8 +18,7 @@
     $authorName  = $news->author?->name ?? 'GC-Stats';
     $authorLogo  = $news->author?->currentLogo ? asset('storage/authors/' . $news->author->currentLogo->id . '/200x200.webp') : null;
     $authorSlug  = $news->author?->slug;
-    $publisherName = $news->publisher?->name;
-    $publisherSlug = $news->publisher?->slug;
+    $publisherName = $news->organization?->name;
     $date        = $news->published_at?->translatedFormat('d M Y') ?? '';
     $excerpt     = $news->excerpt ?? '';
 @endphp

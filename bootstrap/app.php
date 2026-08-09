@@ -6,7 +6,7 @@ use App\Http\Middleware\InternalServiceAuth;
 use App\Http\Middleware\LogPageView;
 use App\Http\Middleware\SetDefaultPermissionTeam;
 use App\Http\Middleware\SetLocale;
-use App\Http\Middleware\SetPublisherPermissionContext;
+use App\Http\Middleware\SetOrganizationPermissionContext;
 use App\Http\Middleware\StaticPageCache;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $schedule->command('matches:activate-live')->everyMinute();
         $schedule->command('tournaments:activate-live')->daily();
+        $schedule->command('news:publish-scheduled')->everyMinute();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(LogPageView::class);
@@ -48,7 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'static.cache' => StaticPageCache::class,
             'not-sanctioned' => EnsureAccountIsNotSanctioned::class,
             'data-explorer.enabled' => EnsureDataExplorerIsEnabled::class,
-            'publisher.permission-context' => SetPublisherPermissionContext::class,
+            'organization.permission-context' => SetOrganizationPermissionContext::class,
         ]);
 
         $middleware->trustProxies(at: '*');

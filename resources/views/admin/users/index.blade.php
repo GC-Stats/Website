@@ -19,10 +19,10 @@
         <x-styled-select name="role" :selected="$roleFilter" autosubmit class="w-40"
             :options="collect(['' => __('admin.users.all_roles')])->merge($roles->mapWithKeys(fn ($role) => [$role->name => $role->name]))" />
 
-        <x-styled-select name="publisher" :selected="$publisherFilter" autosubmit class="w-40"
-            :options="collect(['' => __('admin.users.all_publishers')])->union($publishers->mapWithKeys(fn ($publisher) => [(string) $publisher->id => $publisher->name]))" />
+        <x-styled-select name="organization" :selected="$organizationFilter" autosubmit class="w-40"
+            :options="collect(['' => __('admin.users.all_organizations')])->union($organizations->mapWithKeys(fn ($organization) => [(string) $organization->id => $organization->name]))" />
 
-        @if ($search || $roleFilter || $publisherFilter)
+        @if ($search || $roleFilter || $organizationFilter)
             <a href="{{ route('admin.users.index') }}"
                class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-gray-400 hover:text-white">
                 {{ __('admin.users.clear_filters') }}
@@ -36,7 +36,7 @@
                 <tr class="border-b border-b-white/10 text-[10px] font-black uppercase tracking-widest text-gray-500">
                     <x-admin.sortable-th col="user" :sort="$sort" :direction="$direction">{{ __('admin.users.user') }}</x-admin.sortable-th>
                     <th class="px-4 py-3">{{ __('admin.users.roles') }}</th>
-                    <th class="px-4 py-3">{{ __('admin.users.publishers') }}</th>
+                    <th class="px-4 py-3">{{ __('admin.users.organizations') }}</th>
                     <x-admin.sortable-th col="sanctions" :sort="$sort" :direction="$direction">{{ __('admin.users.sanctions') }}</x-admin.sortable-th>
                     <x-admin.sortable-th col="joined" :sort="$sort" :direction="$direction">{{ __('admin.users.joined') }}</x-admin.sortable-th>
                 </tr>
@@ -65,9 +65,9 @@
                             @endforelse
                         </td>
                         <td class="px-4 py-3">
-                            @forelse ($publisherNamesByUserId[$user->id] ?? [] as $publisherName)
+                            @forelse ($organizationNamesByUserId[$user->id] ?? [] as $organizationName)
                                 <span class="inline-block px-2 py-1 mr-1 mb-1 text-[10px] font-bold uppercase tracking-widest rounded-lg bg-white/5 border border-white/10 text-gray-300">
-                                    {{ $publisherName }}
+                                    {{ $organizationName }}
                                 </span>
                             @empty
                                 <span class="text-xs text-gray-600">—</span>

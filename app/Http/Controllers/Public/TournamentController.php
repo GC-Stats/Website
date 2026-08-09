@@ -165,7 +165,7 @@ class TournamentController extends Controller
 
         $tag = "tournament_{$id}";
 
-        $news = News::with(['author', 'publisher'])
+        $news = News::with(['author', 'organization'])
             ->published()
             ->forLocale(app()->getLocale())
             ->whereHas('tournaments', fn ($q) => $q->where('tournaments.id', $id))

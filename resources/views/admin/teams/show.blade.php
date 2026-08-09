@@ -165,4 +165,29 @@
             />
         </div>
     @endcan
+
+    @can('teams.edit')
+        <div class="mt-6">
+            <x-admin.roster-panel
+                :current="$currentStaff"
+                :history="$staffHistory"
+                :sync-url="route('admin.teams.staff.sync', $team)"
+                :roles="\App\Helpers\StaffRoleLabel::options(\App\Support\StaffRoles::TEAM_ROLES)"
+                :title="__('admin.teams.staff_panel.title')"
+                :history-title="__('admin.teams.staff_panel.history_title')"
+                :add-label="__('admin.teams.staff_panel.add')"
+                :role-label="__('admin.organizations.staff.role_label')"
+                :joined-at-label="__('admin.organizations.staff.joined_at_label')"
+                :left-at-label="__('admin.organizations.staff.left_at_label')"
+                :save-label="__('admin.organizations.staff.save_label')"
+                :remove-label="__('admin.organizations.staff.remove_label')"
+                :remove-confirm-body="fn ($entry) => __('admin.teams.staff_panel.remove_confirm', ['staff' => $entry->staff_handle])"
+                :current-empty-label="__('admin.teams.staff_panel.current_empty')"
+                :history-empty-label="__('admin.teams.staff_panel.history_empty')"
+                heading-tag="h2"
+                picker-type="staff"
+                pivot-field="staff_id"
+            />
+        </div>
+    @endcan
 @endsection

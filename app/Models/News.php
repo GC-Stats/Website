@@ -4,7 +4,9 @@
  * GC-Stats — News article model
  *
  * Represents a published news article, optionally linked to players, teams
- * and tournaments, authored by a NewsAuthor and optionally tied to a NewsPublisher.
+ * and tournaments, authored by a NewsAuthor and attributed to either an
+ * Organization or neither (a personal article, see the `news.author`
+ * permission).
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -27,7 +29,7 @@ class News extends Model
 
     protected $fillable = [
         'author_id',
-        'publisher_id',
+        'organization_id',
         'lang',
         'title',
         'slug',
@@ -38,10 +40,15 @@ class News extends Model
         'is_featured',
         'show_on_home',
         'published_at',
+        'scheduled_at',
+        'validated_at',
+        'validated_by',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
+        'scheduled_at' => 'datetime',
+        'validated_at' => 'datetime',
         'is_featured' => 'boolean',
         'show_on_home' => 'boolean',
     ];
@@ -51,9 +58,19 @@ class News extends Model
         return $this->belongsTo(NewsAuthor::class, 'author_id');
     }
 
-    public function publisher(): BelongsTo
+    public function organization(): BelongsTo
     {
-        return $this->belongsTo(NewsPublisher::class, 'publisher_id');
+        return $this->belongsTo(Organization::class);
+    }
+
+    public function validator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'validated_by');
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(NewsComment::class);
     }
 
     public function images(): HasMany
@@ -74,6 +91,17 @@ class News extends Model
     public function tournaments(): MorphToMany
     {
         return $this->morphedByMany(Tournament::class, 'relationable', 'news_relations');
+    }
+
+    public function staff(): MorphToMany
+    {
+        return $this->morphedByMany(Staff::class, 'relationable', 'news_relations');
+    }
+
+    /** Organizations tagged on this article — distinct from organization_id (who published it). */
+    public function organizations(): MorphToMany
+    {
+        return $this->morphedByMany(Organization::class, 'relationable', 'news_relations');
     }
 
     public function scopePublished(Builder $query): Builder

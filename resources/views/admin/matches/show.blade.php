@@ -190,5 +190,19 @@
         </div>
 
         @include('admin.matches._qualifications', ['tournament' => $tournament, 'match' => $match])
+
+        @can('staff.assignments.manage')
+            <div class="lg:col-span-12">
+                <x-admin.xp-event-panel
+                    :entries="$staffAssignments"
+                    :sync-url="route('admin.matches.staff-experience.sync', [$tournament, $match])"
+                    :title="__('admin.staff_experience.title')"
+                    :add-label="__('admin.staff_experience.add')"
+                    :save-label="__('admin.staff_experience.save')"
+                    :empty-label="__('admin.staff_experience.empty')"
+                    :remove-confirm-body="fn ($entry) => __('admin.staff_experience.remove_confirm', ['staff' => $entry->staff?->handle])"
+                />
+            </div>
+        @endcan
     </div>
 @endsection

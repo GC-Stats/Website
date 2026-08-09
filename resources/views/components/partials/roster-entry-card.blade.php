@@ -30,7 +30,7 @@
 
             <div>
                 <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ $roleLabel }}</label>
-                <x-styled-select name="entries[{{ $index }}][role]" :selected="$entry->role" :options="$roles" />
+                <x-styled-select name="entries[{{ $index }}][role]" :selected="$entry->role" :options="$roles" searchable />
             </div>
 
             <div>
@@ -55,7 +55,7 @@
 
     <template x-if="removed">
         <div class="flex items-center justify-between gap-2 py-2">
-            <span class="text-xs text-gray-500 line-through truncate">{{ $entry->player_handle ?? $entry->team_name ?? '' }}</span>
+            <span class="text-xs text-gray-500 line-through truncate">{{ $entry->player_handle ?? $entry->team_name ?? $entry->staff_handle ?? $entry->organization_name ?? '' }}</span>
             <button type="button" @click="removed = false"
                     class="shrink-0 font-bold uppercase text-[10px] tracking-widest px-2 py-1 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
                 {{ __('team.roster.undo') }}

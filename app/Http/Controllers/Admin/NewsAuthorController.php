@@ -8,6 +8,14 @@
  * actions for their own profile only — fully editable, since it's their
  * personal byline (name, slug, bio, socials, photo).
  *
+ * The self-service subset (myProfile()/show()/update()/updateLogo() for
+ * *your own* profile) is also reachable from an organization's dashboard —
+ * see myProfile()'s docblock — since it's part of "the news block" a
+ * dashboard news contributor needs, even though a NewsAuthor profile itself
+ * is personal, not organization-scoped (see this class's own docblock and
+ * App\Models\NewsAuthor). Managing *other* authors (the index() listing,
+ * assigning a different user, deleting) stays admin-only.
+ *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
  *
@@ -16,8 +24,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ResolvesDashboardContext;
 use App\Http\Controllers\Public\Controller;
 use App\Models\NewsAuthor;
+use App\Models\Organization;
 use App\Models\User;
 use App\Services\HtmlSanitizer;
 use App\Services\LogoUploadService;
@@ -31,6 +41,22 @@ use Illuminate\Validation\ValidationException;
 
 class NewsAuthorController extends Controller
 {
+    use ResolvesDashboardContext;
+
+    private function routePrefix(): string
+    {
+        return $this->dashboardContext('organization-dashboard.news.author.', 'personal-dashboard.news.author.', 'admin.news.authors.');
+    }
+
+    private function viewName(string $page): string
+    {
+        return $this->dashboardContext(
+            "organization.dashboard.news.author.{$page}",
+            "personal-dashboard.news.author.{$page}",
+            "admin.news.authors.{$page}",
+        );
+    }
+
     public function index(Request $request): View|RedirectResponse
     {
         if (! $request->user()->can('news.authors.view')) {
@@ -64,20 +90,51 @@ class NewsAuthorController extends Controller
         ]);
     }
 
-    public function show(Request $request, NewsAuthor $author): View
+    /**
+     * The organization-dashboard entry point ("my author profile" in the
+     * news block) — always self-service regardless of site-wide
+     * permissions, unlike index()'s branch above which only falls back to
+     * self-service for users without news.authors.view. $organization is
+     * only ever bound here (never for the flat admin self-service path,
+     * which still goes through index()) — used purely to pick the
+     * dashboard route prefix/view wrapper, since the profile itself isn't
+     * organization data.
+     */
+    public function myProfile(Request $request, ?Organization $organization = null): View|RedirectResponse
     {
-        $this->ensureCanManage($request, $author);
+        $ownProfile = $request->user()->newsAuthor;
 
-        return view('admin.news.authors.show', [
-            'author' => $author,
+        if ($ownProfile) {
+            return redirect()->route($this->routePrefix().'show', $organization ? [$organization, $ownProfile] : $ownProfile);
+        }
+
+        return view($this->viewName('create-self'), [
+            'organization' => $organization,
+            'routePrefix' => $this->routePrefix(),
         ]);
     }
 
-    public function update(Request $request, NewsAuthor $author): RedirectResponse
+    public function show(Request $request, ?Organization $organization = null, ?NewsAuthor $author = null): View
     {
+        $author = $this->requiredAuthor($author);
         $this->ensureCanManage($request, $author);
 
-        $canManageUser = $request->user()->can('news.authors.edit');
+        return view($this->viewName('show'), [
+            'author' => $author,
+            'organization' => $organization,
+            'routePrefix' => $this->routePrefix(),
+        ]);
+    }
+
+    public function update(Request $request, ?Organization $organization = null, ?NewsAuthor $author = null): RedirectResponse
+    {
+        $author = $this->requiredAuthor($author);
+        $this->ensureCanManage($request, $author);
+
+        // Never true when editing your own profile — the linked-user field
+        // is for a site editor reassigning *someone else's* profile, not
+        // for relinking yourself, see resources/views/news/_author-show.blade.php.
+        $canManageUser = $request->user()->can('news.authors.edit') && $author->user_id !== $request->user()->id;
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -123,9 +180,12 @@ class NewsAuthorController extends Controller
         return back()->with('status', 'author-updated');
     }
 
-    public function updateLogo(Request $request, NewsAuthor $author, LogoUploadService $logoUploadService): RedirectResponse
+    public function updateLogo(Request $request, ?Organization $organization = null, ?NewsAuthor $author = null): RedirectResponse
     {
+        $author = $this->requiredAuthor($author);
         $this->ensureCanManage($request, $author);
+
+        $logoUploadService = app(LogoUploadService::class);
 
         $validated = $request->validate(['logo' => ['required', 'file', 'image', 'max:10240']]);
 
@@ -147,7 +207,7 @@ class NewsAuthorController extends Controller
      * admin-panel user without a profile of their own yet may create
      * exactly one, always linked to themselves.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ?Organization $organization = null): RedirectResponse
     {
         $isAdmin = $request->user()->can('news.authors.edit');
 
@@ -188,7 +248,8 @@ class NewsAuthorController extends Controller
             ->withProperties(ActivityChangeSet::fromCreated($author, ['name', 'slug', 'bio', 'user_id'])->toArray())
             ->log('author.created');
 
-        return redirect()->route('admin.news.authors.show', $author)->with('status', 'author-created');
+        return redirect()->route($this->routePrefix().'show', $organization ? [$organization, $author] : $author)
+            ->with('status', 'author-created');
     }
 
     public function destroy(Request $request, NewsAuthor $author): RedirectResponse
@@ -213,5 +274,18 @@ class NewsAuthorController extends Controller
         $user = $request->user();
 
         abort_unless($user->can('news.authors.edit') || $author->user_id === $user->id, 403);
+    }
+
+    /**
+     * $author is only nullable in show()/update()/updateLogo() so its
+     * position can match $organization's — see
+     * Admin\NewsController::requiredArticle()'s docblock for why (same
+     * Laravel implicit-binding-is-positional-not-named quirk applies here).
+     */
+    private function requiredAuthor(?NewsAuthor $author): NewsAuthor
+    {
+        abort_unless($author, 404);
+
+        return $author;
     }
 }

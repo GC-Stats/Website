@@ -19,10 +19,11 @@ use App\Models\Logo;
 use App\Models\Matchs;
 use App\Models\News;
 use App\Models\NewsAuthor;
-use App\Models\NewsPublisher;
+use App\Models\Organization;
 use App\Models\PhaseQualification;
 use App\Models\PhaseQualificationResult;
 use App\Models\Player;
+use App\Models\Staff;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\User;
@@ -35,9 +36,9 @@ use App\Observers\PlayerObserver;
 use App\Observers\TeamObserver;
 use App\Observers\TournamentObserver;
 use App\Support\AdminPermissions;
+use App\Support\OrganizationPermissions;
+use App\Support\OrganizationScope;
 use App\Support\PermissionTeam;
-use App\Support\PublisherPermissions;
-use App\Support\PublisherScope;
 use App\Support\Socialite\TwitterProviderWithCreatedAt;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
@@ -111,8 +112,10 @@ class AppServiceProvider extends ServiceProvider
             'team' => Team::class,
             'player' => Player::class,
             'tournament' => Tournament::class,
+            'match' => Matchs::class,
             'author' => NewsAuthor::class,
-            'publisher' => NewsPublisher::class,
+            'staff' => Staff::class,
+            'organization' => Organization::class,
         ]);
 
         Team::observe(TeamObserver::class);
@@ -147,8 +150,8 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::before(fn ($user, string $ability) => $user->isSuperAdmin() ? true : null);
 
-        Gate::before(fn ($user, string $ability) => str_starts_with($ability, 'publisher.')
-            ? ($user->hasPermissionTo($ability, PublisherPermissions::GUARD) ?: null)
+        Gate::before(fn ($user, string $ability) => str_starts_with($ability, 'organization.')
+            ? ($user->hasPermissionTo($ability, OrganizationPermissions::GUARD) ?: null)
             : null);
 
         Gate::define('manage-roles', fn ($user) => $user->isSuperAdmin());
@@ -157,7 +160,7 @@ class AppServiceProvider extends ServiceProvider
             ->pluck('name')
             ->intersect(AdminPermissions::all())
             ->isNotEmpty()
-            || PublisherScope::publisherIdsForUser($user->id)->isNotEmpty());
+            || OrganizationScope::organizationIdsForUser($user->id)->isNotEmpty());
 
         Gate::define('access-developers', fn (User $user) => $user->apiKeys()
             ->where('is_active', true)
@@ -167,35 +170,32 @@ class AppServiceProvider extends ServiceProvider
             ->contains(fn ($permission) => $user->can($permission)));
 
         Gate::define('news.nav.articles', fn ($user) => $user->can('news.view')
-            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.news.view')->isNotEmpty());
-
-        Gate::define('news.nav.publishers', fn ($user) => $user->can('news.publishers.view')
-            || PublisherScope::publisherIdsForUser($user->id)->isNotEmpty());
+            || OrganizationScope::organizationIdsWithPermission($user->id, 'organization.news.view')->isNotEmpty());
 
         Gate::define('news.nav.authors', fn ($user) => $user->can('news.authors.view')
             || $user->newsAuthor()->exists()
-            || PublisherScope::publisherIdsForUser($user->id)->isNotEmpty());
+            || OrganizationScope::organizationIdsForUser($user->id)->isNotEmpty());
 
         Gate::define('news.nav.media', fn ($user) => $user->can('news.media.view')
-            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.media.view')->isNotEmpty());
+            || OrganizationScope::organizationIdsWithPermission($user->id, 'organization.media.view')->isNotEmpty());
 
         Gate::define('news.action.create', fn ($user) => $user->can('news.create')
-            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.news.edit')->isNotEmpty());
+            || OrganizationScope::organizationIdsWithPermission($user->id, 'organization.news.edit')->isNotEmpty());
 
         Gate::define('news.media.action.upload', fn ($user) => $user->can('news.media.upload')
-            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.media.upload')->isNotEmpty());
+            || OrganizationScope::organizationIdsWithPermission($user->id, 'organization.media.upload')->isNotEmpty());
 
         Gate::define('streams.nav.channels', fn ($user) => $user->can('streams.channels.view')
-            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.view')->isNotEmpty());
+            || OrganizationScope::organizationIdsWithPermission($user->id, 'organization.streams.view')->isNotEmpty());
 
         Gate::define('streams.action.create', fn ($user) => $user->can('streams.channels.create')
-            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.edit')->isNotEmpty());
+            || OrganizationScope::organizationIdsWithPermission($user->id, 'organization.streams.edit')->isNotEmpty());
 
         Gate::define('streams.nav.matches', fn ($user) => $user->can('streams.matches.link')
-            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.link')->isNotEmpty());
+            || OrganizationScope::organizationIdsWithPermission($user->id, 'organization.streams.link')->isNotEmpty());
 
         Gate::define('vods.nav.matches', fn ($user) => $user->can('vods.matches.link')
-            || PublisherScope::publisherIdsWithPermission($user->id, 'publisher.vods.link')->isNotEmpty());
+            || OrganizationScope::organizationIdsWithPermission($user->id, 'organization.vods.link')->isNotEmpty());
     }
 
     /**

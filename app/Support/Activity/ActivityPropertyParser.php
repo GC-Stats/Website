@@ -20,8 +20,10 @@ use App\Support\Activity\Formatters\AccountActivityFormatter;
 use App\Support\Activity\Formatters\AdministrationActivityFormatter;
 use App\Support\Activity\Formatters\DefaultActivityFormatter;
 use App\Support\Activity\Formatters\ModerationActivityFormatter;
+use App\Support\Activity\Formatters\OrganizationActivityFormatter;
 use App\Support\Activity\Formatters\PlayerActivityFormatter;
 use App\Support\Activity\Formatters\PublisherActivityFormatter;
+use App\Support\Activity\Formatters\StaffActivityFormatter;
 use App\Support\Activity\Formatters\TeamActivityFormatter;
 use App\Support\Activity\Formatters\TournamentActivityFormatter;
 use Spatie\Activitylog\Models\Activity;
@@ -36,6 +38,8 @@ class ActivityPropertyParser
         'administration' => AdministrationActivityFormatter::class,
         'tournament' => TournamentActivityFormatter::class,
         'publisher' => PublisherActivityFormatter::class,
+        'organization' => OrganizationActivityFormatter::class,
+        'staff' => StaffActivityFormatter::class,
     ];
 
     /**

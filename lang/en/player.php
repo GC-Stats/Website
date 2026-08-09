@@ -15,6 +15,7 @@ return [
     'no_team' => 'No Team',
     'news' => 'News',
     'seemore' => 'See more',
+    'also_staff_as' => 'Also staff as :staff',
 
     // Other pages text
     'matches_history' => ':player – Matches History',

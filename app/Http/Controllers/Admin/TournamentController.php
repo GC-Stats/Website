@@ -18,6 +18,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ValidatesStaffExperienceRoles;
 use App\Http\Controllers\Public\Controller;
 use App\Models\PointType;
 use App\Models\Team;
@@ -25,15 +26,21 @@ use App\Models\Tournament;
 use App\Models\TournamentPhase;
 use App\Models\TournamentTeam;
 use App\Services\LogoUploadService;
+use App\Services\StaffAssignmentService;
 use App\Support\Activity\ActivityChangeSet;
+use App\Support\StaffRoleMetadata;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class TournamentController extends Controller
 {
+    use ValidatesStaffExperienceRoles;
+
     public const CATEGORIES = ['Championship', 'Regional', 'Open Qualifier', 'Cash Cups', 'Showmatch', 'Unofficial tournament'];
 
     private const SORTABLE = ['name', 'start_date', 'region', 'status', 'teams_count'];
@@ -96,7 +103,7 @@ class TournamentController extends Controller
         ]);
     }
 
-    public function show(Tournament $tournament): View
+    public function show(Tournament $tournament, StaffAssignmentService $staffAssignments): View
     {
         $tournament->load([
             'rootPhases.children',
@@ -115,7 +122,54 @@ class TournamentController extends Controller
                     ->whereNotIn('id', $tournament->teams()->pluck('teams.id'))
                     ->limit(10)->get()
                 : collect(),
+            'staffAssignments' => $staffAssignments->forAssignable($tournament),
         ]);
+    }
+
+    public function syncStaffAssignments(Request $request, Tournament $tournament, StaffAssignmentService $staffAssignments): RedirectResponse
+    {
+        $validated = $request->validate([
+            'entries' => ['array'],
+            'entries.*.id' => ['nullable', 'integer', Rule::exists('staff_assignments', 'id')->where('assignable_type', 'tournament')->where('assignable_id', $tournament->id)],
+            'entries.*.staff_id' => ['required', 'integer', 'exists:staff,id'],
+            'entries.*.team_id' => ['nullable', 'integer', 'exists:teams,id', 'required_without:entries.*.organization_id'],
+            'entries.*.organization_id' => ['nullable', 'integer', 'exists:organization,id', 'required_without:entries.*.team_id'],
+            'entries.*.role' => ['required', 'string', $this->roleMatchesRepresentedEntity($request)],
+            'entries.*.metadata' => ['nullable', 'array'],
+            'entries.*.metadata.language' => ['nullable', 'string', Rule::in(array_keys(StaffRoleMetadata::LANGUAGES))],
+        ]);
+
+        $entries = collect($validated['entries'] ?? [])
+            ->map(fn (array $entry) => [...$entry, 'assignable_type' => 'tournament', 'assignable_id' => $tournament->id])
+            ->all();
+
+        $staffAssignments->save(['assignable_type' => 'tournament', 'assignable_id' => $tournament->id], $entries);
+
+        activity('staff')->performedOn($tournament)->causedBy($request->user())
+            ->withProperties(['tournament_id' => $tournament->id])
+            ->log('staff.experience.synced');
+
+        return back()->with('status', 'staff-experience-synced');
+    }
+
+    /**
+     * JSON options for a tournament's matches — feeds the dependent match
+     * <select> in the staff-scoped XP editor (admin/staff/show.blade.php),
+     * shown once a tournament is picked. Matches aren't independently
+     * searchable via entity-picker (see App\Services\SearchService), so this
+     * is a small dedicated endpoint instead.
+     */
+    public function matchesOptions(Tournament $tournament): JsonResponse
+    {
+        $options = $tournament->matches()
+            ->orderByDesc('scheduled_at')
+            ->get(['id', 'round_name', 'scheduled_at'])
+            ->map(fn ($match) => [
+                'id' => $match->id,
+                'label' => $match->round_name ?: 'Match #'.$match->id,
+            ]);
+
+        return response()->json($options);
     }
 
     public function edit(Tournament $tournament): View
@@ -356,7 +410,10 @@ class TournamentController extends Controller
     {
         $rule = $isUpdate ? 'sometimes' : 'required';
 
-        $request->merge(['point_type_id' => $request->input('point_type_id') ?: null]);
+        $request->merge([
+            'point_type_id' => $request->input('point_type_id') ?: null,
+            'organized_by' => $request->input('organized_by') ?: null,
+        ]);
 
         return $request->validate([
             'name' => [$rule, 'string', 'max:255'],
@@ -372,6 +429,7 @@ class TournamentController extends Controller
             'status' => ['sometimes', 'string', 'in:upcoming,live,finished'],
             'active' => ['sometimes', 'boolean'],
             'point_type_id' => ['sometimes', 'nullable', 'integer', 'exists:point_types,id'],
+            'organized_by' => ['sometimes', 'nullable', 'integer', 'exists:organization,id'],
             'phases' => ['sometimes', 'array'],
             'phases.*.id' => ['sometimes', 'nullable', 'integer', 'exists:tournament_phases,id'],
             'phases.*.name' => ['required_with:phases', 'string', 'max:255'],
@@ -401,7 +459,7 @@ class TournamentController extends Controller
 
     private function coreColumns(array $validated): array
     {
-        $columns = ['name', 'region', 'category', 'start_date', 'end_date', 'location', 'prize_pool', 'description', 'liquipedia_link', 'status', 'active', 'point_type_id'];
+        $columns = ['name', 'region', 'category', 'start_date', 'end_date', 'location', 'prize_pool', 'description', 'liquipedia_link', 'status', 'active', 'point_type_id', 'organized_by'];
 
         return array_intersect_key($validated, array_flip($columns));
     }

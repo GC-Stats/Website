@@ -8,12 +8,18 @@
  * "channel" CRUD unlike streams: a VOD is a one-off link, not a reusable
  * entity.
  *
- * Gated by its own permission pair — vods.matches.link / publisher.vods.link
+ * Gated by its own permission pair — vods.matches.link / organization.vods.link
  * — mirroring Admin\MatchStreamController, including the same "not gated by
- * matches.view" reasoning: a publisher's own member has no access to the
+ * matches.view" reasoning: an organization's own member has no access to the
  * admin match list/show pages at all, so the "add a VOD" form lives on the
  * public match page too (see resources/views/match.blade.php) and posts
  * here directly.
+ *
+ * index()/create() are additionally dual-context like Admin\NewsController
+ * — reachable at both admin.vods.* (flat, cross-organization) and
+ * organization-dashboard.vods.* (scoped to the {organization} bound in the
+ * dashboard URL). store()/update()/destroy() don't need the same
+ * treatment — see Admin\MatchStreamController's docblock for why.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -26,12 +32,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\SearchesMatchesForLinking;
 use App\Http\Controllers\Public\Controller;
 use App\Models\Matchs;
-use App\Models\NewsPublisher;
+use App\Models\Organization;
 use App\Models\Tournament;
 use App\Models\Vod;
+use App\Services\OrganizationAccessService;
 use App\Support\Activity\ActivityChangeSet;
 use App\Support\Countries;
-use App\Support\PublisherScope;
+use App\Support\OrganizationScope;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,26 +54,42 @@ class MatchVodController extends Controller
 
     private const SORTABLE = ['scheduled_at', 'tournament'];
 
+    private function isDashboard(): bool
+    {
+        return request()->routeIs('organization-dashboard.*');
+    }
+
+    private function routePrefix(): string
+    {
+        return $this->isDashboard() ? 'organization-dashboard.vods.' : 'admin.vods.';
+    }
+
+    private function viewName(string $page): string
+    {
+        return $this->isDashboard() ? "organization.dashboard.vods.matches.{$page}" : "admin.vods.matches.{$page}";
+    }
+
     /**
      * "Liste tout" — every match that currently has at least one VOD,
      * grouped by match. Restricted to VODs the current user can see when
-     * they're a publisher-scoped editor rather than a full site editor.
+     * they're an organization-scoped editor rather than a full site editor
+     * (or, in dashboard mode, to that one organization specifically).
      */
-    public function index(Request $request): View
+    public function index(Request $request, ?Organization $organization = null): View
     {
-        $allowedPublisherIds = $this->allowedPublisherIds($request);
+        $allowedOrganizationIds = $this->allowedOrganizationIds($request, $organization);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedOrganizationIds !== null && $allowedOrganizationIds->isEmpty(), 403);
 
         [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'scheduled_at', 'desc');
 
         $matches = Matchs::query()
             ->select('matches.*')
-            ->whereHas('vods', fn ($query) => $this->scopeToAllowedPublishers($query, $allowedPublisherIds))
+            ->whereHas('vods', fn ($query) => $this->scopeToAllowedOrganizations($query, $allowedOrganizationIds))
             ->with([
                 'teamA:id,name,short_name', 'teamB:id,name,short_name', 'tournament:id,name',
                 'tournamentPhase.parent.parent.parent.parent',
-                'vods' => fn ($query) => $this->scopeToAllowedPublishers($query, $allowedPublisherIds)->with(['publisher', 'gameMap']),
+                'vods' => fn ($query) => $this->scopeToAllowedOrganizations($query, $allowedOrganizationIds)->with(['organization', 'gameMap']),
                 'game_maps' => fn ($query) => $query->orderBy('order'),
             ])
             ->when($sort === 'tournament', fn ($query) => $query
@@ -76,33 +99,34 @@ class MatchVodController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return view('admin.vods.matches.index', [
+        return view($this->viewName('index'), [
             'matches' => $matches,
             'sort' => $sort,
             'direction' => $direction,
+            'organization' => $organization,
             'countries' => app(Countries::class)->list(),
-            'vodsRestricted' => $allowedPublisherIds !== null,
-            'vodPublishers' => NewsPublisher::query()
-                ->when($allowedPublisherIds !== null, fn ($query) => $query->whereIn('id', $allowedPublisherIds))
+            'vodsRestricted' => $allowedOrganizationIds !== null,
+            'vodOrganizations' => Organization::query()
+                ->when($allowedOrganizationIds !== null, fn ($query) => $query->whereIn('id', $allowedOrganizationIds))
                 ->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request, ?Organization $organization = null): View
     {
-        $allowedPublisherIds = $this->allowedPublisherIds($request);
+        $allowedOrganizationIds = $this->allowedOrganizationIds($request, $organization);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedOrganizationIds !== null && $allowedOrganizationIds->isEmpty(), 403);
 
-        return view('admin.vods.matches.create', ['countries' => app(Countries::class)->list()]);
+        return view($this->viewName('create'), ['organization' => $organization, 'countries' => app(Countries::class)->list()]);
     }
 
     /**
-     * @param  Collection<int, int>|null  $allowedPublisherIds
+     * @param  Collection<int, int>|null  $allowedOrganizationIds
      */
-    private function scopeToAllowedPublishers($query, ?Collection $allowedPublisherIds)
+    private function scopeToAllowedOrganizations($query, ?Collection $allowedOrganizationIds)
     {
-        return $allowedPublisherIds === null ? $query : $query->whereIn('publisher_id', $allowedPublisherIds);
+        return $allowedOrganizationIds === null ? $query : $query->whereIn('organization_id', $allowedOrganizationIds);
     }
 
     /**
@@ -117,31 +141,31 @@ class MatchVodController extends Controller
      */
     public function store(Request $request, Tournament $tournament, Matchs $match): RedirectResponse
     {
-        $allowedPublisherIds = $this->allowedPublisherIds($request);
+        $allowedOrganizationIds = $this->allowedOrganizationIds($request);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedOrganizationIds !== null && $allowedOrganizationIds->isEmpty(), 403);
 
         $validated = $request->validate([
             'url' => ['required', 'url', 'max:2048'],
             'language_code' => ['required', 'string', 'max:5', Rule::in(array_keys(app(Countries::class)->list()))],
             'game_map_id' => ['nullable', 'integer', Rule::exists('game_maps', 'id')->where('match_id', $match->id)],
-            'publisher_id' => ['nullable', 'integer', 'exists:news_publishers,id'],
+            'organization_id' => ['nullable', 'integer', 'exists:organization,id'],
         ]);
 
-        if ($allowedPublisherIds !== null) {
-            $publisherId = $validated['publisher_id'] ?? null;
+        if ($allowedOrganizationIds !== null) {
+            $organizationId = $validated['organization_id'] ?? null;
 
-            if (! $publisherId) {
-                abort_unless($allowedPublisherIds->count() === 1, 422);
-                $validated['publisher_id'] = $allowedPublisherIds->first();
+            if (! $organizationId) {
+                abort_unless($allowedOrganizationIds->count() === 1, 422);
+                $validated['organization_id'] = $allowedOrganizationIds->first();
             } else {
-                abort_unless($allowedPublisherIds->contains($publisherId), 403);
+                abort_unless($allowedOrganizationIds->contains($organizationId), 403);
             }
         }
 
         $vod = $match->vods()->create([
             'game_map_id' => $validated['game_map_id'] ?? null,
-            'publisher_id' => $validated['publisher_id'] ?? null,
+            'organization_id' => $validated['organization_id'] ?? null,
             'url' => $validated['url'],
             'language_code' => $validated['language_code'],
         ]);
@@ -149,7 +173,7 @@ class MatchVodController extends Controller
         $match->touch();
 
         activity('tournament')->performedOn($match)->causedBy($request->user())
-            ->withProperties(ActivityChangeSet::fromCreated($vod, ['game_map_id', 'publisher_id', 'url', 'language_code'])->mergeInto(['vod_id' => $vod->id]))
+            ->withProperties(ActivityChangeSet::fromCreated($vod, ['game_map_id', 'organization_id', 'url', 'language_code'])->mergeInto(['vod_id' => $vod->id]))
             ->log('match.vod_linked');
 
         return back()->with('status', 'vod-linked');
@@ -162,29 +186,29 @@ class MatchVodController extends Controller
 
         $this->ensureCanManage($request, $vod);
 
-        $allowedPublisherIds = $this->allowedPublisherIds($request);
+        $allowedOrganizationIds = $this->allowedOrganizationIds($request);
 
         $validated = $request->validate([
             'url' => ['required', 'url', 'max:2048'],
             'language_code' => ['required', 'string', 'max:5', Rule::in(array_keys(app(Countries::class)->list()))],
             'game_map_id' => ['nullable', 'integer', Rule::exists('game_maps', 'id')->where('match_id', $match->id)],
-            'publisher_id' => ['nullable', 'integer', 'exists:news_publishers,id'],
+            'organization_id' => ['nullable', 'integer', 'exists:organization,id'],
         ]);
 
-        if ($allowedPublisherIds !== null) {
-            $publisherId = $validated['publisher_id'] ?? null;
+        if ($allowedOrganizationIds !== null) {
+            $organizationId = $validated['organization_id'] ?? null;
 
-            if (! $publisherId) {
-                abort_unless($allowedPublisherIds->count() === 1, 422);
-                $validated['publisher_id'] = $allowedPublisherIds->first();
+            if (! $organizationId) {
+                abort_unless($allowedOrganizationIds->count() === 1, 422);
+                $validated['organization_id'] = $allowedOrganizationIds->first();
             } else {
-                abort_unless($allowedPublisherIds->contains($publisherId), 403);
+                abort_unless($allowedOrganizationIds->contains($organizationId), 403);
             }
         }
 
         $vod->update([
             'game_map_id' => $validated['game_map_id'] ?? null,
-            'publisher_id' => $validated['publisher_id'] ?? null,
+            'organization_id' => $validated['organization_id'] ?? null,
             'url' => $validated['url'],
             'language_code' => $validated['language_code'],
         ]);
@@ -192,7 +216,7 @@ class MatchVodController extends Controller
         $match->touch();
 
         activity('tournament')->performedOn($match)->causedBy($request->user())
-            ->withProperties(ActivityChangeSet::fromModel($vod, ['game_map_id', 'publisher_id', 'url', 'language_code'])->mergeInto(['vod_id' => $vod->id]))
+            ->withProperties(ActivityChangeSet::fromModel($vod, ['game_map_id', 'organization_id', 'url', 'language_code'])->mergeInto(['vod_id' => $vod->id]))
             ->log('match.vod_updated');
 
         return back()->with('status', 'vod-updated');
@@ -219,11 +243,18 @@ class MatchVodController extends Controller
     /**
      * @return Collection<int, int>|null null means unrestricted (site admin)
      */
-    private function allowedPublisherIds(Request $request): ?Collection
+    private function allowedOrganizationIds(Request $request, ?Organization $organization = null): ?Collection
     {
         $user = $request->user();
 
-        return $user->can(self::LINK_PERMISSION) ? null : PublisherScope::publisherIdsWithPermission($user->id, 'publisher.vods.link');
+        if ($organization) {
+            $allowed = app(OrganizationAccessService::class)
+                ->hasOrganizationPermission($user, $organization, self::LINK_PERMISSION, 'organization.vods.link');
+
+            return $allowed ? collect([$organization->id]) : collect();
+        }
+
+        return $user->can(self::LINK_PERMISSION) ? null : OrganizationScope::organizationIdsWithPermission($user->id, 'organization.vods.link');
     }
 
     private function ensureCanManage(Request $request, Vod $vod): void
@@ -234,8 +265,8 @@ class MatchVodController extends Controller
             return;
         }
 
-        $allowed = $vod->publisher_id
-            && PublisherScope::publisherIdsWithPermission($user->id, 'publisher.vods.link')->contains($vod->publisher_id);
+        $allowed = $vod->organization_id
+            && OrganizationScope::organizationIdsWithPermission($user->id, 'organization.vods.link')->contains($vod->organization_id);
 
         abort_unless($allowed, 403);
     }

@@ -10,5 +10,6 @@ return [
     'related' => 'Related',
     'author' => 'Author',
     'publisher' => 'Publisher',
+    'organization' => 'Organization',
     'inactive_access' => 'This article is not publicly visible yet. You can see it because your role grants access to draft or archived articles.',
 ];

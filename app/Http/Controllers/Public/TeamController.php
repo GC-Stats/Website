@@ -105,7 +105,7 @@ class TeamController extends Controller
             ];
         });
 
-        $news = News::with(['author', 'publisher'])
+        $news = News::with(['author', 'organization'])
             ->published()
             ->forLocale(app()->getLocale())
             ->whereHas('teams', fn ($q) => $q->where('teams.id', $id))

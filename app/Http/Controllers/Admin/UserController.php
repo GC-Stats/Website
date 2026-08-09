@@ -4,11 +4,11 @@
  * GC-Stats — Admin: user directory
  *
  * Read-only: a searchable, filterable directory of accounts plus a detail
- * page summarizing everything about one account (global roles, publisher
+ * page summarizing everything about one account (global roles, organization
  * roles, linked player, sanction history). Editing itself happens on the
  * dedicated screens that already own that logic — Admin\RoleController
- * (global roles) and News\RoleController (publisher roles) — so this
- * controller never mutates anything, only links out to them.
+ * (global roles) and Organization\RoleController (organization roles) — so
+ * this controller never mutates anything, only links out to them.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
  * @license   https://github.com/GC-Stats/Website/blob/main/LICENSE GC-Stats License v1.0
@@ -19,13 +19,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Public\Controller;
-use App\Models\NewsPublisher;
+use App\Models\Organization;
 use App\Models\User;
+use App\Support\OrganizationPermissions;
+use App\Support\OrganizationScope;
 use App\Support\PermissionTeam;
-use App\Support\PublisherPermissions;
-use App\Support\PublisherScope;
 use App\Support\UserRoleSummary;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Spatie\Permission\Models\Role;
@@ -38,14 +39,14 @@ class UserController extends Controller
     {
         $search = $request->get('q');
         $roleFilter = $request->get('role');
-        $publisherFilter = $request->get('publisher');
+        $organizationFilter = $request->get('organization');
 
         [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'user', 'asc');
 
         $userIds = null;
 
-        if ($publisherFilter) {
-            $userIds = PublisherScope::userIdsForPublishers([(int) $publisherFilter]);
+        if ($organizationFilter) {
+            $userIds = OrganizationScope::userIdsForOrganizations([(int) $organizationFilter]);
         }
 
         $users = User::query()
@@ -61,18 +62,18 @@ class UserController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        $publishers = NewsPublisher::orderBy('name')->get(['id', 'name']);
+        $organizations = Organization::orderBy('name')->get(['id', 'name']);
 
         return view('admin.users.index', [
             'users' => $users,
             'search' => $search ?? '',
             'roleFilter' => $roleFilter ?? '',
-            'publisherFilter' => $publisherFilter ?? '',
+            'organizationFilter' => $organizationFilter ?? '',
             'sort' => $sort,
             'direction' => $direction,
             'roles' => Role::where('team_id', PermissionTeam::GLOBAL_ID)->orderBy('name')->get(),
-            'publishers' => $publishers,
-            'publisherNamesByUserId' => $this->publisherNamesByUserId($users->pluck('id'), $publishers),
+            'organizations' => $organizations,
+            'organizationNamesByUserId' => $this->organizationNamesByUserId($users->pluck('id'), $organizations),
         ]);
     }
 
@@ -80,19 +81,24 @@ class UserController extends Controller
     {
         $viewer = $request->user();
 
-        $publisherRoles = collect();
+        $organizationRoles = collect();
         $player = null;
         $sanctions = collect();
         $reportsReceived = collect();
         $reportsSubmitted = collect();
 
+        $isIndependentAuthor = false;
+
         if ($viewer->can('users.view.details')) {
             $user->load(['roles:id,name', 'socialAccounts', 'passkeys']);
 
-            $publisherNames = NewsPublisher::pluck('name', 'id');
+            $organizationNames = Organization::pluck('name', 'id');
 
-            $publisherRoles = UserRoleSummary::rolesGroupedByTeam($user->id, PublisherPermissions::GUARD)
-                ->map(fn ($roleNames, $publisherId) => ['name' => $publisherNames[$publisherId] ?? "#{$publisherId}", 'id' => $publisherId, 'roles' => $roleNames]);
+            $organizationRoles = UserRoleSummary::rolesGroupedByTeam($user->id, OrganizationPermissions::GUARD)
+                ->map(fn ($roleNames, $organizationId) => ['name' => $organizationNames[$organizationId] ?? "#{$organizationId}", 'id' => $organizationId, 'roles' => $roleNames]);
+
+            PermissionTeam::global();
+            $isIndependentAuthor = $user->hasPermissionTo('news.author');
         }
 
         if ($viewer->can('players.view')) {
@@ -123,26 +129,56 @@ class UserController extends Controller
 
         return view('admin.users.show', [
             'user' => $user,
-            'publisherRoles' => $publisherRoles,
+            'organizationRoles' => $organizationRoles,
             'player' => $player,
             'sanctions' => $sanctions,
             'reportsReceived' => $reportsReceived,
             'reportsSubmitted' => $reportsSubmitted,
+            'isIndependentAuthor' => $isIndependentAuthor,
         ]);
     }
 
     /**
+     * Grants/revokes 'news.author' (the site-wide permission behind
+     * dashboard/me, see routes/personal-dashboard.php) directly on the user
+     * — deliberately not via a Role, unlike every other permission in the
+     * app. App\Http\Controllers\Public\AboutController lists anyone holding
+     * a *global role* as site staff on the public "About Us" page; an
+     * independent author who just wants to publish their own articles isn't
+     * staff, so this must never create a model_has_roles row. Gated by the
+     * same super-admin-only 'manage-roles' gate as Admin\RoleController,
+     * since it's still a permission grant.
+     */
+    public function toggleNewsAuthor(Request $request, User $user): RedirectResponse
+    {
+        PermissionTeam::global();
+
+        if ($user->hasPermissionTo('news.author')) {
+            $user->revokePermissionTo('news.author');
+            $status = 'news-author-revoked';
+        } else {
+            $user->givePermissionTo('news.author');
+            $status = 'news-author-granted';
+        }
+
+        activity('administration')->performedOn($user)->causedBy($request->user())
+            ->log($status === 'news-author-granted' ? 'news_author_permission.granted' : 'news_author_permission.revoked');
+
+        return back()->with('status', $status);
+    }
+
+    /**
      * @param  Collection<int, int>  $userIds
-     * @param  Collection<int, NewsPublisher>  $publishers  already-loaded id=>name map, reused from index() rather than re-queried
+     * @param  Collection<int, Organization>  $organizations  already-loaded id=>name map, reused from index() rather than re-queried
      * @return array<int, list<string>>
      */
-    private function publisherNamesByUserId($userIds, Collection $publishers): array
+    private function organizationNamesByUserId($userIds, Collection $organizations): array
     {
-        $publisherNames = $publishers->pluck('name', 'id');
+        $organizationNames = $organizations->pluck('name', 'id');
 
-        return PublisherScope::publisherIdsForUsers($userIds)
-            ->map(fn ($publisherIds) => $publisherIds
-                ->map(fn ($publisherId) => $publisherNames[$publisherId] ?? null)
+        return OrganizationScope::organizationIdsForUsers($userIds)
+            ->map(fn ($organizationIds) => $organizationIds
+                ->map(fn ($organizationId) => $organizationNames[$organizationId] ?? null)
                 ->filter()
                 ->values()
                 ->all())

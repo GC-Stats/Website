@@ -66,6 +66,13 @@
                                 {{ $player['bio'] }}
                             </p>
                         @endif
+
+                        @if($player['staff'] ?? null)
+                            <a href="{{ route('staff.show', [$player['staff']['id'], str($player['staff']['handle'])->slug()]) }}"
+                               class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gc-yellow hover:text-white transition mt-2 w-fit">
+                                {{ __('player.also_staff_as', ['staff' => $player['staff']['handle']]) }}
+                            </a>
+                        @endif
                     </div>
                 </div>
 
