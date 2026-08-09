@@ -40,6 +40,24 @@ return [
             'submit' => 'Enregistrer',
             'saved' => 'Équipe favorite mise à jour.',
         ],
+        'bio' => [
+            'title' => 'Bio et réseaux sociaux',
+            'body' => 'Partagez une courte bio et vos réseaux sociaux sur votre profil public.',
+            'bio_label' => 'Bio',
+            'socials_label' => 'Réseaux sociaux',
+            'social' => [
+                'twitter' => 'Twitter / X',
+                'youtube' => 'YouTube',
+                'twitch' => 'Twitch',
+                'discord' => 'Discord',
+                'instagram' => 'Instagram',
+                'tiktok' => 'TikTok',
+                'email' => 'Email',
+            ],
+            'submit' => 'Enregistrer',
+            'saved' => 'Bio mise à jour.',
+            'not_eligible' => "Vous pourrez ajouter une bio et des réseaux sociaux une fois votre compte âgé d'au moins 30 jours (15 jours si lié à un compte connecté), ou si vous détenez un rôle de l'équipe.",
+        ],
         'password' => [
             'title' => 'Mot de passe',
             'none_set' => 'Aucun mot de passe défini — vous vous connectez actuellement via un compte lié.',
@@ -130,5 +148,6 @@ return [
         'cannot_report_user' => 'Vous ne pouvez pas vous signaler vous-même.',
         'sanction_requires_super_admin' => 'Ce compte détient un rôle staff — seul un super admin peut le sanctionner.',
         'invalid_team_tag' => "Ce tag n'appartient pas à l'équipe sélectionnée.",
+        'social_handle_only' => "Indique uniquement ton pseudo/identifiant, pas un lien complet.",
     ],
 ];

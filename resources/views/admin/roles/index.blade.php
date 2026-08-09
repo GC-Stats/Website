@@ -25,7 +25,7 @@
                     <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
                         {{ __('admin.roles.new_role.name_label') }}
                     </label>
-                    <input type="text" name="name" required pattern="[A-Za-z0-9_\-]+"
+                    <input type="text" name="name" required
                            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
                     @error('name')
                         <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
@@ -45,13 +45,13 @@
                class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl hover:border-gc-yellow/50 transition-all group">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-sm font-black uppercase tracking-widest text-white group-hover:text-gc-yellow transition-colors">{{ $role->name }}</h2>
-                    @if ($role->name === 'super-admin')
+                    @if ($role->is_super_admin)
                         @svg('fas-crown', 'w-4 h-4 text-gc-yellow', ['aria-hidden' => 'true'])
                     @endif
                 </div>
                 <p class="text-xs text-gray-500">{{ trans_choice('admin.roles.member_count', $role->users_count, ['count' => $role->users_count]) }}</p>
-                @if ($role->name === 'super-admin')
-                    <p class="text-[10px] text-gray-600 italic mt-2">{{ __('admin.roles.protected_note') }}</p>
+                @if ($role->is_super_admin)
+                    <p class="text-[10px] text-gray-600 italic mt-2">{{ __('admin.roles.protected_note', ['role' => $role->name]) }}</p>
                 @endif
             </a>
         @endforeach

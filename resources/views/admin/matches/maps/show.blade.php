@@ -128,6 +128,14 @@
                         </label>
                     </div>
 
+                    <label class="block">
+                        <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.maps.note') }}</span>
+                        <textarea name="note" rows="3" maxlength="1000"
+                                  placeholder="{{ __('admin.matches.maps.note_placeholder') }}"
+                                  class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition resize-none">{{ old('note', $map->note) }}</textarea>
+                        @error('note') <p class="mt-1 text-xs text-red-400">{{ $message }}</p> @enderror
+                    </label>
+
                     <button type="submit" class="w-full {{ $bigBtn }} bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                         {{ __('admin.matches.edit.submit') }}
                     </button>

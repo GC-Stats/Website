@@ -1,0 +1,219 @@
+name: Testing Environment
+
+# Goal: provision an ephemeral per-PR test environment, driven by the self-hosted
+# runner (group GCS-Testing) that lives on the same machine as the test env.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  pull_request_review:
+    types: [submitted]
+
+concurrency:
+  group: testing-env-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Decide whether we're allowed to act, and which action to run.
+  # No checkout, no secrets touched.
+  # ---------------------------------------------------------------------------
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      eligible: ${{ steps.decide.outputs.eligible }}
+      action: ${{ steps.decide.outputs.action }}
+      pr-id: ${{ steps.decide.outputs.pr-id }}
+      head-sha: ${{ steps.decide.outputs.head-sha }}
+    steps:
+      - name: Decide eligibility & action
+        id: decide
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
+          REVIEW_STATE: ${{ github.event.review.state }}
+          REVIEWER_ASSOCIATION: ${{ github.event.review.author_association }}
+          REVIEWED_SHA: ${{ github.event.review.commit_id }}
+          PR_ID: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          # PR id: always an integer assigned by GitHub, never free text from the PR.
+          if ! [[ "$PR_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::invalid pr-id"; exit 1
+          fi
+          echo "pr-id=$PR_ID" >> "$GITHUB_OUTPUT"
+
+          # Teardown: always allowed, no PR-controlled data is ever executed.
+          if [ "$EVENT_NAME" = "pull_request" ] && [ "$EVENT_ACTION" = "closed" ]; then
+            echo "eligible=true" >> "$GITHUB_OUTPUT"
+            echo "action=delete" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          INTERNAL="false"
+          [ "$IS_FORK" = "false" ] && INTERNAL="true"
+
+          APPROVED="false"
+          if [ "$EVENT_NAME" = "pull_request_review" ] && [ "$REVIEW_STATE" = "approved" ]; then
+            case "$REVIEWER_ASSOCIATION" in
+              OWNER|MEMBER|COLLABORATOR) APPROVED="true" ;;
+            esac
+          fi
+
+          if [ "$INTERNAL" != "true" ] && [ "$APPROVED" != "true" ]; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "action=none" >> "$GITHUB_OUTPUT"
+            echo "head-sha=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # For an approved review, build exactly the commit that was reviewed
+          # (review.commit_id), never a later, unreviewed commit that may have
+          # since landed on the PR. For an internal PR, use the current head.
+          if [ "$EVENT_NAME" = "pull_request_review" ]; then
+            SHA="$REVIEWED_SHA"
+          else
+            SHA="$PR_HEAD_SHA"
+          fi
+
+          if ! [[ "$SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::invalid commit sha"; exit 1
+          fi
+
+          echo "eligible=true" >> "$GITHUB_OUTPUT"
+          echo "head-sha=$SHA" >> "$GITHUB_OUTPUT"
+
+          if [ "$EVENT_NAME" = "pull_request" ] && [ "$EVENT_ACTION" = "opened" ]; then
+            echo "action=create" >> "$GITHUB_OUTPUT"
+          else
+            echo "action=update" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ---------------------------------------------------------------------------
+  # Build the image on an ephemeral GitHub-hosted runner only.
+  # ---------------------------------------------------------------------------
+  build:
+    needs: gate
+    if: needs.gate.outputs.eligible == 'true' && needs.gate.outputs.action != 'delete'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.finalize.outputs.image }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.gate.outputs.head-sha }}
+          persist-credentials: false
+
+      # No secret is exposed to the checkout/build steps: PR code cannot
+      # exfiltrate anything via a malicious postinstall/build script.
+      - name: Login GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build & push (PR tag, not promoted)
+        id: push
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          no-cache: true
+          tags: ghcr.io/gc-stats/website:pr-${{ needs.gate.outputs.pr-id }}
+
+      - name: Pin image by digest
+        id: finalize
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          set -euo pipefail
+          IMAGE="ghcr.io/gc-stats/website@${DIGEST}"
+          if ! [[ "$IMAGE" =~ ^ghcr\.io/gc-stats/website@sha256:[a-f0-9]{64}$ ]]; then
+            echo "::error::unexpected image digest: $IMAGE"; exit 1
+          fi
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
+  # Runs on the self-hosted runner (group GCS-Testing).
+  # No checkout, no secrets: only pr-id (GitHub-assigned integer) and an
+  # immutable image digest, both re-validated by regex right before exec.
+  # ---------------------------------------------------------------------------
+  provision:
+    needs: [gate, build]
+    if: needs.gate.outputs.eligible == 'true' && needs.gate.outputs.action != 'delete'
+    runs-on:
+      group: GCS-Testing
+    environment: testing-env
+    timeout-minutes: 10
+    permissions: {}
+    steps:
+      - name: Validate inputs
+        id: validate
+        env:
+          ACTION: ${{ needs.gate.outputs.action }}
+          PR_ID: ${{ needs.gate.outputs.pr-id }}
+          IMAGE: ${{ needs.build.outputs.image }}
+        run: |
+          set -euo pipefail
+
+          case "$ACTION" in
+            create|update) ;;
+            *) echo "::error::invalid action: $ACTION"; exit 1 ;;
+          esac
+
+          if ! [[ "$PR_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::invalid pr-id"; exit 1
+          fi
+
+          if ! [[ "$IMAGE" =~ ^ghcr\.io/gc-stats/website@sha256:[a-f0-9]{64}$ ]]; then
+            echo "::error::invalid image: $IMAGE"; exit 1
+          fi
+
+          echo "action=$ACTION" >> "$GITHUB_OUTPUT"
+          echo "pr-id=$PR_ID" >> "$GITHUB_OUTPUT"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: reviewctl ${{ needs.gate.outputs.action }}
+        env:
+          ACTION: ${{ steps.validate.outputs.action }}
+          PR_ID: ${{ steps.validate.outputs.pr-id }}
+          IMAGE: ${{ steps.validate.outputs.image }}
+        run: /opt/testing/reviewctl "$ACTION" "$PR_ID" "$IMAGE"
+
+  # ---------------------------------------------------------------------------
+  # Teardown when the PR closes (merged or not).
+  # ---------------------------------------------------------------------------
+  teardown:
+    needs: gate
+    if: needs.gate.outputs.eligible == 'true' && needs.gate.outputs.action == 'delete'
+    runs-on:
+      group: GCS-Testing
+    timeout-minutes: 10
+    permissions: {}
+    steps:
+      - name: Validate inputs
+        id: validate
+        env:
+          PR_ID: ${{ needs.gate.outputs.pr-id }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$PR_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::invalid pr-id"; exit 1
+          fi
+          echo "pr-id=$PR_ID" >> "$GITHUB_OUTPUT"
+
+      - name: reviewctl delete
+        env:
+          PR_ID: ${{ steps.validate.outputs.pr-id }}
+        run: /opt/testing/reviewctl delete "$PR_ID"

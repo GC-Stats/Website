@@ -16,7 +16,9 @@
 namespace App\Console\Commands;
 
 use App\Models\User;
+use App\Support\PermissionTeam;
 use Illuminate\Console\Command;
+use Spatie\Permission\Models\Role;
 
 class MakeSuperAdmin extends Command
 {
@@ -35,16 +37,20 @@ class MakeSuperAdmin extends Command
             return self::FAILURE;
         }
 
-        if ($user->hasRole('super-admin')) {
+        // Looked up via the is_super_admin flag rather than a hardcoded
+        // name, since that role's name is editable (see RoleController).
+        $role = Role::where('team_id', PermissionTeam::GLOBAL_ID)->where('is_super_admin', true)->firstOrFail();
+
+        if ($user->isSuperAdmin()) {
             $this->info("{$user->name} ({$username}) is already super-admin.");
 
             return self::SUCCESS;
         }
 
-        $user->assignRole('super-admin');
+        $user->assignRole($role);
 
         activity('administration')->performedOn($user)
-            ->withProperties(['role' => 'super-admin', 'via' => 'admin:make-super-admin'])
+            ->withProperties(['role' => $role->name, 'via' => 'admin:make-super-admin'])
             ->log('role.assigned');
 
         $this->info("Granted super-admin to {$user->name} ({$username}).");

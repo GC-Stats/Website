@@ -16,13 +16,24 @@
 
     <h1 class="text-2xl font-black uppercase tracking-tighter text-white mb-6">{{ __('admin.tournaments.edit.title') }}</h1>
 
-    @if ($tournament->status === 'finished' && ! auth()->user()->can('tournaments.finished.edit'))
+    @php
+        $finishedLocked = $tournament->status === 'finished' && ! auth()->user()->can('tournaments.finished.edit');
+        $inactiveLocked = ! $tournament->active && ! auth()->user()->can('tournaments.inactive.edit');
+    @endphp
+
+    @if ($finishedLocked)
         <div class="mb-6 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm rounded-lg px-4 py-3">
             {{ __('admin.tournaments.finished_locked') }}
         </div>
     @endif
 
-    <fieldset @disabled($tournament->status === 'finished' && ! auth()->user()->can('tournaments.finished.edit'))>
+    @if ($inactiveLocked)
+        <div class="mb-6 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm rounded-lg px-4 py-3">
+            {{ __('admin.tournaments.inactive_locked') }}
+        </div>
+    @endif
+
+    <fieldset @disabled($finishedLocked || $inactiveLocked)>
         <form method="POST" action="{{ route('admin.tournaments.update', $tournament) }}">
             @csrf
             @method('PUT')

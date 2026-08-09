@@ -18,73 +18,106 @@ use App\Models\Matchs;
 use App\Models\News;
 use App\Models\Tournament;
 use App\Support\CurrentTheme;
+use App\Support\MatchDisplay;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
-    public function index()
+    protected function matchesQuery(): Builder
     {
-        $data = Cache::remember('home_page_theme_'.CurrentTheme::get(), now()->addMinutes(10), function () {
-            $statusOrder = ['live', 'upcoming', 'finished'];
+        return Matchs::query()
+            ->select([
+                'matches.id',
+                'matches.status',
+                'matches.round_name',
+                'matches.scheduled_at',
+                'matches.team_a_score',
+                'matches.team_b_score',
+                'matches.team_a_id',
+                'matches.team_b_id',
+                'matches.tournament_id',
+                'matches.phase_id',
+                'matches.match_order',
+            ])
+            ->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id')
+            ->where('tournaments.active', true)
+            ->whereNotNull('matches.team_a_id')
+            ->whereNotNull('matches.team_b_id')
+            ->whereNotNull('matches.scheduled_at')
+            ->whereDate('matches.scheduled_at', '!=', MatchDisplay::UNKNOWN_DATE)
+            ->with([
+                'teamA:id,name',
+                'teamB:id,name',
+                'tournament:id,name',
+                'tournamentPhase:id,name,parent_id',
+                'tournamentPhase.parent:id,name',
+            ]);
+    }
 
-            $matches = Matchs::query()
-                ->select([
-                    'matches.id',
-                    'matches.status',
-                    'matches.round_name',
-                    'matches.scheduled_at',
-                    'matches.team_a_score',
-                    'matches.team_b_score',
-                    'matches.team_a_id',
-                    'matches.team_b_id',
-                    'matches.tournament_id',
-                    'matches.phase_id',
-                    'matches.match_order',
-                ])
-                ->join('tournaments', 'matches.tournament_id', '=', 'tournaments.id')
-                ->where('tournaments.active', true)
-                ->whereNotNull('matches.team_a_id')
-                ->whereNotNull('matches.team_b_id')
-                ->with([
-                    'teamA:id,name',
-                    'teamB:id,name',
-                    'tournament:id,name',
-                    'tournamentPhase:id,name,parent_id',
-                    'tournamentPhase.parent:id,name',
-                ])
-                // Recently finished (< 24h) matches are surfaced first, then live,
-                // then upcoming, then older finished matches.
-                ->orderByRaw("CASE
-                    WHEN matches.status = 'live' THEN 0
-                    WHEN matches.status = 'finished' AND matches.scheduled_at >= NOW() - INTERVAL 1 DAY THEN 1
-                    WHEN matches.status = 'upcoming' THEN 2
-                    ELSE 3
-                END")
-                ->orderByRaw("CASE WHEN matches.status = 'upcoming' THEN UNIX_TIMESTAMP(matches.scheduled_at) ELSE -UNIX_TIMESTAMP(matches.scheduled_at) END")
-                ->orderBy('matches.match_order', 'asc')
-                ->take(11)
-                ->get()
-                ->map(fn ($m) => [
-                    'id' => $m->id,
-                    'status' => $m->status,
-                    'round_name' => $m->round_name,
-                    'scheduled_at' => $m->scheduled_at?->toDateTimeString(),
-                    'team_a_score' => $m->team_a_score,
-                    'team_b_score' => $m->team_b_score,
-                    'team_a' => $m->teamA ? [
-                        'id' => $m->teamA->id,
-                        'name' => $m->teamA->name,
-                        'logo' => $m->teamA->logo,
-                    ] : null,
-                    'team_b' => $m->teamB ? [
-                        'id' => $m->teamB->id,
-                        'name' => $m->teamB->name,
-                        'logo' => $m->teamB->logo,
-                    ] : null,
-                    'tournament' => ['name' => $m->tournament->name ?? ''],
-                    'phase' => ['name' => $m->tournamentPhase->parent->name ?? ($m->tournamentPhase->name ?? '')],
-                ])
-                ->all();
+    protected function mapMatches(Collection $matches): array
+    {
+        return $matches
+            ->map(fn ($m) => [
+                'id' => $m->id,
+                'status' => $m->status,
+                'round_name' => $m->round_name,
+                'scheduled_at' => $m->scheduled_at?->toDateTimeString(),
+                'team_a_score' => $m->team_a_score,
+                'team_b_score' => $m->team_b_score,
+                'team_a' => $m->teamA ? [
+                    'id' => $m->teamA->id,
+                    'name' => $m->teamA->name,
+                    'logo' => $m->teamA->logo,
+                ] : null,
+                'team_b' => $m->teamB ? [
+                    'id' => $m->teamB->id,
+                    'name' => $m->teamB->name,
+                    'logo' => $m->teamB->logo,
+                ] : null,
+                'tournament' => ['name' => $m->tournament->name ?? ''],
+                'phase' => ['name' => $m->tournamentPhase->parent->name ?? ($m->tournamentPhase->name ?? '')],
+            ])
+            ->all();
+    }
+
+    public function index(Request $request)
+    {
+        $statusFilter = $request->query('status', 'all');
+        if (! in_array($statusFilter, ['all', 'upcoming', 'finished'], true)) {
+            $statusFilter = 'all';
+        }
+
+        $matches = Cache::remember(
+            "home_page_matches_{$statusFilter}_".CurrentTheme::get(),
+            now()->addMinutes(5),
+            function () use ($statusFilter) {
+                $query = $this->matchesQuery();
+
+                if ($statusFilter === 'all') {
+                    // Recently finished (< 24h) matches are surfaced first, then live,
+                    // then upcoming, then older finished matches.
+                    $query->orderByRaw("CASE
+                        WHEN matches.status = 'live' THEN 0
+                        WHEN matches.status = 'finished' AND matches.scheduled_at >= NOW() - INTERVAL 1 DAY THEN 1
+                        WHEN matches.status = 'upcoming' THEN 2
+                        ELSE 3
+                    END");
+                } else {
+                    $query->where('matches.status', $statusFilter);
+                }
+
+                $query->orderByRaw("CASE WHEN matches.status = 'upcoming' THEN UNIX_TIMESTAMP(matches.scheduled_at) ELSE -UNIX_TIMESTAMP(matches.scheduled_at) END")
+                    ->orderBy('matches.match_order', 'asc');
+
+                return $this->mapMatches($query->take(11)->get());
+            }
+        );
+
+        $tournaments = Cache::remember('home_page_tournaments_'.CurrentTheme::get(), now()->addMinutes(5), function () {
+            $statusOrder = ['live', 'upcoming', 'finished'];
 
             $tournaments = Tournament::query()
                 ->select([
@@ -113,10 +146,7 @@ class HomeController extends Controller
                 }
             }
 
-            return [
-                'matches' => $matches,
-                'tournaments' => $orderedTournaments,
-            ];
+            return $orderedTournaments;
         });
 
         $locale = app()->getLocale();
@@ -147,10 +177,11 @@ class HomeController extends Controller
         });
 
         return view('public.index', [
-            'matches' => $data['matches'],
-            'tournaments' => $data['tournaments'],
+            'matches' => $matches,
+            'tournaments' => $tournaments,
             'newsFeatured' => $newsData['newsFeatured'],
             'newsItems' => $newsData['newsItems'],
+            'statusFilter' => $statusFilter,
         ]);
     }
 }

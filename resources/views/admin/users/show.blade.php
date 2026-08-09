@@ -15,14 +15,26 @@
         {{ __('admin.users.back_to_list') }}
     </a>
 
-    <div class="flex items-center gap-4 mb-8">
-        <x-user-avatar :user="$user" class="w-14 h-14 rounded-lg bg-white/5 border border-white/10 text-sm" />
-        <div class="min-w-0">
-            <h2 class="text-lg font-black text-white truncate">{{ $user->name }}</h2>
-            @if ($user->username)
-                <p class="text-sm text-gray-500 truncate">{{ '@'.$user->username }}</p>
-            @endif
+    <div class="flex items-center justify-between gap-4 mb-8">
+        <div class="flex items-center gap-4 min-w-0">
+            <x-user-avatar :user="$user" class="w-14 h-14 rounded-lg bg-white/5 border border-white/10 text-sm" />
+            <div class="min-w-0">
+                <h2 class="text-lg font-black text-white truncate">{{ $user->name }}</h2>
+                @if ($user->username)
+                    <p class="text-sm text-gray-500 truncate">{{ '@'.$user->username }}</p>
+                @endif
+            </div>
         </div>
+
+        @can('sanctions.create')
+            <x-admin.sanction-modal :user="$user">
+                <button type="button"
+                        class="inline-flex items-center gap-1.5 font-bold uppercase text-[10px] tracking-widest px-3 py-2 rounded-lg transition active:scale-95 bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20 shrink-0">
+                    @svg('fas-gavel', 'w-3 h-3', ['aria-hidden' => 'true'])
+                    {{ __('admin.reports.issue_sanction') }}
+                </button>
+            </x-admin.sanction-modal>
+        @endcan
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -38,6 +50,18 @@
                         <dt class="text-gray-500">{{ __('admin.users.joined') }}</dt>
                         <dd class="text-white">{{ $user->created_at?->format('Y-m-d') }}</dd>
                     </div>
+                    @if ($user->bio)
+                        <div class="flex justify-between gap-4">
+                            <dt class="text-gray-500 shrink-0">{{ __('admin.users.bio_title') }}</dt>
+                            <dd class="text-white text-right whitespace-pre-line">{{ $user->bio }}</dd>
+                        </div>
+                    @endif
+                    @if (! empty($user->socials))
+                        <div class="flex justify-between items-center gap-4">
+                            <dt class="text-gray-500">{{ __('admin.users.socials_title') }}</dt>
+                            <dd><x-social-links :socials="$user->socials" /></dd>
+                        </div>
+                    @endif
                 </dl>
             </div>
 

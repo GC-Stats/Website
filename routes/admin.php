@@ -457,11 +457,6 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::middleware(['can:about.manage'])->group(function () {
             Route::put('/sections/{key}', [AboutController::class, 'saveSection'])->name('sections.update');
 
-            Route::post('/team', [AboutController::class, 'storeMember'])->name('team.store');
-            Route::put('/team/{member}', [AboutController::class, 'updateMember'])->name('team.update');
-            Route::delete('/team/{member}', [AboutController::class, 'destroyMember'])->name('team.destroy');
-            Route::post('/team/{member}/photo', [AboutController::class, 'uploadMemberPhoto'])->name('team.photo');
-
             Route::post('/projects', [AboutController::class, 'storeProject'])->name('projects.store');
             Route::put('/projects/{project}', [AboutController::class, 'updateProject'])->name('projects.update');
             Route::delete('/projects/{project}', [AboutController::class, 'destroyProject'])->name('projects.destroy');
@@ -507,6 +502,7 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::post('/', [RoleController::class, 'store'])->name('store');
         Route::get('/{role}', [RoleController::class, 'show'])->name('show');
         Route::put('/{role}', [RoleController::class, 'update'])->name('update');
+        Route::put('/{role}/name', [RoleController::class, 'updateName'])->name('name.update');
         Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
 
         Route::post('/{role}/members', [RoleController::class, 'addMember'])->name('members.store');

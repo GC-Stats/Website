@@ -19,6 +19,7 @@ use App\Exceptions\LastAuthMethodException;
 use App\Http\Controllers\Public\Controller;
 use App\Models\Team;
 use App\Services\AccountSecurityService;
+use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -69,6 +70,38 @@ class AccountSettingsController extends Controller
         ]);
 
         return back()->with('status', 'team-tag-updated');
+    }
+
+    public function updateBio(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        abort_unless($user->isEligibleForBio(), 403);
+
+        $validated = $request->validate([
+            'bio' => ['nullable', 'string', 'max:1000'],
+            'socials' => ['nullable', 'array'],
+            'socials.*' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
+                // These are handles/usernames, not links — the display side
+                // (SocialLinkConfig/x-social-links) prepends the platform's
+                // fixed URL prefix, so a pasted full link would double up.
+                if (preg_match('/^[a-z][a-z0-9+.-]*:/i', $value) || str_contains($value, '://')) {
+                    $fail(__('account.errors.social_handle_only'));
+                }
+            }],
+        ]);
+
+        $user->update($validated);
+
+        if ($user->wasChanged(['bio', 'socials'])) {
+            activity('profile')
+                ->performedOn($user)
+                ->causedBy($user)
+                ->withProperties(ActivityChangeSet::fromModel($user, ['bio', 'socials'])->toArray())
+                ->log('user.bio_updated');
+        }
+
+        return back()->with('status', 'bio-updated');
     }
 
     public function setPassword(Request $request, AccountSecurityService $accountSecurity): RedirectResponse

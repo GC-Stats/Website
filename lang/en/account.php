@@ -40,6 +40,24 @@ return [
             'submit' => 'Save',
             'saved' => 'Team fan pick updated.',
         ],
+        'bio' => [
+            'title' => 'Bio & social links',
+            'body' => 'Share a short bio and your social links on your public profile.',
+            'bio_label' => 'Bio',
+            'socials_label' => 'Social handles',
+            'social' => [
+                'twitter' => 'Twitter / X',
+                'youtube' => 'YouTube',
+                'twitch' => 'Twitch',
+                'discord' => 'Discord',
+                'instagram' => 'Instagram',
+                'tiktok' => 'TikTok',
+                'email' => 'Email',
+            ],
+            'submit' => 'Save',
+            'saved' => 'Bio updated.',
+            'not_eligible' => 'You can add a bio and social links once your account is at least 30 days old (15 days if linked to a connected account), or once you hold a staff role.',
+        ],
         'password' => [
             'title' => 'Password',
             'none_set' => 'No password set — you currently sign in with a connected account.',
@@ -130,5 +148,6 @@ return [
         'cannot_report_user' => 'You cannot report yourself.',
         'sanction_requires_super_admin' => 'This account holds a staff role — only a super admin can sanction it.',
         'invalid_team_tag' => 'This tag does not belong to the selected team.',
+        'social_handle_only' => 'Enter just your handle/username, not a full link.',
     ],
 ];

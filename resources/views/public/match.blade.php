@@ -329,6 +329,10 @@
                     @foreach($match['game_maps'] as $map)
                         <div x-show="activeMap === {{ $map['id'] }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-12">
 
+                            @if(!empty($map['note']))
+                                <p class="text-center text-sm text-gray-400 italic">{{ $map['note'] }}</p>
+                            @endif
+
                             @if(!empty($map["rounds"]))
                                 @include('public.partials.round-history', ['map' => $map])
                             @endif

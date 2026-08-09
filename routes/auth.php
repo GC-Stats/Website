@@ -76,6 +76,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/settings/account/team', [AccountSettingsController::class, 'updateFanTeam'])
             ->name('account.team.update');
 
+        Route::put('/settings/account/bio', [AccountSettingsController::class, 'updateBio'])
+            ->name('account.bio.update');
+
         Route::post('/settings/change-requests/{changeRequest}/messages', [UserChangeRequestController::class, 'storeMessage'])
             ->middleware('throttle:30,60')
             ->name('account.change-requests.messages.store');
