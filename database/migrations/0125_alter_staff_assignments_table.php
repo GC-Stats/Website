@@ -11,16 +11,16 @@ return new class extends Migration
      * Redesigns staff_assignments into the "XP" system's backing table:
      * staff_id becomes nullable (null = the organization itself is the
      * entry's holder, via organization_id doing double duty — see
-     * StaffAssignment's docblock), started_at/ended_at are dropped (the
-     * displayed date is now derived from the linked tournament's start_date,
-     * see StaffAssignment::tournamentStartDate()), and a free-form JSON
-     * metadata column is added for role-specific extras (e.g. a caster's
-     * broadcast language).
+     * StaffAssignment's docblock), organization_id and a free-form JSON
+     * metadata column (role-specific extras, e.g. a caster's broadcast
+     * language) are added. No stored dates — the displayed date is derived
+     * from the linked tournament's start_date, see
+     * StaffAssignment::tournamentStartDate().
      */
     public function up(): void
     {
         Schema::table('staff_assignments', function (Blueprint $table) {
-            $table->dropColumn(['started_at', 'ended_at']);
+            $table->foreignId('organization_id')->nullable()->after('team_id')->constrained('organization')->nullOnDelete();
             $table->json('metadata')->nullable()->after('role');
         });
 
@@ -33,8 +33,7 @@ return new class extends Migration
 
         Schema::table('staff_assignments', function (Blueprint $table) {
             $table->dropColumn('metadata');
-            $table->date('started_at')->nullable();
-            $table->date('ended_at')->nullable();
+            $table->dropConstrainedForeignId('organization_id');
         });
     }
 };

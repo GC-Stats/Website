@@ -13,10 +13,7 @@ return new class extends Migration
             $table->foreignId('staff_id')->constrained('staff')->cascadeOnDelete();
             $table->morphs('assignable');
             $table->foreignId('team_id')->nullable()->constrained('teams')->nullOnDelete();
-            $table->foreignId('organization_id')->nullable()->constrained('organization')->nullOnDelete();
             $table->string('role');
-            $table->date('started_at')->nullable();
-            $table->date('ended_at')->nullable();
             $table->timestamps();
         });
     }
