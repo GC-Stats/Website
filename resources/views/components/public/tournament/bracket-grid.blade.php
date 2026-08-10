@@ -108,10 +108,13 @@
                         @endforeach
                     @else
                         @foreach($matches as $match)
-                            <div class="bracket-match" data-match-id="{{ $match['id'] }}">
+                            <div class="bracket-match relative" data-match-id="{{ $match['id'] }}">
                                 <a href="{{ route('match.show', $match['id']) }}"
                                    draggable="false"
-                                   class="block bg-bg-card border border-border-subtle rounded-sm shadow-md overflow-hidden hover:border-gc-yellow/50 transition-all group active:scale-[0.98]">
+                                   @if(($match['status'] ?? null) === 'live')
+                                       role="status" aria-label="{{ __('index.live') }}"
+                                   @endif
+                                   class="block bg-bg-card border rounded-sm shadow-md overflow-visible transition-all group active:scale-[0.98] {{ ($match['status'] ?? null) === 'live' ? 'border-red-500/60 live-match-glow' : 'border-border-subtle hover:border-gc-yellow/50' }}">
 
                                     {{-- Team A --}}
                                     <div class="flex items-center justify-between p-2 border-b border-white/5 {{ !is_null($match['team_a_score']) && $match['team_a_score'] > $match['team_b_score'] ? 'bg-gc-yellow/5' : '' }}">
@@ -253,3 +256,15 @@
 
     requestAnimationFrame(() => requestAnimationFrame(drawBracketConnectors));
 </script>
+
+<style>
+    .live-match-glow {
+        position: relative;
+        box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.5);
+        transition: box-shadow 0.5s ease;
+    }
+
+    .live-match-glow:hover {
+        box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.9), 0 0 16px 3px rgba(239, 68, 68, 0.6);
+    }
+</style>
