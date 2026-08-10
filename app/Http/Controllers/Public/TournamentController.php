@@ -354,6 +354,30 @@ class TournamentController extends Controller
                 }
             }
 
+            $collectPhaseTeamIds = function ($phase) use (&$collectPhaseTeamIds) {
+                $ids = [];
+
+                foreach ($phase['matches'] ?? [] as $m) {
+                    if (! empty($m['team_a_id'])) {
+                        $ids[] = $m['team_a_id'];
+                    }
+                    if (! empty($m['team_b_id'])) {
+                        $ids[] = $m['team_b_id'];
+                    }
+                }
+
+                foreach ($phase['children'] ?? [] as $child) {
+                    $ids = array_merge($ids, $collectPhaseTeamIds($child));
+                }
+
+                return $ids;
+            };
+
+            $teamIdsByRootPhase = [];
+            foreach ($rootPhases as $rp) {
+                $teamIdsByRootPhase[$rp['id']] = array_values(array_unique($collectPhaseTeamIds($rp)));
+            }
+
             $phaseIds = array_column($allPhases, 'id');
             $recentMatches = Matchs::whereIn('phase_id', $phaseIds)
                 ->whereNotNull('team_a_id')
@@ -434,6 +458,7 @@ class TournamentController extends Controller
                 })(),
                 'matches' => $recentMatches->toArray(),
                 'root_phases' => $rootPhases,
+                'team_ids_by_root_phase' => $teamIdsByRootPhase,
             ];
         };
 

@@ -209,38 +209,44 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4 mt-4">
-                @foreach($teams as $team)
-                    <div x-data="{ showRoster: false }" x-init="$watch('showAllRosters', () => showRoster = false)" class="relative flex flex-col items-center text-center tournament-card bg-[#050505] border border-white/5 rounded-sm p-3 transition-all duration-300 shadow-lg h-full" ::class="(showAllRosters ? !showRoster : showRoster) ? '!border-white/5' : 'hover:bg-bg-main hover:border-[var(--brand-yellow)]/30'">
-                        <a href="{{ route('teams.show', [$team['id'], str($team['name'] ?? '')->slug()]) }}" class="group flex flex-col items-center w-full">
-                            <span class="text-[10px] font-black text-white italic tracking-tight truncate w-full">
-                                {{ $team['name'] }}
-                            </span>
-                        </a>
-
-                        <div class="flex-1 flex items-center justify-center w-full">
-                            <a href="{{ route('teams.show', [$team['id'], str($team['name'] ?? '')->slug()]) }}" x-show="!(showAllRosters ? !showRoster : showRoster)" class="group relative shrink-0 w-16 h-16 flex items-center justify-center p-2 group-hover:scale-110 transition-transform">
-                                <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
-                                <img class="max-w-full max-h-full object-contain" src="{{ $team['logo'] ?? asset('storage/images/default-team.webp') }}" alt="" loading="lazy">
+            @foreach($root_phases as $phase)
+                @php
+                    $phaseTeamIds = $team_ids_by_root_phase[$phase['id']] ?? [];
+                    $phaseTeams = array_values(array_filter($teams, fn ($team) => in_array($team['id'], $phaseTeamIds, true)));
+                @endphp
+                <div x-show="activePhase === {{ $phase['id'] }}" x-cloak class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4 mt-4">
+                    @foreach($phaseTeams as $team)
+                        <div x-data="{ showRoster: false }" x-init="$watch('showAllRosters', () => showRoster = false)" class="relative flex flex-col items-center text-center tournament-card bg-[#050505] border border-white/5 rounded-sm p-3 transition-all duration-300 shadow-lg h-full" ::class="(showAllRosters ? !showRoster : showRoster) ? '!border-white/5' : 'hover:bg-bg-main hover:border-[var(--brand-yellow)]/30'">
+                            <a href="{{ route('teams.show', [$team['id'], str($team['name'] ?? '')->slug()]) }}" class="group flex flex-col items-center w-full">
+                                <span class="text-[10px] font-black text-white italic tracking-tight truncate w-full">
+                                    {{ $team['name'] }}
+                                </span>
                             </a>
 
+                            <div class="flex-1 flex items-center justify-center w-full">
+                                <a href="{{ route('teams.show', [$team['id'], str($team['name'] ?? '')->slug()]) }}" x-show="!(showAllRosters ? !showRoster : showRoster)" class="group relative shrink-0 w-16 h-16 flex items-center justify-center p-2 group-hover:scale-110 transition-transform">
+                                    <div class="absolute inset-0 bg-[var(--brand-yellow)] opacity-0 group-hover:opacity-10 blur-md transition-opacity"></div>
+                                    <img class="max-w-full max-h-full object-contain" src="{{ $team['logo'] ?? asset('storage/images/default-team.webp') }}" alt="" loading="lazy">
+                                </a>
+
+                                @if(!empty($team['roster']))
+                                    <div x-show="showAllRosters ? !showRoster : showRoster" x-cloak class="w-full flex flex-col items-center justify-center gap-1 bg-[#0A0A0A] rounded-sm py-3 px-1">
+                                        @foreach($team['roster'] as $player)
+                                            <div class="text-[10px] font-bold text-gray-200 truncate w-full leading-tight">{{ $player['handle'] }}</div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+
                             @if(!empty($team['roster']))
-                                <div x-show="showAllRosters ? !showRoster : showRoster" x-cloak class="w-full flex flex-col items-center justify-center gap-1 bg-[#0A0A0A] rounded-sm py-3 px-1">
-                                    @foreach($team['roster'] as $player)
-                                        <div class="text-[10px] font-bold text-gray-200 truncate w-full leading-tight">{{ $player['handle'] }}</div>
-                                    @endforeach
-                                </div>
+                                <button @click="showRoster = !showRoster" type="button" class="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-[var(--brand-yellow)]/40 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-300 hover:text-[var(--brand-yellow)] transition-colors">
+                                    <span x-text="(showAllRosters ? !showRoster : showRoster) ? '{{ __('tournament.hide_roster') }}' : '{{ __('tournament.show_roster') }}'"></span>
+                                </button>
                             @endif
                         </div>
-
-                        @if(!empty($team['roster']))
-                            <button @click="showRoster = !showRoster" type="button" class="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 hover:border-[var(--brand-yellow)]/40 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-300 hover:text-[var(--brand-yellow)] transition-colors">
-                                <span x-text="(showAllRosters ? !showRoster : showRoster) ? '{{ __('tournament.hide_roster') }}' : '{{ __('tournament.show_roster') }}'"></span>
-                            </button>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
+                    @endforeach
+                </div>
+            @endforeach
         </div>
     </div>
 @endsection
