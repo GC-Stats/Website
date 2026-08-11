@@ -26,6 +26,78 @@ class TeamProfileService
     public function __construct(private readonly LogoUploadService $logoUploadService) {}
 
     /**
+     * Renames a team while recording the change in its name history — the
+     * shared path for both the admin profile form (updateProfile()) and
+     * TeamNameApplier (moderator-approved public change requests), so
+     * neither can bypass history tracking.
+     */
+    public function renameTeam(Team $team, string $newName): void
+    {
+        $oldName = $team->name;
+
+        $team->update(['name' => $newName]);
+
+        if ($team->wasChanged('name')) {
+            $this->recordNameChange($team, $oldName, $newName);
+        }
+    }
+
+    /**
+     * Closes out the currently-open name history row (or synthesizes one
+     * spanning the team's creation to now, for a team's first-ever rename)
+     * and opens a new one for the new name.
+     */
+    private function recordNameChange(Team $team, string $oldName, string $newName): void
+    {
+        $open = $team->nameHistory()->whereNull('until')->first();
+
+        if ($open) {
+            $open->update(['until' => now()]);
+        } else {
+            $team->nameHistory()->create([
+                'name' => $oldName,
+                'from' => $team->created_at,
+                'until' => now(),
+            ]);
+        }
+
+        $team->nameHistory()->create([
+            'name' => $newName,
+            'from' => now(),
+            'until' => null,
+        ]);
+    }
+
+    public function addNameHistoryEntry(Team $team, string $name, string $from, string $until, bool $visible, User $actor): void
+    {
+        $entry = $team->nameHistory()->create(['name' => $name, 'from' => $from, 'until' => $until, 'is_visible' => $visible]);
+
+        activity('team')->performedOn($team)->causedBy($actor)
+            ->withProperties(['name_history_id' => $entry->id, 'name' => $name, 'from' => $from, 'until' => $until, 'is_visible' => $visible])
+            ->log('team.name_history_added');
+    }
+
+    public function updateNameHistoryEntry(Team $team, string $id, string $name, string $from, ?string $until, bool $visible, User $actor): void
+    {
+        $entry = $team->nameHistory()->findOrFail($id);
+        $entry->update(['name' => $name, 'from' => $from, 'until' => $until, 'is_visible' => $visible]);
+
+        activity('team')->performedOn($team)->causedBy($actor)
+            ->withProperties(ActivityChangeSet::fromModel($entry, ['name', 'from', 'until', 'is_visible'])->mergeInto(['name_history_id' => $id]))
+            ->log('team.name_history_updated');
+    }
+
+    public function deleteNameHistoryEntry(Team $team, string $id, User $actor): void
+    {
+        $entry = $team->nameHistory()->findOrFail($id);
+        $entry->delete();
+
+        activity('team')->performedOn($team)->causedBy($actor)
+            ->withProperties(['name_history_id' => $id])
+            ->log('team.name_history_removed');
+    }
+
+    /**
      * Note: there is no standalone `website` column on `teams` — a team's
      * website lives inside `socials['website']` alongside its other social
      * links (see resources/views/team/header.blade.php's $socialConfig).
@@ -45,6 +117,10 @@ class TeamProfileService
         ]);
 
         $informationFields = ['name', 'short_name', 'country_code', 'bio', 'vlr_id', 'liquipedia_link'];
+
+        if ($team->wasChanged('name')) {
+            $this->recordNameChange($team, $team->getPrevious()['name'], $team->name);
+        }
 
         if ($team->wasChanged($informationFields)) {
             activity('team')->performedOn($team)->causedBy($actor)
@@ -95,23 +171,23 @@ class TeamProfileService
             ->log('team.logo_updated');
     }
 
-    public function addLogoHistoryEntry(Team $team, UploadedFile $file, string $from, string $until, User $actor, ?string $theme = null): void
+    public function addLogoHistoryEntry(Team $team, UploadedFile $file, string $from, string $until, User $actor, ?string $theme = null, bool $visible = true): void
     {
         $uuid = $this->logoUploadService->storeLogoPair($file, 'teams');
-        $this->logoUploadService->acceptWithHistory($team, 'team', $uuid, $from, $until, $theme);
+        $this->logoUploadService->acceptWithHistory($team, 'team', $uuid, $from, $until, $theme, $visible);
 
         activity('team')->performedOn($team)->causedBy($actor)
-            ->withProperties(['logo_id' => $uuid, 'from' => $from, 'until' => $until, 'theme' => $theme])
+            ->withProperties(['logo_id' => $uuid, 'from' => $from, 'until' => $until, 'theme' => $theme, 'is_visible' => $visible])
             ->log('team.logo_history_added');
     }
 
-    public function updateLogoEntry(Team $team, string $logoId, string $from, ?string $until, User $actor, ?string $theme = null): void
+    public function updateLogoEntry(Team $team, string $logoId, string $from, ?string $until, User $actor, ?string $theme = null, bool $visible = true): void
     {
         $logo = $team->logos()->findOrFail($logoId);
-        $logo->update(['from' => $from, 'until' => $until, 'theme' => $theme]);
+        $logo->update(['from' => $from, 'until' => $until, 'theme' => $theme, 'is_visible' => $visible]);
 
         activity('team')->performedOn($team)->causedBy($actor)
-            ->withProperties(ActivityChangeSet::fromModel($logo, ['from', 'until', 'theme'])->mergeInto(['logo_id' => $logoId]))
+            ->withProperties(ActivityChangeSet::fromModel($logo, ['from', 'until', 'theme', 'is_visible'])->mergeInto(['logo_id' => $logoId]))
             ->log('team.logo_history_updated');
     }
 

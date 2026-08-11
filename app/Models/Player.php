@@ -30,6 +30,7 @@ class Player extends Model
     protected $fillable = [
         'user_id',
         'handle',
+        'aliases',
         'first_name',
         'last_name',
         'country_code',
@@ -47,6 +48,7 @@ class Player extends Model
 
     protected $casts = [
         'socials' => 'array',
+        'aliases' => 'array',
         'pronouns' => 'integer',
     ];
 

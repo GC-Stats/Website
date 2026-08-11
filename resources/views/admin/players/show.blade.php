@@ -69,6 +69,7 @@
                     :title="__('player.edit.logo.history_title')"
                     :from-label="__('player.edit.logo.history_from')"
                     :until-label="__('player.edit.logo.history_until')"
+                    :visible-label="__('player.edit.logo.history_visible')"
                     :save-label="__('team.roster.save')"
                     :add-label="__('player.edit.logo.history_add')"
                     :remove-label="__('team.roster.remove')"
@@ -90,6 +91,44 @@
                     <button type="submit"
                             class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
                         {{ __('player.edit.profile.submit') }}
+                    </button>
+                </form>
+
+            </div>
+
+            <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('player.edit.aliases.title') }}</h2>
+                <p class="text-xs text-gray-500">{{ __('player.edit.aliases.body') }}</p>
+
+                <form method="POST" action="{{ route('admin.players.aliases.update', $player) }}" class="space-y-3"
+                      x-data="{ aliases: @js(old('aliases', $player->aliases ?? []) ?: ['']) }">
+                    @csrf
+                    @method('PUT')
+
+                    <template x-for="(alias, index) in aliases" :key="index">
+                        <div class="flex items-center gap-2">
+                            <input type="text" :name="'aliases[' + index + ']'" x-model="aliases[index]"
+                                   placeholder="{{ __('player.edit.aliases.placeholder') }}"
+                                   class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+                            <button type="button" @click="aliases.splice(index, 1)"
+                                    class="shrink-0 font-bold uppercase text-[10px] tracking-widest px-3 py-2.5 rounded-sm transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10">
+                                {{ __('player.edit.aliases.remove') }}
+                            </button>
+                        </div>
+                    </template>
+
+                    <button type="button" @click="aliases.push('')"
+                            class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                        {{ __('player.edit.aliases.add') }}
+                    </button>
+
+                    @error('aliases')
+                        <p class="text-xs text-red-400">{{ $message }}</p>
+                    @enderror
+
+                    <button type="submit"
+                            class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
+                        {{ __('player.edit.aliases.submit') }}
                     </button>
                 </form>
             </div>

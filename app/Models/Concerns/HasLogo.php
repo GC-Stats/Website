@@ -20,7 +20,9 @@
 namespace App\Models\Concerns;
 
 use App\Models\Logo;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 trait HasLogo
@@ -71,6 +73,37 @@ trait HasLogo
             'dark' => $this->currentLogoDark ?? $this->currentLogo,
             'light' => $this->currentLogoLight ?? $this->currentLogo,
             default => $this->currentLogo,
+        };
+
+        if (! $logo) {
+            return $this->defaultLogoUrl($theme);
+        }
+
+        return Storage::disk('public')->url("{$this->logoStorageFolder()}/{$logo->id}/200x200.webp");
+    }
+
+    /**
+     * The logo this entity displayed at a given point in time — same idea
+     * as Team::nameAt(), for match displays that should show the logo as it
+     * was when the match was played rather than the current one. Reads from
+     * the already-loaded `logos` collection when available (eager-load it
+     * to avoid N+1 across a list of matches), skipping any entry an admin
+     * marked `is_visible = false`. Falls back to defaultLogoUrl() — not the
+     * live current logo — when nothing matches, since a caller resolving a
+     * specific date wants that date's logo or nothing, not today's.
+     */
+    public function logoAt(CarbonInterface|string $date, ?string $theme = null): string
+    {
+        $date = $date instanceof CarbonInterface ? $date : Carbon::parse($date);
+
+        $matches = $this->logos
+            ->filter(fn (Logo $logo) => $logo->is_visible && $logo->from->lte($date) && (! $logo->until || $logo->until->gte($date)))
+            ->sortByDesc('from');
+
+        $logo = match ($theme) {
+            'dark' => $matches->first(fn (Logo $logo) => $logo->theme === 'dark') ?? $matches->first(fn (Logo $logo) => $logo->theme === null),
+            'light' => $matches->first(fn (Logo $logo) => $logo->theme === 'light') ?? $matches->first(fn (Logo $logo) => $logo->theme === null),
+            default => $matches->first(fn (Logo $logo) => $logo->theme === null),
         };
 
         if (! $logo) {

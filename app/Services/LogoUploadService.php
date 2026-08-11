@@ -168,7 +168,8 @@ class LogoUploadService
         string $uuid,
         ?string $from = null,
         ?string $until = null,
-        ?string $theme = null
+        ?string $theme = null,
+        bool $visible = true
     ): Logo {
         if ($until) {
             return Logo::create([
@@ -178,6 +179,7 @@ class LogoUploadService
                 'from' => $from ?? now(),
                 'until' => $until,
                 'theme' => $theme,
+                'is_visible' => $visible,
             ]);
         }
 
@@ -193,6 +195,7 @@ class LogoUploadService
             'entity_id' => $entity->id,
             'from' => $from ?? now(),
             'theme' => $theme,
+            'is_visible' => $visible,
         ]);
 
         $entity->touch();

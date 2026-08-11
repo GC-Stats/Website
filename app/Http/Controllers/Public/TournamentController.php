@@ -244,13 +244,14 @@ class TournamentController extends Controller
             )));
 
             $teamsRaw = [];
+            $teamModels = collect();
             if (! empty($teamIds)) {
-                $teamsRaw = Team::with('currentLogo')
+                $teamModels = Team::with('currentLogo', 'nameHistory', 'logos')
                     ->whereIn('id', $teamIds)
                     ->get(['id', 'name'])
-                    ->keyBy('id')
-                    ->map(fn ($x) => $x->toArray())
-                    ->toArray();
+                    ->keyBy('id');
+
+                $teamsRaw = $teamModels->map(fn ($x) => $x->toArray())->toArray();
             }
 
             $matchesByPhase = [];
@@ -259,6 +260,16 @@ class TournamentController extends Controller
 
                 $teamA = $teamsRaw[$m['team_a_id']] ?? null;
                 $teamB = $teamsRaw[$m['team_b_id']] ?? null;
+
+                if ($teamA && ($teamAModel = $teamModels->get($m['team_a_id']))) {
+                    $teamA['name'] = $teamAModel->nameAt($m['scheduled_at']);
+                    $teamA['logo'] = $teamAModel->logoAt($m['scheduled_at'], CurrentTheme::get());
+                }
+
+                if ($teamB && ($teamBModel = $teamModels->get($m['team_b_id']))) {
+                    $teamB['name'] = $teamBModel->nameAt($m['scheduled_at']);
+                    $teamB['logo'] = $teamBModel->logoAt($m['scheduled_at'], CurrentTheme::get());
+                }
 
                 $matchesByPhase[$pId][] = [
                     'id' => $m['id'],

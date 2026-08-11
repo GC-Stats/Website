@@ -13,6 +13,7 @@ return [
     'current_team' => 'Current Team',
     'old_team' => 'Former Teams',
     'no_team' => 'No Team',
+    'also_known_as' => 'Also known as:',
     'news' => 'News',
     'seemore' => 'See more',
 
@@ -105,6 +106,7 @@ return [
             'history_title' => 'Photo history',
             'history_from' => 'From',
             'history_until' => 'Until',
+            'history_visible' => 'Show on old matches',
             'history_add' => 'Add to history',
             'history_remove_confirm' => 'Permanently remove this photo history entry?',
             'history_empty' => 'No past photos.',
@@ -112,6 +114,14 @@ return [
         'profile' => [
             'title' => 'Profile',
             'submit' => 'Save changes',
+        ],
+        'aliases' => [
+            'title' => 'Aliases',
+            'body' => 'Other names this player is also known by, shown on their public profile.',
+            'placeholder' => 'e.g. an old handle',
+            'add' => 'Add an alias',
+            'remove' => 'Remove',
+            'submit' => 'Save aliases',
         ],
         'fields' => [
             'handle' => 'Handle',

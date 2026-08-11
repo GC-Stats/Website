@@ -506,7 +506,11 @@ class TeamController extends Controller
             })
             ->with([
                 'teamA:id,name',
+                'teamA.nameHistory',
+                'teamA.logos',
                 'teamB:id,name',
+                'teamB.nameHistory',
+                'teamB.logos',
                 'tournament:id,name',
                 'tournamentPhase:id,name',
             ]);

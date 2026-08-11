@@ -130,6 +130,7 @@ class TeamController extends Controller
             'countries' => app(Countries::class)->list(),
             'roster' => $history->whereNull('left_at')->values(),
             'rosterHistory' => $history->whereNotNull('left_at')->values(),
+            'nameHistory' => $team->nameHistory()->get(),
         ]);
     }
 
@@ -183,9 +184,10 @@ class TeamController extends Controller
             'from' => ['required', 'date'],
             'until' => ['required', 'date', 'after:from'],
             'theme' => ['nullable', 'in:dark,light'],
+            'is_visible' => ['nullable', 'boolean'],
         ]);
 
-        $service->addLogoHistoryEntry($team, $validated['logo'], $validated['from'], $validated['until'], $request->user(), $validated['theme'] ?? null);
+        $service->addLogoHistoryEntry($team, $validated['logo'], $validated['from'], $validated['until'], $request->user(), $validated['theme'] ?? null, $request->boolean('is_visible'));
 
         return back()->with('status', 'logo-history-added');
     }
@@ -196,9 +198,10 @@ class TeamController extends Controller
             'from' => ['required', 'date'],
             'until' => ['nullable', 'date', 'after:from'],
             'theme' => ['nullable', 'in:dark,light'],
+            'is_visible' => ['nullable', 'boolean'],
         ]);
 
-        $service->updateLogoEntry($team, $logo, $validated['from'], $validated['until'] ?? null, $request->user(), $validated['theme'] ?? null);
+        $service->updateLogoEntry($team, $logo, $validated['from'], $validated['until'] ?? null, $request->user(), $validated['theme'] ?? null, $request->boolean('is_visible'));
 
         return back()->with('status', 'logo-history-updated');
     }
@@ -208,6 +211,41 @@ class TeamController extends Controller
         $service->deleteLogoEntry($team, $logo, $request->user());
 
         return back()->with('status', 'logo-history-removed');
+    }
+
+    public function storeNameHistory(Request $request, Team $team, TeamProfileService $service): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'from' => ['required', 'date'],
+            'until' => ['required', 'date', 'after:from'],
+            'is_visible' => ['nullable', 'boolean'],
+        ]);
+
+        $service->addNameHistoryEntry($team, $validated['name'], $validated['from'], $validated['until'], $request->boolean('is_visible'), $request->user());
+
+        return back()->with('status', 'name-history-added');
+    }
+
+    public function updateNameHistoryEntry(Request $request, Team $team, string $nameHistory, TeamProfileService $service): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'from' => ['required', 'date'],
+            'until' => ['nullable', 'date', 'after:from'],
+            'is_visible' => ['nullable', 'boolean'],
+        ]);
+
+        $service->updateNameHistoryEntry($team, $nameHistory, $validated['name'], $validated['from'], $validated['until'] ?? null, $request->boolean('is_visible'), $request->user());
+
+        return back()->with('status', 'name-history-updated');
+    }
+
+    public function destroyNameHistoryEntry(Request $request, Team $team, string $nameHistory, TeamProfileService $service): RedirectResponse
+    {
+        $service->deleteNameHistoryEntry($team, $nameHistory, $request->user());
+
+        return back()->with('status', 'name-history-removed');
     }
 
     public function syncRoster(Request $request, Team $team, RosterService $rosterService): RedirectResponse

@@ -72,6 +72,7 @@
             :title="__('tournament.edit.logo.history_title')"
             :from-label="__('tournament.edit.logo.history_from')"
             :until-label="__('tournament.edit.logo.history_until')"
+            :visible-label="__('tournament.edit.logo.history_visible')"
             :save-label="__('team.roster.save')"
             :add-label="__('tournament.edit.logo.history_add')"
             :remove-label="__('team.roster.remove')"

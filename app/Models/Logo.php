@@ -28,6 +28,10 @@ class Logo extends Model
 
     protected $keyType = 'string';
 
+    // Named is_visible, not visible — Eloquent's Model base class already
+    // declares a protected $visible property (attribute serialization
+    // whitelist), which silently shadows a same-named column when accessed
+    // from another Model subclass's scope (e.g. HasLogo::logoAt()).
     protected $fillable = [
         'id',
         'entity_type',
@@ -35,11 +39,13 @@ class Logo extends Model
         'from',
         'until',
         'theme',
+        'is_visible',
     ];
 
     protected $casts = [
         'from' => 'datetime',
         'until' => 'datetime',
+        'is_visible' => 'boolean',
     ];
 
     protected static function booted(): void

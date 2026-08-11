@@ -14,6 +14,7 @@
     'title',
     'fromLabel',
     'untilLabel',
+    'visibleLabel',
     'saveLabel',
     'addLabel',
     'removeLabel',
@@ -50,6 +51,11 @@
                             <option value="light" @selected($logo->theme === 'light')>{{ $themeLightLabel }}</option>
                         </select>
                     @endif
+                    <label class="flex items-center gap-1.5 text-[10px] text-gray-400 shrink-0">
+                        <input type="checkbox" name="is_visible" value="1" @checked($logo->is_visible)
+                               class="rounded-sm border-border-subtle bg-black/40 text-gc-yellow focus:ring-gc-yellow focus:ring-offset-0">
+                        {{ $visibleLabel }}
+                    </label>
                     <button type="submit"
                             class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-white/10 border border-border-subtle text-white hover:bg-white/20">
                         {{ $saveLabel }}
@@ -94,6 +100,11 @@
                     <option value="light">{{ $themeLightLabel }}</option>
                 </select>
             @endif
+            <label class="flex items-center gap-1.5 text-[10px] text-gray-400 shrink-0">
+                <input type="checkbox" name="is_visible" value="1" checked
+                       class="rounded-sm border-border-subtle bg-black/40 text-gc-yellow focus:ring-gc-yellow focus:ring-offset-0">
+                {{ $visibleLabel }}
+            </label>
             <button type="submit"
                     class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90 shrink-0">
                 {{ $addLabel }}

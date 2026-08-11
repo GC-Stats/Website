@@ -25,11 +25,13 @@ use App\Services\ChangeRequests\Appliers\PlayerRosterApplier;
 use App\Services\ChangeRequests\Appliers\PlayerRosterHistoryApplier;
 use App\Services\ChangeRequests\Appliers\SimpleAttributeApplier;
 use App\Services\ChangeRequests\Appliers\TeamLogoApplier;
+use App\Services\ChangeRequests\Appliers\TeamNameApplier;
 use App\Services\ChangeRequests\Appliers\TeamRosterAddApplier;
 use App\Services\ChangeRequests\Appliers\TeamRosterHistoryApplier;
 use App\Services\LogoUploadService;
 use App\Services\PlayerProfileService;
 use App\Services\RosterService;
+use App\Services\TeamProfileService;
 use InvalidArgumentException;
 
 class ChangeRequestApplierRegistry
@@ -38,6 +40,7 @@ class ChangeRequestApplierRegistry
         private readonly RosterService $roster,
         private readonly PlayerProfileService $playerProfiles,
         private readonly LogoUploadService $logoUploadService,
+        private readonly TeamProfileService $teamProfiles,
     ) {}
 
     /**
@@ -47,7 +50,7 @@ class ChangeRequestApplierRegistry
     {
         return [
             Team::class => [
-                'name' => new SimpleAttributeApplier('name'),
+                'name' => new TeamNameApplier($this->teamProfiles),
                 'short_name' => new SimpleAttributeApplier('short_name'),
                 'bio' => new SimpleAttributeApplier('bio'),
                 'country_code' => new SimpleAttributeApplier('country_code'),

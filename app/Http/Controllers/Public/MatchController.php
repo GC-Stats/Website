@@ -59,7 +59,11 @@ class MatchController extends Controller
                 'tournament:id,name',
                 'tournamentPhase:id,name',
                 'teamA:id,name,short_name',
+                'teamA.nameHistory',
+                'teamA.logos',
                 'teamB:id,name,short_name',
+                'teamB.nameHistory',
+                'teamB.logos',
                 'map_bans.team:id,name,short_name',
                 'map_bans.sidePickedBy:id,name,short_name',
                 'streams' => fn ($query) => $query->active()->orderBy('name'),
@@ -309,12 +313,14 @@ class MatchController extends Controller
 
             $finalMatch['team_a_data'] = $match->teamA ? [
                 ...$match->teamA->only(['id', 'name', 'short_name']),
-                'logo' => $match->teamA->logo,
+                'name' => $match->teamA->nameAt($match->scheduled_at),
+                'logo' => $match->teamA->logoAt($match->scheduled_at, CurrentTheme::get()),
             ] : null;
 
             $finalMatch['team_b_data'] = $match->teamB ? [
                 ...$match->teamB->only(['id', 'name', 'short_name']),
-                'logo' => $match->teamB->logo,
+                'name' => $match->teamB->nameAt($match->scheduled_at),
+                'logo' => $match->teamB->logoAt($match->scheduled_at, CurrentTheme::get()),
             ] : null;
 
             // Global face-to-face: deliberately not scoped to $match->tournament_id
@@ -411,7 +417,7 @@ class MatchController extends Controller
                     $q->where('team_a_id', $match->team_b_id)->where('team_b_id', $match->team_a_id);
                 });
             })
-            ->with(['teamA:id,name,short_name', 'teamB:id,name,short_name', 'tournament:id,name', 'tournamentPhase:id,name'])
+            ->with(['teamA:id,name,short_name', 'teamA.nameHistory', 'teamA.logos', 'teamB:id,name,short_name', 'teamB.nameHistory', 'teamB.logos', 'tournament:id,name', 'tournamentPhase:id,name'])
             ->orderByDesc('scheduled_at')
             ->limit(6)
             ->get();

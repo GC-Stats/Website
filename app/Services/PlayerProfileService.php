@@ -126,6 +126,22 @@ class PlayerProfileService
             ->log('player.discord_id_reset');
     }
 
+    /**
+     * @param  list<string>  $aliases
+     */
+    public function updateAliases(Player $player, array $aliases, User $actor): void
+    {
+        $newAliases = array_values(array_filter(array_map('trim', $aliases), fn ($alias) => $alias !== ''));
+
+        $player->update(['aliases' => $newAliases]);
+
+        if ($player->wasChanged('aliases')) {
+            activity('player')->performedOn($player)->causedBy($actor)
+                ->withProperties(ActivityChangeSet::fromModel($player, ['aliases'])->toArray())
+                ->log('player.aliases_updated');
+        }
+    }
+
     public function updateLogo(Player $player, UploadedFile $file, User $actor): void
     {
         $uuid = $this->logoUploadService->storeLogoPair($file, 'players');
@@ -153,23 +169,23 @@ class PlayerProfileService
             ->log('player.logo_updated');
     }
 
-    public function addLogoHistoryEntry(Player $player, UploadedFile $file, string $from, string $until, User $actor): void
+    public function addLogoHistoryEntry(Player $player, UploadedFile $file, string $from, string $until, User $actor, bool $visible = true): void
     {
         $uuid = $this->logoUploadService->storeLogoPair($file, 'players');
-        $this->logoUploadService->acceptWithHistory($player, 'player', $uuid, $from, $until);
+        $this->logoUploadService->acceptWithHistory($player, 'player', $uuid, $from, $until, visible: $visible);
 
         activity('player')->performedOn($player)->causedBy($actor)
-            ->withProperties(['logo_id' => $uuid, 'from' => $from, 'until' => $until])
+            ->withProperties(['logo_id' => $uuid, 'from' => $from, 'until' => $until, 'is_visible' => $visible])
             ->log('player.logo_history_added');
     }
 
-    public function updateLogoEntry(Player $player, string $logoId, string $from, ?string $until, User $actor): void
+    public function updateLogoEntry(Player $player, string $logoId, string $from, ?string $until, User $actor, bool $visible = true): void
     {
         $logo = $player->logos()->findOrFail($logoId);
-        $logo->update(['from' => $from, 'until' => $until]);
+        $logo->update(['from' => $from, 'until' => $until, 'is_visible' => $visible]);
 
         activity('player')->performedOn($player)->causedBy($actor)
-            ->withProperties(ActivityChangeSet::fromModel($logo, ['from', 'until'])->mergeInto(['logo_id' => $logoId]))
+            ->withProperties(ActivityChangeSet::fromModel($logo, ['from', 'until', 'is_visible'])->mergeInto(['logo_id' => $logoId]))
             ->log('player.logo_history_updated');
     }
 

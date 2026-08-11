@@ -13,6 +13,7 @@ return [
     'current_team' => 'Équipe Actuelle',
     'old_team' => 'Anciennes Équipes',
     'no_team' => 'Aucune Équipe',
+    'also_known_as' => 'Également connu sous :',
     'news' => 'Actualités',
     'seemore' => 'Voir plus',
 
@@ -105,6 +106,7 @@ return [
             'history_title' => 'Historique des photos',
             'history_from' => 'Depuis',
             'history_until' => "Jusqu'à",
+            'history_visible' => 'Afficher sur les anciens matchs',
             'history_add' => "Ajouter à l'historique",
             'history_remove_confirm' => "Retirer définitivement cette entrée de l'historique des photos ?",
             'history_empty' => 'Aucune photo précédente.',
@@ -112,6 +114,14 @@ return [
         'profile' => [
             'title' => 'Profil',
             'submit' => 'Enregistrer les modifications',
+        ],
+        'aliases' => [
+            'title' => 'Alias',
+            'body' => 'Autres noms sous lesquels ce joueur est aussi connu, affichés sur son profil public.',
+            'placeholder' => 'ex : un ancien pseudo',
+            'add' => 'Ajouter un alias',
+            'remove' => 'Supprimer',
+            'submit' => 'Enregistrer les alias',
         ],
         'fields' => [
             'handle' => 'Pseudo',

@@ -306,14 +306,15 @@ class TournamentController extends Controller
             'from' => ['required', 'date'],
             'until' => ['required', 'date', 'after:from'],
             'theme' => ['nullable', 'in:dark,light'],
+            'is_visible' => ['nullable', 'boolean'],
         ]);
 
         $uuid = $logoUploadService->storeLogoPair($validated['logo'], 'tournaments');
-        $logoUploadService->acceptWithHistory($tournament, 'tournament', $uuid, $validated['from'], $validated['until'], $validated['theme'] ?? null);
+        $logoUploadService->acceptWithHistory($tournament, 'tournament', $uuid, $validated['from'], $validated['until'], $validated['theme'] ?? null, $request->boolean('is_visible'));
 
         activity('tournament')->causedBy($request->user())
             ->performedOn($tournament)
-            ->withProperties(['logo_id' => $uuid, 'from' => $validated['from'], 'until' => $validated['until'], 'theme' => $validated['theme'] ?? null])
+            ->withProperties(['logo_id' => $uuid, 'from' => $validated['from'], 'until' => $validated['until'], 'theme' => $validated['theme'] ?? null, 'is_visible' => $request->boolean('is_visible')])
             ->log('tournament.logo_history_added');
 
         return back()->with('status', 'logo-history-added');
@@ -325,14 +326,15 @@ class TournamentController extends Controller
             'from' => ['required', 'date'],
             'until' => ['nullable', 'date', 'after:from'],
             'theme' => ['nullable', 'in:dark,light'],
+            'is_visible' => ['nullable', 'boolean'],
         ]);
 
         $logoModel = $tournament->logos()->findOrFail($logo);
-        $logoModel->update(['from' => $validated['from'], 'until' => $validated['until'] ?? null, 'theme' => $validated['theme'] ?? null]);
+        $logoModel->update(['from' => $validated['from'], 'until' => $validated['until'] ?? null, 'theme' => $validated['theme'] ?? null, 'is_visible' => $request->boolean('is_visible')]);
 
         activity('tournament')->causedBy($request->user())
             ->performedOn($tournament)
-            ->withProperties(ActivityChangeSet::fromModel($logoModel, ['from', 'until', 'theme'])->mergeInto(['logo_id' => $logo]))
+            ->withProperties(ActivityChangeSet::fromModel($logoModel, ['from', 'until', 'theme', 'is_visible'])->mergeInto(['logo_id' => $logo]))
             ->log('tournament.logo_history_updated');
 
         return back()->with('status', 'logo-history-updated');

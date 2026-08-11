@@ -61,6 +61,13 @@
                             </h1>
                         </div>
 
+                        @if(!empty($player['aliases']))
+                            <p class="text-[11px] text-gray-500 mt-1">
+                                {{ __('player.also_known_as') }}
+                                {{ implode(', ', $player['aliases']) }}
+                            </p>
+                        @endif
+
                         @if($player['bio'])
                             <p class="text-[11px] md:text-[13px] font-bold text-gray-300 leading-tight line-clamp-1 md:line-clamp-none mt-2 group-hover:text-gray-100">
                                 {{ $player['bio'] }}

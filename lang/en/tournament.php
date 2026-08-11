@@ -43,6 +43,7 @@ return [
             'history_title' => 'Logo history',
             'history_from' => 'From',
             'history_until' => 'Until',
+            'history_visible' => 'Visible in history',
             'history_add' => 'Add to history',
             'history_remove_confirm' => 'Permanently remove this logo history entry?',
             'history_empty' => 'No past logos.',

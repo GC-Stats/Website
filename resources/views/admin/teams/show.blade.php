@@ -74,6 +74,7 @@
                         :title="__('team.edit.logo.history_title')"
                         :from-label="__('team.edit.logo.history_from')"
                         :until-label="__('team.edit.logo.history_until')"
+                        :visible-label="__('team.edit.logo.history_visible')"
                         :save-label="__('team.roster.save')"
                         :add-label="__('team.edit.logo.history_add')"
                         :remove-label="__('team.roster.remove')"
@@ -101,6 +102,27 @@
                             {{ __('team.edit.profile.submit') }}
                         </button>
                     </form>
+                </div>
+
+                <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
+                    <x-admin.name-history
+                        :entries="$nameHistory"
+                        :add-url="route('admin.teams.name-history.store', $team)"
+                        :update-url="fn ($entry) => route('admin.teams.name-history.update', [$team, $entry->id])"
+                        :delete-url="fn ($entry) => route('admin.teams.name-history.destroy', [$team, $entry->id])"
+                        :title="__('team.edit.name_history.title')"
+                        :body-label="__('team.edit.name_history.body')"
+                        :name-label="__('team.edit.name_history.name_label')"
+                        :from-label="__('team.edit.name_history.from')"
+                        :until-label="__('team.edit.name_history.until')"
+                        :visible-label="__('team.edit.name_history.visible')"
+                        :save-label="__('team.roster.save')"
+                        :add-label="__('team.edit.name_history.add')"
+                        :remove-label="__('team.roster.remove')"
+                        :remove-confirm-title="__('team.roster.remove')"
+                        :remove-confirm-body="fn ($entry) => __('team.edit.name_history.remove_confirm')"
+                        :empty-label="__('team.edit.name_history.empty')"
+                    />
                 </div>
 
                 <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">

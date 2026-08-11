@@ -16,11 +16,13 @@ namespace App\Models;
 
 use App\Models\Concerns\HasLogo;
 use App\Support\CurrentTheme;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class Team extends Model
@@ -68,6 +70,31 @@ class Team extends Model
     public function routeSlug(): string
     {
         return Str::routeSlug($this->name, $this->id);
+    }
+
+    public function nameHistory(): HasMany
+    {
+        return $this->hasMany(TeamNameHistory::class)->orderByDesc('from');
+    }
+
+    /**
+     * The name this team was known under at a given point in time. Reads
+     * from the already-loaded nameHistory collection when available (so
+     * eager-loading it avoids N+1 across a list of matches), falling back
+     * to a fresh query otherwise. Teams that have never been renamed have
+     * no history rows at all, so the live `name` column is always the
+     * correct fallback — as does a matching entry an admin marked
+     * `is_visible = false` (e.g. a typo fix that shouldn't retroactively
+     * change past match displays).
+     */
+    public function nameAt(CarbonInterface|string $date): string
+    {
+        $date = $date instanceof CarbonInterface ? $date : Carbon::parse($date);
+
+        $entry = $this->nameHistory
+            ->first(fn (TeamNameHistory $entry) => $entry->is_visible && $entry->from->lte($date) && (! $entry->until || $entry->until->gte($date)));
+
+        return $entry->name ?? $this->name;
     }
 
     public function players()

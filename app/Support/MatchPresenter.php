@@ -56,13 +56,13 @@ class MatchPresenter
             'phase_name' => $match->tournamentPhase->name ?? null,
             'team_a' => $leftTeam ? [
                 'id' => $leftTeam->id,
-                'name' => $leftTeam->name,
-                'logo' => $leftTeam->logo,
+                'name' => $leftTeam->nameAt($match->scheduled_at),
+                'logo' => $leftTeam->logoAt($match->scheduled_at, CurrentTheme::get()),
             ] : null,
             'team_b' => $rightTeam ? [
                 'id' => $rightTeam->id,
-                'name' => $rightTeam->name,
-                'logo' => $rightTeam->logo,
+                'name' => $rightTeam->nameAt($match->scheduled_at),
+                'logo' => $rightTeam->logoAt($match->scheduled_at, CurrentTheme::get()),
             ] : null,
             'team_a_score' => (int) $leftScore,
             'team_b_score' => (int) $rightScore,

@@ -147,6 +147,18 @@ class PlayerController extends Controller
         ]);
     }
 
+    public function updateAliases(Request $request, Player $player, PlayerProfileService $service): RedirectResponse
+    {
+        $validated = $request->validate([
+            'aliases' => ['nullable', 'array'],
+            'aliases.*' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $service->updateAliases($player, $validated['aliases'] ?? [], $request->user());
+
+        return back()->with('status', 'aliases-updated');
+    }
+
     public function syncTeamHistory(Request $request, Player $player, RosterService $rosterService): RedirectResponse
     {
         $validated = $request->validate([
@@ -263,9 +275,10 @@ class PlayerController extends Controller
             'logo' => ['required', 'file', 'image', 'max:10240'],
             'from' => ['required', 'date'],
             'until' => ['required', 'date', 'after:from'],
+            'is_visible' => ['nullable', 'boolean'],
         ]);
 
-        $service->addLogoHistoryEntry($player, $validated['logo'], $validated['from'], $validated['until'], $request->user());
+        $service->addLogoHistoryEntry($player, $validated['logo'], $validated['from'], $validated['until'], $request->user(), $request->boolean('is_visible'));
 
         return back()->with('status', 'logo-history-added');
     }
@@ -275,9 +288,10 @@ class PlayerController extends Controller
         $validated = $request->validate([
             'from' => ['required', 'date'],
             'until' => ['nullable', 'date', 'after:from'],
+            'is_visible' => ['nullable', 'boolean'],
         ]);
 
-        $service->updateLogoEntry($player, $logo, $validated['from'], $validated['until'] ?? null, $request->user());
+        $service->updateLogoEntry($player, $logo, $validated['from'], $validated['until'] ?? null, $request->user(), $request->boolean('is_visible'));
 
         return back()->with('status', 'logo-history-updated');
     }

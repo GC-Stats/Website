@@ -43,6 +43,7 @@ return [
             'history_title' => 'Historique des logos',
             'history_from' => 'Du',
             'history_until' => 'Au',
+            'history_visible' => "Visible dans l'historique",
             'history_add' => "Ajouter à l'historique",
             'history_remove_confirm' => 'Supprimer définitivement cet historique de logo ?',
             'history_empty' => 'Aucun logo passé.',
