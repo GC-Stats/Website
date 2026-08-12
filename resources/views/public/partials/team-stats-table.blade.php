@@ -158,7 +158,7 @@
                         <div role="cell" class="min-w-0 font-black italic uppercase text-[13px] text-white">
                             @if($left)
                                 <div class="flex items-center gap-2 min-w-0">
-                                    <a href="{{ route('players.show', [$left['player']['id'], str($left['player']['handle'] ?? '')->slug()]) }}" class="min-w-0 hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                    <a href="{{ route('players.show', [$left['player']['id'], str($left['player']['handle'] ?? '')->slug()]) }}" class="min-w-0 hover:text-[var(--brand-yellow)] transition-colors truncate px-1">
                                         {{ $left['player']['handle'] ?? '---' }}
                                     </a>
                                     @if($maxAcs !== null && $left['acs'] === $maxAcs)
@@ -220,7 +220,7 @@
                                     @if($maxAcs !== null && $right['acs'] === $maxAcs)
                                         <span class="text-[9px] font-black uppercase tracking-wide text-black bg-[var(--brand-yellow)] px-1.5 py-0.5 rounded shrink-0">{{ __('match.stats.mvp') }}</span>
                                     @endif
-                                    <a href="{{ route('players.show', [$right['player']['id'], str($right['player']['handle'] ?? '')->slug()]) }}" class="min-w-0 hover:text-[var(--brand-yellow)] transition-colors truncate">
+                                    <a href="{{ route('players.show', [$right['player']['id'], str($right['player']['handle'] ?? '')->slug()]) }}" class="min-w-0 hover:text-[var(--brand-yellow)] transition-colors truncate px-1">
                                         {{ $right['player']['handle'] ?? '---' }}
                                     </a>
                                 </div>
@@ -289,7 +289,7 @@
                                     </div>
 
                                     <div class="min-w-0 font-black italic uppercase text-[12px] text-white">
-                                        <a href="{{ route('players.show', [$s['player']['id'], str($s['player']['handle'] ?? '')->slug()]) }}" class="min-w-0 block truncate hover:text-[var(--brand-yellow)] transition-colors">
+                                        <a href="{{ route('players.show', [$s['player']['id'], str($s['player']['handle'] ?? '')->slug()]) }}" class="min-w-0 block truncate hover:text-[var(--brand-yellow)] transition-colors px-1">
                                             {{ $s['player']['handle'] ?? '---' }}
                                         </a>
                                     </div>
