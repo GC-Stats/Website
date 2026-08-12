@@ -6,12 +6,13 @@
     with the phase/date filters already used on tournament stats & maps
     pages.
 
-    On the tournament maps page ($tournamentTeams is set), both teams are
-    restricted to a hard-coded <select> of that tournament's participants
-    only — no free-text search, no date range (the comparison always covers
-    the whole tournament). On team pages, team A is locked to the current
-    team and team B is picked via the generic entity-picker (any team,
-    site-wide), plus an optional date range.
+    On the tournament maps page ($tournamentTeams is set), both teams use the
+    generic entity-picker with its browse list scoped to that tournament's
+    participants (search still reaches any team site-wide, same as
+    elsewhere) — no date range (the comparison always covers the whole
+    tournament). On team pages, team A is locked to the current team and
+    team B is picked via the entity-picker (any team, site-wide), plus an
+    optional date range.
 
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
@@ -32,18 +33,9 @@
         @endforeach
 
         @if($tournamentTeams !== null)
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('head_to_head.picker.team_a') }}</label>
-                    <x-styled-select name="h2h_team_a" :selected="request()->query('h2h_team_a')"
-                        :options="collect(['' => '—'])->union($tournamentTeams->mapWithKeys(fn ($t) => [$t->id => $t->name]))" />
-                </div>
-                <div>
-                    <label class="block text-[9px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('head_to_head.picker.team_b') }}</label>
-                    <x-styled-select name="h2h_team_b" :selected="request()->query('h2h_team_b')"
-                        :options="collect(['' => '—'])->union($tournamentTeams->mapWithKeys(fn ($t) => [$t->id => $t->name]))" />
-                </div>
-            </div>
+            <livewire:entity-picker type="team" name="h2h_team_a" :label="__('head_to_head.picker.team_a')" :selected="request()->query('h2h_team_a')" :browseIds="$tournamentTeams->pluck('id')->all()" />
+
+            <livewire:entity-picker type="team" name="h2h_team_b" :label="__('head_to_head.picker.team_b')" :selected="request()->query('h2h_team_b')" :browseIds="$tournamentTeams->pluck('id')->all()" />
         @else
             @if(! $lockTeamA)
                 <livewire:entity-picker type="team" name="h2h_team_a" :label="__('head_to_head.picker.team_a')" :selected="request()->query('h2h_team_a')" />
