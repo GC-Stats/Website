@@ -80,7 +80,7 @@
                         @endphp
                         <div class="grid items-center px-1 py-2 rounded-md {{ $i % 2 === 1 ? 'bg-white/[0.015]' : '' }}"
                              style="grid-template-columns: {{ $perfGridCols }};">
-                            <div class="font-black text-[13px] text-white italic truncate">{{ $left['player']['handle'] ?? '-' }}</div>
+                            <div class="font-black text-[13px] text-white italic truncate px-1">{{ $left['player']['handle'] ?? '-' }}</div>
                             <div class="text-center text-[13px] {{ $cellColor($pfA['sheriff_kills'] ?? 0) }}">{{ $pfA['sheriff_kills'] ?? 0 }}</div>
                             <div class="text-center text-[13px] {{ $cellColor($pfA['2k'] ?? 0) }}">{{ $pfA['2k'] ?? 0 }}</div>
                             <div class="text-center text-[13px] {{ $cellColor($pfA['3k'] ?? 0) }}">{{ $pfA['3k'] ?? 0 }}</div>
@@ -92,7 +92,7 @@
                             <div class="text-center text-[13px] {{ $cellColor($pfB['3k'] ?? 0) }}">{{ $pfB['3k'] ?? 0 }}</div>
                             <div class="text-center text-[13px] {{ $cellColor($pfB['2k'] ?? 0) }}">{{ $pfB['2k'] ?? 0 }}</div>
                             <div class="text-center text-[13px] {{ $cellColor($pfB['sheriff_kills'] ?? 0) }}">{{ $pfB['sheriff_kills'] ?? 0 }}</div>
-                            <div class="font-black text-[13px] text-white italic text-right truncate">{{ $right['player']['handle'] ?? '-' }}</div>
+                            <div class="font-black text-[13px] text-white italic text-right truncate px-1">{{ $right['player']['handle'] ?? '-' }}</div>
                         </div>
                     @endfor
                 </div>
