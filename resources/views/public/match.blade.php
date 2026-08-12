@@ -230,7 +230,7 @@
                     open: false,
                     copied: false,
                     copyLink() {
-                        navigator.clipboard.writeText('{{ route('widget.head-to-head', ['team_a' => $match['team_a_id'], 'team_b' => $match['team_b_id']]) }}');
+                        navigator.clipboard.writeText('{{ route('widget.head-to-head', array_filter(['team_a' => $match['team_a_id'], 'team_b' => $match['team_b_id'], 'patch' => $match['patch'] ?? null])) }}');
                         this.copied = true;
                         setTimeout(() => { this.copied = false; this.open = false; }, 1200);
                     }
