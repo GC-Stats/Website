@@ -85,4 +85,7 @@ return [
             'widgets' => 'Widgets',
         ],
     ],
+    'errors' => [
+        'go_back_home' => 'Go back home',
+    ],
 ];

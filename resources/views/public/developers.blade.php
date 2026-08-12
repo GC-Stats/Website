@@ -84,7 +84,7 @@
                     </p>
 
                     <a href="https://gc-stats.app/developers" target="_blank" class="inline-flex items-center gap-2 bg-white hover:bg-gray-200 text-black text-[10px] font-black uppercase px-6 py-2 rounded-sm transition">
-                        <x-fas-gauge class="w-3.5 h-3.5 inline-block" aria-hidden="true" /> {{ __('developers.doc_dashboardbtn') }}
+                        <x-fas-gauge class="w-3.5 h-3.5 inline-block" aria-hidden="true" /> {{ __('developers.doc_dashboard.btn') }}
                     </a>
                 </div>
 

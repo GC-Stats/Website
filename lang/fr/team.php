@@ -227,5 +227,8 @@ return [
         'undo' => 'Annuler',
         'current_empty' => 'Aucune joueuse dans le roster actuel.',
         'history_empty' => "Aucune entrée dans l'historique du roster.",
+        'since' => 'Depuis',
+        'unknown_date' => 'INCONNU',
+        'now' => 'Aujourd\'hui',
     ],
 ];

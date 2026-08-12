@@ -20,6 +20,18 @@ return [
         'others' => 'Other Data Structure',
     ],
 
+    'sections' => [
+        'players' => 'Players',
+        'teams' => 'Teams',
+        'tournaments' => 'Tournaments',
+        'matches' => 'Matches',
+        'news' => 'News',
+        'users' => 'Users',
+        'reactions_emotes' => 'Reactions & Emotes',
+        'link' => 'Link',
+        'participants' => 'Participants',
+    ],
+
     'descriptions' => [
         'player_team' => "Each team/player must have a name and an identifier; other information is added by the team/player or by administrators via tournament data.<br>Players/teams have the right to modify/delete 'Additional Information'.<br><br>The val_id and discord_id are not displayed or shared. They are provided by the player via Discord.",
         'tournament' => 'Each tournament must have an identifier, a name, dates, a region, a category, and a status. They are collected by our team or upon request during a tournament addition request.',

@@ -44,7 +44,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">01.</span> Players
+                        <span class="text-gc-yellow">01.</span> {{ __('data.sections.players') }}
                     </h2>
 
                     <ul class="space-y-4 mt-4">
@@ -110,7 +110,7 @@
 
                 <div class="bg-bg-main border border-gc-yellow/30 rounded-sm p-6 shadow-xl flex flex-col justify-center relative">
                     <div class="text-center space-y-4">
-                        <h2 class="text-[10px] font-black text-white uppercase tracking-[0.3em] mb-4">Link</h2>
+                        <h2 class="text-[10px] font-black text-white uppercase tracking-[0.3em] mb-4">{{ __('data.sections.link') }}</h2>
 
                         <div class="flex items-center justify-between px-4">
                             <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-gc-yellow"></div>
@@ -144,7 +144,7 @@
 
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">02.</span> Teams
+                        <span class="text-gc-yellow">02.</span> {{ __('data.sections.teams') }}
                     </h2>
 
                     <ul class="space-y-4 mt-4">
@@ -211,7 +211,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">03.</span> Tournaments
+                        <span class="text-gc-yellow">03.</span> {{ __('data.sections.tournaments') }}
                     </h2>
 
                     <ul class="space-y-4 mt-4">
@@ -279,7 +279,7 @@
                 </div>
 
                 <div class="bg-bg-main border border-gc-yellow/30 rounded-sm p-6 shadow-xl flex flex-col justify-center relative text-center">
-                    <h2 class="text-[10px] font-black text-white uppercase tracking-[0.3em] mb-4 italic">Participants</h2>
+                    <h2 class="text-[10px] font-black text-white uppercase tracking-[0.3em] mb-4 italic">{{ __('data.sections.participants') }}</h2>
 
                     <div class="flex items-center justify-center gap-2">
                         <div class="group relative w-max">
@@ -319,7 +319,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
-                        <span class="text-gc-yellow">05.</span> Matches
+                        <span class="text-gc-yellow">05.</span> {{ __('data.sections.matches') }}
                     </h2>
                     <div class="flex flex-wrap gap-2">
                         @foreach(["id", "tournament_id", "phase_id", "round_number", "round_name", "match_order", "team_a_id", "team_b_id", "scheduled_at", "status", "team_a_score", "team_b_score", "best_of", "patch"] as $name)
@@ -536,7 +536,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">16.</span> News
+                        <span class="text-gc-yellow">16.</span> {{ __('data.sections.news') }}
                     </h2>
 
                     <ul class="space-y-4 mt-4">
@@ -583,7 +583,7 @@
 
                 <div class="bg-bg-main border border-gc-yellow/30 rounded-sm p-6 shadow-xl flex flex-col justify-center relative">
                     <div class="text-center space-y-4">
-                        <h2 class="text-[10px] font-black text-white uppercase tracking-[0.3em] mb-4">Link</h2>
+                        <h2 class="text-[10px] font-black text-white uppercase tracking-[0.3em] mb-4">{{ __('data.sections.link') }}</h2>
 
                         <div class="flex items-center justify-between px-4">
                             <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-gc-yellow"></div>
@@ -625,7 +625,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2">
-                        <span class="text-gc-yellow">17.</span> Users
+                        <span class="text-gc-yellow">17.</span> {{ __('data.sections.users') }}
                     </h2>
 
                     <ul class="space-y-4 mt-4">
@@ -748,7 +748,7 @@
 
                 <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-2xl relative md:col-span-2">
                     <h2 class="text-xs font-bold text-white uppercase tracking-widest border-b border-border-subtle pb-2 flex items-center gap-2 mb-4">
-                        <span class="text-gc-yellow">21.</span> Reactions & Emotes
+                        <span class="text-gc-yellow">21.</span> {{ __('data.sections.reactions_emotes') }}
                     </h2>
                     <div class="flex flex-wrap gap-2">
                         @foreach(["emote_id", "user_id", "reactable"] as $name)

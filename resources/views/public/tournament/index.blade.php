@@ -31,7 +31,7 @@
                 </button>
 
                 <div x-show="open" @click.outside="open = false" x-transition role="listbox" aria-labelledby="region-filter-label" class="absolute z-50 mt-2 w-full bg-[#121212] border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md">
-                    <a href="{{ request()->fullUrlWithQuery(['region' => '']) }}" class="block px-4 py-3 text-[10px] font-bold text-gray-500 hover:bg-white/5 hover:text-white uppercase transition-colors">Tout</a>
+                    <a href="{{ request()->fullUrlWithQuery(['region' => '']) }}" class="block px-4 py-3 text-[10px] font-bold text-gray-500 hover:bg-white/5 hover:text-white uppercase transition-colors">{{ __('tournament.index.filter.region.default') }}</a>
                     @foreach($regions as $region)
                         <a href="{{ request()->fullUrlWithQuery(['region' => $region]) }}" class="block px-4 py-3 text-[10px] font-bold {{ request('region') == $region ? 'text-[var(--brand-yellow)] bg-white/5' : 'text-gray-400' }} hover:bg-white/5 hover:text-white uppercase transition-colors">
                             {{ $region }}
@@ -55,7 +55,7 @@
                 </button>
 
                 <div x-show="open" @click.outside="open = false" x-transition role="listbox" aria-labelledby="category-filter-label" class="absolute z-50 mt-2 w-full bg-[#121212] border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md">
-                    <a href="{{ request()->fullUrlWithQuery(['category' => '']) }}" class="block px-4 py-3 text-[10px] font-bold text-gray-500 hover:bg-white/5 uppercase transition-colors">Tout</a>
+                    <a href="{{ request()->fullUrlWithQuery(['category' => '']) }}" class="block px-4 py-3 text-[10px] font-bold text-gray-500 hover:bg-white/5 uppercase transition-colors">{{ __('tournament.index.filter.category.default') }}</a>
                     @foreach($categories as $cat)
                         <a href="{{ request()->fullUrlWithQuery(['category' => $cat]) }}" class="block px-4 py-3 text-[10px] font-bold {{ request('category') == $cat ? 'text-[var(--brand-yellow)] bg-white/5' : 'text-gray-400' }} hover:bg-white/5 uppercase transition-colors">
                             {{ $cat }}
@@ -79,7 +79,7 @@
                 </button>
 
                 <div x-show="open" @click.outside="open = false" x-transition role="listbox" aria-labelledby="year-filter-label" class="absolute z-50 mt-2 w-full bg-[#121212] border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md">
-                    <a href="{{ request()->fullUrlWithQuery(['year' => '']) }}" class="block px-4 py-3 text-[10px] font-bold text-gray-500 hover:bg-white/5 uppercase transition-colors">Tout</a>
+                    <a href="{{ request()->fullUrlWithQuery(['year' => '']) }}" class="block px-4 py-3 text-[10px] font-bold text-gray-500 hover:bg-white/5 uppercase transition-colors">{{ __('tournament.index.filter.period.default') }}</a>
                     @foreach($years as $year)
                         <a href="{{ request()->fullUrlWithQuery(['year' => $year]) }}" class="block px-4 py-3 text-[10px] font-bold {{ request('year') == $year ? 'text-[var(--brand-yellow)] bg-white/5' : 'text-gray-400' }} hover:bg-white/5 uppercase transition-colors">
                             {{ $year }}
@@ -105,7 +105,7 @@
                 <div class="flex bg-white/[0.02] border border-white/5 p-1 rounded-xl">
                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'date', 'direction' => $getNextDirection('date')]) }}"
                        class="group flex items-center gap-2 px-6 py-2 text-[9px] font-black uppercase rounded-lg transition-all {{ $currentSort == 'date' ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-500 hover:text-white' }}">
-                        <span>Date</span>
+                        <span>{{ __('tournament.index.sort.date') }}</span>
                         @if($currentSort == 'date')
                             <x-icon :name="'fas-sort-amount-' . ($currentDirection === 'asc' ? 'up' : 'down')" class="w-3.5 h-3.5 inline-block" aria-hidden="true" />
                         @endif
@@ -113,7 +113,7 @@
 
                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'direction' => $getNextDirection('name')]) }}"
                        class="group flex items-center gap-2 px-6 py-2 text-[9px] font-black uppercase rounded-lg transition-all {{ $currentSort == 'name' ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-500 hover:text-white' }}">
-                        <span>Nom</span>
+                        <span>{{ __('tournament.index.sort.name') }}</span>
                         @if($currentSort == 'name')
                             <x-icon :name="'fas-sort-alpha-' . ($currentDirection === 'asc' ? 'up' : 'down-alt')" class="w-3.5 h-3.5 inline-block" aria-hidden="true" />
                         @endif
@@ -143,7 +143,7 @@
                                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                                             <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                                         </span>
-                                        <span class="text-[7px] font-black text-red-500 uppercase tracking-tighter">Live</span>
+                                        <span class="text-[7px] font-black text-red-500 uppercase tracking-tighter">{{ __('tournament.index.live') }}</span>
                                     </div>
                                 @endif
 

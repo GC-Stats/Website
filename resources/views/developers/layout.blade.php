@@ -100,7 +100,7 @@
                        @if(request()->routeIs('developers.dashboard')) aria-current="page" @endif
                        class="flex items-center gap-2.5 px-3 py-1.5 text-[12.5px] font-medium normal-case tracking-normal rounded-lg transition-all {{ request()->routeIs('developers.dashboard') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
                         @svg('fas-gauge', 'w-3.5 h-3.5 shrink-0', ['aria-hidden' => 'true'])
-                        <span class="truncate">{{ __('developers.nav.dashboard') }}</span>
+                        <span class="truncate">{{ __('developers.dashboard.nav.dashboard') }}</span>
                     </a>
                 </div>
 

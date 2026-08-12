@@ -29,15 +29,15 @@
                     <div class="flex bg-black/40 p-1 rounded-md border border-gray-800">
                         <a href="{{ request()->fullUrlWithQuery(['days' => 0, 'start_date' => null, 'end_date' => null]) }}"
                            class="px-3 py-1 text-[11px] font-bold rounded transition-all {{ (request('days', 0) == 0 && !request('start_date')) ? 'bg-gc-yellow text-white shadow-lg' : 'text-gray-400 hover:text-gray-200' }}">
-                            All time
+                            {{ __('player.stats.all_time') }}
                         </a>
                         <a href="{{ request()->fullUrlWithQuery(['days' => 30, 'start_date' => null, 'end_date' => null]) }}"
                            class="px-3 py-1 text-[11px] font-bold rounded transition-all {{ (request('days') == 30 && !request('start_date')) ? 'bg-gc-yellow text-white shadow-lg' : 'text-gray-400 hover:text-gray-200' }}">
-                            30J
+                            {{ __('player.stats.last_30_days') }}
                         </a>
                         <a href="{{ request()->fullUrlWithQuery(['days' => 60, 'start_date' => null, 'end_date' => null]) }}"
                            class="px-3 py-1 text-[11px] font-bold rounded transition-all {{ (request('days') == 60) ? 'bg-gc-yellow text-white shadow-lg' : 'text-gray-400 hover:text-gray-200' }}">
-                            60J
+                            {{ __('player.stats.last_60_days') }}
                         </a>
                     </div>
                 </div>

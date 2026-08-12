@@ -26,7 +26,7 @@
         <div class="p-4 md:p-5 border-b border-white/5 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3 min-w-0">
                 <img src="{{ $teamA['logo'] ?? asset('storage/images/default-team.webp') }}" alt="{{ $teamA['name'] ?? '' }}" class="w-8 h-8 object-contain shrink-0">
-                <span class="text-xs font-black uppercase tracking-wide text-white truncate">{{ $teamA['short_name'] ?? $teamA['name'] ?? 'TBD' }}</span>
+                <span class="text-xs font-black uppercase tracking-wide text-white truncate">{{ $teamA['short_name'] ?? $teamA['name'] ?? __('match.team_tbd') }}</span>
             </div>
 
             <span class="text-xs font-black text-white tracking-tight shrink-0">
@@ -34,7 +34,7 @@
             </span>
 
             <div class="flex items-center gap-3 min-w-0 justify-end">
-                <span class="text-xs font-black uppercase tracking-wide text-white truncate">{{ $teamB['short_name'] ?? $teamB['name'] ?? 'TBD' }}</span>
+                <span class="text-xs font-black uppercase tracking-wide text-white truncate">{{ $teamB['short_name'] ?? $teamB['name'] ?? __('match.team_tbd') }}</span>
                 <img src="{{ $teamB['logo'] ?? asset('storage/images/default-team.webp') }}" alt="{{ $teamB['name'] ?? '' }}" class="w-8 h-8 object-contain shrink-0">
             </div>
         </div>

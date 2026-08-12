@@ -28,7 +28,7 @@
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12">
                 <a href="/" class="px-8 py-4 border border-[#333] text-gray-400 font-black uppercase text-[10px] tracking-[0.2em] hover:bg-white/5 hover:text-white transition-all">
-                    Go back home
+                    {{ __('layout.errors.go_back_home') }}
                 </a>
             </div>
         </div>

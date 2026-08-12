@@ -20,16 +20,16 @@
     <div class="md:hidden p-4 space-y-3">
         <div class="grid grid-cols-[1.75rem_1fr] items-center gap-2">
             <div class="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.4)] p-1">
-                <img alt="{{ $match['team_a']['name'] ?? 'TBD' }}" src="{{ $match['team_a']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
+                <img alt="{{ $match['team_a']['name'] ?? __('match.team_tbd') }}" src="{{ $match['team_a']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
             </div>
-            <span class="min-w-0 text-center text-[11px] font-black uppercase text-white truncate">{{ $match['team_a']['name'] ?? 'TBD' }}</span>
+            <span class="min-w-0 text-center text-[11px] font-black uppercase text-white truncate">{{ $match['team_a']['name'] ?? __('match.team_tbd') }}</span>
         </div>
 
         <div class="grid grid-cols-[1.75rem_1fr] items-center gap-2">
             <div class="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 shadow-[0_0_10px_rgba(239,68,68,0.4)] p-1">
-                <img alt="{{ $match['team_b']['name'] ?? 'TBD' }}" src="{{ $match['team_b']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
+                <img alt="{{ $match['team_b']['name'] ?? __('match.team_tbd') }}" src="{{ $match['team_b']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
             </div>
-            <span class="min-w-0 text-center text-[11px] font-black uppercase text-white truncate">{{ $match['team_b']['name'] ?? 'TBD' }}</span>
+            <span class="min-w-0 text-center text-[11px] font-black uppercase text-white truncate">{{ $match['team_b']['name'] ?? __('match.team_tbd') }}</span>
         </div>
 
         <div class="flex flex-wrap justify-center gap-2">
@@ -57,7 +57,7 @@
             @foreach($roundChunks as $i => $chunk)
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.4)] p-1.5 {{ $i > 0 ? 'invisible' : '' }}">
-                        <img alt="{{ $match['team_a']['name'] ?? 'TBD' }}" src="{{ $match['team_a']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
+                        <img alt="{{ $match['team_a']['name'] ?? __('match.team_tbd') }}" src="{{ $match['team_a']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
                     </div>
 
                     <div class="flex-grow overflow-hidden">
@@ -103,7 +103,7 @@
             @foreach($roundChunks as $i => $chunk)
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 shadow-[0_0_10px_rgba(239,68,68,0.4)] p-1.5 {{ $i > 0 ? 'invisible' : '' }}">
-                        <img alt="{{ $match['team_b']['name'] ?? 'TBD' }}" src="{{ $match['team_b']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
+                        <img alt="{{ $match['team_b']['name'] ?? __('match.team_tbd') }}" src="{{ $match['team_b']['logo'] ?? asset('storage/images/default-team.webp') }}" class="w-full h-full object-contain">
                     </div>
 
                     <div class="flex-grow overflow-hidden">

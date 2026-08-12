@@ -21,6 +21,7 @@ return [
         'change_requests' => 'Mes demandes de modification',
         'notifications' => 'Notifications',
         'admin' => 'Panneau admin',
+        'developers' => 'Panneau développeurs',
         'no_admin_section' => "Votre rôle a des permissions admin, mais aucune section du dashboard n'est encore construite pour celle-ci.",
         'logout' => 'Déconnexion',
     ],
@@ -82,5 +83,8 @@ return [
     ],
     'meta' => [
         'default_description' => 'GC Stats suit les tournois, équipes, joueuses et matchs de tous les tournois Game Changers.',
+    ],
+    'errors' => [
+        'go_back_home' => 'Retour à l\'accueil',
     ],
 ];

@@ -79,8 +79,8 @@
                                                 {{ \App\Helpers\RosterRole::label($pastRosterRole) }}
                                             </span>
                                             <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest truncate">
-                                                {{ \App\Helpers\PivotDate::format($player['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
-                                                - {{ isset($player['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($player['pivot']['left_at'], 'm/Y') ?? 'Now') : 'Now' }}
+                                                {{ \App\Helpers\PivotDate::format($player['pivot']['joined_at'], 'm/Y') ?? __('team.roster.unknown_date') }}
+                                                - {{ isset($player['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($player['pivot']['left_at'], 'm/Y') ?? __('team.roster.now')) : __('team.roster.now') }}
                                             </span>
                                         </div>
                                     </div>
@@ -153,7 +153,7 @@
                                             {{ \App\Helpers\RosterRole::label($rosterRole) }}
                                         </span>
                                         <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest truncate">
-                                            Since {{ \App\Helpers\PivotDate::format($player['pivot']['joined_at'], 'm/Y') ?? 'UNKNOWN' }}
+                                            {{ __('team.roster.since') }} {{ \App\Helpers\PivotDate::format($player['pivot']['joined_at'], 'm/Y') ?? __('team.roster.unknown_date') }}
                                         </span>
                                     </div>
                                 </div>

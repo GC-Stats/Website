@@ -79,7 +79,7 @@
                                                  draggable="false">
 
                                             <span class="text-[10px] font-black italic uppercase {{ $slot['name'] ? "text-white" : "text-gray-400" }}">
-                                                {{ Str::limit($slot['name'], 20) ?? "TBD" }}
+                                                {{ Str::limit($slot['name'], 20) ?? __('match.team_tbd') }}
                                             </span>
                                         </div>
 
@@ -125,7 +125,7 @@
                                                     {{ Str::limit($match['team_a_name'], 20) }}
                                                 </span>
                                             @else
-                                                <span class="text-[10px] font-black italic text-gray-600">{{ $match["status"] == "finished" ? 'BYE' : ($match["status"] == "upcoming" ? 'TBD' : '-') }}</span>
+                                                <span class="text-[10px] font-black italic text-gray-600">{{ $match["status"] == "finished" ? __('match.team_bye') : ($match["status"] == "upcoming" ? __('match.team_tbd') : '-') }}</span>
                                             @endif
                                         </div>
                                         <span class="font-mono text-xs text-white">{{ $match['team_a_score'] == -1 ? 'FF' : ($match['team_a_score'] ?? '-') }}</span>
@@ -140,7 +140,7 @@
                                                     {{ Str::limit($match['team_b_name'], 20) }}
                                                 </span>
                                             @else
-                                                <span class="text-[10px] font-black italic text-gray-600">{{ $match["status"] == "finished" ? 'BYE' : ($match["status"] == "upcoming" ? 'TBD' : '-') }}</span>
+                                                <span class="text-[10px] font-black italic text-gray-600">{{ $match["status"] == "finished" ? __('match.team_bye') : ($match["status"] == "upcoming" ? __('match.team_tbd') : '-') }}</span>
                                             @endif
                                         </div>
                                         <span class="font-mono text-xs text-white">{{ $match['team_b_score'] == -1 ? 'FF' : ($match['team_b_score'] ?? '-') }}</span>

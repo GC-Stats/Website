@@ -29,6 +29,9 @@ return [
         'start_date' => 'Start date',
         'end_date' => 'End date',
         'filter_submit' => 'Apply date filter',
+        'all_time' => 'All time',
+        'last_30_days' => '30D',
+        'last_60_days' => '60D',
     ],
 
     'empty' => [

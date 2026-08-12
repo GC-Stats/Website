@@ -228,5 +228,8 @@ return [
         'undo' => 'Undo',
         'current_empty' => 'No players on the current roster.',
         'history_empty' => 'No past roster entries.',
+        'since' => 'Since',
+        'unknown_date' => 'UNKNOWN',
+        'now' => 'Now',
     ],
 ];

@@ -26,6 +26,7 @@ return [
             'date' => 'Date',
             'name' => 'Name',
         ],
+        'live' => 'Live',
     ],
 
     'title' => [
@@ -89,6 +90,7 @@ return [
         ],
         'qualified_tooltip' => ':team is qualified for :destination',
         'qualifiers_column' => 'Qualified',
+        'zoom_hint' => 'Mouse Wheel to zoom',
     ],
 
     'leaderboard' => [

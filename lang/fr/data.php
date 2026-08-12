@@ -16,6 +16,17 @@ return [
         'account' => 'Comptes utilisateurs & modération',
         'others' => 'Structure d\'autres données',
     ],
+    'sections' => [
+        'players' => 'Joueuses',
+        'teams' => 'Équipes',
+        'tournaments' => 'Tournois',
+        'matches' => 'Matchs',
+        'news' => 'News',
+        'users' => 'Utilisateurs',
+        'reactions_emotes' => 'Réactions & Emotes',
+        'link' => 'Lien',
+        'participants' => 'Participants',
+    ],
     'descriptions' => [
         'player_team' => "Chaque équipe/joueur doit avoir un nom et un identifiant, les autres informations sont ajoutés par l'équipe/joueuse ou par les administrateurs via les données d'un tournoi ou de Liquipedia.<br>Les joueuses/teams ont un droit à la modification/supression sur les 'Additional Informations'<br><br>Les val_id unique et discord_id unique ne sont pas affichés ou partagés. Ils sont fournis par la joueuse via Discord.",
         'tournament' => 'Chaque tournoi doit avoir un identifiant, un nom, des dates, une région, une category et un status. Ils sont récupérés par notre équipe, ou sur demande lors d\'une demande d\'ajout de tournoi.',

@@ -131,7 +131,7 @@
                                                 <img src="{{ $m['team_a']['logo'] ?? asset('storage/images/default-team.webp') }}" class="relative w-8 h-8 object-contain mb-1" alt="">
                                             </div>
                                             <span class="text-[9px] font-black text-white truncate w-full text-center">
-                                                {{ $m['team_a']['short_name'] ?? ($m['team_a']['name'] ?? ($m['status'] == 'finished' ? 'BYE' : 'TBD')) }}
+                                                {{ $m['team_a']['short_name'] ?? ($m['team_a']['name'] ?? ($m['status'] == 'finished' ? __('match.team_bye') : __('match.team_tbd'))) }}
                                             </span>
                                         </div>
 
@@ -180,7 +180,7 @@
                                                 <img src="{{ $m['team_b']['logo'] ?? asset('storage/images/default-team.webp') }}" class="relative w-8 h-8 object-contain mb-1" alt="">
                                             </div>
                                             <span class="text-[9px] font-black text-white truncate w-full text-center">
-                                                {{ $m['team_b']['short_name'] ?? ($m['team_b']['name'] ?? ($m['status'] == 'finished' ? 'BYE' : 'TBD')) }}
+                                                {{ $m['team_b']['short_name'] ?? ($m['team_b']['name'] ?? ($m['status'] == 'finished' ? __('match.team_bye') : __('match.team_tbd'))) }}
                                             </span>
                                         </div>
                                     </div>

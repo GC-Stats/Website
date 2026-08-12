@@ -23,7 +23,7 @@
 
     <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none" aria-hidden="true">
         <span class="text-[8px] font-bold uppercase tracking-widest text-white/20">
-            <kbd class="bg-white/5 px-1 py-0.5 rounded">Ctrl</kbd> + Mouse Wheel to zoom
+            <kbd class="bg-white/5 px-1 py-0.5 rounded">Ctrl</kbd> + {{ __('tournament.bracket.zoom_hint') }}
         </span>
     </div>
 

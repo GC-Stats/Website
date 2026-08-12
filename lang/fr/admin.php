@@ -202,6 +202,7 @@ return [
         'not_applied_yet' => 'Pas encore appliqué',
         'discussion' => 'Discussion',
         'message_placeholder' => 'Écrire un commentaire…',
+        'needs_requester_reply' => 'Nécessite une réponse du demandeur',
         'message_submit' => 'Publier le commentaire',
         'no_messages' => 'Aucun commentaire pour le moment.',
         'discussion_closed' => 'Cette demande a été traitée — la discussion est désormais fermée.',

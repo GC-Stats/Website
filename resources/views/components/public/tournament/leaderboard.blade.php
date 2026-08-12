@@ -122,7 +122,7 @@
                                 <span class="text-[11px] md:text-xs font-bold uppercase text-white truncate group-hover:text-gc-yellow transition-colors">{{ $row['team']['name'] }}</span>
                             </a>
                         @else
-                            <span class="text-[11px] md:text-xs font-bold uppercase text-white truncate">{{ $row['team']['name'] ?? 'Unknown' }}</span>
+                            <span class="text-[11px] md:text-xs font-bold uppercase text-white truncate">{{ $row['team']['name'] ?? __('match.team_unknown') }}</span>
                         @endif
                     </div>
 
@@ -167,7 +167,7 @@
                                     <span class="text-[11px] md:text-xs font-bold uppercase text-gray-300 truncate group-hover:text-gc-yellow transition-colors">{{ $row['team']['name'] }}</span>
                                 </a>
                             @else
-                                <span class="text-[11px] md:text-xs font-bold uppercase text-gray-300 truncate">{{ $row['team']['name'] ?? 'Unknown' }}</span>
+                                <span class="text-[11px] md:text-xs font-bold uppercase text-gray-300 truncate">{{ $row['team']['name'] ?? __('match.team_unknown') }}</span>
                             @endif
                         </div>
 

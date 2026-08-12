@@ -12,8 +12,8 @@
 
 @php
     $matchStatus = $match['status'] ?? 'upcoming';
-    $teamA = $match['team_a']['name'] ?? ($matchStatus == 'finished' ? 'BYE' : 'TBD');
-    $teamB = $match['team_b']['name'] ?? ($matchStatus == 'finished' ? 'BYE' : 'TBD');
+    $teamA = $match['team_a']['name'] ?? ($matchStatus == 'finished' ? __('match.team_bye') : __('match.team_tbd'));
+    $teamB = $match['team_b']['name'] ?? ($matchStatus == 'finished' ? __('match.team_bye') : __('match.team_tbd'));
     $teamALogo = $match['team_a']['logo'] ?? asset('storage/images/default-team.webp');
     $teamBLogo = $match['team_b']['logo'] ?? asset('storage/images/default-team.webp');
     $matchAriaLabel = match($matchStatus) {

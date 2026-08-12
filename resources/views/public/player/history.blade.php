@@ -38,7 +38,7 @@
                             <div class="min-w-0">
                                 <p class="text-base font-bold text-white truncate">{{ $team['name'] }}</p>
                                 <span class="inline-block mt-1 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm {{ \App\Helpers\RosterRole::badgeClass($teamHistoryRole) }}">
-                                    {{ \App\Helpers\RosterRole::label($teamHistoryRole) ?? 'Player' }}
+                                    {{ \App\Helpers\RosterRole::label($teamHistoryRole) ?? __('team.roster.roles.player') }}
                                 </span>
                             </div>
                         </div>
@@ -47,7 +47,7 @@
                             <p class="text-[11px] font-mono font-bold text-gray-300 uppercase">
                                 {{ isset($team['pivot']['joined_at']) ? (\App\Helpers\PivotDate::format($team['pivot']['joined_at'], 'M Y') ?? '???') : '???' }}
                                 <span class="mx-2 text-gray-600">—</span>
-                                {{ isset($team['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($team['pivot']['left_at'], 'M Y') ?? 'Present') : 'Present' }}
+                                {{ isset($team['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($team['pivot']['left_at'], 'M Y') ?? __('team.roster.now')) : __('team.roster.now') }}
                             </p>
                         </div>
                     </div>

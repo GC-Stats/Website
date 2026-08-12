@@ -11,8 +11,8 @@
 @extends('public.layouts.app')
 
 @php
-    $teamAName = $match['team_a_data']['name'] ?? ($match['status'] == 'finished' ? 'BYE' : 'TBD');
-    $teamBName = $match['team_b_data']['name'] ?? ($match['status'] == 'finished' ? 'BYE' : 'TBD');
+    $teamAName = $match['team_a_data']['name'] ?? ($match['status'] == 'finished' ? __('match.team_bye') : __('match.team_tbd'));
+    $teamBName = $match['team_b_data']['name'] ?? ($match['status'] == 'finished' ? __('match.team_bye') : __('match.team_tbd'));
 @endphp
 
 @section('title', __("match.title", ["teamA" => $teamAName, "teamB" => $teamBName]))
@@ -63,7 +63,7 @@
 
                 <div class="flex flex-col items-center gap-0.5">
                     <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] group-hover:text-[var(--brand-yellow)] transition-colors">
-                        {{ $match['tournament']['name'] ?? $match['tournament_name'] ?? 'Tournament' }}
+                        {{ $match['tournament']['name'] ?? $match['tournament_name'] ?? __('match.unknown_tournament') }}
                     </span>
 
                     <span class="text-[9px] font-bold text-[var(--brand-yellow)]/60 uppercase tracking-widest">
@@ -117,7 +117,7 @@
                                 <span class="text-3xl md:text-4xl font-black text-white tracking-tighter" aria-label="{{ __('match.upcoming') }}">VS</span>
                             @else
                                 <div class="flex flex-col items-center" role="status" aria-live="polite">
-                                    <span class="text-sm font-black text-green-500 animate-pulse tracking-[0.3em] mb-1">LIVE</span>
+                                    <span class="text-sm font-black text-green-500 animate-pulse tracking-[0.3em] mb-1 uppercase">{{ __('match.status.live') }}</span>
                                     <span class="sr-only">{{ __('match.score_label', ['teamA' => $teamAName, 'scoreA' => $match['team_a_score'], 'scoreB' => $match['team_b_score'], 'teamB' => $teamBName]) }}</span>
                                     <div class="flex items-center gap-2" aria-hidden="true">
                                         <span class="text-3xl md:text-4xl font-black {{ $match["team_a_score"] > $match["team_b_score"] ? 'text-[var(--brand-yellow)]' : 'text-white' }} tracking-tighter">{{ $match["team_a_score"] == -1 ? 'FF' : $match["team_a_score"] }}</span>

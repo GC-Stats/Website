@@ -207,6 +207,7 @@ return [
         'not_applied_yet' => 'Not applied yet',
         'discussion' => 'Discussion',
         'message_placeholder' => 'Write a comment…',
+        'needs_requester_reply' => 'Requires a reply from the requester',
         'message_submit' => 'Post comment',
         'no_messages' => 'No comments yet.',
         'discussion_closed' => 'This request has been resolved — the discussion is now closed.',
