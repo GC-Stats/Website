@@ -21,6 +21,14 @@
 
 <div x-data="{
         open: false,
+        // The dialog is teleported to body (see below) so it always centers
+        // on the viewport instead of an ancestor that happens to establish
+        // its own containing block (a transformed/filtered card, etc). That
+        // move breaks the plain `type=submit` case, since the button is no
+        // longer a descendant of its `<form>` — so grab the form now, while
+        // this wrapper is still in its original place, and submit it
+        // programmatically instead.
+        formEl: null,
         // See resources/views/components/modal.blade.php's closeUnlessPortalClick
         // — the styled-select dropdown component teleports its option list to
         // the body, so without this guard picking an option here would
@@ -30,38 +38,40 @@
                 this.open = false;
             }
         },
-     }" style="display: contents">
+     }" x-init="formEl = $el.closest('form')" style="display: contents">
     <button type="button" @click="open = true" {{ $attributes->merge(['class' => $triggerClass]) }}>
         {{ $triggerLabel }}
     </button>
 
-    <div x-show="open" x-cloak
-         class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-         @keydown.escape.window="open = false">
-        <div @click.away="closeUnlessPortalClick($event)" role="dialog" aria-modal="true"
-             class="w-full max-w-sm bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4 text-left">
-            <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ $title }}</h2>
-            <p class="text-xs text-gray-500">{{ $body }}</p>
+    <template x-teleport="body">
+        <div x-show="open" x-cloak
+             class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+             @keydown.escape.window="open = false">
+            <div @click.away="closeUnlessPortalClick($event)" role="dialog" aria-modal="true"
+                 class="w-full max-w-sm bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4 text-left">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ $title }}</h2>
+                <p class="text-xs text-gray-500">{{ $body }}</p>
 
-            {{ $slot }}
+                {{ $slot }}
 
-            <div class="flex gap-3">
-                <button type="button" @click="open = false"
-                        class="flex-1 font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
-                    {{ __('account.edit.cancel') }}
-                </button>
-                @if ($onConfirm)
-                    <button type="button" @click="{{ $onConfirm }}; open = false"
-                            class="flex-1 font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 {{ $submitClass }}">
-                        {{ $submitLabel }}
+                <div class="flex gap-3">
+                    <button type="button" @click="open = false"
+                            class="flex-1 font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-white/5 border border-border-subtle text-white hover:bg-white/10">
+                        {{ __('account.edit.cancel') }}
                     </button>
-                @else
-                    <button type="submit"
-                            class="flex-1 font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 {{ $submitClass }}">
-                        {{ $submitLabel }}
-                    </button>
-                @endif
+                    @if ($onConfirm)
+                        <button type="button" @click="{{ $onConfirm }}; open = false"
+                                class="flex-1 font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 {{ $submitClass }}">
+                            {{ $submitLabel }}
+                        </button>
+                    @else
+                        <button type="button" @click="formEl.requestSubmit(); open = false"
+                                class="flex-1 font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 {{ $submitClass }}">
+                            {{ $submitLabel }}
+                        </button>
+                    @endif
+                </div>
             </div>
         </div>
-    </div>
+    </template>
 </div>
