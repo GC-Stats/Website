@@ -21,6 +21,7 @@ use App\Models\Player;
 use App\Support\Achievements;
 use App\Support\CurrentTheme;
 use App\Support\MatchPresenter;
+use App\Support\RosterMerger;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -111,6 +112,24 @@ class PlayerController extends Controller
         );
     }
 
+    /** Flattens a RosterMerger stint back into the ['id','name','logo','pivot' => [...]] shape the team views expect. */
+    private function stintToTeamArray(array $stint): array
+    {
+        $team = $stint['model'];
+
+        return [
+            'id' => $team->id,
+            'name' => $team->name,
+            'logo' => $team->logo,
+            'pivot' => [
+                'role' => $stint['role'],
+                'joined_at' => $stint['joined_at'] ? Carbon::parse($stint['joined_at'])->toDateString() : null,
+                'left_at' => $stint['left_at'] ? Carbon::parse($stint['left_at'])->toDateString() : null,
+                'inactive_since' => $stint['inactive_since'] ? Carbon::parse($stint['inactive_since'])->toDateString() : null,
+            ],
+        ];
+    }
+
     public function index(int $id, ?string $slug = null)
     {
         if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'players.show')) {
@@ -122,35 +141,27 @@ class PlayerController extends Controller
         $tag = "player_{$id}";
 
         $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($id, $player) {
-            $mapTeam = fn ($team) => [
-                'id' => $team->id,
-                'name' => $team->name,
-                'logo' => $team->logo,
-                'pivot' => [
-                    'role' => $team->pivot->role,
-                    'joined_at' => $team->pivot->joined_at ? Carbon::parse($team->pivot->joined_at)->toDateString() : null,
-                    'left_at' => $team->pivot->left_at ? Carbon::parse($team->pivot->left_at)->toDateString() : null,
-                ],
-            ];
-
             // Showing all teams w/ a left_at, in theory, a player shoudn't have 2 teams in the same time
             // but because of missing data, a lot of player have multiples teams w/ left_at
-            $currentTeamModel = $player->teams()
-                ->select('teams.id', 'teams.name')
-                ->withPivot('role', 'joined_at', 'left_at')
-                ->wherePivotNull('left_at')
-                ->limit(5)
-                ->get();
+            $teamStints = RosterMerger::merge(
+                $player->teams()
+                    ->select('teams.id', 'teams.name')
+                    ->withPivot('role', 'joined_at', 'left_at')
+                    ->get(),
+                'team_id'
+            );
 
-            $pastTeamsModels = $player->teams()
-                ->select('teams.id', 'teams.name')
-                ->withPivot('role', 'joined_at', 'left_at')
-                ->wherePivotNotNull('left_at')
-                ->limit(5)
-                ->get();
+            $currentTeams = $teamStints
+                ->filter(fn ($stint) => $stint['left_at'] === null)
+                ->take(5)
+                ->map(fn ($stint) => $this->stintToTeamArray($stint))
+                ->all();
 
-            $currentTeams = $currentTeamModel->map($mapTeam)->all();
-            $pastTeams = $pastTeamsModels->map($mapTeam)->all();
+            $pastTeams = $teamStints
+                ->filter(fn ($stint) => $stint['left_at'] !== null)
+                ->take(5)
+                ->map(fn ($stint) => $this->stintToTeamArray($stint))
+                ->all();
 
             $baseMatchQuery = $this->playerMatchesQuery($id);
 
@@ -211,31 +222,28 @@ class PlayerController extends Controller
         $cacheKey = "player_history_{$id}_page_{$page}_{$player->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "player_{$id}";
 
-        $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($player) {
-            $paginated = $player->teams()
-                ->select('teams.id', 'teams.name')
-                ->withPivot('role', 'joined_at', 'left_at')
-                ->wherePivotNotNull('left_at')
-                ->paginate(10);
+        $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($player, $page) {
+            $pastStints = RosterMerger::merge(
+                $player->teams()
+                    ->select('teams.id', 'teams.name')
+                    ->withPivot('role', 'joined_at', 'left_at')
+                    ->get(),
+                'team_id'
+            )
+                ->filter(fn ($stint) => $stint['left_at'] !== null)
+                ->values();
 
-            $items = array_map(fn ($team) => [
-                'id' => $team->id,
-                'name' => $team->name,
-                'logo' => $team->logo,
-                'pivot' => [
-                    'role' => $team->pivot->role,
-                    'joined_at' => $team->pivot->joined_at,
-                    'left_at' => $team->pivot->left_at,
-                ],
-            ], $paginated->items());
+            $perPage = 10;
+            $page = max(1, (int) $page);
+            $items = $pastStints->forPage($page, $perPage)->map(fn ($stint) => $this->stintToTeamArray($stint))->values()->all();
 
             return [
                 'player' => $player->toArray(),
                 'pastPlayersItems' => $items,
                 'meta' => [
-                    'total' => $paginated->total(),
-                    'per_page' => $paginated->perPage(),
-                    'current_page' => $paginated->currentPage(),
+                    'total' => $pastStints->count(),
+                    'per_page' => $perPage,
+                    'current_page' => $page,
                 ],
             ];
         });

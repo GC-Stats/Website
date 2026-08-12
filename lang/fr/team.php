@@ -230,5 +230,6 @@ return [
         'since' => 'Depuis',
         'unknown_date' => 'INCONNU',
         'now' => 'Aujourd\'hui',
+        'inactive_since' => 'Inactive depuis :date',
     ],
 ];

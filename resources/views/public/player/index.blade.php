@@ -86,6 +86,11 @@
                                                 {{ __('team.roster.since') }} {{ \App\Helpers\PivotDate::format($currentTeam['pivot']['joined_at'], 'm/Y') ?? __('team.roster.unknown_date') }}
                                             </span>
                                         </div>
+                                        @if(!empty($currentTeam['pivot']['inactive_since']))
+                                            <div class="mt-0.5 text-[9px] text-gray-600 font-bold uppercase tracking-widest">
+                                                {{ __('team.roster.inactive_since', ['date' => \App\Helpers\PivotDate::format($currentTeam['pivot']['inactive_since'], 'm/Y') ?? __('team.roster.unknown_date')]) }}
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -134,6 +139,11 @@
                                                     - {{ isset($oldTeam['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($oldTeam['pivot']['left_at'], 'm/Y') ?? __('team.roster.now')) : __('team.roster.now') }}
                                                 </span>
                                             </div>
+                                            @if(!empty($oldTeam['pivot']['inactive_since']))
+                                                <div class="mt-0.5 text-[9px] text-gray-600 font-bold uppercase tracking-widest">
+                                                    {{ __('team.roster.inactive_since', ['date' => \App\Helpers\PivotDate::format($oldTeam['pivot']['inactive_since'], 'm/Y') ?? __('team.roster.unknown_date')]) }}
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

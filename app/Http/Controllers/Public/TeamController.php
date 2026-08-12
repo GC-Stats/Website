@@ -23,6 +23,7 @@ use App\Services\HeadToHeadService;
 use App\Support\Achievements;
 use App\Support\CurrentTheme;
 use App\Support\MatchPresenter;
+use App\Support\RosterMerger;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -50,6 +51,19 @@ class TeamController extends Controller
         return null;
     }
 
+    /** Flattens a RosterMerger stint back into the ['pivot' => [...]] shape the roster views expect. */
+    private function stintToArray(array $stint): array
+    {
+        return array_merge($stint['model']->toArray(), [
+            'pivot' => [
+                'role' => $stint['role'],
+                'joined_at' => $stint['joined_at'],
+                'left_at' => $stint['left_at'],
+                'inactive_since' => $stint['inactive_since'],
+            ],
+        ]);
+    }
+
     public function index(int $id, ?string $slug = null)
     {
         if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.show')) {
@@ -62,23 +76,28 @@ class TeamController extends Controller
         $tag = "team_{$id}";
 
         $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($id, $team) {
-            $currentRoster = $team->players()
-                ->select('players.id', 'players.handle', 'players.country_code')
-                ->withPivot('role', 'joined_at', 'left_at')
-                ->wherePivotNull('left_at')
-                ->get()
-                ->sortBy(fn ($player) => RosterRole::sortIndex($player->pivot->role ?? null))
-                ->values()
-                ->toArray();
+            $rosterStints = RosterMerger::merge(
+                $team->players()
+                    ->select('players.id', 'players.handle', 'players.country_code')
+                    ->withPivot('role', 'joined_at', 'left_at')
+                    ->get(),
+                'player_id'
+            );
 
-            $pastPlayers = $team->players()
-                ->select('players.id', 'players.handle', 'players.country_code')
-                ->withPivot('role', 'joined_at', 'left_at')
-                ->wherePivotNotNull('left_at')
-                ->orderByPivot('left_at', 'desc')
-                ->limit(5)
-                ->get()
-                ->toArray();
+            $currentRoster = $rosterStints
+                ->filter(fn ($stint) => $stint['left_at'] === null)
+                ->sortBy(fn ($stint) => RosterRole::sortIndex($stint['role']))
+                ->values()
+                ->map(fn ($stint) => $this->stintToArray($stint))
+                ->all();
+
+            $pastPlayers = $rosterStints
+                ->filter(fn ($stint) => $stint['left_at'] !== null)
+                ->sortByDesc(fn ($stint) => $stint['left_at'])
+                ->values()
+                ->take(5)
+                ->map(fn ($stint) => $this->stintToArray($stint))
+                ->all();
 
             $matchesRaw = $this->teamMatchesQuery($id)
                 // Live first, then upcoming within the next 24h, then finished.
@@ -131,21 +150,29 @@ class TeamController extends Controller
         $cacheKey = "team_history_{$id}_page_{$page}_{$team->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "team_{$id}";
 
-        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($team) {
-            $paginated = $team->players()
-                ->select('players.id', 'players.handle', 'players.country_code')
-                ->withPivot('role', 'joined_at', 'left_at')
-                ->wherePivotNotNull('left_at')
-                ->orderByPivot('left_at', 'desc')
-                ->paginate(10);
+        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($team, $page) {
+            $pastStints = RosterMerger::merge(
+                $team->players()
+                    ->select('players.id', 'players.handle', 'players.country_code')
+                    ->withPivot('role', 'joined_at', 'left_at')
+                    ->get(),
+                'player_id'
+            )
+                ->filter(fn ($stint) => $stint['left_at'] !== null)
+                ->sortByDesc(fn ($stint) => $stint['left_at'])
+                ->values();
+
+            $perPage = 10;
+            $page = max(1, (int) $page);
+            $pageItems = $pastStints->forPage($page, $perPage)->map(fn ($stint) => $this->stintToArray($stint))->values()->all();
 
             return [
                 'team' => $team->toArray(),
-                'pastPlayers' => collect($paginated->items())->map->toArray()->all(),
+                'pastPlayers' => $pageItems,
                 'meta' => [
-                    'total' => $paginated->total(),
-                    'per_page' => $paginated->perPage(),
-                    'current_page' => $paginated->currentPage(),
+                    'total' => $pastStints->count(),
+                    'per_page' => $perPage,
+                    'current_page' => $page,
                 ],
             ];
         });

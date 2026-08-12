@@ -62,6 +62,11 @@
                                     <span class="mx-2 text-gray-600">—</span>
                                     {{ isset($player['pivot']['left_at']) ? (\App\Helpers\PivotDate::format($player['pivot']['left_at'], 'M Y') ?? __('team.roster.now')) : __('team.roster.now') }}
                                 </p>
+                                @if(!empty($player['pivot']['inactive_since']))
+                                    <p class="mt-0.5 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                                        {{ __('team.roster.inactive_since', ['date' => \App\Helpers\PivotDate::format($player['pivot']['inactive_since'], 'M Y') ?? __('team.roster.unknown_date')]) }}
+                                    </p>
+                                @endif
                             </div>
                         </div>
                     </div>

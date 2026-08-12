@@ -49,6 +49,17 @@ class RosterRole
         return __('team.roster.roles')[$role] ?? $role;
     }
 
+    public static function isInactive(?string $role): bool
+    {
+        return $role !== null && str_ends_with($role, '-inactive');
+    }
+
+    /** Strips the '-inactive' suffix, e.g. 'player-inactive' -> 'player'. Roles without it pass through unchanged. */
+    public static function baseRole(?string $role): ?string
+    {
+        return self::isInactive($role) ? substr($role, 0, -strlen('-inactive')) : $role;
+    }
+
     /**
      * Buckets a raw role into 'igl', 'player', 'sub', 'manager' or 'staff'
      * for styling purposes (accent color, grouping spacing) — everything

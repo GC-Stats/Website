@@ -231,5 +231,6 @@ return [
         'since' => 'Since',
         'unknown_date' => 'UNKNOWN',
         'now' => 'Now',
+        'inactive_since' => 'Inactive since :date',
     ],
 ];
