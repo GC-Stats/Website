@@ -104,6 +104,14 @@ new class extends Component {
                     const inner = this.$el.querySelector('.inline-block.p-10');
                     if (inner) void inner.offsetHeight;
                     requestAnimationFrame(drawBracketConnectors);
+
+                    const settledScale = this.scale;
+                    requestAnimationFrame(() => {
+                        this.scale = settledScale + 0.0001;
+                        requestAnimationFrame(() => {
+                            this.scale = settledScale;
+                        });
+                    });
                 });
             },
 
