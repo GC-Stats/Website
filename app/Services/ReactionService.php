@@ -38,6 +38,7 @@ class ReactionService
         if ($existing) {
             $existing->delete();
             $this->logToggle($reactable, $user, $emote, 'removed');
+            $reactable->forgetReactionCountsCache();
 
             return false;
         }
@@ -47,6 +48,7 @@ class ReactionService
             'emote_id' => $emote->id,
         ]);
         $this->logToggle($reactable, $user, $emote, 'added');
+        $reactable->forgetReactionCountsCache();
 
         return true;
     }
@@ -111,7 +113,9 @@ class ReactionService
             ])
             ->log('reaction.removed');
 
+        $reactable = $reaction->reactable;
         $reaction->delete();
+        $reactable->forgetReactionCountsCache();
     }
 
     /**
@@ -132,5 +136,6 @@ class ReactionService
             ->log('reaction.bulk_removed');
 
         $reactable->reactions()->where('emote_id', $emote->id)->delete();
+        $reactable->forgetReactionCountsCache();
     }
 }

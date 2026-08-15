@@ -28,6 +28,8 @@ namespace App\Services;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Throwable;
 
 class GiphyService
@@ -35,11 +37,24 @@ class GiphyService
     private const BASE_URL = 'https://api.giphy.com/v1/gifs';
 
     /**
+     * Shared across every user — one Giphy API key backs the whole app, so
+     * this throttles the outgoing HTTP call itself rather than any one
+     * user's usage. Giphy's own Beta-tier key limit is 42 req/min / 1,000
+     * req/day (production keys get more, but there's no harm staying under
+     * the stricter bound); kept comfortably under that so a burst of
+     * composer opens can never trip a 429 / key suspension.
+     */
+    private const RATE_LIMIT_PER_MINUTE = 30;
+
+    /**
      * @return list<array{id: string, preview_url: string, full_url: string, width: int, height: int}>
      */
     public function search(string $term, int $limit = 24): array
     {
-        return $this->request('/search', ['q' => $term, 'limit' => $limit]);
+        $term = trim($term);
+        $cacheKey = 'giphy:search:'.$limit.':'.md5(Str::lower($term));
+
+        return Cache::remember($cacheKey, now()->addMinutes(5), fn () => $this->request('/search', ['q' => $term, 'limit' => $limit]));
     }
 
     /**
@@ -60,6 +75,14 @@ class GiphyService
         if (! $key) {
             return [];
         }
+
+        if (RateLimiter::tooManyAttempts('giphy-api', self::RATE_LIMIT_PER_MINUTE)) {
+            Log::warning('Giphy request throttled by local rate limiter', ['endpoint' => $endpoint]);
+
+            return [];
+        }
+
+        RateLimiter::hit('giphy-api', 60);
 
         try {
             $response = Http::timeout(5)->get(self::BASE_URL.$endpoint, [

@@ -41,6 +41,7 @@ use App\Models\UserReport;
 use App\Services\ForumService;
 use App\Services\UserReportService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
@@ -83,6 +84,37 @@ new class extends Component
         $this->barId = 'forum-thread-'.$thread->id;
     }
 
+    private function threadCacheKey(): string
+    {
+        return "forum:thread:{$this->threadId}";
+    }
+
+    /**
+     * with() re-runs on every Livewire action on this component — not just
+     * posting/paginating, but opening the emote/embed/gif picker too (each
+     * flips a plain boolean via its own action, which still triggers a full
+     * re-render). That was re-fetching the thread row fresh every time,
+     * right on top of the identical findOrFail() mount() just did. The
+     * thread rarely changes (only last_message_at, on a new post), so a
+     * short cache absorbs all of that — forgotten immediately after
+     * postMessage() so a new message's own render sees it fresh.
+     */
+    private function cachedThread(): ForumThread
+    {
+        $thread = Cache::remember($this->threadCacheKey(), now()->addSeconds(30), fn () => ForumThread::findOrFail($this->threadId));
+
+        // Same guard as App\Models\Emote's cached accessors: a cache entry
+        // written before a deploy can unserialize as __PHP_Incomplete_Class
+        // if the model definition shifted underneath it since.
+        if (! $thread instanceof ForumThread) {
+            Cache::forget($this->threadCacheKey());
+
+            return ForumThread::findOrFail($this->threadId);
+        }
+
+        return $thread;
+    }
+
     private function postLimiterKey(): string
     {
         return "forum-post:{$this->threadId}:".Auth::id();
@@ -110,7 +142,7 @@ new class extends Component
 
     public function with(): array
     {
-        $thread = ForumThread::findOrFail($this->threadId);
+        $thread = $this->cachedThread();
 
         return [
             'thread' => $thread,
@@ -156,6 +188,8 @@ new class extends Component
         $thread = ForumThread::findOrFail($this->threadId);
 
         app(ForumService::class)->postMessage($thread, Auth::user(), $this->body);
+
+        Cache::forget($this->threadCacheKey());
 
         $this->reset('body');
 

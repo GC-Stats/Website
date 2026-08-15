@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -122,6 +123,25 @@ class ForumMessage extends Model
      * @return list<array{type: 'text', html: string}|array{type: 'embed', entity_type: string, variant: string, model: Model, stats: ?array, filters: ?array, match_data: ?array}|array{type: 'gif', url: string}|array{type: 'missing'}>
      */
     public function parseBody(): array
+    {
+        $cacheKey = "forum:message:{$this->id}:parsed";
+        $segments = Cache::remember($cacheKey, now()->addMinutes(5), fn () => $this->parseBodyUncached());
+
+        foreach ($segments as $segment) {
+            if (($segment['type'] ?? null) === 'embed' && ! ($segment['model'] ?? null) instanceof Model) {
+                Cache::forget($cacheKey);
+
+                return $this->parseBodyUncached();
+            }
+        }
+
+        return $segments;
+    }
+
+    /**
+     * @return list<array{type: 'text', html: string}|array{type: 'embed', entity_type: string, variant: string, model: Model, stats: ?array, filters: ?array, match_data: ?array}|array{type: 'gif', url: string}|array{type: 'missing'}>
+     */
+    private function parseBodyUncached(): array
     {
         $pattern = '/\{\{(?:('.implode('|', self::EMBED_TYPES).'):(\d+)(?::('.implode('|', self::EMBED_VARIANTS).'))?(?:\?([^}]*))?|gif:(https:\/\/[^}\s]+))\}\}/';
 
