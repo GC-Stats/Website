@@ -23,6 +23,7 @@ return [
         'sanction' => 'Sanctions émises contre mon compte',
         'change_request' => 'Mises à jour de mes demandes de modification',
         'social' => 'Activité sociale',
+        'report' => 'Réponse à mes signalements',
         'submit' => 'Enregistrer les préférences',
         'saved' => 'Préférences de notifications par email mises à jour.',
     ],
@@ -46,5 +47,12 @@ return [
     'change_request_withdrawn' => [
         'title' => 'Votre demande de modification a été retirée',
         'description' => 'Un modérateur a retiré votre demande de modification.',
+    ],
+    'report_resolved' => [
+        'title' => 'Votre signalement a été traité',
+        'description' => [
+            'actioned' => 'Votre signalement a été examiné et une action a été prise. Cliquez pour voir le résultat.',
+            'dismissed' => 'Votre signalement a été examiné et classé sans suite. Cliquez pour voir le résultat.',
+        ],
     ],
 ];

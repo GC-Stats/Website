@@ -19,6 +19,7 @@
  */
 
 use App\Models\Emote;
+use App\Models\ForumMessage;
 use App\Models\News;
 use App\Models\Reaction;
 use App\Models\UserReport;
@@ -38,7 +39,7 @@ new #[Lazy] class extends Component
     // Reactions are polymorphic (reactable_type/reactable_id) so this list
     // is the only thing to extend when reactions reach other content types
     // (forum posts, matches, ...) — see App\Models\Concerns\HasReactions.
-    private const ALLOWED_TYPES = [News::class];
+    private const ALLOWED_TYPES = [News::class, ForumMessage::class];
 
     public string $reactableType;
 
@@ -67,9 +68,21 @@ new #[Lazy] class extends Component
         $this->barId = Str::slug(class_basename($reactableType)).'-'.$reactableId;
     }
 
+    /**
+     * A ForumMessage hidden by moderation (see App\Jobs\ModerateForumMessage)
+     * after this bar was rendered must stop being reactable/reportable even
+     * though the bar is still open on the page — 404 rather than silently
+     * no-op, matching findOrFail()'s behavior for a deleted reactable.
+     */
     private function reactable(): Model
     {
-        return $this->reactableType::findOrFail($this->reactableId);
+        $reactable = $this->reactableType::findOrFail($this->reactableId);
+
+        if ($reactable instanceof ForumMessage) {
+            abort_if($reactable->isHidden(), 404);
+        }
+
+        return $reactable;
     }
 
     /**

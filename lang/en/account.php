@@ -150,4 +150,14 @@ return [
         'invalid_team_tag' => 'This tag does not belong to the selected team.',
         'social_handle_only' => 'Enter just your handle/username, not a full link.',
     ],
+    'reports' => [
+        'title' => 'Report outcome',
+        'subject' => 'Reported',
+        'your_reason' => 'Your reason',
+        'resolution_note' => 'Moderator note',
+        'no_note' => 'No note was left.',
+        'reviewed_by' => 'Reviewed by :name on :date',
+        'message_deleted' => 'This message has since been deleted.',
+        'emote_deleted' => 'This emote has since been deleted.',
+    ],
 ];

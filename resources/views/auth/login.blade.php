@@ -22,10 +22,10 @@
 
             <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-6"
                  x-data="passkeyLogin({
-                    optionsUrl: '{{ route('passkey.login-options') }}',
-                    loginUrl: '{{ route('passkey.login') }}',
-                    unsupportedText: '{{ __('auth.login.passkey_unsupported') }}',
-                    errorText: '{{ __('auth.login.passkey_error') }}',
+                    optionsUrl: @js(route('passkey.login-options')),
+                    loginUrl: @js(route('passkey.login')),
+                    unsupportedText: @js(__('auth.login.passkey_unsupported')),
+                    errorText: @js(__('auth.login.passkey_error')),
                  })">
 
                 <div class="grid grid-cols-1 gap-3">

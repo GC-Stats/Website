@@ -16,6 +16,7 @@
  */
 
 use App\Models\Emote;
+use Illuminate\Support\Str;
 use Livewire\Volt\Component;
 
 new class extends Component {
@@ -35,16 +36,15 @@ new class extends Component {
 
     public function with(): array
     {
-        $term = trim($this->search);
+        $term = Str::lower(trim($this->search));
 
-        return [
-            'emotes' => Emote::query()
-                ->where('is_active', true)
-                ->when($term !== '', fn ($q) => $q->where('name', 'like', '%'.$term.'%'))
-                ->orderBy('name')
-                ->limit(120)
-                ->get(),
-        ];
+        $emotes = Emote::popular();
+
+        if ($term !== '') {
+            $emotes = $emotes->filter(fn (Emote $emote) => str_contains(Str::lower($emote->name), $term))->values();
+        }
+
+        return ['emotes' => $emotes->take(120)];
     }
 }; ?>
 

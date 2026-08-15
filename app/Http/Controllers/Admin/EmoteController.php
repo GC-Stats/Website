@@ -151,6 +151,7 @@ class EmoteController extends Controller
     {
         Emote::forgetActiveCache();
         Emote::forgetSourcesCache();
+        Emote::forgetPopularCache();
     }
 
     private function validateEmote(Request $request, ?Emote $emote = null): array

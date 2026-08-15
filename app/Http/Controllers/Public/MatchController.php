@@ -311,17 +311,9 @@ class MatchController extends Controller
             $finalMatch = $match->toArray();
             $finalMatch['game_maps'] = $maps;
 
-            $finalMatch['team_a_data'] = $match->teamA ? [
-                ...$match->teamA->only(['id', 'name', 'short_name']),
-                'name' => $match->teamA->nameAt($match->scheduled_at),
-                'logo' => $match->teamA->logoAt($match->scheduled_at, CurrentTheme::get()),
-            ] : null;
-
-            $finalMatch['team_b_data'] = $match->teamB ? [
-                ...$match->teamB->only(['id', 'name', 'short_name']),
-                'name' => $match->teamB->nameAt($match->scheduled_at),
-                'logo' => $match->teamB->logoAt($match->scheduled_at, CurrentTheme::get()),
-            ] : null;
+            $scoreHeader = $match->toScoreHeaderArray();
+            $finalMatch['team_a_data'] = $scoreHeader['team_a_data'];
+            $finalMatch['team_b_data'] = $scoreHeader['team_b_data'];
 
             // Global face-to-face: deliberately not scoped to $match->tournament_id
             // so it reflects the teams' entire history together, not just this event.

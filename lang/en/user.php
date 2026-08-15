@@ -17,6 +17,14 @@ return [
         ],
         'global_roles_title' => 'Global roles',
         'no_roles' => 'None.',
+        'report' => [
+            'trigger' => 'Report this profile',
+            'title' => 'Report a user',
+            'category_label' => 'Category',
+            'reason_label' => 'Reason',
+            'submit' => 'Submit report',
+            'thanks' => 'Thanks, this has been reported to our moderators.',
+        ],
     ],
     'news' => [
         'written_by' => 'Articles written by :name.',

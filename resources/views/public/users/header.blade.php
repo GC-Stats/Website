@@ -13,7 +13,60 @@
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
-<div class="block group mb-6">
+<div class="mb-6">
+    @auth
+        @if (auth()->id() !== $profileUser->id)
+            <div class="flex flex-col items-end gap-2 mb-3">
+                @if (session('status') === 'report-submitted')
+                    <div class="w-full md:w-auto bg-green-500/10 border border-green-500/30 text-green-400 text-[11px] rounded-sm px-3 py-2">
+                        {{ __('user.profile.report.thanks') }}
+                    </div>
+                @endif
+
+                <x-modal :title="__('user.profile.report.title')" max-width="max-w-md">
+                    <x-slot:trigger>
+                        <button type="button" class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gc-yellow hover:text-white transition">
+                            @svg('fas-flag', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
+                            {{ __('user.profile.report.trigger') }}
+                        </button>
+                    </x-slot:trigger>
+
+                    <form method="POST" action="{{ route('users.report', $profileUser) }}" class="space-y-4">
+                        @csrf
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('user.profile.report.category_label') }}</label>
+                            <x-styled-select name="category"
+                                :options="collect(['' => ''])->merge(collect(\App\Models\UserReport::CATEGORIES)->mapWithKeys(fn ($category) => [$category => __('admin.reports.category.'.$category)]))" />
+                            @error('category')
+                                <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('user.profile.report.reason_label') }}</label>
+                            <textarea name="reason" rows="3" required
+                                      class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition"></textarea>
+                            @error('reason')
+                                <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        @error('report')
+                            <p class="text-xs text-red-400">{{ $message }}</p>
+                        @enderror
+
+                        <button type="submit"
+                                class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-lg transition active:scale-95 bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20">
+                            {{ __('user.profile.report.submit') }}
+                        </button>
+                    </form>
+                </x-modal>
+            </div>
+        @endif
+    @endauth
+
+    <div class="block group">
     <div class="relative bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 group-hover:bg-white/[0.04] group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
         <div class="p-4 md:p-6 flex flex-col gap-6">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 w-full">
@@ -107,5 +160,6 @@
                 @endforeach
             </div>
         </nav>
+    </div>
     </div>
 </div>

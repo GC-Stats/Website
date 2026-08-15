@@ -14,6 +14,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Models\ForumThread;
 use App\Models\Matchs;
 use App\Models\News;
 use App\Models\Tournament;
@@ -176,12 +177,44 @@ class HomeController extends Controller
             ];
         });
 
+        // Short TTL relative to news/tournaments — forum activity is meant
+        // to feel closer to real-time than the rest of this heavily-cached
+        // page.
+        //
+        // This section is included directly (not a lazy Livewire widget
+        // like the forum block on match/tournament/news pages), so unlike
+        // those, a failure here would otherwise 500 the whole homepage —
+        // caught and logged instead, degrading to "hide the forum section"
+        // (see public.forum._home_section's $forumAvailable guard).
+        try {
+            $generalThreads = Cache::remember('home_general_threads', now()->addMinutes(2), function () {
+                return ForumThread::where('category', ForumThread::CATEGORY_GENERAL)
+                    ->latest('last_message_at')
+                    ->withCount(['messages' => fn ($query) => $query->visible()])
+                    ->take(5)
+                    ->get()
+                    ->map(fn (ForumThread $thread) => [
+                        'id' => $thread->id,
+                        'title' => $thread->title,
+                        'messages_count' => $thread->messages_count,
+                    ])
+                    ->all();
+            });
+            $forumAvailable = true;
+        } catch (\Throwable $e) {
+            report($e);
+            $generalThreads = [];
+            $forumAvailable = false;
+        }
+
         return view('public.index', [
             'matches' => $matches,
             'tournaments' => $tournaments,
             'newsFeatured' => $newsData['newsFeatured'],
             'newsItems' => $newsData['newsItems'],
             'statusFilter' => $statusFilter,
+            'generalThreads' => $generalThreads,
+            'forumAvailable' => $forumAvailable,
         ]);
     }
 }

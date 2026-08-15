@@ -41,6 +41,9 @@
     <div class="grid grid-cols-12 gap-6">
         <aside class="col-span-12 lg:col-span-3 space-y-2" aria-label="{{ __('index.news') }}">
             @include('public.news._sidebar', ['news' => $newsItems, 'newsFeatured' => $newsFeatured])
+            @if ($forumAvailable)
+                @include('public.forum._home_section', ['generalThreads' => $generalThreads])
+            @endif
         </aside>
 
         <section class="col-span-12 lg:col-span-6 space-y-6" aria-label="{{ __('index.matches') }}">

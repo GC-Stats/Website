@@ -39,6 +39,7 @@ class UserReport extends Model
     protected $fillable = [
         'reporter_id',
         'reported_user_id',
+        'reported_message_id',
         'team_id',
         'reactable_type',
         'reactable_id',
@@ -63,6 +64,17 @@ class UserReport extends Model
     public function reportedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reported_user_id');
+    }
+
+    /**
+     * withTrashed so a report stays fully reviewable even after the
+     * message itself was soft-deleted (e.g. moderated away in the
+     * meantime) — the audit trail must survive that, same reasoning as the
+     * nullOnDelete on reported_message_id.
+     */
+    public function reportedMessage(): BelongsTo
+    {
+        return $this->belongsTo(ForumMessage::class, 'reported_message_id')->withTrashed();
     }
 
     public function team(): BelongsTo
@@ -96,6 +108,11 @@ class UserReport extends Model
     public function isReactionReport(): bool
     {
         return $this->reactable_type !== null;
+    }
+
+    public function isMessageReport(): bool
+    {
+        return $this->reported_message_id !== null;
     }
 
     /**

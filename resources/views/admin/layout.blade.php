@@ -39,6 +39,8 @@
                 'label' => __('admin.nav.group_moderation'),
                 'items' => [
                     ['route' => 'admin.reports.index', 'pattern' => 'admin.reports.*', 'label' => __('admin.nav.reports'), 'icon' => 'fas-flag', 'can' => 'reports.view'],
+                    ['route' => 'admin.moderation.index', 'pattern' => 'admin.moderation.*', 'label' => __('admin.nav.moderation'), 'icon' => 'fas-robot', 'can' => 'moderation.view'],
+                    ['route' => 'admin.forum.messages.index', 'pattern' => 'admin.forum.messages.*', 'label' => __('admin.nav.forum_messages'), 'icon' => 'fas-comments', 'can' => 'forum.moderate'],
                     ['route' => 'admin.sanctions.index', 'pattern' => 'admin.sanctions.*', 'label' => __('admin.nav.sanctions'), 'icon' => 'fas-gavel', 'can' => 'sanctions.view'],
                     ['route' => 'admin.activity.index', 'pattern' => 'admin.activity.*', 'label' => __('admin.nav.activity'), 'icon' => 'fas-clock-rotate-left', 'can' => 'activity.view'],
                 ],

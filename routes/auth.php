@@ -64,6 +64,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/settings/notifications/{notification}/open', [NotificationController::class, 'open'])
         ->name('account.notifications.open');
 
+    Route::get('/settings/reports/{userReport}', [UserReportController::class, 'show'])
+        ->name('account.reports.show');
+
     Route::middleware(['not-sanctioned'])->group(function () {
         Route::delete('/settings/social/{socialAccount}', [SocialAccountController::class, 'destroy'])
             ->name('social.destroy');

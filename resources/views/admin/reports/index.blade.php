@@ -33,7 +33,15 @@
                 @forelse ($reports as $report)
                     <tr class="border-b border-white/10 last:border-0">
                         <td class="px-4 py-3 text-white font-semibold">
-                            @if ($report->isReactionReport())
+                            @if ($report->isMessageReport())
+                                {{ $report->reportedMessage?->user?->name ?? __('admin.reports.message_author_deleted') }}
+                                @if ($report->reportedMessage?->user?->username)
+                                    <span class="text-gray-500 font-normal">{{ '@'.$report->reportedMessage->user->username }}</span>
+                                @endif
+                                @if ($report->reportedMessage)
+                                    <span class="text-gray-500 font-normal block text-xs truncate max-w-[16rem]">{{ $report->reportedMessage->body }}</span>
+                                @endif
+                            @elseif ($report->isReactionReport())
                                 <span class="inline-flex items-center gap-1.5">
                                     <img src="{{ $report->emote->image_url }}" alt="{{ $report->emote->name }}" class="w-4 h-4 object-contain">
                                     {{ $report->emote->name }}

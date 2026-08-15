@@ -19,6 +19,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -28,6 +29,10 @@ class Emote extends Model
     private const ACTIVE_CACHE_KEY = 'emotes:active';
 
     private const SOURCES_CACHE_KEY = 'emotes:sources';
+
+    private const POPULAR_CACHE_KEY = 'emotes:popular';
+
+    private const POPULAR_CACHE_TTL = 3600;
 
     protected $fillable = [
         'name',
@@ -45,6 +50,11 @@ class Emote extends Model
     public function getImageUrlAttribute(): string
     {
         return Storage::disk('public')->url($this->image_path);
+    }
+
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(Reaction::class);
     }
 
     /**
@@ -90,6 +100,38 @@ class Emote extends Model
         return $cached;
     }
 
+    /**
+     * Active emotes ordered by how often they've actually been used
+     * (reaction count across every reactable — news, forum messages, ...),
+     * ties broken alphabetically. Backs the emote picker so the most-used
+     * emotes surface first instead of a flat alphabetical list. Cached for
+     * an hour (not forever, unlike active()/sources()) since popularity
+     * drifts continuously and there's no write path to bust it from, unlike
+     * the admin-driven catalog changes those two react to.
+     *
+     * @return Collection<int, self>
+     */
+    public static function popular(): Collection
+    {
+        $cached = Cache::remember(self::POPULAR_CACHE_KEY, self::POPULAR_CACHE_TTL, fn () => static::where('is_active', true)
+            ->withCount('reactions')
+            ->orderByDesc('reactions_count')
+            ->orderBy('name')
+            ->get());
+
+        if (! $cached instanceof Collection) {
+            self::forgetPopularCache();
+
+            return static::where('is_active', true)
+                ->withCount('reactions')
+                ->orderByDesc('reactions_count')
+                ->orderBy('name')
+                ->get();
+        }
+
+        return $cached;
+    }
+
     public static function forgetActiveCache(): void
     {
         Cache::forget(self::ACTIVE_CACHE_KEY);
@@ -98,5 +140,10 @@ class Emote extends Model
     public static function forgetSourcesCache(): void
     {
         Cache::forget(self::SOURCES_CACHE_KEY);
+    }
+
+    public static function forgetPopularCache(): void
+    {
+        Cache::forget(self::POPULAR_CACHE_KEY);
     }
 }

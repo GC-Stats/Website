@@ -26,10 +26,13 @@ class EmailNotificationPreferences
 
     public const CATEGORY_SOCIAL = 'social';
 
+    public const CATEGORY_REPORT = 'report';
+
     public const CATEGORIES = [
         self::CATEGORY_SANCTION,
         self::CATEGORY_CHANGE_REQUEST,
         self::CATEGORY_SOCIAL,
+        self::CATEGORY_REPORT,
     ];
 
     public static function enabled(User $user, string $category): bool

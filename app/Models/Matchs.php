@@ -15,6 +15,7 @@
 
 namespace App\Models;
 
+use App\Support\CurrentTheme;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -108,5 +109,41 @@ class Matchs extends Model
     public function vods(): HasMany
     {
         return $this->hasMany(Vod::class, 'match_id');
+    }
+
+    /**
+     * The array shape resources/views/components/match/score-header.blade.php
+     * needs — single source of truth for the time-aware team name/logo
+     * resolution (Team::nameAt()/logoAt(), since a team's name/logo can
+     * change after this match was played) shared by
+     * App\Http\Controllers\Public\MatchController and by forum match
+     * embeds (see App\Models\ForumMessage::resolveEmbed()).
+     *
+     * @return array{id: int, tournament: ?array, tournament_phase: ?array, team_a_id: ?int, team_b_id: ?int, team_a_data: ?array, team_b_data: ?array, team_a_score: ?int, team_b_score: ?int, status: string, patch: ?string, scheduled_at: mixed}
+     */
+    public function toScoreHeaderArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'tournament' => $this->tournament ? ['id' => $this->tournament->id, 'name' => $this->tournament->name] : null,
+            'tournament_phase' => $this->tournamentPhase ? ['id' => $this->tournamentPhase->id, 'name' => $this->tournamentPhase->name] : null,
+            'team_a_id' => $this->team_a_id,
+            'team_b_id' => $this->team_b_id,
+            'team_a_data' => $this->teamA ? [
+                ...$this->teamA->only(['id', 'name', 'short_name']),
+                'name' => $this->teamA->nameAt($this->scheduled_at),
+                'logo' => $this->teamA->logoAt($this->scheduled_at, CurrentTheme::get()),
+            ] : null,
+            'team_b_data' => $this->teamB ? [
+                ...$this->teamB->only(['id', 'name', 'short_name']),
+                'name' => $this->teamB->nameAt($this->scheduled_at),
+                'logo' => $this->teamB->logoAt($this->scheduled_at, CurrentTheme::get()),
+            ] : null,
+            'team_a_score' => $this->team_a_score,
+            'team_b_score' => $this->team_b_score,
+            'status' => $this->status,
+            'patch' => $this->patch,
+            'scheduled_at' => $this->scheduled_at,
+        ];
     }
 }

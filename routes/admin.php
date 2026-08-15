@@ -22,10 +22,12 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DataExplorerController;
 use App\Http\Controllers\Admin\EmoteController;
 use App\Http\Controllers\Admin\FinanceController;
+use App\Http\Controllers\Admin\ForumMessageController;
 use App\Http\Controllers\Admin\GameMapController;
 use App\Http\Controllers\Admin\MatchController;
 use App\Http\Controllers\Admin\MatchStreamController;
 use App\Http\Controllers\Admin\MatchVodController;
+use App\Http\Controllers\Admin\ModerationController;
 use App\Http\Controllers\Admin\NewsAuthorController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\NewsMediaController;
@@ -56,6 +58,22 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
     });
     Route::patch('/reports/{userReport}', [ReportController::class, 'resolve'])
         ->middleware('can:reports.resolve')->name('reports.resolve');
+
+    Route::middleware(['can:moderation.view'])->group(function () {
+        Route::get('/moderation', [ModerationController::class, 'index'])->name('moderation.index');
+    });
+    Route::patch('/moderation/{moderationSuspect}', [ModerationController::class, 'resolve'])
+        ->middleware('can:moderation.resolve')->name('moderation.resolve');
+    Route::patch('/moderation/{moderationSuspect}/lift-mute', [ModerationController::class, 'liftMute'])
+        ->middleware('can:moderation.resolve')->name('moderation.lift-mute');
+
+    Route::prefix('forum/messages')->name('forum.messages.')->middleware(['can:forum.moderate'])->group(function () {
+        Route::get('/', [ForumMessageController::class, 'index'])->name('index');
+        Route::patch('/{forumMessage}/hide', [ForumMessageController::class, 'hide'])->name('hide');
+        Route::patch('/{forumMessage}/unhide', [ForumMessageController::class, 'unhide'])->name('unhide');
+    });
+    Route::delete('/forum/messages/{forumMessage}', [ForumMessageController::class, 'destroy'])
+        ->middleware('can:forum.delete')->name('forum.messages.destroy');
 
     Route::prefix('change-requests')->name('change-requests.')->group(function () {
         Route::middleware(['can:change-requests.view'])->group(function () {

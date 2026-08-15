@@ -132,9 +132,9 @@
         {!! $content !!}
     </article>
 
-    {{-- ── Reactions ───────────────────────────────────────────────────── --}}
+    {{-- ── Forum ───────────────────────────────────────────────────────── --}}
     <div class="mb-8">
-        <livewire:reaction-bar lazy :reactable-type="\App\Models\News::class" :reactable-id="$id" />
+        <livewire:forum-thread lazy :subject-type="\App\Models\News::class" :subject-id="$id" />
     </div>
 
     {{-- ── Related entities ────────────────────────────────────────────── --}}

@@ -17,6 +17,14 @@ return [
         ],
         'global_roles_title' => 'Rôles globaux',
         'no_roles' => 'Aucun.',
+        'report' => [
+            'trigger' => 'Signaler ce profil',
+            'title' => 'Signaler un utilisateur',
+            'category_label' => 'Catégorie',
+            'reason_label' => 'Raison',
+            'submit' => 'Envoyer le signalement',
+            'thanks' => 'Merci, ceci a été signalé à nos modérateurs.',
+        ],
     ],
     'news' => [
         'written_by' => 'Articles rédigés par :name.',
