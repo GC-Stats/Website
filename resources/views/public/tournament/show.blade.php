@@ -248,5 +248,10 @@
                 </div>
             @endforeach
         </div>
+
+        <div class="mt-12">
+            <span class="text-[9px] font-black uppercase tracking-[0.25em] text-white/60 block mb-4">{{ __('forum.category.tournament') }}</span>
+            <livewire:forum-thread lazy :subject-type="\App\Models\Tournament::class" :subject-id="$tournament['id']" />
+        </div>
     </div>
 @endsection

@@ -34,6 +34,8 @@ class NotificationService
 
     public const TYPE_CHANGE_REQUEST_WITHDRAWN = 'change_request.withdrawn';
 
+    public const TYPE_REPORT_RESOLVED = 'report.resolved';
+
     /**
      * Maps each notification type to the email-preference category that
      * gates whether it also gets emailed — see EmailNotificationPreferences.
@@ -46,6 +48,7 @@ class NotificationService
         self::TYPE_CHANGE_REQUEST_ACCEPTED => EmailNotificationPreferences::CATEGORY_CHANGE_REQUEST,
         self::TYPE_CHANGE_REQUEST_REJECTED => EmailNotificationPreferences::CATEGORY_CHANGE_REQUEST,
         self::TYPE_CHANGE_REQUEST_WITHDRAWN => EmailNotificationPreferences::CATEGORY_CHANGE_REQUEST,
+        self::TYPE_REPORT_RESOLVED => EmailNotificationPreferences::CATEGORY_REPORT,
     ];
 
     /**

@@ -28,7 +28,25 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    @if ($report->isReactionReport())
+                    @if ($report->isMessageReport())
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('admin.reports.message') }}</p>
+                            @if ($report->reportedMessage)
+                                <p class="text-white font-semibold">
+                                    {{ $report->reportedMessage->user?->name ?? __('admin.reports.message_author_deleted') }}
+                                    @if ($report->reportedMessage->user?->username)
+                                        <span class="text-gray-500 font-normal">{{ '@'.$report->reportedMessage->user->username }}</span>
+                                    @endif
+                                </p>
+                                <p class="text-gray-400 text-xs whitespace-pre-line mt-1 border-l-2 border-white/10 pl-2">{{ $report->reportedMessage->body }}</p>
+                                <a href="{{ route('forum.threads.show', $report->reportedMessage->thread_id) }}" target="_blank" rel="noopener" class="text-gray-500 text-xs hover:text-gc-yellow transition">
+                                    {{ __('admin.reports.view_in_context') }}
+                                </a>
+                            @else
+                                <p class="text-gray-500 text-xs italic">{{ __('admin.reports.message_deleted') }}</p>
+                            @endif
+                        </div>
+                    @elseif ($report->isReactionReport())
                         <div>
                             <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">{{ __('admin.reports.reaction') }}</p>
                             <p class="text-white font-semibold flex items-center gap-1.5">
@@ -147,13 +165,21 @@
                 </div>
             @endif
 
-            @if ($report->reportedUser)
+            @php
+                // A message report has no reported_user_id of its own — the
+                // "user history" panel below targets the message's author
+                // instead, so a moderator can sanction them straight from a
+                // message report too.
+                $targetUser = $report->reportedUser ?? $report->reportedMessage?->user;
+            @endphp
+
+            @if ($targetUser)
                 <div class="bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
                     <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.reports.reported_user_history') }}</h2>
 
                     <div>
                         <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.reports.connected_accounts') }}</p>
-                        @forelse ($report->reportedUser->socialAccounts as $account)
+                        @forelse ($targetUser->socialAccounts as $account)
                             <p class="text-xs text-gray-400">{{ ucfirst($account->provider) }} — {{ $account->nickname }}</p>
                         @empty
                             <p class="text-xs text-gray-500">—</p>
@@ -162,7 +188,7 @@
 
                     <div class="pt-3 border-t border-white/10">
                         <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ __('admin.reports.active_sanctions') }}</p>
-                        @forelse ($report->reportedUser->sanctions->filter->isActive() as $sanction)
+                        @forelse ($targetUser->sanctions->filter->isActive() as $sanction)
                             <p class="text-xs text-red-400">{{ __('admin.sanctions.type.'.$sanction->type) }} — {{ $sanction->reason }}</p>
                         @empty
                             <p class="text-xs text-gray-500">{{ __('admin.reports.no_sanctions') }}</p>
@@ -170,7 +196,7 @@
                     </div>
 
                     @can('sanctions.create')
-                        <x-admin.sanction-modal :user="$report->reportedUser">
+                        <x-admin.sanction-modal :user="$targetUser">
                             <button type="button"
                                     class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20">
                                 {{ __('admin.reports.issue_sanction') }}

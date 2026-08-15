@@ -99,4 +99,12 @@ return [
     'data_explorer' => [
         'quota' => env('DATA_EXPLORER_QUOTA') ?? 0,
     ],
+
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
+
+    'giphy' => [
+        'key' => env('GIPHY_API_KEY'),
+    ],
 ];

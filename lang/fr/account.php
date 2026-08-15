@@ -150,4 +150,14 @@ return [
         'invalid_team_tag' => "Ce tag n'appartient pas à l'équipe sélectionnée.",
         'social_handle_only' => "Indique uniquement ton pseudo/identifiant, pas un lien complet.",
     ],
+    'reports' => [
+        'title' => 'Résultat du signalement',
+        'subject' => 'Signalé',
+        'your_reason' => 'Votre raison',
+        'resolution_note' => 'Note du modérateur',
+        'no_note' => "Aucune note n'a été laissée.",
+        'reviewed_by' => 'Examiné par :name le :date',
+        'message_deleted' => 'Ce message a depuis été supprimé.',
+        'emote_deleted' => 'Cet emote a depuis été supprimé.',
+    ],
 ];

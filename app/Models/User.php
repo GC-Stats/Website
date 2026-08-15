@@ -120,6 +120,25 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
     }
 
     /**
+     * Active global mute, if any — separate from activeGlobalBlockingSanction()
+     * since a mute only stops forum posting (see ForumController/forum-thread's
+     * postMessage()), it doesn't block the rest of the account the way a
+     * suspension/ban does. Currently only ever issued automatically by
+     * App\Services\SanctionService::issueSystemMute() after repeated automod
+     * flags (see App\Jobs\ModerateForumMessage), but staff can issue one
+     * manually too.
+     */
+    public function activeGlobalMuteSanction(): ?Sanction
+    {
+        return $this->sanctions()
+            ->active()
+            ->whereNull('team_id')
+            ->where('type', Sanction::TYPE_MUTE)
+            ->latest('starts_at')
+            ->first();
+    }
+
+    /**
      * Whether this user holds any global admin-panel role (moderator,
      * editor, super-admin, or a custom one) — i.e. is site staff. Checked
      * directly against the pivot table for the same reason as

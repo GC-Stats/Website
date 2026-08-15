@@ -66,6 +66,53 @@ class SanctionService
         return $sanction;
     }
 
+    /**
+     * System-issued mute — the only sanction path that doesn't go through
+     * issue(): there's no acting staff member (see App\Jobs\
+     * ModerateForumMessage, the sole caller, via automod flag count), so
+     * `issued_by` is left null. That null is also the marker admins use to
+     * tell an automod mute apart from a staff-issued one (see
+     * App\Http\Controllers\Admin\ModerationController::liftMute()) — no
+     * staff-issued sanction has a null issuer.
+     *
+     * Returns null (issues nothing) if the target is site staff — never
+     * auto-mute a moderator/editor/admin account — or already has an active
+     * global mute, so repeated flags don't stack/extend one silently; a
+     * human moderator can always issue a longer one manually.
+     */
+    public function issueSystemMute(User $user, string $reason, \DateInterval $duration): ?Sanction
+    {
+        if ($user->hasGlobalRole() || $user->activeGlobalMuteSanction()) {
+            return null;
+        }
+
+        $sanction = Sanction::create([
+            'user_id' => $user->id,
+            'issued_by' => null,
+            'type' => Sanction::TYPE_MUTE,
+            'reason' => $reason,
+            'ends_at' => now()->add($duration),
+        ]);
+
+        $this->snapshotIdentities($sanction, $user);
+
+        activity('moderation')
+            ->performedOn($sanction)
+            ->withProperties(['type' => $sanction->type, 'target_user_id' => $user->id, 'source' => 'automod'])
+            ->log('sanction.issued');
+
+        $this->notifications->notify(
+            recipient: $user,
+            type: NotificationService::TYPE_SANCTION_ISSUED,
+            title: __('notifications.sanction_issued.title'),
+            description: __('notifications.sanction_issued.description', ['type' => __('admin.sanctions.type.'.$sanction->type)]),
+            link: route('account.edit'),
+            data: ['sanction_id' => $sanction->id, 'sanction_type' => $sanction->type],
+        );
+
+        return $sanction;
+    }
+
     public function revoke(Sanction $sanction, User $revokedBy): void
     {
         $sanction->update([

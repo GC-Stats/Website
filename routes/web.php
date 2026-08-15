@@ -15,6 +15,7 @@
 use App\Http\Controllers\Public\AboutController;
 use App\Http\Controllers\Public\ApiKeyRevealController;
 use App\Http\Controllers\Public\FinanceController;
+use App\Http\Controllers\Public\ForumController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\MatchController;
 use App\Http\Controllers\Public\NewsController;
@@ -121,6 +122,14 @@ Route::prefix('/news')->name('news.')->group(function () {
     Route::get('/{slug}', [NewsController::class, 'show'])->name('show');
     Route::get('/author/{slug}', [NewsController::class, 'author'])->name('author');
     Route::get('/publisher/{slug}', [NewsController::class, 'publisher'])->name('publisher');
+});
+
+Route::prefix('/forum')->name('forum.')->group(function () {
+    Route::get('/', [ForumController::class, 'index'])->name('index');
+    Route::get('/general', [ForumController::class, 'generalIndex'])->name('general.index');
+    Route::get('/general/create', [ForumController::class, 'generalCreate'])->middleware('auth')->name('general.create');
+    Route::post('/general', [ForumController::class, 'generalStore'])->middleware('auth')->name('general.store');
+    Route::get('/threads/{thread}', [ForumController::class, 'show'])->name('threads.show');
 });
 
 Route::middleware(['throttle:30,1'])->group(function () {

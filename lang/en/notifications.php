@@ -23,6 +23,7 @@ return [
         'sanction' => 'Sanctions issued against my account',
         'change_request' => 'Updates on my change requests',
         'social' => 'Social activity',
+        'report' => 'Outcome of reports I submitted',
         'submit' => 'Save preferences',
         'saved' => 'Email notification preferences updated.',
     ],
@@ -46,5 +47,12 @@ return [
     'change_request_withdrawn' => [
         'title' => 'Your change request was withdrawn',
         'description' => 'A moderator withdrew your change request.',
+    ],
+    'report_resolved' => [
+        'title' => 'Your report has been reviewed',
+        'description' => [
+            'actioned' => 'Your report was reviewed and action was taken. Click to see the outcome.',
+            'dismissed' => 'Your report was reviewed and dismissed. Click to see the outcome.',
+        ],
     ],
 ];

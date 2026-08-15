@@ -21,6 +21,7 @@ namespace App\Services;
 
 use App\Exceptions\CannotReportUserException;
 use App\Models\Emote;
+use App\Models\ForumMessage;
 use App\Models\User;
 use App\Models\UserReport;
 use App\Support\Activity\ActivityChangeSet;
@@ -28,6 +29,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserReportService
 {
+    /**
+     * Reports move through pending -> reviewing -> a terminal status
+     * (actioned/dismissed). The reporter is only notified once the report
+     * reaches one of the terminal statuses — "reviewing" is an internal
+     * in-progress marker, not an outcome worth surfacing to them.
+     */
+    private const TERMINAL_STATUSES = [UserReport::STATUS_ACTIONED, UserReport::STATUS_DISMISSED];
+
+    public function __construct(private readonly NotificationService $notifications) {}
+
     /**
      * @param  array{category: string, reason: string, team_id?: ?int}  $data
      *
@@ -96,6 +107,33 @@ class UserReportService
         return $report;
     }
 
+    /**
+     * @param  array{category: string, reason: string}  $data
+     *
+     * @throws CannotReportUserException
+     */
+    public function submitForMessage(User $reporter, ForumMessage $message, array $data): UserReport
+    {
+        if ($reporter->id === $message->user_id) {
+            throw new CannotReportUserException;
+        }
+
+        $report = UserReport::create([
+            'reporter_id' => $reporter->id,
+            'reported_message_id' => $message->id,
+            'category' => $data['category'],
+            'reason' => $data['reason'],
+        ]);
+
+        activity('moderation')
+            ->performedOn($report)
+            ->causedBy($reporter)
+            ->withProperties(['reported_message_id' => $message->id, 'category' => $data['category']])
+            ->log('report.submitted');
+
+        return $report;
+    }
+
     public function resolve(UserReport $report, User $moderator, string $status, ?string $note = null): void
     {
         $report->update([
@@ -110,5 +148,17 @@ class UserReportService
             ->causedBy($moderator)
             ->withProperties(ActivityChangeSet::fromModel($report, ['status', 'resolution_note'])->toArray())
             ->log('report.resolved');
+
+        if (in_array($status, self::TERMINAL_STATUSES, true) && $report->reporter) {
+            $this->notifications->notify(
+                recipient: $report->reporter,
+                type: NotificationService::TYPE_REPORT_RESOLVED,
+                title: __('notifications.report_resolved.title'),
+                description: __('notifications.report_resolved.description.'.$status),
+                link: route('account.reports.show', $report),
+                author: $moderator,
+                data: ['report_id' => $report->id, 'status' => $status],
+            );
+        }
     }
 }

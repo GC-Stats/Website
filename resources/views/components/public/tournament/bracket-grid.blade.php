@@ -260,11 +260,11 @@
 <style>
     .live-match-glow {
         position: relative;
-        box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.5), inset 0 1px 0 0 rgba(239, 68, 68, 0.5);
+        box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.5);
         transition: box-shadow 0.5s ease;
     }
 
     .live-match-glow:hover {
-        box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.9), inset 0 1px 0 0 rgba(239, 68, 68, 0.9), 0 0 16px 3px rgba(239, 68, 68, 0.6);
+        box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.9), 0 0 16px 3px rgba(239, 68, 68, 0.6);
     }
 </style>
