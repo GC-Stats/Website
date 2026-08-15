@@ -61,6 +61,12 @@ new class extends Component
     /** @var array<int, bool> */
     public array $reportSubmittedFor = [];
 
+    public bool $emotePickerLoaded = false;
+
+    public bool $embedPickerLoaded = false;
+
+    public bool $gifPickerLoaded = false;
+
     public function mount(?string $subjectType = null, int|string|null $subjectId = null, ?int $threadId = null): void
     {
         if ($threadId !== null) {
@@ -85,6 +91,21 @@ new class extends Component
     private function tooManyPosts(): bool
     {
         return RateLimiter::tooManyAttempts($this->postLimiterKey(), 5);
+    }
+
+    public function loadEmotePicker(): void
+    {
+        $this->emotePickerLoaded = true;
+    }
+
+    public function loadEmbedPicker(): void
+    {
+        $this->embedPickerLoaded = true;
+    }
+
+    public function loadGifPicker(): void
+    {
+        $this->gifPickerLoaded = true;
     }
 
     public function with(): array
@@ -526,38 +547,44 @@ new class extends Component
 
                 <div class="flex items-center gap-2">
                     <div class="relative z-20">
-                        <button type="button" @click="pickerOpen = ! pickerOpen"
+                        <button type="button" @click="pickerOpen = ! pickerOpen; if (pickerOpen) $wire.loadEmotePicker()"
                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
                                 title="{{ __('forum.message.emote_picker') }}">
                             @svg('fas-face-smile', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
                         </button>
 
                         <div x-show="pickerOpen" x-cloak x-transition class="absolute z-20 mt-2 left-0" @click.stop>
-                            <livewire:emote-picker lazy :event-name="'emote-selected-'.$barId" :key="'emote-picker-'.$barId" />
+                            @if ($emotePickerLoaded)
+                                <livewire:emote-picker :event-name="'emote-selected-'.$barId" :key="'emote-picker-'.$barId" />
+                            @endif
                         </div>
                     </div>
 
                     <div class="relative z-20">
-                        <button type="button" @click="embedPickerOpen = ! embedPickerOpen"
+                        <button type="button" @click="embedPickerOpen = ! embedPickerOpen; if (embedPickerOpen) $wire.loadEmbedPicker()"
                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
                                 title="{{ __('forum.embed.trigger') }}">
                             @svg('fas-link', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
                         </button>
 
                         <div x-show="embedPickerOpen" x-cloak x-transition class="absolute z-20 mt-2 left-0" @click.stop>
-                            <livewire:forum-embed-picker lazy :event-name="'embed-selected-'.$barId" :key="'embed-picker-'.$barId" />
+                            @if ($embedPickerLoaded)
+                                <livewire:forum-embed-picker :event-name="'embed-selected-'.$barId" :key="'embed-picker-'.$barId" />
+                            @endif
                         </div>
                     </div>
 
                     <div class="relative z-20">
-                        <button type="button" @click="gifPickerOpen = ! gifPickerOpen"
+                        <button type="button" @click="gifPickerOpen = ! gifPickerOpen; if (gifPickerOpen) $wire.loadGifPicker()"
                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
                                 title="{{ __('forum.gif.trigger') }}">
                             @svg('fas-photo-film', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
                         </button>
 
                         <div x-show="gifPickerOpen" x-cloak x-transition class="absolute z-20 mt-2 left-0" @click.stop>
-                            <livewire:forum-gif-picker lazy :event-name="'gif-selected-'.$barId" :key="'gif-picker-'.$barId" />
+                            @if ($gifPickerLoaded)
+                                <livewire:forum-gif-picker :event-name="'gif-selected-'.$barId" :key="'gif-picker-'.$barId" />
+                            @endif
                         </div>
                     </div>
 

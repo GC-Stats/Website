@@ -25,6 +25,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -46,7 +47,7 @@ class GiphyService
      */
     public function trending(int $limit = 24): array
     {
-        return $this->request('/trending', ['limit' => $limit]);
+        return Cache::remember("giphy:trending:{$limit}", now()->addMinutes(10), fn () => $this->request('/trending', ['limit' => $limit]));
     }
 
     /**
