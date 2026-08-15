@@ -36,6 +36,7 @@ use App\Models\Player;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Services\SearchService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Livewire\Volt\Component;
 
@@ -341,6 +342,14 @@ new class extends Component {
      * @return list<array{id: int, title: string, subtitle: ?string}>
      */
     private function popularEntities(string $type): array
+    {
+        return Cache::remember("forum.embed_picker.popular.{$type}", now()->addMinutes(10), fn () => $this->popularEntitiesUncached($type));
+    }
+
+    /**
+     * @return list<array{id: int, title: string, subtitle: ?string}>
+     */
+    private function popularEntitiesUncached(string $type): array
     {
         $prefix = $type === 'player' ? '/player/' : '/team/';
 
