@@ -14,6 +14,7 @@
 
 use App\Http\Controllers\Public\AboutController;
 use App\Http\Controllers\Public\ApiKeyRevealController;
+use App\Http\Controllers\Public\EmoteCatalogController;
 use App\Http\Controllers\Public\FinanceController;
 use App\Http\Controllers\Public\ForumController;
 use App\Http\Controllers\Public\HomeController;
@@ -123,6 +124,8 @@ Route::prefix('/news')->name('news.')->group(function () {
     Route::get('/author/{slug}', [NewsController::class, 'author'])->name('author');
     Route::get('/publisher/{slug}', [NewsController::class, 'publisher'])->name('publisher');
 });
+
+Route::get('/forum/emotes.json', [EmoteCatalogController::class, 'index'])->name('forum.emotes-catalog');
 
 Route::prefix('/forum')->name('forum.')->group(function () {
     Route::get('/', [ForumController::class, 'index'])->name('index');

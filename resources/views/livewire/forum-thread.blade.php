@@ -31,7 +31,6 @@
  */
 
 use App\Exceptions\CannotReportUserException;
-use App\Models\Emote;
 use App\Models\ForumMessage;
 use App\Models\ForumThread;
 use App\Models\Matchs;
@@ -149,21 +148,15 @@ new class extends Component
             'messages' => $thread->messages()->visible()->with(['user.team'])->oldest()->paginate(20, pageName: 'forum-page-'.$this->threadId),
             'blockingSanction' => Auth::user()?->activeGlobalBlockingSanction(),
             'muteSanction' => Auth::user()?->activeGlobalMuteSanction(),
-            // Lowercase-name-keyed catalog the composer's JS uses to turn a
-            // typed ":name:" into an <img> live, without a round trip per
-            // keystroke — same catalog reaction-bar's picker offers, just
-            // reshaped for client-side lookup.
-            'emoteCatalog' => Emote::active()->mapWithKeys(fn (Emote $emote) => [
-                strtolower($emote->name) => $emote->image_url,
-            ]),
-            // Same catalog, keyed by id instead of name — the emote picker
-            // only hands back an id when an emote is clicked (see
-            // resources/views/livewire/emote-picker.blade.php), so the
-            // composer needs this shape to resolve that click into the
-            // name/url pair insertEmote() actually inserts.
-            'emoteById' => Emote::active()->mapWithKeys(fn (Emote $emote) => [
-                $emote->id => ['name' => strtolower($emote->name), 'url' => $emote->image_url],
-            ]),
+            // NOTE: the composer's `:name:` shortcode catalog (name/id keyed
+            // maps of every active emote) used to be built and embedded here
+            // on every render. With ~4,000 emotes imported from Twemoji, that
+            // was several hundred KB of JSON re-sent by Livewire on every
+            // single action on this component (posting, paginating, even
+            // just opening a picker) — regardless of the thread having any
+            // messages at all. It's now fetched once client-side from a
+            // static JSON route instead — see the composer's x-init below
+            // and App\Http\Controllers\Public\EmoteCatalogController.
         ];
     }
 
@@ -390,8 +383,33 @@ new class extends Component
                  already. Put any explanation up here instead. --}}
             <div
                 x-data="{
-                    emotes: @js($emoteCatalog),
-                    emoteById: @js($emoteById),
+                    // Fetched from a static, browser-cached JSON route (see
+                    // App\Http\Controllers\Public\EmoteCatalogController)
+                    // instead of being embedded here by Livewire on every
+                    // render — Livewire re-sends a component's full state on
+                    // every action (posting, paginating, opening any
+                    // picker), not just the initial mount, so anything
+                    // embedded in this markup was being resent constantly
+                    // regardless of the thread having any messages at all.
+                    // Not fetched in init() either — only once the composer
+                    // is actually used (first focus, or opening the emote
+                    // picker), same as the picker/embed/gif popovers below
+                    // only mount once opened.
+                    emotes: {},
+                    emoteById: {},
+                    catalogLoaded: false,
+                    loadCatalog() {
+                        if (this.catalogLoaded) return;
+                        this.catalogLoaded = true;
+
+                        fetch('{{ route('forum.emotes-catalog') }}')
+                            .then(response => response.json())
+                            .then(catalog => {
+                                this.emotes = catalog.byName;
+                                this.emoteById = catalog.byId;
+                            })
+                            .catch(() => { this.catalogLoaded = false; });
+                    },
                     pickerOpen: false,
                     embedPickerOpen: false,
                     gifPickerOpen: false,
@@ -561,6 +579,7 @@ new class extends Component
                 <textarea x-ref="hidden" wire:model="body" class="hidden"></textarea>
 
                 <div x-ref="composer" contenteditable="true" @input="onInput" @mouseup="saveCaret" @keyup="saveCaret"
+                     @focus="loadCatalog()"
                      @keydown.enter.ctrl.prevent="submit()"
                      @keydown.enter.meta.prevent="submit()"
                      data-placeholder="{{ __('forum.message.placeholder') }}"
@@ -581,7 +600,7 @@ new class extends Component
 
                 <div class="flex items-center gap-2">
                     <div class="relative z-20">
-                        <button type="button" @click="pickerOpen = ! pickerOpen; if (pickerOpen) $wire.loadEmotePicker()"
+                        <button type="button" @click="pickerOpen = ! pickerOpen; if (pickerOpen) { $wire.loadEmotePicker(); loadCatalog(); }"
                                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
                                 title="{{ __('forum.message.emote_picker') }}">
                             @svg('fas-face-smile', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])

@@ -34,6 +34,8 @@ class Emote extends Model
 
     private const POPULAR_CACHE_TTL = 3600;
 
+    private const CATALOG_CACHE_KEY = 'emotes:catalog';
+
     protected $fillable = [
         'name',
         'image_path',
@@ -132,9 +134,69 @@ class Emote extends Model
         return $cached;
     }
 
+    /**
+     * A capped, most-used-first slice of the catalog — same "small default
+     * set, search covers the rest" shape as the picker (Emote::popular()
+     * take(120), resources/views/livewire/emote-picker.blade.php), applied to
+     * the composer's `:name:` inline-shortcode lookup too. With ~4,000 rows
+     * imported from Twemoji, shipping *all* of them client-side made no
+     * sense for a convenience feature that only benefits from covering the
+     * emotes people actually use — a rare/never-used emote simply isn't
+     * inline-replaced as you type; picking it from the picker (which
+     * searches the full catalog server-side) still works either way.
+     */
+    private const CATALOG_LIMIT = 300;
+
+    /**
+     * Precomputed name-keyed/id-keyed lookup maps for the composer's
+     * `:name:` shortcode replacement, built from a capped slice of
+     * popular() rather than every active emote (see CATALOG_LIMIT) and
+     * cached as plain arrays (not a Collection of Emote models) so building
+     * this doesn't cost anything beyond the first request. Served via a
+     * small static, browser-cached JSON endpoint (routes/web.php,
+     * App\Http\Controllers\Public\EmoteCatalogController), fetched once
+     * client-side on first use of the composer — not on every Livewire
+     * render of forum-thread, which is what made this scale with the emote
+     * catalog size regardless of the thread's own message count.
+     *
+     * @return array{byName: array<string, string>, byId: array<int, array{name: string, url: string}>}
+     */
+    public static function catalog(): array
+    {
+        $build = fn () => static::popular()->take(self::CATALOG_LIMIT);
+
+        $cached = Cache::rememberForever(self::CATALOG_CACHE_KEY, fn () => self::shapeCatalog($build()));
+
+        if (! is_array($cached) || ! isset($cached['byName'], $cached['byId'])) {
+            self::forgetCatalogCache();
+
+            return self::shapeCatalog($build());
+        }
+
+        return $cached;
+    }
+
+    /**
+     * @param  Collection<int, self>  $emotes
+     * @return array{byName: array<string, string>, byId: array<int, array{name: string, url: string}>}
+     */
+    private static function shapeCatalog(Collection $emotes): array
+    {
+        return [
+            'byName' => $emotes->mapWithKeys(fn (self $emote) => [strtolower($emote->name) => $emote->image_url])->all(),
+            'byId' => $emotes->mapWithKeys(fn (self $emote) => [$emote->id => ['name' => strtolower($emote->name), 'url' => $emote->image_url]])->all(),
+        ];
+    }
+
+    public static function forgetCatalogCache(): void
+    {
+        Cache::forget(self::CATALOG_CACHE_KEY);
+    }
+
     public static function forgetActiveCache(): void
     {
         Cache::forget(self::ACTIVE_CACHE_KEY);
+        self::forgetCatalogCache();
     }
 
     public static function forgetSourcesCache(): void
@@ -145,5 +207,6 @@ class Emote extends Model
     public static function forgetPopularCache(): void
     {
         Cache::forget(self::POPULAR_CACHE_KEY);
+        self::forgetCatalogCache();
     }
 }
