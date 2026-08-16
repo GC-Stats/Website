@@ -129,6 +129,8 @@ Route::get('/forum/emotes.json', [EmoteCatalogController::class, 'index'])->name
 
 Route::prefix('/forum')->name('forum.')->group(function () {
     Route::get('/', [ForumController::class, 'index'])->name('index');
+    Route::get('/rules', [ForumController::class, 'rules'])->name('rules');
+    Route::post('/rules/accept', [ForumController::class, 'acceptRules'])->middleware('auth')->name('rules.accept');
     Route::get('/general', [ForumController::class, 'generalIndex'])->name('general.index');
     Route::get('/general/create', [ForumController::class, 'generalCreate'])->middleware('auth')->name('general.create');
     Route::post('/general', [ForumController::class, 'generalStore'])->middleware('auth')->name('general.store');

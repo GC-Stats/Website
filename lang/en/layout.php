@@ -70,6 +70,7 @@ return [
         'terms' => 'Terms of Service',
         'legal' => 'Legal Mentions',
         'privacy' => 'Privacy Policy',
+        'forum_rules' => 'Forum Rules',
         'about' => [
             'title' => 'About',
             'about_us' => 'About Us',

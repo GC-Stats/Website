@@ -12,7 +12,12 @@
 
 @section('content')
     <div class="max-w-4xl mx-auto py-8 px-4">
-        <h1 class="text-2xl font-black text-white mb-6">{{ __('forum.title.index') }}</h1>
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-black text-white">{{ __('forum.title.index') }}</h1>
+            <a href="{{ route('forum.rules') }}" class="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition">
+                {{ __('forum.rules.link') }}
+            </a>
+        </div>
 
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-black uppercase tracking-widest text-gray-400">{{ __('forum.category.general') }}</h2>

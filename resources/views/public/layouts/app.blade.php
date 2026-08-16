@@ -691,6 +691,8 @@
                     <a href="{{ route('legal') }}" class="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] hover:text-white transition-colors">{{ __("layout.footer.legal") }}</a>
                     <div class="w-1 h-1 bg-white/10 rounded-full"></div>
                     <a href="{{ route('privacy') }}" class="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] hover:text-white transition-colors">{{ __("layout.footer.privacy") }}</a>
+                    <div class="w-1 h-1 bg-white/10 rounded-full"></div>
+                    <a href="{{ route('forum.rules') }}" class="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em] hover:text-white transition-colors">{{ __("layout.footer.forum_rules") }}</a>
                 </div>
             </div>
         </div>

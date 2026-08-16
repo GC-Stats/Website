@@ -66,6 +66,7 @@ return [
         'terms' => 'Conditions d\'utilisation',
         'legal' => 'Mentions légales',
         'privacy' => 'Politique de confidentialité',
+        'forum_rules' => 'Règles du forum',
         'about' => [
             'title' => 'A propos',
             'about_us' => 'Qui sommes-nous',

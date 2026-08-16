@@ -19,6 +19,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Models\ForumThread;
 use App\Services\ForumService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,13 +50,14 @@ class ForumController extends Controller
 
     public function generalCreate()
     {
-        return view('public.forum.general.create');
+        return view('public.forum.general.create', ['rulesAccepted' => Auth::user()->hasAcceptedForumRules()]);
     }
 
     public function generalStore(Request $request): RedirectResponse
     {
         abort_if(Auth::user()->activeGlobalBlockingSanction(), 403);
         abort_if(Auth::user()->activeGlobalMuteSanction(), 403);
+        abort_unless(Auth::user()->hasAcceptedForumRules(), 403);
 
         $limiterKey = 'forum-thread-create:'.Auth::id();
 
@@ -78,5 +80,33 @@ class ForumController extends Controller
     public function show(ForumThread $thread)
     {
         return view('public.forum.threads.show', ['thread' => $thread]);
+    }
+
+    public function rules()
+    {
+        return view('public.forum.rules');
+    }
+
+    /**
+     * Records agreement with the forum rules — required once, and surfaced
+     * as a popup at the moment a user with no prior acceptance tries to
+     * post, not on page load (see the rules-popup component embedded in the
+     * composer views, and the Alpine submit()/acceptRules() around it).
+     * Called via fetch from the Livewire composer (Accept: application/json,
+     * so posting can resume client-side without losing the draft to a full
+     * page reload) and via a plain form submit from the "general" thread
+     * creation page. Posting itself is still gated server-side on
+     * hasAcceptedForumRules() in generalStore() and the forum-thread
+     * component, this route only flips the flag.
+     */
+    public function acceptRules(): RedirectResponse|JsonResponse
+    {
+        Auth::user()->acceptForumRules();
+
+        if (request()->expectsJson()) {
+            return response()->json(['accepted' => true]);
+        }
+
+        return back();
     }
 }

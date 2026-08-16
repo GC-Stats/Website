@@ -55,6 +55,7 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
             'password' => 'hashed',
             'preferences' => 'array',
             'discord_synced_at' => 'datetime',
+            'forum_rules_accepted_at' => 'datetime',
             'data_explorer_enabled' => 'boolean',
             'pronouns' => 'integer',
             'socials' => 'array',
@@ -146,6 +147,24 @@ class User extends Authenticatable implements MustVerifyEmailContract, PasskeyUs
      * currently active. Used to restrict sanctioning staff accounts to
      * super admins only, see SanctionService::issue().
      */
+    /**
+     * Whether this user has accepted the forum rules — required once, before
+     * their first post, and gated server-side in ForumController::generalStore()
+     * and the forum-thread Livewire component's postMessage() (not just the
+     * rules popup client-side, which a direct request could bypass).
+     */
+    public function hasAcceptedForumRules(): bool
+    {
+        return $this->forum_rules_accepted_at !== null;
+    }
+
+    public function acceptForumRules(): void
+    {
+        if (! $this->hasAcceptedForumRules()) {
+            $this->forceFill(['forum_rules_accepted_at' => now()])->save();
+        }
+    }
+
     public function hasGlobalRole(): bool
     {
         return DB::table('model_has_roles')

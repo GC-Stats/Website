@@ -139,6 +139,13 @@ new class extends Component
         $this->gifPickerLoaded = true;
     }
 
+    public function acceptRules(): void
+    {
+        abort_unless(Auth::check(), 403);
+
+        Auth::user()->acceptForumRules();
+    }
+
     public function with(): array
     {
         $thread = $this->cachedThread();
@@ -148,6 +155,7 @@ new class extends Component
             'messages' => $thread->messages()->visible()->with(['user.team'])->oldest()->paginate(20, pageName: 'forum-page-'.$this->threadId),
             'blockingSanction' => Auth::user()?->activeGlobalBlockingSanction(),
             'muteSanction' => Auth::user()?->activeGlobalMuteSanction(),
+            'rulesAccepted' => Auth::user()?->hasAcceptedForumRules() ?? true,
             // NOTE: the composer's `:name:` shortcode catalog (name/id keyed
             // maps of every active emote) used to be built and embedded here
             // on every render. With ~4,000 emotes imported from Twemoji, that
@@ -165,6 +173,7 @@ new class extends Component
         abort_unless(Auth::check(), 403);
         abort_if(Auth::user()->activeGlobalBlockingSanction(), 403);
         abort_if(Auth::user()->activeGlobalMuteSanction(), 403);
+        abort_unless(Auth::user()->hasAcceptedForumRules(), 403);
 
         if ($this->tooManyPosts()) {
             $this->addError('body', __('forum.errors.too_many_messages'));
@@ -413,6 +422,33 @@ new class extends Component
                     pickerOpen: false,
                     embedPickerOpen: false,
                     gifPickerOpen: false,
+                    // Whether this user has accepted the forum rules yet
+                    // (see App\Models\User::hasAcceptedForumRules()) — while
+                    // false, the composer itself stays hidden behind a prompt
+                    // that opens the popup (see the x-if above), so there's
+                    // no message to resume once accepted — acceptRules() just
+                    // reveals the composer.
+                    rulesAccepted: {{ $rulesAccepted ? 'true' : 'false' }},
+                    rulesPopupOpen: false,
+                    rulesAcceptFailed: false,
+                    // Goes through the Livewire component's own acceptRules()
+                    // action rather than a raw fetch() to the forum.rules.accept
+                    // route — a hand-rolled fetch needs its own CSRF token
+                    // (from a Blade-rendered csrf_token(), captured once at
+                    // this component's last render) which can go stale after
+                    // this component re-renders for any other reason (opening
+                    // a picker, an earlier post), causing accept to silently
+                    // fail. $wire calls always carry Livewire's own,
+                    // currently-valid token.
+                    acceptRules() {
+                        this.rulesAcceptFailed = false;
+                        this.$wire.acceptRules().then(() => {
+                            this.rulesAccepted = true;
+                            this.rulesPopupOpen = false;
+                        }).catch(() => {
+                            this.rulesAcceptFailed = true;
+                        });
+                    },
                     // Last known caret position inside the composer, kept
                     // up to date while it has focus (see saveCaret()) —
                     // clicking a toolbar button/popover moves focus away
@@ -561,6 +597,10 @@ new class extends Component
                         this.gifPickerOpen = false;
                     },
                     async submit() {
+                        if (! this.rulesAccepted) {
+                            this.rulesPopupOpen = true;
+                            return;
+                        }
                         this.sync();
                         await this.$wire.postMessage();
                         if (this.$wire.body === '') this.clear();
@@ -576,76 +616,94 @@ new class extends Component
                 @click.away="pickerOpen = false; embedPickerOpen = false; gifPickerOpen = false"
                 class="space-y-2"
             >
-                <textarea x-ref="hidden" wire:model="body" class="hidden"></textarea>
-
-                <div x-ref="composer" contenteditable="true" @input="onInput" @mouseup="saveCaret" @keyup="saveCaret"
-                     @focus="loadCatalog()"
-                     @keydown.enter.ctrl.prevent="submit()"
-                     @keydown.enter.meta.prevent="submit()"
-                     data-placeholder="{{ __('forum.message.placeholder') }}"
-                     class="forum-composer w-full min-h-[4.5rem] bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition"></div>
-                @error('body')
-                    <p class="text-xs text-red-400">{{ $message }}</p>
-                @enderror
-                <p class="text-[10px] text-gray-600">{{ __('forum.message.submit_hint') }}</p>
-
-                {{-- Full-viewport backdrop, shown whenever any popover is open — a more
-                     robust "click outside closes it" than relying solely on @click.away,
-                     which can miss clicks that land on another Livewire component's DOM
-                     after it re-renders (the gif/embed pickers re-render on every
-                     keystroke/step, unlike the plain emote picker). Sits below the
-                     trigger buttons/popovers (both z-20) so it never blocks them. --}}
-                <div x-show="pickerOpen || embedPickerOpen || gifPickerOpen" x-cloak class="fixed inset-0 z-10"
-                     @click="pickerOpen = false; embedPickerOpen = false; gifPickerOpen = false"></div>
-
-                <div class="flex items-center gap-2">
-                    <div class="relative z-20">
-                        <button type="button" @click="pickerOpen = ! pickerOpen; if (pickerOpen) { $wire.loadEmotePicker(); loadCatalog(); }"
-                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
-                                title="{{ __('forum.message.emote_picker') }}">
-                            @svg('fas-face-smile', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
-                        </button>
-
-                        <div x-show="pickerOpen" x-cloak x-transition class="absolute z-20 mt-2 left-0" @click.stop>
-                            @if ($emotePickerLoaded)
-                                <livewire:emote-picker :event-name="'emote-selected-'.$barId" :key="'emote-picker-'.$barId" />
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="relative z-20">
-                        <button type="button" @click="embedPickerOpen = ! embedPickerOpen; if (embedPickerOpen) $wire.loadEmbedPicker()"
-                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
-                                title="{{ __('forum.embed.trigger') }}">
-                            @svg('fas-link', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
-                        </button>
-
-                        <div x-show="embedPickerOpen" x-cloak x-transition class="absolute z-20 mt-2 left-0" @click.stop>
-                            @if ($embedPickerLoaded)
-                                <livewire:forum-embed-picker :event-name="'embed-selected-'.$barId" :key="'embed-picker-'.$barId" />
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="relative z-20">
-                        <button type="button" @click="gifPickerOpen = ! gifPickerOpen; if (gifPickerOpen) $wire.loadGifPicker()"
-                                class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
-                                title="{{ __('forum.gif.trigger') }}">
-                            @svg('fas-photo-film', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
-                        </button>
-
-                        <div x-show="gifPickerOpen" x-cloak x-transition class="absolute z-20 mt-2 left-0" @click.stop>
-                            @if ($gifPickerLoaded)
-                                <livewire:forum-gif-picker :event-name="'gif-selected-'.$barId" :key="'gif-picker-'.$barId" />
-                            @endif
-                        </div>
-                    </div>
-
-                    <button type="button" @click="submit"
-                            class="font-bold uppercase text-xs tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-gc-yellow/10 border border-gc-yellow/40 text-gc-yellow hover:bg-gc-yellow/20">
-                        {{ __('forum.message.submit') }}
+                {{-- Before the rules are accepted, the actual composer (input,
+                     toolbar, submit) stays hidden entirely — swapped for a
+                     single prompt that opens the popup directly, rather than
+                     letting someone type a message and only finding out they
+                     need to accept the rules after clicking post. --}}
+                <template x-if="! rulesAccepted">
+                    <button type="button" @click="rulesPopupOpen = true"
+                            class="w-full text-left bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-400 hover:text-white hover:border-gc-yellow/40 transition">
+                        {{ __('forum.rules.prompt') }}
                     </button>
-                </div>
+                </template>
+
+                <template x-if="rulesAccepted">
+                    <div>
+                        <textarea x-ref="hidden" wire:model="body" class="hidden"></textarea>
+
+                        <div x-ref="composer" contenteditable="true" @input="onInput" @mouseup="saveCaret" @keyup="saveCaret"
+                             @focus="loadCatalog()"
+                             @keydown.enter.ctrl.prevent="submit()"
+                             @keydown.enter.meta.prevent="submit()"
+                             data-placeholder="{{ __('forum.message.placeholder') }}"
+                             class="forum-composer w-full min-h-[4.5rem] bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition"></div>
+                        @error('body')
+                            <p class="text-xs text-red-400">{{ $message }}</p>
+                        @enderror
+                        <p class="text-[10px] text-gray-600">{{ __('forum.message.submit_hint') }}</p>
+
+                        {{-- Full-viewport backdrop, shown whenever any popover is open — a more
+                             robust "click outside closes it" than relying solely on @click.away,
+                             which can miss clicks that land on another Livewire component's DOM
+                             after it re-renders (the gif/embed pickers re-render on every
+                             keystroke/step, unlike the plain emote picker). Sits below the
+                             trigger buttons/popovers (both z-20) so it never blocks them. --}}
+                        <div x-show="pickerOpen || embedPickerOpen || gifPickerOpen" x-cloak class="fixed inset-0 z-10"
+                             @click="pickerOpen = false; embedPickerOpen = false; gifPickerOpen = false"></div>
+
+                        <div class="flex items-center gap-2">
+                            <div class="relative z-20">
+                                <button type="button" @click="pickerOpen = ! pickerOpen; if (pickerOpen) { $wire.loadEmotePicker(); loadCatalog(); }"
+                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
+                                        title="{{ __('forum.message.emote_picker') }}">
+                                    @svg('fas-face-smile', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
+                                </button>
+
+                                <div x-show="pickerOpen" x-cloak x-transition class="absolute z-20 mt-2 left-0" @click.stop>
+                                    @if ($emotePickerLoaded)
+                                        <livewire:emote-picker :event-name="'emote-selected-'.$barId" :key="'emote-picker-'.$barId" />
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="relative z-20">
+                                <button type="button" @click="embedPickerOpen = ! embedPickerOpen; if (embedPickerOpen) $wire.loadEmbedPicker()"
+                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
+                                        title="{{ __('forum.embed.trigger') }}">
+                                    @svg('fas-link', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
+                                </button>
+
+                                <div x-show="embedPickerOpen" x-cloak x-transition class="absolute z-20 mt-2 left-0" @click.stop>
+                                    @if ($embedPickerLoaded)
+                                        <livewire:forum-embed-picker :event-name="'embed-selected-'.$barId" :key="'embed-picker-'.$barId" />
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="relative z-20">
+                                <button type="button" @click="gifPickerOpen = ! gifPickerOpen; if (gifPickerOpen) $wire.loadGifPicker()"
+                                        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition"
+                                        title="{{ __('forum.gif.trigger') }}">
+                                    @svg('fas-photo-film', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
+                                </button>
+
+                                <div x-show="gifPickerOpen" x-cloak x-transition class="absolute z-20 mt-2 left-0" @click.stop>
+                                    @if ($gifPickerLoaded)
+                                        <livewire:forum-gif-picker :event-name="'gif-selected-'.$barId" :key="'gif-picker-'.$barId" />
+                                    @endif
+                                </div>
+                            </div>
+
+                            <button type="button" @click="submit"
+                                    class="font-bold uppercase text-xs tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-gc-yellow/10 border border-gc-yellow/40 text-gc-yellow hover:bg-gc-yellow/20">
+                                {{ __('forum.message.submit') }}
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <x-forum.rules-popup open="rulesPopupOpen" onAccept="acceptRules()" error="rulesAcceptFailed" />
             </div>
 
             <style>

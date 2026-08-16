@@ -43,6 +43,55 @@ return [
         'thanks' => 'Thanks, this has been reported to our moderators.',
         'too_many_attempts' => 'Too many reports submitted — please try again later.',
     ],
+    'rules' => [
+        'link' => 'Forum rules',
+        'title' => 'Forum Rules',
+        'last_updated' => 'Last updated :date',
+        'intro' => 'Our forum is a place to talk GC — matches, teams, players, whatever. A few basic rules keep it a place people actually want to post in.',
+        'popup_title' => 'Before you post',
+        'prompt' => 'Please accept our forum rules before posting for the first time — click here to read them.',
+        'popup_intro' => 'Please read and accept our forum rules before posting for the first time:',
+        'accept' => 'I have read and accept the rules',
+        'accept_failed' => 'Something went wrong — please try again.',
+        'sections' => [
+            'toxicity' => [
+                'title' => 'No toxicity, be nice',
+                'text' => 'Disagreements happen, that\'s fine — but insults, harassment, personal attacks, and targeted negativity toward other users, players, teams, or staff are not allowed. Criticize takes and performances, not people.',
+            ],
+            'discrimination' => [
+                'title' => 'No discrimination or hate speech',
+                'text' => 'Racism, sexism, transphobia, and any other form of discrimination or hate speech are not tolerated, in any form — jokes included. This applies with zero tolerance and can lead to an immediate ban.',
+            ],
+            'gender_identity' => [
+                'title' => 'Respect gender identity',
+                'text' => 'Use the name and pronouns a player or user has chosen for themselves. Intentional misgendering is disrespectful and can lead to a ban.',
+            ],
+            'sexual_harassment' => [
+                'title' => 'No sexual harassment',
+                'text' => 'Sexualized, inappropriate, or intrusive comments about a player\'s, user\'s, or staff member\'s appearance or body are not tolerated, regardless of context.',
+            ],
+            'privacy' => [
+                'title' => 'No doxxing',
+                'text' => 'Never share someone else\'s personal information (address, phone number, private accounts, undisclosed real identity) without their consent. This applies to players too and is treated as a serious violation.',
+            ],
+            'spam' => [
+                'title' => 'No advertising or spam',
+                'text' => 'Don\'t use the forum to promote unrelated services, products, servers, or channels, and don\'t post referral/affiliate links. Don\'t flood threads by repeating the same message or spamming low-effort replies.',
+            ],
+            'content' => [
+                'title' => 'Keep content appropriate',
+                'text' => 'No NSFW, illegal, or otherwise shocking content (images, GIFs, or links). Keep language and embeds appropriate for a public, all-ages competitive community.',
+            ],
+            'impersonation' => [
+                'title' => 'No impersonation',
+                'text' => 'Don\'t pretend to be another user, player, team, organizer, or staff member. Use your own identity when posting.',
+            ],
+            'enforcement' => [
+                'title' => 'Enforcement',
+                'text' => 'Messages that break these rules can be hidden by our automated moderation or reported by other users for manual review. Repeated or serious violations lead to a forum mute or an account sanction, at staff\'s discretion. Moderation reserves the right to sanction any behavior it considers harmful to the community, even if not explicitly listed in these rules.',
+            ],
+        ],
+    ],
     'errors' => [
         'too_many_messages' => 'Too many messages — please slow down.',
         'too_many_threads' => 'Too many threads created — please try again later.',

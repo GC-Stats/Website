@@ -31,6 +31,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'forum_rules_accepted_at' => now(),
         ];
     }
 
@@ -41,6 +42,14 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /** For tests exercising the forum-rules acceptance gate/popup itself. */
+    public function forumRulesNotAccepted(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'forum_rules_accepted_at' => null,
         ]);
     }
 }

@@ -34,7 +34,17 @@ class UserReport extends Model
 
     public const STATUS_DISMISSED = 'dismissed';
 
-    public const CATEGORIES = ['fraud', 'ban_evasion', 'harassment', 'fake_account', 'other'];
+    public const CATEGORIES = [
+        'toxicity',
+        'discrimination',
+        'gender_identity',
+        'sexual_harassment',
+        'privacy',
+        'spam',
+        'content',
+        'impersonation',
+        'other',
+    ];
 
     protected $fillable = [
         'reporter_id',

@@ -43,6 +43,55 @@ return [
         'thanks' => 'Merci, ceci a été signalé à nos modérateurs.',
         'too_many_attempts' => 'Trop de signalements envoyés — réessaie plus tard.',
     ],
+    'rules' => [
+        'link' => 'Règles du forum',
+        'title' => 'Règles du forum',
+        'last_updated' => 'Dernière mise à jour le :date',
+        'intro' => 'Notre forum est un endroit pour parler GC — matchs, équipes, joueuses, peu importe. Quelques règles de base pour que ça reste un endroit où les gens ont envie de poster.',
+        'popup_title' => 'Avant de poster',
+        'prompt' => 'Merci d\'accepter les règles du forum avant de poster pour la première fois — cliquez ici pour les lire.',
+        'popup_intro' => 'Merci de lire et d\'accepter les règles du forum avant de poster pour la première fois :',
+        'accept' => 'J\'ai lu et j\'accepte les règles',
+        'accept_failed' => 'Une erreur est survenue — merci de réessayer.',
+        'sections' => [
+            'toxicity' => [
+                'title' => 'Pas de toxicité, soyez nice',
+                'text' => 'Les désaccords arrivent, c\'est normal — mais les insultes, le harcèlement, les attaques personnelles et l\'acharnement envers d\'autres utilisateurs, joueuses, équipes ou membres du staff ne sont pas tolérés. Critiquez les choix et les performances, pas les personnes.',
+            ],
+            'discrimination' => [
+                'title' => 'Pas de discrimination ni de discours haineux',
+                'text' => 'Le racisme, le sexisme, la transphobie et toute autre forme de discrimination ou de discours haineux ne sont tolérés sous aucune forme — blagues comprises. Tolérance zéro, pouvant mener à un bannissement immédiat.',
+            ],
+            'gender_identity' => [
+                'title' => 'Respect de l\'identité de genre',
+                'text' => 'Utilisez le nom et les pronoms choisis par chaque joueuse et utilisateur. Le mégenrage intentionnel est un manque de respect pouvant entraîner un bannissement.',
+            ],
+            'sexual_harassment' => [
+                'title' => 'Pas de harcèlement sexuel',
+                'text' => 'Les commentaires sexualisants, déplacés ou intrusifs sur l\'apparence ou le physique d\'une joueuse, d\'un utilisateur ou d\'un membre du staff ne sont pas tolérés, peu importe le contexte.',
+            ],
+            'privacy' => [
+                'title' => 'Pas de doxxing',
+                'text' => 'Ne partagez jamais d\'informations personnelles d\'un tiers (adresse, numéro, comptes privés, identité réelle non divulguée) sans son consentement. Cela s\'applique aussi aux joueuses et est considéré comme une violation grave.',
+            ],
+            'spam' => [
+                'title' => 'Pas de publicité ni de spam',
+                'text' => 'N\'utilisez pas le forum pour promouvoir des services, produits, serveurs ou chaînes sans rapport, et ne postez pas de liens d\'affiliation. Ne floodez pas les sujets en répétant le même message ou en spammant des réponses inutiles.',
+            ],
+            'content' => [
+                'title' => 'Un contenu approprié',
+                'text' => 'Pas de contenu NSFW, illégal ou choquant (images, GIFs ou liens). Gardez un langage et des embeds adaptés à une communauté compétitive publique, tout public.',
+            ],
+            'impersonation' => [
+                'title' => 'Pas d\'usurpation d\'identité',
+                'text' => 'Ne vous faites pas passer pour un autre utilisateur, une joueuse, une équipe, un organisateur ou un membre du staff. Postez sous votre propre identité.',
+            ],
+            'enforcement' => [
+                'title' => 'Application des règles',
+                'text' => 'Les messages qui enfreignent ces règles peuvent être masqués par notre modération automatique ou signalés par d\'autres utilisateurs pour une revue manuelle. Les violations répétées ou graves entraînent un mute du forum ou une sanction de compte, à la discrétion du staff. La modération se réserve le droit de sanctionner tout comportement qu\'elle juge nuisible à la communauté, même s\'il n\'est pas explicitement listé dans ce règlement.',
+            ],
+        ],
+    ],
     'errors' => [
         'too_many_messages' => 'Trop de messages — merci de ralentir.',
         'too_many_threads' => 'Trop de sujets créés — réessaie plus tard.',
