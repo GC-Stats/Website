@@ -8,6 +8,16 @@
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
 --}}
+@can('tournaments.view')
+    <div class="mb-3">
+        <a href="{{ route('admin.tournaments.edit', $tournament['id']) }}"
+           class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition">
+            @svg('fas-user-shield', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
+            {{ __('layout.account.admin') }}
+        </a>
+    </div>
+@endcan
+
 <div class="block group mb-6">
     <div class="relative bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 group-hover:bg-white/[0.04] group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
         <div class="p-4 md:p-6 flex flex-col gap-6">

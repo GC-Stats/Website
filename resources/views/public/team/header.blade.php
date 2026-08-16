@@ -10,21 +10,37 @@
 --}}
 
 <div class="mb-6">
-    @auth
-        <div class="flex flex-col items-end gap-2 mb-3">
-            @if (session('status') === 'change-request-submitted')
-                <div class="w-full md:w-auto bg-green-500/10 border border-green-500/30 text-green-400 text-[11px] rounded-sm px-3 py-2">
-                    {{ __('team.change_request.submitted_status') }}
-                </div>
-            @endif
+    @if (auth()->check())
+        <div class="flex items-start justify-between gap-2 mb-3">
+            @can('teams.view')
+                <a href="{{ route('admin.teams.show', $team['id']) }}"
+                   class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition">
+                    @svg('fas-user-shield', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
+                    {{ __('layout.account.admin') }}
+                </a>
+            @else
+                <span></span>
+            @endcan
 
-            <a href="{{ route('teams.change-requests.create', $team['id']) }}"
-               class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gc-yellow hover:text-white transition">
-                @svg('fas-pen', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
-                {{ __('team.change_request.trigger') }}
-            </a>
+            @auth
+                <div class="flex flex-col items-end gap-2">
+                    @if (session('status') === 'change-request-submitted')
+                        <div class="w-full md:w-auto bg-green-500/10 border border-green-500/30 text-green-400 text-[11px] rounded-sm px-3 py-2">
+                            {{ __('team.change_request.submitted_status') }}
+                        </div>
+                    @endif
+
+                    <a href="{{ route('teams.change-requests.create', $team['id']) }}"
+                       class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gc-yellow hover:text-white transition">
+                        @svg('fas-pen', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
+                        {{ __('team.change_request.trigger') }}
+                    </a>
+                </div>
+            @else
+                <span></span>
+            @endauth
         </div>
-    @endauth
+    @endif
 
 
     <div class="block group">

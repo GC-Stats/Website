@@ -9,21 +9,37 @@
     Repository: https://github.com/GC-Stats/Website
 --}}
 <div class="mb-6">
-    @auth
-        <div class="flex flex-col items-end gap-2 mb-3">
-            @if (session('status') === 'change-request-submitted')
-                <div class="w-full md:w-auto bg-green-500/10 border border-green-500/30 text-green-400 text-[11px] rounded-sm px-3 py-2">
-                    {{ __('player.change_request.submitted_status') }}
-                </div>
-            @endif
+    @if (auth()->check())
+        <div class="flex items-start justify-between gap-2 mb-3">
+            @can('players.view')
+                <a href="{{ route('admin.players.show', $player['id']) }}"
+                   class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition">
+                    @svg('fas-user-shield', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
+                    {{ __('layout.account.admin') }}
+                </a>
+            @else
+                <span></span>
+            @endcan
 
-            <a href="{{ route('players.change-requests.create', $player['id']) }}"
-               class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gc-yellow hover:text-white transition">
-                @svg('fas-pen', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
-                {{ __('player.change_request.trigger') }}
-            </a>
+            @auth
+                <div class="flex flex-col items-end gap-2">
+                    @if (session('status') === 'change-request-submitted')
+                        <div class="w-full md:w-auto bg-green-500/10 border border-green-500/30 text-green-400 text-[11px] rounded-sm px-3 py-2">
+                            {{ __('player.change_request.submitted_status') }}
+                        </div>
+                    @endif
+
+                    <a href="{{ route('players.change-requests.create', $player['id']) }}"
+                       class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gc-yellow hover:text-white transition">
+                        @svg('fas-pen', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
+                        {{ __('player.change_request.trigger') }}
+                    </a>
+                </div>
+            @else
+                <span></span>
+            @endauth
         </div>
-    @endauth
+    @endif
 
     <div class="block group">
         <div class="relative bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 group-hover:bg-white/[0.04] group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">

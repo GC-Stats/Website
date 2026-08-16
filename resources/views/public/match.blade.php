@@ -45,6 +45,16 @@
             </div>
         @endif
 
+        @can('matches.view')
+            <div class="mb-3">
+                <a href="{{ route('admin.matches.edit', [$match['tournament_id'], $match['id']]) }}"
+                   class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-white transition">
+                    @svg('fas-user-shield', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
+                    {{ __('layout.account.admin') }}
+                </a>
+            </div>
+        @endcan
+
         <div class="flex flex-col lg:flex-row items-start gap-6">
         @if($encounters)
             <div class="w-full lg:w-[360px] shrink-0 order-2 lg:order-1">
