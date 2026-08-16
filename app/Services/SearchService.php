@@ -278,7 +278,12 @@ class SearchService
      * the typed term, how a result is displayed, and which fields the "full
      * info" modal shows.
      *
-     * @return array{model: class-string<Model>, columns: list<string>, order: string, title: callable, subtitle?: callable, image?: callable, imageKind: string, countryCode?: callable, initials?: callable, route?: callable, load?: list<string>, fields?: callable}
+     * `numericColumns` (e.g. `vlr_id`) are matched with an exact `=` (in
+     * addition to the row's own `id`) whenever the typed term is all
+     * digits — see searchEntities(). Lets admins paste a numeric ID/VLR ID
+     * straight into the picker instead of typing a name.
+     *
+     * @return array{model: class-string<Model>, columns: list<string>, numericColumns?: list<string>, order: string, title: callable, subtitle?: callable, image?: callable, imageKind: string, countryCode?: callable, initials?: callable, route?: callable, load?: list<string>, fields?: callable}
      */
     private function entityConfig(string $type): array
     {
@@ -286,6 +291,7 @@ class SearchService
             'player' => [
                 'model' => Player::class,
                 'columns' => ['handle', 'first_name', 'last_name'],
+                'numericColumns' => ['vlr_id'],
                 'order' => 'handle',
                 'title' => fn (Player $m) => $m->handle,
                 'subtitle' => fn (Player $m) => trim("{$m->first_name} {$m->last_name}") ?: null,
@@ -306,6 +312,7 @@ class SearchService
             'team' => [
                 'model' => Team::class,
                 'columns' => ['name', 'short_name'],
+                'numericColumns' => ['vlr_id'],
                 'order' => 'name',
                 'title' => fn (Team $m) => $m->name,
                 'subtitle' => fn (Team $m) => $m->short_name,
@@ -422,12 +429,21 @@ class SearchService
         $term = $variants[0];
         $termLen = mb_strlen($term);
         $primaryColumn = $config['columns'][0];
+        $numericColumns = $config['numericColumns'] ?? [];
+        $numericTerm = ctype_digit($term) ? (int) $term : null;
 
         $candidates = $modelClass::query()
-            ->where(function ($q) use ($variants, $config) {
+            ->where(function ($q) use ($variants, $config, $numericColumns, $numericTerm) {
                 foreach ($config['columns'] as $column) {
                     foreach ($variants as $v) {
                         $q->orWhereRaw("LOWER({$column}) LIKE ?", ["%{$v}%"]);
+                    }
+                }
+
+                if ($numericTerm !== null) {
+                    $q->orWhere('id', $numericTerm);
+                    foreach ($numericColumns as $column) {
+                        $q->orWhere($column, $numericTerm);
                     }
                 }
             })
@@ -438,7 +454,20 @@ class SearchService
             ->limit($candidateLimit)
             ->get();
 
-        $score = function (Model $model) use ($config, $term, $termLen) {
+        $score = function (Model $model) use ($config, $term, $termLen, $numericColumns, $numericTerm) {
+            // An exact id/VLR ID match is unambiguous — outrank every text match.
+            if ($numericTerm !== null) {
+                if ($model->id === $numericTerm) {
+                    return 2000;
+                }
+
+                foreach ($numericColumns as $column) {
+                    if ((int) ($model->{$column} ?? 0) === $numericTerm) {
+                        return 1900;
+                    }
+                }
+            }
+
             $best = 0;
 
             foreach ($config['columns'] as $column) {

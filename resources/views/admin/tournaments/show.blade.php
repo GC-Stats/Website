@@ -9,14 +9,6 @@
 
 @php
     $regionColors = config('regions.colors', []);
-    // Team add/create are plain POST redirects (full page reload), so Alpine's
-    // modal state resets. On success we want it closed (the updated team list
-    // is visible right behind it) — only reopen for an in-progress search or a
-    // failed add, so the visitor doesn't lose their search/input and sees why
-    // it failed.
-    $teamModalOpen = $search !== ''
-        || session('error') === 'tournament-team-already-registered'
-        || $errors->any();
 @endphp
 
 @section('title', $tournament->name)
@@ -183,126 +175,8 @@
             @endforelse
         </div>
 
-        <div class="lg:col-span-5 bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl space-y-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">
-                    {{ __('admin.tournaments.teams.title') }} ({{ $teams->total() }})
-                </h2>
-
-                @can('tournaments.teams.manage')
-                    <x-modal :title="__('admin.tournaments.teams.add')" :open-by-default="$teamModalOpen">
-                        <x-slot:trigger>
-                            <button type="button"
-                                    class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
-                                + {{ __('admin.tournaments.teams.add') }}
-                            </button>
-                        </x-slot:trigger>
-
-                        <div x-data="{ mode: '{{ $errors->has('name') ? 'create' : 'search' }}' }">
-                            <div class="flex gap-2 mb-4">
-                                <button type="button" @click="mode = 'search'"
-                                        class="flex-1 font-bold uppercase text-[10px] tracking-widest px-3 py-2 rounded-lg transition"
-                                        :class="mode === 'search' ? 'bg-gc-yellow text-black' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'">
-                                    {{ __('admin.tournaments.teams.mode_search') }}
-                                </button>
-                                <button type="button" @click="mode = 'create'"
-                                        class="flex-1 font-bold uppercase text-[10px] tracking-widest px-3 py-2 rounded-lg transition"
-                                        :class="mode === 'create' ? 'bg-gc-yellow text-black' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'">
-                                    {{ __('admin.tournaments.teams.mode_create') }}
-                                </button>
-                            </div>
-
-                            <div x-show="mode === 'search'" class="space-y-3">
-                                <form method="GET" action="{{ route('admin.tournaments.show', $tournament) }}" class="flex gap-2">
-                                    <input type="text" name="q" x-ref="search" value="{{ $search }}" placeholder="{{ __('admin.tournaments.teams.search_placeholder') }}"
-                                           class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
-                                    <button type="submit"
-                                            class="font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
-                                        {{ __('admin.tournaments.teams.search_submit') }}
-                                    </button>
-                                </form>
-
-                                @if ($search)
-                                    <div class="space-y-2">
-                                        @forelse ($searchResults as $found)
-                                            <form method="POST" action="{{ route('admin.tournaments.teams.store', $tournament) }}" class="flex items-center justify-between gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-                                                @csrf
-                                                <input type="hidden" name="team_id" value="{{ $found->id }}">
-                                                <p class="text-xs text-white font-semibold">{{ $found->name }}</p>
-                                                <button type="submit"
-                                                        class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
-                                                    {{ __('admin.tournaments.teams.attach') }}
-                                                </button>
-                                            </form>
-                                        @empty
-                                            <p class="text-xs text-gray-500">{{ __('admin.tournaments.teams.search_empty') }}</p>
-                                        @endforelse
-                                    </div>
-                                @endif
-                            </div>
-
-                            <form x-show="mode === 'create'" method="POST" action="{{ route('admin.tournaments.teams.quick-create', $tournament) }}" class="space-y-3">
-                                @csrf
-                                <label class="block">
-                                    <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.teams.create_name_label') }}</span>
-                                    <input type="text" name="name" required
-                                           class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
-                                </label>
-                                <button type="submit"
-                                        class="w-full font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)]">
-                                    {{ __('admin.tournaments.teams.create_submit') }}
-                                </button>
-                            </form>
-                        </div>
-                    </x-modal>
-                @endcan
-            </div>
-
-            <div class="space-y-2">
-                @forelse ($teams as $team)
-                    <div class="flex items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-lg px-4 py-3">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <img src="{{ $team->logo }}" alt="" class="w-6 h-6 object-contain rounded-lg shrink-0">
-                            <p class="text-sm text-white font-semibold truncate">{{ $team->name }}</p>
-                        </div>
-                        @can('tournaments.teams.manage')
-                            <form method="POST" action="{{ route('admin.tournaments.teams.destroy', [$tournament, $team]) }}">
-                                @csrf
-                                @method('DELETE')
-                                <x-confirm-modal
-                                    :title="__('admin.tournaments.teams.remove')"
-                                    :body="__('admin.tournaments.teams.remove_confirm', ['team' => $team->name])"
-                                    :trigger-label="__('admin.tournaments.teams.remove')"
-                                    :submit-label="__('admin.tournaments.teams.remove')"
-                                    trigger-class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-transparent border border-red-500/40 text-red-400 hover:bg-red-500/10"
-                                    submit-class="bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20"
-                                />
-                            </form>
-                        @endcan
-                    </div>
-                @empty
-                    <p class="text-sm text-gray-500 italic text-center py-10">{{ __('admin.tournaments.teams.empty') }}</p>
-                @endforelse
-            </div>
-
-            {{ $teams->links() }}
+        <div class="lg:col-span-5 bg-bg-card border border-white/10 rounded-xl backdrop-blur-sm p-6 shadow-xl">
+            <livewire:admin.tournament-team-picker :tournament="$tournament" :key="'tournament-team-picker-wrap-'.$tournament->id" />
         </div>
     </div>
-
-    @if ($search !== '')
-        {{-- The team search form is a plain GET submit, so ?q= lingers in the address bar
-             after the modal opens to show results. Strip it once the page has loaded (not
-             on submit) so a later F5 lands on a clean URL instead of reopening the modal. --}}
-        @push('scripts')
-            <script>
-                (function () {
-                    const url = new URL(window.location.href);
-                    if (url.searchParams.has('q')) {
-                        url.searchParams.delete('q');
-                        window.history.replaceState({}, '', url);
-                    }
-                })();
-            </script>
-        @endpush
-    @endif
 @endsection

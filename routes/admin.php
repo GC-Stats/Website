@@ -204,12 +204,6 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
         Route::patch('/{tournament}/toggle-active', [TournamentController::class, 'toggleActive'])
             ->middleware('can:tournaments.activate')->name('toggle-active');
 
-        Route::middleware(['can:tournaments.teams.manage'])->group(function () {
-            Route::post('/{tournament}/teams', [TournamentController::class, 'attachTeam'])->name('teams.store');
-            Route::post('/{tournament}/teams/quick-create', [TournamentController::class, 'quickCreateTeam'])->name('teams.quick-create');
-            Route::delete('/{tournament}/teams/{team}', [TournamentController::class, 'detachTeam'])->name('teams.destroy');
-        });
-
         Route::middleware(['can:tournaments.edit'])->prefix('{tournament}/logo')->name('logo.')->group(function () {
             Route::post('/', [TournamentController::class, 'updateLogo'])->name('update');
             Route::post('/history', [TournamentController::class, 'storeLogoHistory'])->name('history.store');

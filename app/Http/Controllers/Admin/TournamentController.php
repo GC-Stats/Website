@@ -20,10 +20,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Public\Controller;
 use App\Models\PointType;
-use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
-use App\Models\TournamentTeam;
 use App\Services\LogoUploadService;
 use App\Support\Activity\ActivityChangeSet;
 use Illuminate\Contracts\View\View;
@@ -104,17 +102,8 @@ class TournamentController extends Controller
             'rootPhases.children.qualifications.destinationPhase.tournament',
         ]);
 
-        $teams = $tournament->teams()->orderBy('name')->paginate(15, ['*'], 'teams_page')->withQueryString();
-
         return view('admin.tournaments.show', [
             'tournament' => $tournament,
-            'teams' => $teams,
-            'search' => request()->get('q', ''),
-            'searchResults' => request()->filled('q')
-                ? Team::where('name', 'like', '%'.$this->escapeLike(request()->get('q')).'%')
-                    ->whereNotIn('id', $tournament->teams()->pluck('teams.id'))
-                    ->limit(10)->get()
-                : collect(),
         ]);
     }
 
@@ -224,61 +213,6 @@ class TournamentController extends Controller
             ->performedOn($tournament)->log($tournament->active ? 'tournament.activated' : 'tournament.deactivated');
 
         return back()->with('status', $tournament->active ? 'tournament-activated' : 'tournament-deactivated');
-    }
-
-    public function attachTeam(Request $request, Tournament $tournament): RedirectResponse
-    {
-        abort_unless(
-            $tournament->active || $request->user()->can('tournaments.inactive.teams.manage'),
-            403,
-            'Only a user with tournaments.inactive.teams.manage can manage teams on an inactive tournament.'
-        );
-
-        $validated = $request->validate([
-            'team_id' => ['required', 'integer', 'exists:teams,id'],
-        ]);
-
-        $alreadyRegistered = TournamentTeam::where('tournament_id', $tournament->id)
-            ->where('team_id', $validated['team_id'])
-            ->exists();
-
-        if ($alreadyRegistered) {
-            return back()->with('error', 'tournament-team-already-registered');
-        }
-
-        TournamentTeam::create([
-            'tournament_id' => $tournament->id,
-            'team_id' => $validated['team_id'],
-        ]);
-
-        $tournament->touch();
-
-        activity('tournament')->causedBy($request->user())
-            ->performedOn($tournament)
-            ->withProperties(['team_id' => $validated['team_id']])
-            ->log('tournament.team_attached');
-
-        return back()->with('status', 'tournament-team-attached');
-    }
-
-    public function detachTeam(Request $request, Tournament $tournament, Team $team): RedirectResponse
-    {
-        abort_unless(
-            $tournament->active || $request->user()->can('tournaments.inactive.teams.manage'),
-            403,
-            'Only a user with tournaments.inactive.teams.manage can manage teams on an inactive tournament.'
-        );
-
-        TournamentTeam::where('tournament_id', $tournament->id)->where('team_id', $team->id)->delete();
-
-        $tournament->touch();
-
-        activity('tournament')->causedBy($request->user())
-            ->performedOn($tournament)
-            ->withProperties(['team_id' => $team->id])
-            ->log('tournament.team_detached');
-
-        return back()->with('status', 'tournament-team-detached');
     }
 
     public function updateLogo(Request $request, Tournament $tournament, LogoUploadService $logoUploadService): RedirectResponse
@@ -488,38 +422,5 @@ class TournamentController extends Controller
                 'id', 'name', 'format', 'order', 'parent_id', 'start_date', 'end_date',
             ]))
             ->all();
-    }
-
-    public function quickCreateTeam(Request $request, Tournament $tournament): RedirectResponse
-    {
-        abort_unless(
-            $tournament->active || $request->user()->can('tournaments.inactive.teams.manage'),
-            403,
-            'Only a user with tournaments.inactive.teams.manage can manage teams on an inactive tournament.'
-        );
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-        ]);
-
-        $team = DB::transaction(function () use ($tournament, $validated) {
-            $team = Team::create(['name' => $validated['name'], 'socials' => []]);
-
-            TournamentTeam::create([
-                'tournament_id' => $tournament->id,
-                'team_id' => $team->id,
-            ]);
-
-            return $team;
-        });
-
-        $tournament->touch();
-
-        activity('tournament')->causedBy($request->user())
-            ->performedOn($tournament)
-            ->withProperties(['team_id' => $team->id, 'name' => $validated['name']])
-            ->log('tournament.team_created_and_attached');
-
-        return back()->with('status', 'tournament-team-created')->with('team_id', $team->id);
     }
 }

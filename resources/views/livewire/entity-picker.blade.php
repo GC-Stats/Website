@@ -56,6 +56,12 @@ new class extends Component {
     /** @var list<int> */
     public array $browseIds = [];
 
+    public ?string $selectEventName = null;
+
+    public ?string $removeEventName = null;
+
+    public bool $searchFirst = false;
+
     public string $search = '';
 
     /** @var list<array<string, mixed>> */
@@ -63,7 +69,7 @@ new class extends Component {
 
     public ?array $infoItem = null;
 
-    public function mount(string $type, ?string $name = null, ?string $label = null, bool $multiple = false, mixed $selected = null, ?string $placeholder = null, int $limit = 8, string $thumbSize = 'w-8 h-5', ?array $browseIds = null): void
+    public function mount(string $type, ?string $name = null, ?string $label = null, bool $multiple = false, mixed $selected = null, ?string $placeholder = null, int $limit = 8, string $thumbSize = 'w-8 h-5', ?array $browseIds = null, ?string $selectEventName = null, ?string $removeEventName = null, bool $searchFirst = false): void
     {
         $this->type = $type;
         $this->name = $name ?? $type;
@@ -73,6 +79,9 @@ new class extends Component {
         $this->limit = $limit;
         $this->thumbSize = $thumbSize;
         $this->browseIds = $browseIds ?? [];
+        $this->selectEventName = $selectEventName;
+        $this->removeEventName = $removeEventName;
+        $this->searchFirst = $searchFirst;
 
         $ids = collect(is_iterable($selected) ? $selected : ($selected !== null ? [$selected] : []))
             ->filter(fn ($id) => $id !== null && $id !== '')
@@ -105,6 +114,10 @@ new class extends Component {
             : [$item];
 
         $this->search = '';
+
+        if ($this->selectEventName !== null) {
+            $this->dispatch($this->selectEventName, id: $id);
+        }
     }
 
     public function remove(int $id): void
@@ -113,6 +126,10 @@ new class extends Component {
             ->reject(fn ($item) => $item['id'] === $id)
             ->values()
             ->toArray();
+
+        if ($this->removeEventName !== null) {
+            $this->dispatch($this->removeEventName, id: $id);
+        }
     }
 
     public function showInfo(int $id): void
@@ -179,11 +196,12 @@ new class extends Component {
         <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">{{ $label }}</label>
     @endif
 
+    <div class="flex flex-col gap-3">
     {{-- Selected entities: same "chip" as team-fan-picker, stacked when multiple. Everything sits on
          one row when there's room; flex-wrap only pushes the title down to its own line in genuinely
          narrow containers (e.g. roster-entry-card's grid cells) instead of forcing it every time. --}}
     @if (count($selectedItems) > 0)
-        <div class="space-y-2">
+        <div class="{{ $searchFirst ? 'order-2' : 'order-1' }} space-y-2">
             @foreach ($selectedItems as $item)
                 <input type="hidden" name="{{ $multiple ? "{$name}[]" : $name }}" value="{{ $item['id'] }}">
 
@@ -213,7 +231,7 @@ new class extends Component {
 
     {{-- Search + browse dropdown — hidden once a single-select slot is filled --}}
     @if ($multiple || count($selectedItems) === 0)
-        <div class="relative">
+        <div class="{{ $searchFirst ? 'order-1' : 'order-2' }} relative">
             <div class="group relative flex items-center">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none" aria-hidden="true">
                     <x-fas-search class="w-3.5 h-3.5 text-gray-500 group-focus-within:text-gc-yellow transition-all" aria-hidden="true" />
@@ -272,6 +290,7 @@ new class extends Component {
             </div>
         </div>
     @endif
+    </div>
 
     {{-- Full-info modal — same chrome as <x-modal>, driven by $infoItem so any row (selected or in-results) can open it --}}
     <template x-teleport="body">
