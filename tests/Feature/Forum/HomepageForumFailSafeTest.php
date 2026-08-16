@@ -12,7 +12,7 @@ test('the homepage stays up and hides the forum section if the forum tables are 
         $response = $this->get(route('home'));
 
         $response->assertOk();
-        $response->assertDontSee(__('forum.title.index'));
+        $response->assertDontSee(__('forum.general.new_thread'));
     } finally {
         Schema::rename('forum_threads_moved', 'forum_threads');
     }
