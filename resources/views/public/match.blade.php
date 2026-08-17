@@ -63,9 +63,7 @@
         @endif
 
         <div class="flex-1 min-w-0 w-full order-1 lg:order-2">
-        <x-match.score-header :match="$match" />
-
-        <div class="relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-transparent border border-white/5 rounded-2xl p-4 md:p-6 shadow-2xl backdrop-blur-sm mt-6">
+        <x-match.score-header :match="$match">
             @if ($match['status'] === 'finished')
                 @include('components.public.match.vods', ['match' => $match, 'canLinkVods' => $canLinkVods ?? false])
             @else
@@ -122,7 +120,7 @@
                     @endif
                 </div>
             </div>
-        </div>
+        </x-match.score-header>
         </div>
 
         @if($headToHead)
