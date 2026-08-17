@@ -884,6 +884,7 @@ class TournamentController extends Controller
             $playedCounts = GameMap::where('tournament_id', $id)
                 ->where('is_completed', true)
                 ->whereNotNull('map_name')
+                ->where('map_name', '!=', 'Unknown')
                 ->when($phaseIds !== null, fn ($q) => $q->whereIn('phase_id', $phaseIds))
                 ->select('map_name', DB::raw('COUNT(*) as times_played'))
                 ->groupBy('map_name')
@@ -894,6 +895,7 @@ class TournamentController extends Controller
                 ->where('gm.tournament_id', $id)
                 ->where('gm.is_completed', true)
                 ->whereNotNull('gm.map_name')
+                ->where('gm.map_name', '!=', 'Unknown')
                 ->when($phaseIds !== null, fn ($q) => $q->whereIn('gm.phase_id', $phaseIds))
                 ->groupBy('gm.map_name')
                 ->selectRaw('
@@ -915,6 +917,7 @@ class TournamentController extends Controller
                 ->where('gm.tournament_id', $id)
                 ->where('gm.is_completed', true)
                 ->whereNotNull('gm.map_name')
+                ->where('gm.map_name', '!=', 'Unknown')
                 ->when($phaseIds !== null, fn ($q) => $q->whereIn('gm.phase_id', $phaseIds))
                 ->select(
                     'gm.map_name', 'gm.id as game_map_id', 'gps.team_id', 't.name as team_name', 'gps.agent_name',

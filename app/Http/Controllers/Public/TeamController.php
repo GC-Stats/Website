@@ -274,6 +274,7 @@ class TeamController extends Controller
                 ->join('matches as m', 'm.id', '=', 'game_maps.match_id')
                 ->where('game_maps.is_completed', true)
                 ->whereNotNull('game_maps.map_name')
+                ->where('game_maps.map_name', '!=', 'Unknown')
                 ->where(function ($query) use ($id) {
                     $query->where('m.team_a_id', $id)->orWhere('m.team_b_id', $id);
                 })
@@ -300,6 +301,7 @@ class TeamController extends Controller
                 ->join('game_maps as gm', 'gm.id', '=', 'apas.game_map_id')
                 ->where('gm.is_completed', true)
                 ->whereNotNull('gm.map_name')
+                ->where('gm.map_name', '!=', 'Unknown')
                 ->where('gps.team_id', $id)
                 ->groupBy('gm.map_name')
                 ->selectRaw('
@@ -319,6 +321,7 @@ class TeamController extends Controller
                 ->leftJoin('teams as tb', 'tb.id', '=', 'm.team_b_id')
                 ->where('gm.is_completed', true)
                 ->whereNotNull('gm.map_name')
+                ->where('gm.map_name', '!=', 'Unknown')
                 ->where('gps.team_id', $id)
                 ->select(
                     'gm.map_name', 'gm.id as game_map_id', 'gm.team_a_score', 'gm.team_b_score',
