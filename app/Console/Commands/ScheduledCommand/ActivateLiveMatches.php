@@ -33,6 +33,9 @@ class ActivateLiveMatches extends Command
 
     protected $description = 'Flip upcoming matches to live once their scheduled time has passed, and notify Discord';
 
+    /** Matches of the same tournament scheduled less than this apart are considered chained. */
+    private const CHAIN_GAP_HOURS = 3;
+
     public function handle(): int
     {
         $matches = Matchs::query()
@@ -49,6 +52,12 @@ class ActivateLiveMatches extends Command
         }
 
         foreach ($matches as $match) {
+            if ($this->isChainedToUnfinishedMatch($match)) {
+                $this->info("Match #{$match->id} skipped: previous match in the same tournament isn't finished yet.");
+
+                continue;
+            }
+
             $match->update(['status' => 'live']);
 
             activity('tournament')->performedOn($match)
@@ -61,6 +70,23 @@ class ActivateLiveMatches extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * True when a match of the same tournament, scheduled shortly before
+     * this one, hasn't wrapped up yet — see the class docblock.
+     */
+    private function isChainedToUnfinishedMatch(Matchs $match): bool
+    {
+        return Matchs::query()
+            ->where('tournament_id', $match->tournament_id)
+            ->where('id', '!=', $match->id)
+            ->where('status', '!=', 'finished')
+            ->whereBetween('scheduled_at', [
+                $match->scheduled_at->copy()->subHours(self::CHAIN_GAP_HOURS),
+                $match->scheduled_at,
+            ])
+            ->exists();
     }
 
     private function notifyDiscord(Matchs $match): void
