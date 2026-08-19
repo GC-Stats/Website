@@ -27,6 +27,7 @@ class AgentRoles
     ];
 
     private const ABILITY_CACHE_KEY = 'agent_abilities_map';
+
     private const COLORS = [
         'duelist' => 'rgba(248,113,113,0.22)',
         'initiator' => 'rgba(251,146,60,0.22)',
