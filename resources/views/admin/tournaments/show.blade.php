@@ -86,7 +86,7 @@
                 </div>
 
                 @if ($tournament->description)
-                    <div class="mt-4 border-l-2 border-l-gc-yellow bg-white/5 rounded-lg p-3 text-xs text-gray-300">
+                    <div class="mt-4 border-l-2 border-l-gc-yellow bg-white/5 rounded-lg p-3 text-xs text-gray-300 whitespace-pre-line">
                         {{ $tournament->description }}
                     </div>
                 @endif
