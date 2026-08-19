@@ -229,6 +229,61 @@ class RosterService
     }
 
     /**
+     * Diff a before/after snapshot of `player_team` rows (as returned by
+     * history()/teamHistory(), cast to arrays) into an activity-log
+     * `changes` map that shows only what actually moved — a row added,
+     * removed, or with a different role/joined_at/left_at — rather than
+     * dumping the full roster on both sides.
+     *
+     * @param  array<int, array{id: int, role: ?string, joined_at: string, left_at: ?string}>  $before
+     * @param  array<int, array{id: int, role: ?string, joined_at: string, left_at: ?string}>  $after
+     * @param  string  $labelField  the array key holding the human-readable name for a row (e.g. player_handle, team_name)
+     * @return array<string, array{old: ?string, new: ?string}>
+     */
+    public function diff(array $before, array $after, string $labelField): array
+    {
+        $beforeById = collect($before)->keyBy('id');
+        $afterById = collect($after)->keyBy('id');
+        $changes = [];
+        $i = 0;
+
+        foreach ($afterById as $id => $row) {
+            $row = (array) $row;
+
+            if (! $beforeById->has($id)) {
+                $changes['added_'.$i++] = ['old' => null, 'new' => $this->rowSummary($row, $labelField)];
+
+                continue;
+            }
+
+            $oldRow = (array) $beforeById->get($id);
+            $oldSummary = $this->rowSummary($oldRow, $labelField);
+            $newSummary = $this->rowSummary($row, $labelField);
+
+            if ($oldSummary !== $newSummary) {
+                $changes['changed_'.$i++] = ['old' => $oldSummary, 'new' => $newSummary];
+            }
+        }
+
+        foreach ($beforeById as $id => $row) {
+            if (! $afterById->has($id)) {
+                $changes['removed_'.$i++] = ['old' => $this->rowSummary((array) $row, $labelField), 'new' => null];
+            }
+        }
+
+        return $changes;
+    }
+
+    private function rowSummary(array $row, string $labelField): string
+    {
+        $role = $row['role'] ?? 'player';
+        $joined = $row['joined_at'] ?? '?';
+        $left = $row['left_at'] ?? null;
+
+        return sprintf('%s — %s (%s → %s)', $row[$labelField] ?? '?', $role, $joined, $left ?: '…');
+    }
+
+    /**
      * Delete a single `player_team` row by id, scoped to $team, and flush
      * related caches. Scoping to $team prevents a caller authorized to
      * manage one team's roster from deleting another team's row by id.

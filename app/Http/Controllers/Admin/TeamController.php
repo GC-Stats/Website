@@ -263,12 +263,22 @@ class TeamController extends Controller
             ->map(fn (array $entry) => [...$entry, 'team_id' => $team->id])
             ->all();
 
+        $before = $this->rosterSnapshot($rosterService, $team);
         $rosterService->save('team_id', $team->id, $entries);
+        $after = $this->rosterSnapshot($rosterService, $team);
 
         activity('team')->performedOn($team)->causedBy($request->user())
-            ->withProperties(['team_id' => $team->id])->log('team.roster.synced');
+            ->withProperties(['team_id' => $team->id, 'changes' => $rosterService->diff($before, $after, 'player_handle')])
+            ->log('team.roster.synced');
 
         return back()->with('status', 'roster-synced');
+    }
+
+    private function rosterSnapshot(RosterService $rosterService, Team $team): array
+    {
+        return $rosterService->history($team->id)
+            ->map(fn ($row) => (array) $row)
+            ->all();
     }
 
     public function destroy(Request $request, Team $team, TeamMergeService $mergeService): RedirectResponse

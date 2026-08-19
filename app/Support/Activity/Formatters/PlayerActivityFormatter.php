@@ -24,4 +24,20 @@ class PlayerActivityFormatter extends BaseActivityFormatter
         'from' => 'From',
         'until' => 'Until',
     ];
+
+    /**
+     * Team-history sync diffs (see RosterService::diff()) key each changed
+     * row as "added_0", "changed_1", "removed_2", ... so every row gets a
+     * unique field key while sharing one of these three labels.
+     */
+    protected function label(string $key): string
+    {
+        foreach (['added_' => 'Added', 'changed_' => 'Changed', 'removed_' => 'Removed'] as $prefix => $label) {
+            if (str_starts_with($key, $prefix)) {
+                return $label;
+            }
+        }
+
+        return parent::label($key);
+    }
 }

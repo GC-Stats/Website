@@ -182,12 +182,22 @@ class PlayerController extends Controller
             ->map(fn (array $entry) => [...$entry, 'player_id' => $player->id])
             ->all();
 
+        $before = $this->teamHistorySnapshot($rosterService, $player);
         $rosterService->save('player_id', $player->id, $entries);
+        $after = $this->teamHistorySnapshot($rosterService, $player);
 
         activity('player')->performedOn($player)->causedBy($request->user())
-            ->withProperties(['player_id' => $player->id])->log('player.team_history.synced');
+            ->withProperties(['player_id' => $player->id, 'changes' => $rosterService->diff($before, $after, 'team_name')])
+            ->log('player.team_history.synced');
 
         return back()->with('status', 'team-history-synced');
+    }
+
+    private function teamHistorySnapshot(RosterService $rosterService, Player $player): array
+    {
+        return $rosterService->teamHistory($player->id)
+            ->map(fn ($row) => (array) $row)
+            ->all();
     }
 
     public function linkUser(Request $request, Player $player, PlayerProfileService $service): RedirectResponse
