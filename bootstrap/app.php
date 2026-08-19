@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function (Schedule $schedule) {
         $schedule->command('app:sync-page-views')->hourly();
+        $schedule->command('agents:sync-abilities')->hourly();
         $schedule->command('sitemap:generate')->daily();
         $schedule->command('data:export-public')->dailyAt('03:00');
 

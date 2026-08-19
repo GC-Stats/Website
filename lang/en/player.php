@@ -32,6 +32,17 @@ return [
         'all_time' => 'All time',
         'last_30_days' => '30D',
         'last_60_days' => '60D',
+        'insights' => [
+            'title' => 'Best agents',
+            'top_acs' => 'Top ACS',
+            'top_adr' => 'Top ADR',
+            'top_kast' => 'Top KAST',
+            'top_entries' => 'Top first kills',
+            'top_utility' => 'Top utility kills',
+            'top_clutch_rate' => 'Top clutch rate',
+            'top_operator' => 'Most Operator kills',
+            'top_sheriff' => 'Most Sheriff kills',
+        ],
     ],
 
     'empty' => [

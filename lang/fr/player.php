@@ -32,6 +32,17 @@ return [
         'all_time' => 'Tout',
         'last_30_days' => '30J',
         'last_60_days' => '60J',
+        'insights' => [
+            'title' => 'Meilleurs agents',
+            'top_acs' => 'Meilleur ACS',
+            'top_adr' => 'Meilleur ADR',
+            'top_kast' => 'Meilleur KAST',
+            'top_entries' => 'Plus de first kills',
+            'top_utility' => "Plus de kills à l'utilitaire",
+            'top_clutch_rate' => 'Meilleur taux de clutch',
+            'top_operator' => "Plus de kills à l'Operator",
+            'top_sheriff' => 'Plus de kills au Sheriff',
+        ],
     ],
 
     'empty' => [

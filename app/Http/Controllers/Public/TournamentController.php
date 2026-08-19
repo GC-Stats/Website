@@ -15,6 +15,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Helpers\AgentRoles;
 use App\Helpers\CacheTtl;
 use App\Models\GameMap;
 use App\Models\GamePlayerStat;
@@ -25,6 +26,7 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentPhase;
 use App\Services\HeadToHeadService;
+use App\Services\UtilityStatsAggregator;
 use App\Support\CurrentTheme;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -784,40 +786,71 @@ class TournamentController extends Controller
             $dateKey = 'all_time';
         }
 
+        $agents = array_values(array_filter((array) $request->query('agents', [])));
+        $roles = array_values(array_filter((array) $request->query('roles', [])));
+        $maps = array_values(array_filter((array) $request->query('maps', [])));
+        $roleSlugs = AgentRoles::slugsForRoles($roles);
+
         $tournamentUpdatedAt = Tournament::where('id', $id)->value('updated_at');
         abort_unless($tournamentUpdatedAt !== null, 404);
 
-        $periodKey = ($phaseId ? "phase_{$phaseId}" : 'all_phases').'_'.$dateKey;
+        $filterKey = md5(implode('|', [implode(',', $agents), implode(',', $roles), implode(',', $maps)]));
+        $periodKey = ($phaseId ? "phase_{$phaseId}" : 'all_phases').'_'.$dateKey.'_'.$filterKey;
         $cacheKey = "tournament_stats_{$id}_{$periodKey}_".Carbon::parse($tournamentUpdatedAt)->timestamp.'_theme_'.CurrentTheme::get();
         $tag = "tournament_{$id}";
+
+        $filterOptions = Cache::tags([$tag])->remember("tournament_stats_filters_{$id}_".Carbon::parse($tournamentUpdatedAt)->timestamp, 3600, function () use ($id) {
+            return [
+                'agents' => GamePlayerStat::where('tournament_id', $id)->distinct()->orderBy('agent_name')->pluck('agent_name')->all(),
+                'maps' => GameMap::where('tournament_id', $id)->whereNotNull('map_name')->where('map_name', '!=', 'Unknown')->distinct()->orderBy('map_name')->pluck('map_name')->all(),
+                'roles' => array_keys(config('agent_roles', [])),
+            ];
+        });
 
         $cached = Cache::tags([$tag])->get($cacheKey);
         if ($cached) {
             return response()
-                ->view('public.tournament.stats', ['tournament' => $cached['tournament'], 'stats' => $cached['stats'], 'phases' => $parentPhases, 'selectedPhase' => $phaseId])
+                ->view('public.tournament.stats', ['tournament' => $cached['tournament'], 'stats' => $cached['stats'], 'insights' => $cached['insights'], 'weapons' => $cached['weapons'], 'phases' => $parentPhases, 'selectedPhase' => $phaseId, 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps])
                 ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
                 ->header('Vary', 'Accept-Language');
         }
 
-        $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $phaseIds, $start, $end) {
+        $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $phaseIds, $start, $end, $agents, $maps, $roleSlugs) {
             $tournament = Tournament::findOrFail($id);
 
             $stats = GamePlayerStat::query()
                 ->join('players', 'game_player_stats.player_id', '=', 'players.id')
+                ->leftJoin('game_maps', 'game_maps.id', '=', 'game_player_stats.game_map_id')
+                ->leftJoin('game_player_advanced_stats as gpas', function ($join) {
+                    $join->on('gpas.game_map_id', '=', 'game_player_stats.game_map_id')
+                        ->on('gpas.player_id', '=', 'game_player_stats.player_id');
+                })
                 ->selectRaw('
                     game_player_stats.player_id,
                     players.handle as player_handle,
                     COUNT(*) as games_played,
-                    GROUP_CONCAT(DISTINCT agent_name ORDER BY agent_name ASC SEPARATOR ",") as played_agents,
+                    GROUP_CONCAT(DISTINCT game_player_stats.agent_name ORDER BY game_player_stats.agent_name ASC SEPARATOR ",") as played_agents,
+                    GROUP_CONCAT(DISTINCT CASE WHEN game_maps.map_name IS NOT NULL AND game_maps.map_name != "Unknown" THEN game_maps.map_name END ORDER BY game_maps.map_name ASC SEPARATOR ",") as played_maps,
                     ROUND(AVG(acs), 2) as avg_acs,
+                    SUM(acs) as total_acs,
                     ROUND(AVG(kills), 2) as avg_kills,
+                    SUM(kills) as total_kills,
                     ROUND(AVG(deaths), 2) as avg_deaths,
+                    SUM(deaths) as total_deaths,
                     ROUND(AVG(assists), 2) as avg_assists,
+                    SUM(assists) as total_assists,
                     ROUND(AVG(adr), 2) as avg_adr,
+                    SUM(adr) as total_adr,
                     ROUND(AVG(first_kills), 2) as avg_first_kills,
+                    SUM(first_kills) as total_first_kills,
                     ROUND(AVG(first_deaths), 2) as avg_first_deaths,
+                    SUM(first_deaths) as total_first_deaths,
                     ROUND(AVG(kast_percentage), 2) as avg_kast,
-                    ROUND(AVG(headshot_percentage), 2) as avg_hs
+                    SUM(kast_percentage) as total_kast,
+                    ROUND(AVG(headshot_percentage), 2) as avg_hs,
+                    SUM(headshot_percentage) as total_hs,
+                    SUM(COALESCE(gpas.clutch_1v1_won,0)+COALESCE(gpas.clutch_1v2_won,0)+COALESCE(gpas.clutch_1v3_won,0)+COALESCE(gpas.clutch_1v4_won,0)+COALESCE(gpas.clutch_1v5_won,0)) as clutches_won,
+                    SUM(COALESCE(gpas.clutch_1v1_total,0)+COALESCE(gpas.clutch_1v2_total,0)+COALESCE(gpas.clutch_1v3_total,0)+COALESCE(gpas.clutch_1v4_total,0)+COALESCE(gpas.clutch_1v5_total,0)) as clutch_attempts
                 ')
                 ->where('game_player_stats.tournament_id', $id)
                 ->when($phaseIds !== null, function ($query) use ($phaseIds) {
@@ -826,25 +859,94 @@ class TournamentController extends Controller
                 ->when($start && $end, function ($query) use ($start, $end) {
                     return $query->whereBetween('game_player_stats.created_at', [$start, $end]);
                 })
+                ->when($agents !== [], fn ($query) => $query->whereIn('game_player_stats.agent_name', $agents))
+                ->when($maps !== [], fn ($query) => $query->whereIn('game_maps.map_name', $maps))
+                ->when($roleSlugs !== [], fn ($query) => $query->whereIn(DB::raw('LOWER(REPLACE(game_player_stats.agent_name, "/", ""))'), $roleSlugs))
                 ->groupBy('game_player_stats.player_id', 'players.handle')
                 ->orderBy('avg_acs', 'desc')
                 ->get()
                 ->map(function ($item) {
                     $item->played_agents = $item->played_agents ? explode(',', $item->played_agents) : [];
+                    $item->played_maps = $item->played_maps ? explode(',', $item->played_maps) : [];
+
+                    $item->total_clutches = (int) $item->clutches_won;
+                    $item->avg_clutches = $item->games_played > 0 ? round($item->clutches_won / $item->games_played, 2) : 0.0;
+                    $clutchRate = $item->clutch_attempts > 0 ? round($item->clutches_won / $item->clutch_attempts * 100, 1) : 0.0;
+                    $item->total_clutch_rate = $clutchRate;
+                    $item->avg_clutch_rate = $clutchRate;
 
                     return $item;
                 });
 
+            $gamesPlayed = $stats->pluck('games_played', 'player_id')->all();
+            $killAggregator = app(UtilityStatsAggregator::class);
+            $weapons = $killAggregator->weaponsFor($id, $phaseIds, $start, $end, null, $agents, $maps, $roleSlugs);
+            $utility = $killAggregator->perPlayer($id, $phaseIds, $start, $end, $gamesPlayed, $weapons, $agents, $maps, $roleSlugs);
+
+            $stats = $stats->map(function ($item) use ($utility) {
+                foreach ($utility->get($item->player_id, []) as $key => $value) {
+                    $item->{$key} = $value;
+                }
+
+                return $item;
+            });
+
             return [
                 'tournament' => $tournament->toArray(),
                 'stats' => $stats->toArray(),
+                'insights' => $this->buildStatsInsights($stats),
+                'weapons' => $weapons,
             ];
         });
 
         return response()
-            ->view('public.tournament.stats', ['tournament' => $data['tournament'], 'stats' => $data['stats'], 'phases' => $parentPhases, 'selectedPhase' => $phaseId])
+            ->view('public.tournament.stats', ['tournament' => $data['tournament'], 'stats' => $data['stats'], 'insights' => $data['insights'], 'weapons' => $data['weapons'], 'phases' => $parentPhases, 'selectedPhase' => $phaseId, 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps])
             ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
             ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Derive "leader" cards (top ACS/ADR/KAST/first kills/grenade kills/
+     * clutches/Operator kills/Sheriff kills) from the already-computed
+     * player stats list — no extra query. Mirrors buildMapInsights().
+     * Weapon-based cards are skipped when the tournament has no kills with
+     * that weapon (the dynamic weapon_<slug> field simply won't exist).
+     */
+    private function buildStatsInsights($stats): array
+    {
+        $stats = collect($stats)->filter(fn ($row) => ($row->games_played ?? 0) > 0);
+
+        if ($stats->isEmpty()) {
+            return [];
+        }
+
+        $availableFields = array_keys($stats->first()->getAttributes());
+        $leader = fn (string $field) => $stats->sortByDesc($field)->first();
+
+        $card = function (string $label, string $field, string $suffix = '') use ($leader, $availableFields) {
+            if (! in_array($field, $availableFields, true)) {
+                return null;
+            }
+
+            $row = $leader($field);
+
+            return [
+                'label' => $label,
+                'name' => $row->player_handle ?? null,
+                'value' => $row->{$field} !== null ? $row->{$field}.$suffix : null,
+            ];
+        };
+
+        return array_values(array_filter([
+            $card('top_acs', 'avg_acs'),
+            $card('top_adr', 'avg_adr'),
+            $card('top_kast', 'avg_kast', '%'),
+            $card('top_entries', 'avg_first_kills'),
+            $card('top_utility', 'avg_grenade_kills'),
+            $card('top_clutch_rate', 'total_clutch_rate', '%'),
+            $card('top_operator', 'total_weapon_operator'),
+            $card('top_sheriff', 'total_weapon_sheriff'),
+        ]));
     }
 
     public function maps(Request $request, $id, $slug = null)

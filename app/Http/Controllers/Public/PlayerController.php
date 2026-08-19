@@ -14,10 +14,13 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Helpers\AgentRoles;
+use App\Models\GameMap;
 use App\Models\GamePlayerStat;
 use App\Models\Matchs;
 use App\Models\News;
 use App\Models\Player;
+use App\Services\UtilityStatsAggregator;
 use App\Support\Achievements;
 use App\Support\CurrentTheme;
 use App\Support\MatchPresenter;
@@ -26,6 +29,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PlayerController extends Controller
@@ -343,54 +347,168 @@ class PlayerController extends Controller
             }
         }
 
+        $agents = array_values(array_filter((array) $request->query('agents', [])));
+        $roles = array_values(array_filter((array) $request->query('roles', [])));
+        $maps = array_values(array_filter((array) $request->query('maps', [])));
+        $roleSlugs = AgentRoles::slugsForRoles($roles);
+
         $playerUpdatedAt = Player::where('id', $id)->value('updated_at');
         abort_unless($playerUpdatedAt !== null, 404);
 
-        $cacheKey = "player_stats_{$id}_{$periodKey}_".Carbon::parse($playerUpdatedAt)->timestamp;
+        $filterKey = md5(implode('|', [implode(',', $agents), implode(',', $roles), implode(',', $maps)]));
+        $cacheKey = "player_stats_{$id}_{$periodKey}_{$filterKey}_".Carbon::parse($playerUpdatedAt)->timestamp;
         $tag = "player_{$id}";
+
+        $filterOptions = Cache::tags([$tag])->remember("player_stats_filters_{$id}_".Carbon::parse($playerUpdatedAt)->timestamp, 3600, function () use ($id) {
+            return [
+                'agents' => GamePlayerStat::where('player_id', $id)->distinct()->orderBy('agent_name')->pluck('agent_name')->all(),
+                'maps' => GameMap::join('game_player_stats', 'game_player_stats.game_map_id', '=', 'game_maps.id')
+                    ->where('game_player_stats.player_id', $id)
+                    ->whereNotNull('game_maps.map_name')
+                    ->where('game_maps.map_name', '!=', 'Unknown')
+                    ->distinct()->orderBy('game_maps.map_name')->pluck('game_maps.map_name')->all(),
+                'roles' => array_keys(config('agent_roles', [])),
+            ];
+        });
 
         $cached = Cache::tags([$tag])->get($cacheKey);
         if ($cached) {
             return response()
-                ->view('public.player.stats', ['player' => $cached['player'], 'stats' => $cached['stats']])
+                ->view('public.player.stats', ['player' => $cached['player'], 'stats' => $cached['stats'], 'insights' => $cached['insights'], 'weapons' => $cached['weapons'], 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps])
                 ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
                 ->header('Vary', 'Accept-Language');
         }
 
-        $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $start, $end, $isAllTime) {
+        $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $start, $end, $isAllTime, $agents, $maps, $roleSlugs) {
             $player = Player::findOrFail($id);
 
             $stats = GamePlayerStat::query()
+                ->leftJoin('game_maps', 'game_maps.id', '=', 'game_player_stats.game_map_id')
+                ->leftJoin('game_player_advanced_stats as gpas', function ($join) {
+                    $join->on('gpas.game_map_id', '=', 'game_player_stats.game_map_id')
+                        ->on('gpas.player_id', '=', 'game_player_stats.player_id');
+                })
                 ->selectRaw('
-                agent_name,
+                game_player_stats.agent_name,
                 COUNT(*) as games_played,
+                GROUP_CONCAT(DISTINCT CASE WHEN game_maps.map_name IS NOT NULL AND game_maps.map_name != "Unknown" THEN game_maps.map_name END ORDER BY game_maps.map_name ASC SEPARATOR ",") as played_maps,
                 ROUND(AVG(acs), 2) as avg_acs,
+                SUM(acs) as total_acs,
                 ROUND(AVG(kills), 2) as avg_kills,
+                SUM(kills) as total_kills,
                 ROUND(AVG(deaths), 2) as avg_deaths,
+                SUM(deaths) as total_deaths,
                 ROUND(AVG(assists), 2) as avg_assists,
+                SUM(assists) as total_assists,
                 ROUND(AVG(adr), 2) as avg_adr,
+                SUM(adr) as total_adr,
                 ROUND(AVG(first_kills), 2) as avg_first_kills,
+                SUM(first_kills) as total_first_kills,
                 ROUND(AVG(first_deaths), 2) as avg_first_deaths,
+                SUM(first_deaths) as total_first_deaths,
                 ROUND(AVG(kast_percentage), 2) as avg_kast,
-                ROUND(AVG(headshot_percentage), 2) as avg_hs
+                SUM(kast_percentage) as total_kast,
+                ROUND(AVG(headshot_percentage), 2) as avg_hs,
+                SUM(headshot_percentage) as total_hs,
+                SUM(COALESCE(gpas.clutch_1v1_won,0)+COALESCE(gpas.clutch_1v2_won,0)+COALESCE(gpas.clutch_1v3_won,0)+COALESCE(gpas.clutch_1v4_won,0)+COALESCE(gpas.clutch_1v5_won,0)) as clutches_won,
+                SUM(COALESCE(gpas.clutch_1v1_total,0)+COALESCE(gpas.clutch_1v2_total,0)+COALESCE(gpas.clutch_1v3_total,0)+COALESCE(gpas.clutch_1v4_total,0)+COALESCE(gpas.clutch_1v5_total,0)) as clutch_attempts
             ')
-                ->where('player_id', $id)
+                ->where('game_player_stats.player_id', $id)
                 ->when(! $isAllTime, function ($query) use ($start, $end) {
                     return $query->whereBetween('game_player_stats.created_at', [$start, $end]);
                 })
-                ->groupBy('agent_name')
+                ->when($agents !== [], fn ($query) => $query->whereIn('game_player_stats.agent_name', $agents))
+                ->when($maps !== [], fn ($query) => $query->whereIn('game_maps.map_name', $maps))
+                ->when($roleSlugs !== [], fn ($query) => $query->whereIn(DB::raw('LOWER(REPLACE(game_player_stats.agent_name, "/", ""))'), $roleSlugs))
+                ->groupBy('game_player_stats.agent_name')
                 ->orderBy('avg_acs', 'desc')
                 ->get();
+
+            $gamesPlayedByAgent = $stats->pluck('games_played', 'agent_name')->all();
+            $killAggregator = app(UtilityStatsAggregator::class);
+            $scopedStart = $isAllTime ? null : $start;
+            $scopedEnd = $isAllTime ? null : $end;
+            $weapons = $killAggregator->weaponsFor(null, null, $scopedStart, $scopedEnd, $id, [], $maps, $roleSlugs);
+            $utility = $killAggregator->perAgent($id, $scopedStart, $scopedEnd, $gamesPlayedByAgent, $weapons, $maps, $roleSlugs);
+
+            $stats = $stats->map(function ($item) use ($utility) {
+                $item->played_maps = $item->played_maps ? explode(',', $item->played_maps) : [];
+
+                $item->total_clutches = (int) $item->clutches_won;
+                $item->avg_clutches = $item->games_played > 0 ? round($item->clutches_won / $item->games_played, 2) : 0.0;
+                $clutchRate = $item->clutch_attempts > 0 ? round($item->clutches_won / $item->clutch_attempts * 100, 1) : 0.0;
+                $item->total_clutch_rate = $clutchRate;
+                $item->avg_clutch_rate = $clutchRate;
+
+                foreach ($utility->get($item->agent_name, []) as $key => $value) {
+                    $item->{$key} = $value;
+                }
+
+                $item->ability_names = [
+                    'Ability1' => AgentRoles::abilityNameFor($item->agent_name, 'Ability1'),
+                    'Ability2' => AgentRoles::abilityNameFor($item->agent_name, 'Ability2'),
+                    'GrenadeAbility' => AgentRoles::abilityNameFor($item->agent_name, 'GrenadeAbility'),
+                    'Ultimate' => AgentRoles::abilityNameFor($item->agent_name, 'Ultimate'),
+                ];
+
+                return $item;
+            });
 
             return [
                 'player' => $player->toArray(),
                 'stats' => $stats->toArray(),
+                'insights' => $this->buildAgentStatsInsights($stats),
+                'weapons' => $weapons,
             ];
         });
 
         return response()
-            ->view('public.player.stats', ['player' => $data['player'], 'stats' => $data['stats']])
+            ->view('public.player.stats', ['player' => $data['player'], 'stats' => $data['stats'], 'insights' => $data['insights'], 'weapons' => $data['weapons'], 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps])
             ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
             ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Derive "best agent" leader cards (ACS/ADR/KAST/first kills/grenade
+     * kills/clutches/Operator kills/Sheriff kills) from the already-computed
+     * per-agent stats list — no extra query. Mirrors
+     * TournamentController::buildStatsInsights(). Weapon-based cards are
+     * skipped when the player has no kills with that weapon in scope.
+     */
+    private function buildAgentStatsInsights($stats): array
+    {
+        $stats = collect($stats)->filter(fn ($row) => ($row->games_played ?? 0) > 0);
+
+        if ($stats->isEmpty()) {
+            return [];
+        }
+
+        $availableFields = array_keys($stats->first()->getAttributes());
+        $leader = fn (string $field) => $stats->sortByDesc($field)->first();
+
+        $card = function (string $label, string $field, string $suffix = '') use ($leader, $availableFields) {
+            if (! in_array($field, $availableFields, true)) {
+                return null;
+            }
+
+            $row = $leader($field);
+
+            return [
+                'label' => $label,
+                'name' => $row->agent_name ?? null,
+                'value' => $row->{$field} !== null ? $row->{$field}.$suffix : null,
+            ];
+        };
+
+        return array_values(array_filter([
+            $card('top_acs', 'avg_acs'),
+            $card('top_adr', 'avg_adr'),
+            $card('top_kast', 'avg_kast', '%'),
+            $card('top_entries', 'avg_first_kills'),
+            $card('top_utility', 'avg_grenade_kills'),
+            $card('top_clutch_rate', 'total_clutch_rate', '%'),
+            $card('top_operator', 'total_weapon_operator'),
+            $card('top_sheriff', 'total_weapon_sheriff'),
+        ]));
     }
 }
