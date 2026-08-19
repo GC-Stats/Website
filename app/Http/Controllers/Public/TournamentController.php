@@ -386,9 +386,13 @@ class TournamentController extends Controller
                 return $ids;
             };
 
+            $allTournamentTeamIds = $tournament->teams->pluck('id')->all();
+
             $teamIdsByRootPhase = [];
             foreach ($rootPhases as $rp) {
-                $teamIdsByRootPhase[$rp['id']] = array_values(array_unique($collectPhaseTeamIds($rp)));
+                $ids = array_values(array_unique($collectPhaseTeamIds($rp)));
+
+                $teamIdsByRootPhase[$rp['id']] = empty($ids) ? $allTournamentTeamIds : $ids;
             }
 
             $phaseIds = array_column($allPhases, 'id');
