@@ -43,7 +43,7 @@
                             </h1>
 
                             @if($tournament['description'])
-                                <p class="text-[9px] md:text-[10px] font-bold uppercase text-gray-500 italic leading-tight line-clamp-1 md:line-clamp-none">
+                                <p class="text-[9px] md:text-[10px] font-bold uppercase text-gray-500 italic leading-tight whitespace-pre-line line-clamp-2 md:line-clamp-none">
                                     {{ $tournament['description'] }}
                                 </p>
                             @endif
