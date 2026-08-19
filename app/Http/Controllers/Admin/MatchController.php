@@ -615,7 +615,7 @@ class MatchController extends Controller
      */
     public static function isFinished(Tournament $tournament, Matchs $match): bool
     {
-        return $match->status === 'finished' || $tournament->status === 'finished';
+        return $tournament->status === 'finished';
     }
 
     /**
