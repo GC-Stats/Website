@@ -28,13 +28,14 @@ class TournamentStandings
      */
     public static function compute(array $matches, array $teams, bool $useBuchholz = false): Collection
     {
-        $matchesColl = collect($matches)->filter(function ($m) {
+        $allMatchesColl = collect($matches);
+        $matchesColl = $allMatchesColl->filter(function ($m) {
             return ($m['status'] ?? null) === 'finished';
         });
         $allTeamsColl = collect($teams);
         $standings = collect();
 
-        $teamIdsInPhase = $matchesColl->flatMap(function ($m) {
+        $teamIdsInPhase = $allMatchesColl->flatMap(function ($m) {
             return [(string) ($m['team_a_id'] ?? ''), (string) ($m['team_b_id'] ?? '')];
         })->filter()->unique()->toArray();
 
