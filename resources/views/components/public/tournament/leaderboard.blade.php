@@ -44,9 +44,7 @@
                 'has_rule' => (bool) $rule,
             ];
         })
-            // Only ranks that actually earn something (points, cash, or advancement) belong on
-            // the leaderboard — the rest are already visible in the standings table above it.
-            ->filter(fn ($row) => $row['has_rule'] && ($row['points'] || $row['cash_prize'] || $row['destination_label']))
+            ->filter(fn ($row) => $row['has_rule'] && ($row['points'] || $row['cash_prize']))
             ->values();
     } elseif ($format === 'bracket') {
         $rows = collect($phase['matches'] ?? [])
