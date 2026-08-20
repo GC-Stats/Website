@@ -35,7 +35,7 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -54,7 +54,7 @@ class UtilityStatsAggregator
      * @param  list<string>  $roleSlugs
      * @return Collection<int, array>
      */
-    public function perPlayer(int $tournamentId, ?Collection $phaseIds, ?Carbon $start, ?Carbon $end, array $gamesPlayed, array $weapons, array $agentNames = [], array $mapNames = [], array $roleSlugs = []): Collection
+    public function perPlayer(int $tournamentId, ?Collection $phaseIds, ?CarbonInterface $start, ?CarbonInterface $end, array $gamesPlayed, array $weapons, array $agentNames = [], array $mapNames = [], array $roleSlugs = []): Collection
     {
         $kills = $this->killTotalsQuery($tournamentId, $phaseIds, $start, $end, null, $agentNames, $mapNames, $roleSlugs)
             ->addSelect('game_map_round_kills.killer_player_id as key')
@@ -92,7 +92,7 @@ class UtilityStatsAggregator
      * @param  list<string>  $roleSlugs
      * @return Collection<string, array>
      */
-    public function perAgent(int $playerId, ?Carbon $start, ?Carbon $end, array $gamesPlayedByAgent, array $weapons, array $mapNames = [], array $roleSlugs = []): Collection
+    public function perAgent(int $playerId, ?CarbonInterface $start, ?CarbonInterface $end, array $gamesPlayedByAgent, array $weapons, array $mapNames = [], array $roleSlugs = []): Collection
     {
         $kills = $this->killTotalsQuery(null, null, $start, $end, $playerId, [], $mapNames, $roleSlugs)
             ->addSelect('game_player_stats.agent_name as key')
@@ -131,7 +131,7 @@ class UtilityStatsAggregator
      * @param  list<string>  $roleSlugs
      * @return list<string>
      */
-    public function weaponsFor(?int $tournamentId, ?Collection $phaseIds, ?Carbon $start, ?Carbon $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = []): array
+    public function weaponsFor(?int $tournamentId, ?Collection $phaseIds, ?CarbonInterface $start, ?CarbonInterface $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = []): array
     {
         $weapons = $this->scopedKillsQuery($tournamentId, $phaseIds, $start, $end, $playerId, $agentNames, $mapNames, $roleSlugs)
             ->where('game_map_round_kills.damage_type', 'Weapon')
@@ -186,7 +186,7 @@ class UtilityStatsAggregator
      * @param  list<string>  $mapNames
      * @param  list<string>  $roleSlugs
      */
-    private function scopedKillsQuery(?int $tournamentId, ?Collection $phaseIds, ?Carbon $start, ?Carbon $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
+    private function scopedKillsQuery(?int $tournamentId, ?Collection $phaseIds, ?CarbonInterface $start, ?CarbonInterface $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
     {
         return DB::table('game_map_round_kills')
             ->join('game_map_rounds', 'game_map_rounds.id', '=', 'game_map_round_kills.game_map_round_id')
@@ -205,7 +205,7 @@ class UtilityStatsAggregator
             ->when($start && $end, fn ($q) => $q->whereBetween('game_map_round_kills.created_at', [$start, $end]));
     }
 
-    private function killTotalsQuery(?int $tournamentId, ?Collection $phaseIds, ?Carbon $start, ?Carbon $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
+    private function killTotalsQuery(?int $tournamentId, ?Collection $phaseIds, ?CarbonInterface $start, ?CarbonInterface $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
     {
         return $this->scopedKillsQuery($tournamentId, $phaseIds, $start, $end, $playerId, $agentNames, $mapNames, $roleSlugs)
             ->selectRaw("
@@ -225,7 +225,7 @@ class UtilityStatsAggregator
      * @param  list<string>  $mapNames
      * @param  list<string>  $roleSlugs
      */
-    private function fallDeathsQuery(?int $tournamentId, ?Collection $phaseIds, ?Carbon $start, ?Carbon $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
+    private function fallDeathsQuery(?int $tournamentId, ?Collection $phaseIds, ?CarbonInterface $start, ?CarbonInterface $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
     {
         return $this->scopedDeathsQuery($tournamentId, $phaseIds, $start, $end, $playerId, $agentNames, $mapNames, $roleSlugs)
             ->where('game_map_round_kills.damage_type', 'Fall')
@@ -237,7 +237,7 @@ class UtilityStatsAggregator
      * @param  list<string>  $mapNames
      * @param  list<string>  $roleSlugs
      */
-    private function scopedDeathsQuery(?int $tournamentId, ?Collection $phaseIds, ?Carbon $start, ?Carbon $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
+    private function scopedDeathsQuery(?int $tournamentId, ?Collection $phaseIds, ?CarbonInterface $start, ?CarbonInterface $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
     {
         return DB::table('game_map_round_kills')
             ->join('game_map_rounds', 'game_map_rounds.id', '=', 'game_map_round_kills.game_map_round_id')
@@ -263,7 +263,7 @@ class UtilityStatsAggregator
      * subquery always selects both, the outer query groups/keys by
      * whichever one the caller needs.
      */
-    private function multiKillCountsQuery(?int $tournamentId, ?Collection $phaseIds, ?Carbon $start, ?Carbon $end, ?int $playerId, string $groupCol, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
+    private function multiKillCountsQuery(?int $tournamentId, ?Collection $phaseIds, ?CarbonInterface $start, ?CarbonInterface $end, ?int $playerId, string $groupCol, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
     {
         $roundKillCounts = $this->scopedKillsQuery($tournamentId, $phaseIds, $start, $end, $playerId, $agentNames, $mapNames, $roleSlugs)
             ->select('game_map_round_kills.killer_player_id', 'game_player_stats.agent_name', 'game_map_round_kills.game_map_round_id')
@@ -281,7 +281,7 @@ class UtilityStatsAggregator
             ->groupBy("round_kills.{$groupCol}");
     }
 
-    private function weaponKillCountsQuery(?int $tournamentId, ?Collection $phaseIds, ?Carbon $start, ?Carbon $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
+    private function weaponKillCountsQuery(?int $tournamentId, ?Collection $phaseIds, ?CarbonInterface $start, ?CarbonInterface $end, ?int $playerId = null, array $agentNames = [], array $mapNames = [], array $roleSlugs = [])
     {
         return $this->scopedKillsQuery($tournamentId, $phaseIds, $start, $end, $playerId, $agentNames, $mapNames, $roleSlugs)
             ->where('game_map_round_kills.damage_type', 'Weapon')

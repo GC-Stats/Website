@@ -33,6 +33,8 @@ return [
         'kills' => 'K',
         'deaths' => 'D',
         'assists' => 'A',
+        'kd' => 'K/D',
+        'kda' => 'KDA',
         'adr' => 'ADR',
         'adr_full' => 'Dégâts moyens par round',
         'kast_percentage' => 'KAST',

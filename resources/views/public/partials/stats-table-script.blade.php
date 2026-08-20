@@ -22,13 +22,15 @@
     }
 
     function statsTable(initialStats, weapons, storageKey) {
-        const defaultCols = ['acs', 'kills', 'deaths', 'assists', 'adr', 'kast', 'first_kills', 'first_deaths', 'hs'];
+        const defaultCols = ['acs', 'kd', 'kda', 'adr', 'kast', 'first_kills', 'first_deaths', 'hs'];
 
         const baseCols = [
             { key: 'acs', name: {{ Js::from(__('match.stats.acs')) }} },
             { key: 'kills', name: {{ Js::from(__('match.stats.kills')) }} },
             { key: 'deaths', name: {{ Js::from(__('match.stats.deaths')) }} },
             { key: 'assists', name: {{ Js::from(__('match.stats.assists')) }} },
+            { key: 'kd', name: {{ Js::from(__('match.stats.kd')) }} },
+            { key: 'kda', name: {{ Js::from(__('match.stats.kda')) }} },
             { key: 'adr', name: {{ Js::from(__('match.stats.adr')) }} },
             { key: 'kast', name: {{ Js::from(__('match.stats.kast_percentage')) }} },
             { key: 'first_kills', name: {{ Js::from(__('match.stats.first_kills')) }} },
@@ -82,6 +84,17 @@
             },
 
             val(stat, key) {
+                if (key === 'kd') {
+                    const deaths = Number(stat[this.mode + '_deaths'] ?? 0);
+                    return deaths > 0 ? Number(stat[this.mode + '_kills'] ?? 0) / deaths : Number(stat[this.mode + '_kills'] ?? 0);
+                }
+
+                if (key === 'kda') {
+                    const deaths = Number(stat[this.mode + '_deaths'] ?? 0);
+                    const kda = Number(stat[this.mode + '_kills'] ?? 0) + Number(stat[this.mode + '_assists'] ?? 0);
+                    return deaths > 0 ? kda / deaths : kda;
+                }
+
                 return stat[this.mode + '_' + key] ?? 0;
             },
 
@@ -89,6 +102,8 @@
                 const v = Number(this.val(stat, key) ?? 0);
 
                 if (key === 'kast' || key === 'hs') return Math.round(v) + '%';
+
+                if (key === 'kd' || key === 'kda') return v.toFixed(2);
 
                 return this.mode === 'avg' ? v.toFixed(1) : Math.round(v);
             },

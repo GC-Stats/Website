@@ -777,14 +777,14 @@ class TournamentController extends Controller
         $start = null;
         $end = null;
 
-        if ($request->filled(['start_date', 'end_date'])) {
+        if ($request->filled('start_date') || $request->filled('end_date')) {
             $request->validate([
-                'start_date' => ['date'],
-                'end_date' => ['date'],
+                'start_date' => ['nullable', 'date'],
+                'end_date' => ['nullable', 'date'],
             ]);
 
-            $start = Carbon::parse($request->start_date)->startOfDay();
-            $end = Carbon::parse($request->end_date)->endOfDay();
+            $start = $request->filled('start_date') ? Carbon::parse($request->start_date)->startOfDay() : Carbon::createFromTimestamp(0);
+            $end = $request->filled('end_date') ? Carbon::parse($request->end_date)->endOfDay() : now();
             $dateKey = 'range_'.$start->format('Ymd').'_'.$end->format('Ymd');
         } else {
             $dateKey = 'all_time';
