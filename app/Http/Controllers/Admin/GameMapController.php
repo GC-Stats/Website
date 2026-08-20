@@ -356,7 +356,16 @@ class GameMapController extends Controller
 
         $relay = app(RiotRelayClient::class);
 
-        $result = $relay->mergeMatch($validated['region'], $validated['segments']);
+        // Operators enter 1-indexed round numbers (round 1, round 2, ...),
+        // but Riot's roundResults are 0-indexed, so shift down by one before
+        // handing the range off to the relay.
+        $segments = collect($validated['segments'])->map(fn (array $segment) => [
+            ...$segment,
+            'startRound' => $segment['startRound'] - 1,
+            'endRound' => $segment['endRound'] - 1,
+        ])->all();
+
+        $result = $relay->mergeMatch($validated['region'], $segments);
 
         // The relay's response body is the merged match itself (same
         // matchInfo/players/teams/roundResults shape as GET /match/{region}/{id}),
