@@ -1271,7 +1271,7 @@ return [
             'live' => 'Live',
             'finished' => 'Finished',
         ],
-        'finished_locked' => 'This match (or its tournament) is finished — you need the "edit finished matches" permission to change it.',
+        'finished_locked' => 'This match (or its tournament) is finished — you need the ":permission" permission to change it.',
         'errors' => [
             'tournament_not_active' => "This tournament isn't active — a publisher-scoped editor can only link streams/VODs to active tournaments.",
         ],

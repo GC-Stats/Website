@@ -1234,7 +1234,7 @@ return [
             'live' => 'En direct',
             'finished' => 'Terminé',
         ],
-        'finished_locked' => 'Ce match (ou son tournoi) est terminé — la permission d\'édition des matchs terminés est requise pour le modifier.',
+        'finished_locked' => 'Ce match (ou son tournoi) est terminé — la permission ":permission" est requise pour le modifier.',
         'errors' => [
             'tournament_not_active' => "Ce tournoi n'est pas actif — un éditeur limité à un éditeur ne peut lier des streams/VODs qu'à des tournois actifs.",
         ],

@@ -156,7 +156,7 @@ class MatchController extends Controller
         abort_unless(
             $tournament->status !== 'finished' || $request->user()->can('matches.create.finished'),
             403,
-            __('admin.matches.finished_locked')
+            __('admin.matches.finished_locked', ['permission' => 'matches.create.finished'])
         );
 
         $validated = $this->validateMatch($request);
@@ -652,7 +652,7 @@ class MatchController extends Controller
         abort_unless(
             ! self::isFinished($tournament, $match) || $request->user()->can("{$permission}.finished"),
             403,
-            __('admin.matches.finished_locked')
+            __('admin.matches.finished_locked', ['permission' => "{$permission}.finished"])
         );
     }
 

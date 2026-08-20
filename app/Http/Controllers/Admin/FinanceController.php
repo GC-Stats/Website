@@ -75,8 +75,9 @@ class FinanceController extends Controller
         $validated = $request->validate([
             // Capped well under the amount_usd/amount_eur decimal(10,2) columns'
             // 99999999.99 ceiling, leaving headroom for the currency conversion
-            // below (either direction) to never overflow them.
-            'amount' => ['required', 'numeric', 'min:0.01', 'max:90000000'],
+            // below (either direction) to never overflow them even at extreme
+            // EUR/USD exchange rates.
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:10000000'],
             'currency' => ['required', Rule::in(self::CURRENCIES)],
         ]);
 
