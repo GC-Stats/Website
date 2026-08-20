@@ -55,6 +55,9 @@ return [
             'api-key-toggled' => 'Key status updated.',
             'api-key-regenerated' => 'Key regenerated.',
         ],
+        'errors' => [
+            'not_own_key' => "This isn't one of your API keys.",
+        ],
         'overview' => [
             'title' => 'Overview',
             'api-keys' => 'API Keys',

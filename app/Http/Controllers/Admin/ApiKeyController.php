@@ -62,6 +62,8 @@ class ApiKeyController extends Controller
             'client_name' => ['required', 'string', 'min:3', 'max:50'],
             'rate_limit' => ['required', 'integer', 'min:1'],
             'owner_username' => ['required', 'string', 'exists:users,username'],
+        ], [
+            'owner_username.exists' => __('admin.api_keys.errors.owner_not_found'),
         ]);
 
         $owner = User::where('username', $validated['owner_username'])->firstOrFail();
@@ -94,6 +96,8 @@ class ApiKeyController extends Controller
             'client_name' => ['required', 'string', 'min:3', 'max:50'],
             'rate_limit' => ['required', 'integer', 'min:1'],
             'owner_username' => ['required', 'string', 'exists:users,username'],
+        ], [
+            'owner_username.exists' => __('admin.api_keys.errors.owner_not_found'),
         ]);
 
         $owner = User::where('username', $validated['owner_username'])->firstOrFail();

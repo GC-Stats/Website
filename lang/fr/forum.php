@@ -97,6 +97,9 @@ return [
         'too_many_threads' => 'Trop de sujets créés — réessaie plus tard.',
         'blocked' => 'Ce message a été bloqué car il enfreint nos règles de communauté.',
         'muted' => "Tu es mute du forum jusqu'au :until pour signalements automod répétés.",
+        'globally_blocked' => "Tu es actuellement bloqué de publication sur le forum.",
+        'globally_muted' => "Tu es actuellement mute du forum.",
+        'rules_not_accepted' => "Tu dois accepter les règles du forum avant de pouvoir publier.",
     ],
     'embed' => [
         'trigger' => 'Lier un joueur, une équipe ou un match',

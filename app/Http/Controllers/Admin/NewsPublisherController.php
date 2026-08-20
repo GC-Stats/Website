@@ -42,7 +42,7 @@ class NewsPublisherController extends Controller
         if (! $request->user()->can('news.publishers.view')) {
             $publisherId = PublisherScope::publisherIdsForUser($request->user()->id)->first();
 
-            abort_unless($publisherId, 403);
+            abort_unless($publisherId, 403, __('admin.news.publishers.errors.not_a_member'));
 
             return redirect()->route('admin.news.publishers.show', $publisherId);
         }
@@ -126,7 +126,7 @@ class NewsPublisherController extends Controller
 
     public function update(Request $request, NewsPublisher $publisher): RedirectResponse
     {
-        abort_unless($this->canEditProfile($request, $publisher), 403);
+        abort_unless($this->canEditProfile($request, $publisher), 403, __('admin.news.publishers.errors.no_permission'));
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -154,7 +154,7 @@ class NewsPublisherController extends Controller
 
     public function updateLogo(Request $request, NewsPublisher $publisher, LogoUploadService $logoUploadService): RedirectResponse
     {
-        abort_unless($this->canUploadLogo($request, $publisher), 403);
+        abort_unless($this->canUploadLogo($request, $publisher), 403, __('admin.news.publishers.errors.no_logo_permission'));
 
         $validated = $request->validate(['logo' => ['required', 'file', 'image', 'max:10240']]);
 
@@ -246,7 +246,7 @@ class NewsPublisherController extends Controller
             return;
         }
 
-        abort_unless(PublisherScope::publisherIdsForUser($user->id)->contains($publisher->id), 403);
+        abort_unless(PublisherScope::publisherIdsForUser($user->id)->contains($publisher->id), 403, __('admin.news.publishers.errors.not_scoped'));
     }
 
     /**

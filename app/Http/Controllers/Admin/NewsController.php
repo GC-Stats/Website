@@ -60,7 +60,7 @@ class NewsController extends Controller
         $user = $request->user();
         $allowedPublisherIds = $user->can('news.view') ? null : $this->allowedPublisherIds($request, 'publisher.news.view');
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.news.errors.no_publisher_scope'));
 
         $search = $request->get('q');
         $status = $request->get('status');
@@ -111,7 +111,7 @@ class NewsController extends Controller
     {
         $allowedPublisherIds = $request->user()->can('news.create') ? null : $this->allowedPublisherIds($request, 'publisher.news.edit');
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.news.errors.no_publisher_scope'));
 
         if (! $request->user()->newsAuthor) {
             return redirect()->route('admin.news.authors.index')->with('status', 'author-profile-required');
@@ -142,10 +142,10 @@ class NewsController extends Controller
     {
         $allowedPublisherIds = $request->user()->can('news.create') ? null : $this->allowedPublisherIds($request, 'publisher.news.edit');
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.news.errors.no_publisher_scope'));
 
         $author = $request->user()->newsAuthor;
-        abort_unless($author, 403);
+        abort_unless($author, 403, __('admin.news.errors.no_author_profile'));
 
         $validated = $this->validated($request, null, $allowedPublisherIds);
         $validated['slug'] = ($validated['slug'] ?? null) ?: Str::slug($validated['title']);
@@ -307,7 +307,7 @@ class NewsController extends Controller
         $publisherUnchanged = $article && (int) $publisherId === (int) $article->publisher_id;
 
         if ($allowedPublisherIds !== null && $publisherId && ! $publisherUnchanged) {
-            abort_unless($allowedPublisherIds->contains($publisherId), 403);
+            abort_unless($allowedPublisherIds->contains($publisherId), 403, __('admin.news.errors.wrong_publisher'));
         }
 
         return $validated;
@@ -315,9 +315,18 @@ class NewsController extends Controller
 
     private function syncRelations(News $article, Request $request): void
     {
-        $article->players()->sync($request->input('players', []));
-        $article->teams()->sync($request->input('teams', []));
-        $article->tournaments()->sync($request->input('tournaments', []));
+        $validated = $request->validate([
+            'players' => ['sometimes', 'array'],
+            'players.*' => ['integer', 'exists:players,id'],
+            'teams' => ['sometimes', 'array'],
+            'teams.*' => ['integer', 'exists:teams,id'],
+            'tournaments' => ['sometimes', 'array'],
+            'tournaments.*' => ['integer', 'exists:tournaments,id'],
+        ]);
+
+        $article->players()->sync($validated['players'] ?? []);
+        $article->teams()->sync($validated['teams'] ?? []);
+        $article->tournaments()->sync($validated['tournaments'] ?? []);
     }
 
     /**

@@ -29,7 +29,7 @@
         <label for="short_name" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
             {{ __('team.edit.fields.short_name') }}
         </label>
-        <input id="short_name" type="text" name="short_name" value="{{ old('short_name', $team->short_name) }}"
+        <input id="short_name" type="text" name="short_name" value="{{ old('short_name', $team->short_name) }}" maxlength="10"
                class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
         @error('short_name')
             <p class="text-xs text-red-400 mt-2">{{ $message }}</p>

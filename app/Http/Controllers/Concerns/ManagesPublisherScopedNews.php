@@ -45,7 +45,7 @@ trait ManagesPublisherScopedNews
 
     private function ensureCanManageArticle(Request $request, News $article, string $adminPermission, string $publisherPermission): void
     {
-        abort_unless($this->canManageArticle($request, $article, $adminPermission, $publisherPermission), 403);
+        abort_unless($this->canManageArticle($request, $article, $adminPermission, $publisherPermission), 403, __('admin.news.errors.no_publisher_scope'));
     }
 
     /**

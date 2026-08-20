@@ -30,6 +30,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class SocialAuthController extends Controller
 {
@@ -50,7 +51,24 @@ class SocialAuthController extends Controller
     ): RedirectResponse {
         abort_unless(in_array($provider, self::PROVIDERS, true), 404);
 
-        $socialiteUser = Socialite::driver($provider)->user();
+        try {
+            $socialiteUser = Socialite::driver($provider)->user();
+        } catch (InvalidStateException) {
+            $message = __('account.errors.social_login_expired');
+
+            return Auth::check()
+                ? back()->withErrors(['social' => $message])
+                : redirect()->route('login')->withErrors(['social' => $message]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            $message = __('account.errors.social_login_failed', ['provider' => ucfirst($provider)]);
+
+            return Auth::check()
+                ? back()->withErrors(['social' => $message])
+                : redirect()->route('login')->withErrors(['social' => $message]);
+        }
+
         $providerId = (string) $socialiteUser->getId();
 
         $existing = SocialAccount::where('provider', $provider)

@@ -71,7 +71,7 @@ trait SearchesMatchesForLinking
         $tournament = Tournament::findOrFail($validated['tournament_id']);
 
         $activeOnly = ! $request->user()->can(static::LINK_PERMISSION);
-        abort_if($activeOnly && ! $tournament->active, 403);
+        abort_if($activeOnly && ! $tournament->active, 403, __('admin.matches.errors.tournament_not_active'));
 
         $term = $validated['q'] ?? null;
 

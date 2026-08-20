@@ -43,7 +43,7 @@ class StreamChannelController extends Controller
         $user = $request->user();
         $allowedPublisherIds = $user->can('streams.channels.view') ? null : $this->allowedStreamPublisherIds($request, 'publisher.streams.view');
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.streams.errors.no_publisher_scope'));
 
         $search = $request->get('q');
         $platform = $request->get('platform');
@@ -85,7 +85,7 @@ class StreamChannelController extends Controller
     {
         $allowedPublisherIds = $request->user()->can('streams.channels.create') ? null : $this->allowedStreamPublisherIds($request, 'publisher.streams.edit');
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.streams.errors.no_publisher_scope'));
 
         return view('admin.streams.create', $this->formData(null, $allowedPublisherIds));
     }
@@ -94,7 +94,7 @@ class StreamChannelController extends Controller
     {
         $allowedPublisherIds = $request->user()->can('streams.channels.create') ? null : $this->allowedStreamPublisherIds($request, 'publisher.streams.edit');
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.streams.errors.no_publisher_scope'));
 
         $validated = $this->validated($request, null, $allowedPublisherIds);
 
@@ -173,7 +173,7 @@ class StreamChannelController extends Controller
                 abort_unless($allowedPublisherIds->count() === 1, 422);
                 $validated['publisher_id'] = $allowedPublisherIds->first();
             } elseif (! $publisherUnchanged) {
-                abort_unless($allowedPublisherIds->contains($publisherId), 403);
+                abort_unless($allowedPublisherIds->contains($publisherId), 403, __('admin.streams.errors.wrong_publisher'));
             }
         }
 

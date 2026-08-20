@@ -28,13 +28,15 @@ class ApiPlayerLogoController extends Controller
 
     public function upload(Request $request, int $id): JsonResponse
     {
-        Player::findOrFail($id ?? abort(422, 'player_id is invalid'));
+        Player::findOrFail($id);
 
         $validated = $request->validate([
             'image' => ['required', 'file', 'image', 'max:10240'],
             'accept' => ['nullable', 'boolean'],
             'from' => ['nullable', 'date'],
             'until' => ['nullable', 'date'],
+        ], [
+            'image.max' => __('admin.logos.errors.image_too_large'),
         ]);
 
         $uuid = $this->logoUploadService->storeLogoPair($request->file('image'), 'players');
@@ -52,7 +54,7 @@ class ApiPlayerLogoController extends Controller
         ]);
 
         if (! $this->logoUploadService->thumbnailExists('players', $validated['uuid'])) {
-            abort(404, 'Logo not found');
+            abort(404, __('admin.logos.errors.not_found'));
         }
 
         $player = Player::findOrFail($validated['player_id']);

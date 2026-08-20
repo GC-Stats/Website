@@ -129,7 +129,7 @@ class ChangeRequestController extends Controller
 
     public function acceptItem(Request $request, ChangeRequestItem $changeRequestItem, ChangeRequestService $changeRequests): RedirectResponse
     {
-        abort_if($changeRequestItem->status !== ChangeRequestItem::STATUS_PENDING, 409, 'This item has already been resolved.');
+        abort_if($changeRequestItem->status !== ChangeRequestItem::STATUS_PENDING, 409, __('admin.change_requests.errors.item_already_resolved'));
 
         $validated = $request->validate([
             'resolution_note' => ['nullable', 'string', 'max:2000'],
@@ -147,7 +147,7 @@ class ChangeRequestController extends Controller
 
     public function rejectItem(Request $request, ChangeRequestItem $changeRequestItem, ChangeRequestService $changeRequests): RedirectResponse
     {
-        abort_if($changeRequestItem->status !== ChangeRequestItem::STATUS_PENDING, 409, 'This item has already been resolved.');
+        abort_if($changeRequestItem->status !== ChangeRequestItem::STATUS_PENDING, 409, __('admin.change_requests.errors.item_already_resolved'));
 
         $validated = $request->validate([
             'resolution_note' => ['nullable', 'string', 'max:2000'],
@@ -179,7 +179,7 @@ class ChangeRequestController extends Controller
      */
     public function sanction(Request $request, ChangeRequest $changeRequest, SanctionService $sanctions): RedirectResponse
     {
-        abort_if($changeRequest->requested_by === null, 403, 'This request has no requester to sanction.');
+        abort_if($changeRequest->requested_by === null, 403, __('admin.change_requests.errors.no_requester'));
 
         $validated = $request->validate([
             'duration' => ['required', 'string', Rule::in(self::SANCTION_DURATIONS)],
@@ -193,7 +193,7 @@ class ChangeRequestController extends Controller
             DB::transaction(function () use ($changeRequest, $validated, $request, $sanctions) {
                 $locked = ChangeRequest::whereKey($changeRequest->id)->lockForUpdate()->first();
 
-                abort_if($locked->sanctioned_at !== null, 409, 'A sanction has already been issued from this request.');
+                abort_if($locked->sanctioned_at !== null, 409, __('admin.change_requests.errors.sanction_already_issued'));
 
                 $sanctions->issue($changeRequest->requestedBy, $request->user(), [
                     'type' => Sanction::TYPE_SUSPENSION,
@@ -212,7 +212,7 @@ class ChangeRequestController extends Controller
 
     public function storeMessage(Request $request, ChangeRequest $changeRequest, ChangeRequestService $changeRequests): RedirectResponse
     {
-        abort_if($changeRequest->isResolved(), 403, 'This request has been resolved — the discussion is closed.');
+        abort_if($changeRequest->isResolved(), 403, __('admin.change_requests.discussion_closed'));
 
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:2000'],
@@ -261,22 +261,22 @@ class ChangeRequestController extends Controller
 
         $subjectClass = Relation::getMorphedModel($validated['subject_type']);
         $subjectId = $validated['subject_id_'.$validated['subject_type']] ?? null;
-        abort_unless($subjectId, 422, 'A subject must be selected.');
+        abort_unless($subjectId, 422, __('admin.change_requests.errors.subject_required'));
 
         $subject = $subjectClass::findOrFail($subjectId);
 
         $allowedFields = $appliers->fieldsFor($subjectClass);
         $rows = array_filter($validated['items'], fn ($row) => ! empty($row['field']));
-        abort_if(empty($rows), 422, 'At least one field must be proposed.');
+        abort_if(empty($rows), 422, __('admin.change_requests.errors.at_least_one_field'));
 
         $items = [];
 
         foreach ($rows as $row) {
-            abort_unless(in_array($row['field'], $allowedFields, true), 422, "Unknown field: {$row['field']}");
+            abort_unless(in_array($row['field'], $allowedFields, true), 422, __('admin.change_requests.errors.unknown_field', ['field' => $row['field']]));
 
             if ($row['field'] === 'roster') {
-                abort_unless($subject instanceof Player, 422, 'roster only applies to players.');
-                abort_unless(! empty($row['team_id']) && ! empty($row['joined_at']), 422, 'roster changes require a team and a join date.');
+                abort_unless($subject instanceof Player, 422, __('admin.change_requests.errors.roster_players_only'));
+                abort_unless(! empty($row['team_id']) && ! empty($row['joined_at']), 422, __('admin.change_requests.errors.roster_requires_team_and_date'));
 
                 $team = Team::findOrFail($row['team_id']);
                 $currentTeam = $subject->teams()->wherePivot('left_at', null)->first();

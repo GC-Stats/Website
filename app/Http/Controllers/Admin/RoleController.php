@@ -45,6 +45,9 @@ class RoleController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'regex:/\S/', Rule::unique('roles', 'name')->where('team_id', PermissionTeam::GLOBAL_ID)],
+        ], [
+            'name.regex' => __('admin.roles.errors.name_blank'),
+            'name.unique' => __('admin.roles.errors.name_taken'),
         ]);
 
         $role = Role::create(['name' => $validated['name']]);
@@ -110,6 +113,9 @@ class RoleController extends Controller
                 'required', 'string', 'max:100', 'regex:/\S/',
                 Rule::unique('roles', 'name')->where('team_id', PermissionTeam::GLOBAL_ID)->ignore($role->id),
             ],
+        ], [
+            'name.regex' => __('admin.roles.errors.name_blank'),
+            'name.unique' => __('admin.roles.errors.name_taken'),
         ]);
 
         $before = $role->name;

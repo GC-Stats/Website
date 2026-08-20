@@ -39,7 +39,7 @@ class ActivityLogController extends Controller
             ->map(fn ($permission) => str($permission)->after('activity.')->toString())
             ->values();
 
-        abort_if($allowedLogNames->isEmpty(), 403);
+        abort_if($allowedLogNames->isEmpty(), 403, __('admin.activity.errors.no_visible_logs'));
 
         $logName = $request->get('log');
         $logName = $allowedLogNames->contains($logName) ? $logName : null;

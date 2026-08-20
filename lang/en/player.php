@@ -109,6 +109,7 @@ return [
             'already_linked_to_you' => 'This profile is already linked to your account.',
             'player_already_linked' => 'This profile is already linked to another account.',
             'user_already_linked' => 'Your account is already linked to a different player profile.',
+            'photo_too_large' => 'The photo may not be larger than 4 MB.',
         ],
     ],
 

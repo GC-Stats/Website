@@ -16,8 +16,8 @@
 namespace App\Console\Commands;
 
 use App\Models\GameMap;
+use App\Services\RiotRelayClient;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 
 class RenewAllMatches extends Command
 {
@@ -25,7 +25,7 @@ class RenewAllMatches extends Command
 
     protected $description = 'Renew every matches cache';
 
-    public function handle()
+    public function handle(RiotRelayClient $relay)
     {
         $query = GameMap::query()
             ->whereNotNull('api_match_id');
@@ -38,21 +38,14 @@ class RenewAllMatches extends Command
             usleep((int) 500);
 
             $region = config('regions.riot_api.'.$gameMap->match->tournament->region);
-            $relayUrl = rtrim(config('services.riot.relay_url'), '/');
 
-            $response = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
-                ->post("{$relayUrl}/match/{$region}/{$gameMap->api_match_id}/renew");
+            $result = $relay->renewMatch($region, $gameMap->api_match_id);
 
-            if (! $response->successful()) {
-                $response = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
-                    ->post("{$relayUrl}/match/esports/{$gameMap->api_match_id}/renew");
+            if (! $result->successful) {
+                $result = $relay->renewMatch('esports', $gameMap->api_match_id);
 
-                if (! $response->successful()) {
-                    if ($response->status() == 404) {
-                        $this->info("Map {$gameMap->api_match_id} (ID : {$gameMap->id}) not found.");
-                    } else {
-                        $this->error("Failed to fetch {$gameMap->api_match_id} (ID : {$gameMap->id}), code {$response->status()}, reason: {$response->body()}");
-                    }
+                if (! $result->successful) {
+                    $this->error("Failed to renew {$gameMap->api_match_id} (ID : {$gameMap->id}): {$result->message()}");
 
                     continue;
                 }

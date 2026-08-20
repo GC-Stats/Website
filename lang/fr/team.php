@@ -192,6 +192,7 @@ return [
         'errors' => [
             'no_changes' => "Modifiez au moins un champ avant d'envoyer.",
             'joined_at_required' => "Choisissez une date d'arrivée pour l'ajout au roster proposé.",
+            'logo_too_large' => "Le logo ne doit pas dépasser 10 Mo.",
         ],
     ],
 

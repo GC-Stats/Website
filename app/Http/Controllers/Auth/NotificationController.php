@@ -65,7 +65,7 @@ class NotificationController extends Controller
      */
     public function open(Request $request, Notification $notification, NotificationService $notifications): RedirectResponse
     {
-        abort_unless($notification->user_id === $request->user()->id, 403);
+        abort_unless($notification->user_id === $request->user()->id, 403, __('account.errors.not_own_notification'));
 
         $notifications->markAsRead($notification);
 

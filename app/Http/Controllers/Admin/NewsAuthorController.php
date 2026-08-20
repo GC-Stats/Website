@@ -90,6 +90,9 @@ class NewsAuthorController extends Controller
                 }
             }],
             'username' => $canManageUser ? ['nullable', 'string', 'exists:users,username'] : ['prohibited'],
+        ], [
+            'username.exists' => __('admin.news.authors.errors.username_not_found'),
+            'username.prohibited' => __('admin.news.authors.errors.username_not_allowed'),
         ]);
 
         $userId = $author->user_id;
@@ -151,13 +154,16 @@ class NewsAuthorController extends Controller
     {
         $isAdmin = $request->user()->can('news.authors.edit');
 
-        abort_unless($isAdmin || ! $request->user()->newsAuthor, 403);
+        abort_unless($isAdmin || ! $request->user()->newsAuthor, 403, __('admin.news.authors.errors.already_has_profile'));
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'slug' => ['nullable', 'string', 'max:100', 'unique:news_authors,slug'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'username' => $isAdmin ? ['nullable', 'string', 'exists:users,username'] : ['prohibited'],
+        ], [
+            'username.exists' => __('admin.news.authors.errors.username_not_found'),
+            'username.prohibited' => __('admin.news.authors.errors.username_not_allowed'),
         ]);
 
         $validated['slug'] = ($validated['slug'] ?? null) ?: Str::slug($validated['name']);
@@ -212,6 +218,6 @@ class NewsAuthorController extends Controller
     {
         $user = $request->user();
 
-        abort_unless($user->can('news.authors.edit') || $author->user_id === $user->id, 403);
+        abort_unless($user->can('news.authors.edit') || $author->user_id === $user->id, 403, __('admin.news.authors.errors.not_own_profile'));
     }
 }

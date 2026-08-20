@@ -68,6 +68,6 @@ class UserChangeRequestController extends Controller
 
     private function authorizeOwner(Request $request, ChangeRequest $changeRequest): void
     {
-        abort_unless($changeRequest->requested_by === $request->user()->id, 403);
+        abort_unless($changeRequest->requested_by === $request->user()->id, 403, __('account.errors.not_own_change_request'));
     }
 }

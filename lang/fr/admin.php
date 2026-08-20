@@ -288,6 +288,16 @@ return [
             'team_search_placeholder' => 'Rechercher une équipe…',
             'submit' => 'Envoyer la demande',
         ],
+        'errors' => [
+            'item_already_resolved' => 'Cet élément a déjà été résolu.',
+            'no_requester' => 'Cette demande n\'a pas de demandeur à sanctionner.',
+            'sanction_already_issued' => 'Une sanction a déjà été émise depuis cette demande.',
+            'subject_required' => 'Un sujet doit être sélectionné.',
+            'at_least_one_field' => 'Au moins un champ doit être proposé.',
+            'unknown_field' => 'Champ inconnu : :field',
+            'roster_players_only' => 'Le champ "roster" ne s\'applique qu\'aux joueuses.',
+            'roster_requires_team_and_date' => 'Un changement de roster nécessite une équipe et une date d\'arrivée.',
+        ],
     ],
 
     'sanctions' => [
@@ -323,9 +333,15 @@ return [
             'ends_at_label' => 'Se termine le (laisser vide pour permanent)',
             'submit' => 'Émettre la sanction',
         ],
+        'errors' => [
+            'user_not_found' => "Aucun utilisateur trouvé avec ce nom d'utilisateur.",
+        ],
     ],
     'activity' => [
         'title' => "Journal d'activité",
+        'errors' => [
+            'no_visible_logs' => "Tu n'as la permission de voir aucune catégorie du journal d'activité.",
+        ],
         'filter_log' => 'Journal',
         'all_logs' => 'Tous les journaux',
         'when' => 'Quand',
@@ -561,6 +577,10 @@ return [
             'name_label' => 'Nom du rôle',
             'submit' => 'Créer le rôle',
         ],
+        'errors' => [
+            'name_blank' => 'Le nom du rôle ne peut pas être vide ou composé uniquement d\'espaces.',
+            'name_taken' => 'Un rôle avec ce nom existe déjà.',
+        ],
         'permissions' => [
             'title' => 'Permissions',
             'permission_column' => 'Permission',
@@ -719,6 +739,7 @@ return [
             'assign' => 'Lier',
             'remove' => 'Délier',
             'remove_confirm' => 'Délier :user de :player ?',
+            'already_linked' => 'Ce compte utilisateur est déjà lié à une autre joueuse.',
         ],
         'delete' => [
             'title' => 'Supprimer la joueuse',
@@ -954,6 +975,11 @@ return [
             'mode_create' => 'Créer une nouvelle équipe',
             'create_name_label' => "Nom de l'équipe",
             'create_submit' => 'Créer et ajouter',
+            'errors' => [
+                'no_permission' => "Tu n'as pas la permission de gérer les équipes de ce tournoi.",
+                'inactive_locked' => 'Seul un utilisateur avec la permission tournaments.inactive.teams.manage peut gérer les équipes sur un tournoi inactif.',
+                'team_not_found' => 'Cette équipe est introuvable — elle a peut-être été supprimée entre-temps.',
+            ],
         ],
         'point_type' => 'Types de point',
         'point_type_none' => 'Aucun type de point',
@@ -982,6 +1008,13 @@ return [
             'cash_prize_currency' => 'Devise (Ex : EUR)',
             'phase_search_placeholder' => 'Cherche une phase de tournoi…',
             'bracket_hint' => 'Les règles de qualifications pour les brackets sont définis par match — Ouvre un match et utilise le gagnant/perdant pour choisir la destination.',
+            'errors' => [
+                'rank_based_only' => 'Les règles de qualification par rang ne s\'appliquent qu\'aux phases swiss/round_robin.',
+                'match_outcome_only' => 'Les règles de qualification par résultat de match ne s\'appliquent qu\'aux phases de type bracket.',
+                'self_qualification' => 'Une phase ne peut pas se qualifier vers elle-même.',
+                'no_permission' => "Tu n'as pas la permission de supprimer cette règle de qualification.",
+                'currency_format' => 'La devise doit être un code à 3 lettres, ex : EUR ou USD.',
+            ],
         ],
     ],
     'emotes' => [
@@ -1106,6 +1139,13 @@ return [
                 'select_all' => 'Tout sélectionner',
                 'clear_selection' => 'Effacer',
             ],
+            'errors' => [
+                'no_publisher_scope' => "Tu n'as la permission publisher.streams.link sur aucun éditeur, tu ne peux donc pas lier de streams à des matchs.",
+            ],
+        ],
+        'errors' => [
+            'no_publisher_scope' => "Tu n'as pas la permission de gérer cette chaîne — elle n'appartient pas à un éditeur auquel tu es rattaché.",
+            'wrong_publisher' => "Tu ne peux assigner cette chaîne qu'à un éditeur auquel tu es rattaché.",
         ],
     ],
     'vods' => [
@@ -1150,6 +1190,13 @@ return [
                 'match_search' => 'Filtrer par équipe ou phase…',
                 'pick_match_hint' => 'Sélectionnez un match à gauche pour renseigner les détails de la VOD.',
             ],
+            'errors' => [
+                'no_publisher_scope' => "Tu n'as la permission publisher.vods.link sur aucun éditeur, tu ne peux donc pas lier de VODs à des matchs.",
+                'wrong_publisher' => "Tu ne peux lier une VOD que sous un éditeur auquel tu es rattaché.",
+            ],
+        ],
+        'errors' => [
+            'no_publisher_scope' => "Tu n'as pas la permission de gérer cette VOD — elle n'appartient pas à un éditeur auquel tu es rattaché.",
         ],
     ],
     'matches' => [
@@ -1185,6 +1232,9 @@ return [
             'finished' => 'Terminé',
         ],
         'finished_locked' => 'Ce match (ou son tournoi) est terminé — la permission d\'édition des matchs terminés est requise pour le modifier.',
+        'errors' => [
+            'tournament_not_active' => "Ce tournoi n'est pas actif — un éditeur limité à un éditeur ne peut lier des streams/VODs qu'à des tournois actifs.",
+        ],
         'create' => [
             'title' => 'Nouveau match',
             'submit' => 'Créer le match',
@@ -1237,6 +1287,24 @@ return [
             'score' => 'Score',
             'api_match_id' => 'ID de match Riot',
             'api_match_id_duplicate' => 'Cet ID de match Riot est déjà lié à une autre map.',
+            'errors' => [
+                'map_not_found' => 'Cette map est introuvable.',
+                'no_match_id' => "Cette map n'a pas d'ID de match Riot associé.",
+                'missing_val_ids' => "Certaines joueuses n'ont pas pu être associées à une joueuse du roster (val_id manquant).",
+                'team_color_ambiguous' => "Impossible de déterminer quelle couleur d'équipe correspond à l'équipe A/B.",
+                'invalid_request' => "Le relay RiotRelay a rejeté la requête (région ou ID de match invalide).",
+                'relay_unauthorized' => "Authentification RiotRelay invalide — vérifie le jeton configuré (RIOT_RELAY_TOKEN).",
+                'riot_unauthorized' => "La clé API Riot est invalide ou expirée.",
+                'not_found' => "Ce match est introuvable côté Riot (pas encore disponible, ou ID incorrect).",
+                'rate_limited' => 'Limite de débit Riot atteinte, réessaie dans :seconds secondes.',
+                'relay_unreachable' => "Le service RiotRelay n'a pas pu joindre l'API Riot (ou est lui-même injoignable). Réessaie plus tard.",
+                'cache_unavailable' => 'Le cache de RiotRelay est indisponible (base de données du relay hors service).',
+                'riot_error' => "L'API Riot a répondu avec une erreur serveur (code :status). Réessaie plus tard.",
+                'invalid_response' => 'RiotRelay a renvoyé une réponse inattendue ou invalide.',
+                'unknown' => 'Échec inattendu de la récupération (code :status).',
+                'unexpected' => 'Une erreur inattendue est survenue — réessaie ou consulte les journaux serveur.',
+                'network' => 'Impossible de joindre le serveur — vérifie ta connexion et réessaie.',
+            ],
             'started_at' => 'Début',
             'note' => 'Note',
             'note_placeholder' => 'Note optionnelle affichée aux visiteurs sur la page publique du match…',
@@ -1353,6 +1421,12 @@ return [
             'result_failed_preserved' => 'Échec du renouvellement, mais une copie précédemment mise en cache a été conservée.',
             'result_failed_missing' => "Échec du renouvellement et rien n'était en cache pour ce match — il n'a jamais été récupéré.",
         ],
+        'errors' => [
+            'no_permission' => "Tu n'as la permission d'effectuer aucune de ces opérations sur ce tournoi.",
+            'finished_tournament_locked' => 'Ce tournoi est terminé — la permission :permission est requise pour effectuer cette opération.',
+            'invalid_region' => 'Cette région ne correspond à aucune région connue de l\'API Riot.',
+            'invalid_match_id' => 'L\'ID de match ne peut contenir que des lettres, chiffres, tirets et underscores.',
+        ],
     ],
     'status' => [
         'profile-information-updated' => 'Profil mis à jour.',
@@ -1382,6 +1456,7 @@ return [
         'map-fetch-failed' => 'Échec de la récupération de la map — voir les détails ci-dessous.',
         'map-renewed' => 'Cache renouvelé.',
         'map-renew-failed' => 'Échec du renouvellement du cache.',
+        'cache-purge-failed' => 'Échec de la purge du cache.',
         'map-reset' => 'Map réinitialisée.',
         'map-stats-updated' => 'Statistiques de la map mises à jour.',
         'map-deleted' => 'Map supprimée.',
@@ -1545,6 +1620,12 @@ return [
             ],
             'roles_link' => 'Gérer les rôles',
             'delete' => "Supprimer l'éditeur",
+            'errors' => [
+                'not_a_member' => "Tu n'es membre d'aucun éditeur, il n'y a donc rien à gérer ici.",
+                'no_permission' => "Tu n'as pas la permission de modifier cet éditeur.",
+                'no_logo_permission' => "Tu n'as pas la permission de changer le logo de cet éditeur.",
+                'not_scoped' => "Tu n'as pas accès à cet éditeur.",
+            ],
         ],
         'authors' => [
             'title' => 'Auteurs',
@@ -1563,6 +1644,12 @@ return [
                 'save' => 'Enregistrer',
             ],
             'delete' => "Supprimer l'auteur",
+            'errors' => [
+                'already_has_profile' => "Tu as déjà un profil auteur — seule la permission news.authors.edit permet d'en créer un pour quelqu'un d'autre.",
+                'not_own_profile' => "Tu ne peux modifier que ton propre profil auteur.",
+                'username_not_found' => "Aucun utilisateur trouvé avec ce nom d'utilisateur.",
+                'username_not_allowed' => "Tu n'as pas la permission de lier ce profil à un autre utilisateur.",
+            ],
         ],
         'media' => [
             'title' => 'Médias',
@@ -1611,6 +1698,13 @@ return [
                 'last_owner' => "Impossible de retirer le dernier publisher_owner — attribuez-le d'abord à quelqu'un d'autre.",
             ],
         ],
+        'errors' => [
+            'no_publisher_scope' => "Tu n'as pas la permission de gérer cet article — il n'appartient pas à un éditeur auquel tu es rattaché.",
+            'no_media_publisher_scope' => "Tu n'as pas la permission de gérer ce média — il n'appartient pas à un éditeur auquel tu es rattaché.",
+            'no_author_profile' => "Tu as besoin d'un profil auteur lié avant de pouvoir écrire des articles — demande à un administrateur de t'en créer un.",
+            'wrong_publisher' => "Tu ne peux assigner cet article qu'à un éditeur auquel tu es rattaché.",
+            'unattached_media_restricted' => "Ce média n'est lié à aucun article — seule la permission complète news.media.delete permet de le supprimer.",
+        ],
     ],
     'api_keys' => [
         'title' => 'Clés API',
@@ -1635,6 +1729,9 @@ return [
         'edit_modal' => [
             'title' => 'Modifier la clé API',
             'submit' => 'Enregistrer les modifications',
+        ],
+        'errors' => [
+            'owner_not_found' => "Aucun utilisateur trouvé avec ce nom d'utilisateur.",
         ],
         'reveal_banner' => [
             'title' => 'Clé créée',
@@ -1822,5 +1919,12 @@ return [
             'confirm_body' => 'Supprimer :name (:label) ? Les tournois liés à lui garderont leur résultats mais perdront leur lie, de type de point. Cette action est irréversible.',
         ],
         'empty' => 'Aucun type de point.',
+    ],
+
+    'logos' => [
+        'errors' => [
+            'not_found' => "Ce logo est introuvable — il a peut-être expiré ou déjà été supprimé.",
+            'image_too_large' => "L'image ne doit pas dépasser 10 Mo.",
+        ],
     ],
 ];

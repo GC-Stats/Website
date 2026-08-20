@@ -33,11 +33,13 @@ use App\Models\MatchVeto;
 use App\Models\Player;
 use App\Models\Tournament;
 use App\Services\MapStatsCalculator;
+use App\Services\RiotRelayClient;
 use App\Services\RosterMismatchDetector;
 use App\Support\Activity\ActivityChangeSet;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,6 +48,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class GameMapController extends Controller
@@ -335,28 +338,27 @@ class GameMapController extends Controller
         $gameMap = GameMap::with(['match.tournament', 'match.teamA.players', 'match.teamB.players'])->find($id);
 
         if (! $gameMap) {
-            return response()->json(['error' => 'Game map not found'], 404);
+            return response()->json(['error' => __('admin.matches.maps.errors.map_not_found')], 404);
         }
 
         if (! $gameMap->api_match_id) {
-            return response()->json(['error' => 'This game map has no associated Riot match ID'], 422);
+            return response()->json(['error' => __('admin.matches.maps.errors.no_match_id')], 422);
         }
 
         $region = config('regions.riot_api.'.$gameMap->match->tournament->region);
         $isEsportEndpoint = false;
-        $relayUrl = rtrim(config('services.riot.relay_url'), '/');
+        $relay = app(RiotRelayClient::class);
 
-        $response = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
-            ->get("{$relayUrl}/match/{$region}/{$gameMap->api_match_id}");
+        $result = $relay->getMatch($region, $gameMap->api_match_id);
 
-        if (! $response->successful()) {
-            $response = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
-                ->get("{$relayUrl}/match/esports/{$gameMap->api_match_id}");
+        if (! $result->successful) {
+            $esportResult = $relay->getMatch('esports', $gameMap->api_match_id);
 
-            if (! $response->successful()) {
-                return response()->json(['error' => 'Failed to fetch match data from the Riot API'], $response->status());
+            if (! $esportResult->successful) {
+                return response()->json(['error' => $esportResult->message()], $esportResult->status ?: 502);
             }
 
+            $result = $esportResult;
             $isEsportEndpoint = true;
         }
 
@@ -369,7 +371,12 @@ class GameMapController extends Controller
 
         $this->persistPuuidMapping($puuidMapping, $isEsportEndpoint);
 
-        $apiMatch = $response->json();
+        $apiMatch = $result->json;
+
+        if (! isset($apiMatch['matchInfo'], $apiMatch['players'], $apiMatch['teams'])) {
+            return response()->json(['error' => __('admin.matches.maps.errors.invalid_response')], 502);
+        }
+
         $content = $this->riotContent($region);
 
         $gameMap->update([
@@ -389,7 +396,7 @@ class GameMapController extends Controller
                 ->all() ?? [];
 
             return response()->json([
-                'error' => 'Some players could not be matched to a team roster (missing val_id)',
+                'error' => __('admin.matches.maps.errors.missing_val_ids'),
                 'missing_val_ids' => $missingPlayers->values()->all(),
                 'missing_val_ids_html' => view('admin.matches.maps.partials.missing-val-ids', [
                     'missingPlayers' => $missingPlayers,
@@ -406,7 +413,7 @@ class GameMapController extends Controller
 
         if (! $teamAColor) {
             return response()->json([
-                'error' => 'Could not determine which team color corresponds to Team A/B',
+                'error' => __('admin.matches.maps.errors.team_color_ambiguous'),
                 'available_colors' => $teams->pluck('teamId')->unique()->values(),
                 'players' => $players->map(fn ($p) => [
                     'puuid' => $p['puuid'],
@@ -419,7 +426,7 @@ class GameMapController extends Controller
 
         $this->storeMatchData($gameMap, $apiMatch, $region, $teamAColor, $puuidMapping, $isEsportEndpoint);
 
-        return response()->noContent($response->status());
+        return response()->noContent($result->status);
     }
 
     /**
@@ -444,6 +451,18 @@ class GameMapController extends Controller
                 if ($e->getCode() !== '23000') {
                     throw $e;
                 }
+
+                // Another player already owns this puuid on this column — the
+                // mapping the operator just resolved conflicts with existing
+                // data, so it's dropped. Logged (not surfaced inline) since
+                // this runs as a side effect of fetchMapData()'s main
+                // response, but silently losing it would leave the operator
+                // thinking the mapping was saved when it wasn't.
+                Log::warning('RiotRelay puuid mapping conflict: another player already has this '.$column, [
+                    'player_id' => $playerId,
+                    'puuid' => $puuid,
+                    'column' => $column,
+                ]);
             }
         }
     }
@@ -930,8 +949,25 @@ class GameMapController extends Controller
     private function riotContent(string $region): array
     {
         return Cache::remember("riot_content_{$region}", now()->addDay(), function () use ($region) {
-            $response = Http::withHeaders(['X-Riot-Token' => config('services.riot.key')])
-                ->get("https://{$region}.api.riotgames.com/val/content/v1/contents", ['locale' => 'en-US']);
+            try {
+                $response = Http::withHeaders(['X-Riot-Token' => config('services.riot.key')])
+                    ->connectTimeout(5)->timeout(12)
+                    ->get("https://{$region}.api.riotgames.com/val/content/v1/contents", ['locale' => 'en-US']);
+            } catch (ConnectionException $e) {
+                Log::warning('Riot content API unreachable, falling back to raw map/agent/equip IDs', [
+                    'region' => $region,
+                    'message' => $e->getMessage(),
+                ]);
+
+                return ['maps' => [], 'agents' => [], 'equips' => []];
+            }
+
+            if (! $response->successful()) {
+                Log::warning('Riot content API call failed, falling back to raw map/agent/equip IDs', [
+                    'region' => $region,
+                    'status' => $response->status(),
+                ]);
+            }
 
             $data = $response->successful() ? $response->json() : [];
 
@@ -952,24 +988,27 @@ class GameMapController extends Controller
     {
         $this->requireEditable($request, $tournament, $match, 'maps.cache.renew', $map);
 
-        abort_unless($map->api_match_id, 422, 'This map has no linked Riot match ID.');
+        abort_unless($map->api_match_id, 422, __('admin.matches.maps.errors.no_match_id'));
 
         $region = config('regions.riot_api.'.$tournament->region);
-        $relayUrl = rtrim(config('services.riot.relay_url'), '/');
-        $headers = ['Authorization' => config('services.riot.relay_token')];
+        $relay = app(RiotRelayClient::class);
 
-        $response = Http::withHeaders($headers)->post("{$relayUrl}/match/{$region}/{$map->api_match_id}/renew");
+        $result = $relay->renewMatch($region, $map->api_match_id);
 
-        if (! $response->successful()) {
-            $response = Http::withHeaders($headers)->post("{$relayUrl}/match/esports/{$map->api_match_id}/renew");
+        if (! $result->successful) {
+            $result = $relay->renewMatch('esports', $map->api_match_id);
         }
 
         activity('tournament')->causedBy($request->user())
             ->performedOn($map)
-            ->withProperties(['success' => $response->successful()])
+            ->withProperties(['success' => $result->successful, 'status' => $result->status])
             ->log('map.cache_renewed');
 
-        return back()->with($response->successful() ? 'status' : 'error', $response->successful() ? 'map-renewed' : 'map-renew-failed');
+        if ($result->successful) {
+            return back()->with('status', 'map-renewed');
+        }
+
+        return back()->with('error', 'map-renew-failed')->with('errorDetail', $result->message());
     }
 
     /**

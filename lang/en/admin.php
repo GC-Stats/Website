@@ -292,6 +292,16 @@ return [
             'team_search_placeholder' => 'Search for a team…',
             'submit' => 'Submit request',
         ],
+        'errors' => [
+            'item_already_resolved' => 'This item has already been resolved.',
+            'no_requester' => 'This request has no requester to sanction.',
+            'sanction_already_issued' => 'A sanction has already been issued from this request.',
+            'subject_required' => 'A subject must be selected.',
+            'at_least_one_field' => 'At least one field must be proposed.',
+            'unknown_field' => 'Unknown field: :field',
+            'roster_players_only' => 'The "roster" field only applies to players.',
+            'roster_requires_team_and_date' => 'Roster changes require a team and a join date.',
+        ],
     ],
 
     'sanctions' => [
@@ -327,10 +337,16 @@ return [
             'ends_at_label' => 'Ends at (leave empty for permanent)',
             'submit' => 'Issue sanction',
         ],
+        'errors' => [
+            'user_not_found' => 'No user was found with that username.',
+        ],
     ],
 
     'activity' => [
         'title' => 'Activity log',
+        'errors' => [
+            'no_visible_logs' => "You don't have permission to view any activity log category.",
+        ],
         'filter_log' => 'Log',
         'all_logs' => 'All logs',
         'when' => 'When',
@@ -567,6 +583,10 @@ return [
             'name_label' => 'Role name',
             'submit' => 'Create role',
         ],
+        'errors' => [
+            'name_blank' => "The role name can't be empty or made up only of whitespace.",
+            'name_taken' => 'A role with this name already exists.',
+        ],
         'permissions' => [
             'title' => 'Permissions',
             'permission_column' => 'Permission',
@@ -727,6 +747,7 @@ return [
             'assign' => 'Link',
             'remove' => 'Unlink',
             'remove_confirm' => 'Unlink :user from :player?',
+            'already_linked' => 'This user account is already linked to another player profile.',
         ],
         'delete' => [
             'title' => 'Delete player',
@@ -965,6 +986,11 @@ return [
             'mode_create' => 'Create new',
             'create_name_label' => 'Team name',
             'create_submit' => 'Create & add',
+            'errors' => [
+                'no_permission' => "You don't have permission to manage teams on this tournament.",
+                'inactive_locked' => 'Only a user with the tournaments.inactive.teams.manage permission can manage teams on an inactive tournament.',
+                'team_not_found' => 'This team could not be found — it may have been deleted in the meantime.',
+            ],
         ],
         'staff' => [
             'title' => 'Staff',
@@ -991,6 +1017,13 @@ return [
             'cash_prize_currency' => 'Currency (e.g. USD)',
             'phase_search_placeholder' => 'Search a tournament phase…',
             'bracket_hint' => 'Bracket qualification rules are set per match — open a match and use its winner/loser destination.',
+            'errors' => [
+                'rank_based_only' => 'Rank-based qualification rules only apply to swiss/round_robin phases.',
+                'match_outcome_only' => 'Match-outcome qualification rules only apply to bracket phases.',
+                'self_qualification' => 'A phase cannot qualify into itself.',
+                'no_permission' => "You don't have permission to delete this qualification rule.",
+                'currency_format' => 'The currency must be a 3-letter code, e.g. EUR or USD.',
+            ],
         ],
     ],
 
@@ -1141,6 +1174,13 @@ return [
                 'select_all' => 'Select all',
                 'clear_selection' => 'Clear',
             ],
+            'errors' => [
+                'no_publisher_scope' => "You don't have the publisher.streams.link permission on any publisher, so you can't link streams to matches.",
+            ],
+        ],
+        'errors' => [
+            'no_publisher_scope' => "You don't have permission to manage this channel — it doesn't belong to a publisher you're scoped to.",
+            'wrong_publisher' => "You can only assign this channel to a publisher you're scoped to.",
         ],
     ],
 
@@ -1186,6 +1226,13 @@ return [
                 'match_search' => 'Filter by team or phase…',
                 'pick_match_hint' => 'Pick a match on the left to fill in the VOD details.',
             ],
+            'errors' => [
+                'no_publisher_scope' => "You don't have the publisher.vods.link permission on any publisher, so you can't link VODs to matches.",
+                'wrong_publisher' => "You can only link VODs under a publisher you're scoped to.",
+            ],
+        ],
+        'errors' => [
+            'no_publisher_scope' => "You don't have permission to manage this VOD — it doesn't belong to a publisher you're scoped to.",
         ],
     ],
 
@@ -1222,6 +1269,9 @@ return [
             'finished' => 'Finished',
         ],
         'finished_locked' => 'This match (or its tournament) is finished — you need the "edit finished matches" permission to change it.',
+        'errors' => [
+            'tournament_not_active' => "This tournament isn't active — a publisher-scoped editor can only link streams/VODs to active tournaments.",
+        ],
         'create' => [
             'title' => 'New match',
             'submit' => 'Create match',
@@ -1292,6 +1342,24 @@ return [
             'score' => 'Score',
             'api_match_id' => 'Riot match ID',
             'api_match_id_duplicate' => 'This Riot match ID is already linked to another map.',
+            'errors' => [
+                'map_not_found' => 'This map could not be found.',
+                'no_match_id' => 'This map has no associated Riot match ID.',
+                'missing_val_ids' => 'Some players could not be matched to a team roster (missing val_id).',
+                'team_color_ambiguous' => 'Could not determine which team color corresponds to Team A/B.',
+                'invalid_request' => 'The RiotRelay service rejected the request (invalid region or match ID).',
+                'relay_unauthorized' => 'RiotRelay authentication failed — check the configured token (RIOT_RELAY_TOKEN).',
+                'riot_unauthorized' => 'The Riot API key is invalid or expired.',
+                'not_found' => "This match couldn't be found on Riot's side (not available yet, or an incorrect ID).",
+                'rate_limited' => "Riot's rate limit was reached, try again in :seconds seconds.",
+                'relay_unreachable' => "The RiotRelay service couldn't reach the Riot API (or is itself unreachable). Try again later.",
+                'cache_unavailable' => "RiotRelay's cache is unavailable (the relay's database is down).",
+                'riot_error' => 'The Riot API returned a server error (code :status). Try again later.',
+                'invalid_response' => 'RiotRelay returned an unexpected or invalid response.',
+                'unknown' => 'Unexpected fetch failure (code :status).',
+                'unexpected' => 'An unexpected error occurred — try again or check the server logs.',
+                'network' => "Couldn't reach the server — check your connection and try again.",
+            ],
             'started_at' => 'Started at',
             'note' => 'Note',
             'note_placeholder' => 'Optional note shown to visitors on the public match page…',
@@ -1391,6 +1459,12 @@ return [
             'result_failed_preserved' => 'Renew failed, but a previously cached copy was preserved.',
             'result_failed_missing' => 'Renew failed and nothing was cached for this match — it was never fetched.',
         ],
+        'errors' => [
+            'no_permission' => "You don't have permission to run any of these operations on this tournament.",
+            'finished_tournament_locked' => 'This tournament is finished — the :permission permission is required to run this operation.',
+            'invalid_region' => 'This region is not a known Riot API region.',
+            'invalid_match_id' => 'The match ID can only contain letters, numbers, hyphens and underscores.',
+        ],
     ],
 
     'status' => [
@@ -1421,6 +1495,7 @@ return [
         'map-fetch-failed' => 'Failed to fetch the map — see the details below.',
         'map-renewed' => 'Cache renewed.',
         'map-renew-failed' => 'Failed to renew the cache.',
+        'cache-purge-failed' => 'Failed to purge the cache.',
         'map-reset' => 'Map reset.',
         'map-stats-updated' => 'Map stats updated.',
         'map-deleted' => 'Map deleted.',
@@ -1586,6 +1661,12 @@ return [
             ],
             'roles_link' => 'Manage roles',
             'delete' => 'Delete publisher',
+            'errors' => [
+                'not_a_member' => "You're not a member of any publisher, so there's nothing here to manage.",
+                'no_permission' => "You don't have permission to edit this publisher.",
+                'no_logo_permission' => "You don't have permission to change this publisher's logo.",
+                'not_scoped' => "You don't have access to this publisher.",
+            ],
         ],
 
         'authors' => [
@@ -1605,6 +1686,12 @@ return [
                 'save' => 'Save',
             ],
             'delete' => 'Delete author',
+            'errors' => [
+                'already_has_profile' => "You already have an author profile — only news.authors.edit can create one for someone else.",
+                'not_own_profile' => 'You can only edit your own author profile.',
+                'username_not_found' => 'No user was found with that username.',
+                'username_not_allowed' => "You don't have permission to link this profile to another user.",
+            ],
         ],
 
         'media' => [
@@ -1655,6 +1742,13 @@ return [
                 'last_owner' => 'Cannot remove the last publisher_owner — assign another one first.',
             ],
         ],
+        'errors' => [
+            'no_publisher_scope' => "You don't have permission to manage this article — it doesn't belong to a publisher you're scoped to.",
+            'no_media_publisher_scope' => "You don't have permission to manage this media — it doesn't belong to a publisher you're scoped to.",
+            'no_author_profile' => "You need a linked author profile before you can write articles — ask an admin to create one for you.",
+            'wrong_publisher' => "You can only assign this article to a publisher you're scoped to.",
+            'unattached_media_restricted' => "This media isn't linked to any article — only a full news.media.delete permission can remove it.",
+        ],
     ],
 
     'api_keys' => [
@@ -1680,6 +1774,9 @@ return [
         'edit_modal' => [
             'title' => 'Edit API key',
             'submit' => 'Save changes',
+        ],
+        'errors' => [
+            'owner_not_found' => 'No user was found with that username.',
         ],
         'reveal_banner' => [
             'title' => 'Key created',
@@ -1849,5 +1946,12 @@ return [
         'reports_submitted_title' => 'Submitted',
         'no_reports_received' => 'No reports received.',
         'no_reports_submitted' => 'No reports submitted.',
+    ],
+
+    'logos' => [
+        'errors' => [
+            'not_found' => 'This logo could not be found — it may have expired or already been discarded.',
+            'image_too_large' => 'The image may not be larger than 10 MB.',
+        ],
     ],
 ];

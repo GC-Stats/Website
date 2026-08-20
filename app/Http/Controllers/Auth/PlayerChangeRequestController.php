@@ -74,7 +74,7 @@ class PlayerChangeRequestController extends Controller
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'pronouns' => ['nullable', 'integer', Rule::in(Pronouns::OPTIONS)],
-            'country_code' => ['nullable', 'string', 'max:5'],
+            'country_code' => ['nullable', 'string', 'max:3'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'socials' => ['nullable', 'array'],
             'socials.*' => ['nullable', 'string', 'max:255'],
@@ -87,6 +87,8 @@ class PlayerChangeRequestController extends Controller
             'history.*.joined_at' => ['nullable', 'date'],
             'history.*.left_at' => ['nullable', 'date'],
             'note' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'photo.max' => __('player.change_request.errors.photo_too_large'),
         ]);
 
         $items = [];

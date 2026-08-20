@@ -34,7 +34,7 @@ trait ManagesPublisherScopedStreams
 
     private function ensureCanManageChannel(Request $request, StreamChannel $channel, string $adminPermission, string $publisherPermission): void
     {
-        abort_unless($this->canManageChannel($request, $channel, $adminPermission, $publisherPermission), 403);
+        abort_unless($this->canManageChannel($request, $channel, $adminPermission, $publisherPermission), 403, __('admin.streams.errors.no_publisher_scope'));
     }
 
     private function canManageChannel(Request $request, StreamChannel $channel, string $adminPermission, string $publisherPermission): bool

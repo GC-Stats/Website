@@ -76,7 +76,7 @@ class AccountSettingsController extends Controller
     {
         $user = $request->user();
 
-        abort_unless($user->isEligibleForBio(), 403);
+        abort_unless($user->isEligibleForBio(), 403, __('account.errors.not_eligible_for_bio'));
 
         $validated = $request->validate([
             'bio' => ['nullable', 'string', 'max:1000'],

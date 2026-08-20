@@ -30,7 +30,7 @@ class RequestLogController extends Controller
 
     public function index(Request $request, ApiKey $key): View
     {
-        abort_if($key->user_id !== $request->user()->id, 403);
+        abort_if($key->user_id !== $request->user()->id, 403, __('developers.dashboard.errors.not_own_key'));
 
         [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'when', 'desc');
 

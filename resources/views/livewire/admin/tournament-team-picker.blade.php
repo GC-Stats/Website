@@ -58,12 +58,12 @@ new class extends Component {
 
     private function guardCanManage(): void
     {
-        abort_unless(auth()->user()->can('tournaments.teams.manage'), 403);
+        abort_unless(auth()->user()->can('tournaments.teams.manage'), 403, __('admin.tournaments.teams.errors.no_permission'));
 
         abort_unless(
             $this->tournament->active || auth()->user()->can('tournaments.inactive.teams.manage'),
             403,
-            'Only a user with tournaments.inactive.teams.manage can manage teams on an inactive tournament.'
+            __('admin.tournaments.teams.errors.inactive_locked')
         );
     }
 
@@ -71,6 +71,13 @@ new class extends Component {
     {
         $this->resetMessages();
         $this->guardCanManage();
+
+        if (! Team::whereKey($teamId)->exists()) {
+            $this->errorMessage = __('admin.tournaments.teams.errors.team_not_found');
+            $this->version++;
+
+            return;
+        }
 
         $alreadyRegistered = TournamentTeam::where('tournament_id', $this->tournament->id)
             ->where('team_id', $teamId)

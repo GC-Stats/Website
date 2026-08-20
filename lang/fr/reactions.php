@@ -24,4 +24,9 @@ return [
         'thanks' => 'Merci, ceci a été signalé à nos modérateurs.',
         'too_many_attempts' => 'Trop de signalements envoyés — réessaie plus tard.',
     ],
+    'errors' => [
+        'blocked' => 'Tu es actuellement bloqué(e) et ne peux pas réagir.',
+        'no_permission_view' => "Tu n'as pas la permission de voir qui a réagi.",
+        'no_permission_delete' => "Tu n'as pas la permission de supprimer des réactions.",
+    ],
 ];

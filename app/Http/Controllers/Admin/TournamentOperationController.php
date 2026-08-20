@@ -23,11 +23,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Public\Controller;
 use App\Models\Matchs;
 use App\Models\Tournament;
+use App\Services\RiotRelayClient;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 
 class TournamentOperationController extends Controller
@@ -36,7 +36,8 @@ class TournamentOperationController extends Controller
     {
         abort_unless(
             $request->user()->canAny(['operations.patch', 'operations.bulk-create', 'operations.cache-purge']),
-            403
+            403,
+            __('admin.operations.errors.no_permission')
         );
 
         return view('admin.tournaments.operations', [
@@ -131,20 +132,31 @@ class TournamentOperationController extends Controller
         $validated = $request->validate([
             'region' => ['required', 'string', Rule::in($allowedRegions)],
             'api_match_id' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9_-]+$/'],
+        ], [
+            'region.in' => __('admin.operations.errors.invalid_region'),
+            'api_match_id.regex' => __('admin.operations.errors.invalid_match_id'),
         ]);
 
-        $relayUrl = rtrim(config('services.riot.relay_url'), '/');
+        $result = app(RiotRelayClient::class)->renewMatch($validated['region'], $validated['api_match_id']);
+        $response = $result->response;
 
-        $response = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
-            ->post("{$relayUrl}/match/{$validated['region']}/{$validated['api_match_id']}/renew");
-
-        $cacheStatus = $response->header('X-Cache');
-        $preserved = $response->header('X-Cache-Preserved') === 'true';
+        $cacheStatus = $response?->header('X-Cache');
+        $preserved = $response?->header('X-Cache-Preserved') === 'true';
 
         activity('tournament')->causedBy($request->user())
             ->performedOn($tournament)
-            ->withProperties(['region' => $validated['region'], 'api_match_id' => $validated['api_match_id'], 'cache_status' => $cacheStatus, 'preserved' => $preserved])
+            ->withProperties([
+                'region' => $validated['region'],
+                'api_match_id' => $validated['api_match_id'],
+                'cache_status' => $cacheStatus,
+                'preserved' => $preserved,
+                'success' => $result->successful,
+            ])
             ->log('operations.cache_purged');
+
+        if (! $result->successful) {
+            return back()->with('error', 'cache-purge-failed')->with('errorDetail', $result->message());
+        }
 
         return back()->with('purgeResult', [
             'renewed' => $cacheStatus === 'RENEWED',
@@ -158,7 +170,7 @@ class TournamentOperationController extends Controller
         abort_unless(
             $tournament->status !== 'finished' || $request->user()->can("{$permission}.finished"),
             403,
-            "Only a user with {$permission}.finished can run this operation on a finished tournament."
+            __('admin.operations.errors.finished_tournament_locked', ['permission' => "{$permission}.finished"])
         );
     }
 }

@@ -37,7 +37,7 @@ class PhaseQualificationController extends Controller
     public function store(Request $request, Tournament $tournament, TournamentPhase $phase): RedirectResponse
     {
         abort_unless($phase->tournament_id === $tournament->id, 404);
-        abort_unless(in_array($phase->format, TournamentPhase::RANK_BASED_FORMATS, true), 422, 'Rank-based qualification rules only apply to swiss/round_robin phases.');
+        abort_unless(in_array($phase->format, TournamentPhase::RANK_BASED_FORMATS, true), 422, __('admin.tournaments.qualifications.errors.rank_based_only'));
 
         $validated = $this->validateRule($request, $phase->id, [
             'rank_from' => ['required', 'integer', 'min:1'],
@@ -60,7 +60,7 @@ class PhaseQualificationController extends Controller
     public function storeForMatch(Request $request, Tournament $tournament, Matchs $match): RedirectResponse
     {
         abort_unless($match->tournament_id === $tournament->id, 404);
-        abort_unless($match->tournamentPhase?->format === 'bracket', 422, 'Match-outcome qualification rules only apply to bracket phases.');
+        abort_unless($match->tournamentPhase?->format === 'bracket', 422, __('admin.tournaments.qualifications.errors.match_outcome_only'));
 
         $validated = $this->validateRule($request, $match->phase_id, [
             'outcome' => ['required', 'string', Rule::in(['winner', 'loser'])],
@@ -87,7 +87,7 @@ class PhaseQualificationController extends Controller
         $isMatchBased = $qualification->source_match_id !== null;
         $permission = $isMatchBased ? 'matches.edit' : 'tournaments.edit';
 
-        abort_unless($request->user()->can($permission), 403);
+        abort_unless($request->user()->can($permission), 403, __('admin.tournaments.qualifications.errors.no_permission'));
 
         $properties = [
             'source_phase_id' => $qualification->source_phase_id,
@@ -159,6 +159,8 @@ class PhaseQualificationController extends Controller
             'points' => ['nullable', 'integer', 'min:0'],
             'cash_prize_amount' => ['nullable', 'numeric', 'min:0'],
             'cash_prize_currency' => ['required_with:cash_prize_amount', 'nullable', 'string', 'regex:/^[A-Za-z]{3}$/'],
+        ], [
+            'cash_prize_currency.regex' => __('admin.tournaments.qualifications.errors.currency_format'),
         ]);
 
         if (! empty($validated['cash_prize_currency'])) {
@@ -167,7 +169,7 @@ class PhaseQualificationController extends Controller
 
         // A phase can't qualify into itself.
         if (($validated['destination_type'] === 'phase') && (int) $validated['destination_phase_id'] === $sourcePhaseId) {
-            abort(422, 'A phase cannot qualify into itself.');
+            abort(422, __('admin.tournaments.qualifications.errors.self_qualification'));
         }
 
         if ($validated['destination_type'] === 'phase') {

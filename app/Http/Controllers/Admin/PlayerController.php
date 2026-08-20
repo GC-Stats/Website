@@ -105,7 +105,7 @@ class PlayerController extends Controller
     {
         $validated = $request->validate([
             'handle' => ['required', 'string', 'max:255'],
-            'country_code' => ['nullable', 'string', 'max:5'],
+            'country_code' => ['nullable', 'string', 'max:3'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
             'vlr_id' => ['nullable', 'integer'],
         ]);
@@ -204,6 +204,8 @@ class PlayerController extends Controller
     {
         $validated = $request->validate([
             'user_id' => ['required', 'integer', 'exists:users,id', Rule::unique('players', 'user_id')->ignore($player->id)],
+        ], [
+            'user_id.unique' => __('admin.players.linked_user.already_linked'),
         ]);
 
         $service->linkUser($player, (int) $validated['user_id'], $request->user());
@@ -224,7 +226,7 @@ class PlayerController extends Controller
             'handle' => ['required', 'string', 'max:255'],
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
-            'country_code' => ['nullable', 'string', 'max:5'],
+            'country_code' => ['nullable', 'string', 'max:3'],
             'pronouns' => ['required', 'integer', Rule::in(Pronouns::OPTIONS)],
             'bio' => ['nullable', 'string', 'max:2000'],
             'vlr_id' => ['nullable', 'integer'],

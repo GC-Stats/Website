@@ -55,9 +55,9 @@ class ForumController extends Controller
 
     public function generalStore(Request $request): RedirectResponse
     {
-        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403);
-        abort_if(Auth::user()->activeGlobalMuteSanction(), 403);
-        abort_unless(Auth::user()->hasAcceptedForumRules(), 403);
+        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('forum.errors.globally_blocked'));
+        abort_if(Auth::user()->activeGlobalMuteSanction(), 403, __('forum.errors.globally_muted'));
+        abort_unless(Auth::user()->hasAcceptedForumRules(), 403, __('forum.errors.rules_not_accepted'));
 
         $limiterKey = 'forum-thread-create:'.Auth::id();
 

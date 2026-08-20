@@ -24,4 +24,9 @@ return [
         'thanks' => 'Thanks, this has been reported to our moderators.',
         'too_many_attempts' => 'Too many reports submitted — please try again later.',
     ],
+    'errors' => [
+        'blocked' => 'You are currently blocked from reacting.',
+        'no_permission_view' => "You don't have permission to see who reacted.",
+        'no_permission_delete' => "You don't have permission to delete reactions.",
+    ],
 ];

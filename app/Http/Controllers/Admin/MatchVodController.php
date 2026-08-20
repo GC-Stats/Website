@@ -56,7 +56,7 @@ class MatchVodController extends Controller
     {
         $allowedPublisherIds = $this->allowedPublisherIds($request);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.vods.matches.errors.no_publisher_scope'));
 
         [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'scheduled_at', 'desc');
 
@@ -92,7 +92,7 @@ class MatchVodController extends Controller
     {
         $allowedPublisherIds = $this->allowedPublisherIds($request);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.vods.matches.errors.no_publisher_scope'));
 
         return view('admin.vods.matches.create', ['countries' => app(Countries::class)->list()]);
     }
@@ -119,7 +119,7 @@ class MatchVodController extends Controller
     {
         $allowedPublisherIds = $this->allowedPublisherIds($request);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.vods.matches.errors.no_publisher_scope'));
 
         $validated = $request->validate([
             'url' => ['required', 'url', 'max:2048'],
@@ -135,7 +135,7 @@ class MatchVodController extends Controller
                 abort_unless($allowedPublisherIds->count() === 1, 422);
                 $validated['publisher_id'] = $allowedPublisherIds->first();
             } else {
-                abort_unless($allowedPublisherIds->contains($publisherId), 403);
+                abort_unless($allowedPublisherIds->contains($publisherId), 403, __('admin.vods.matches.errors.wrong_publisher'));
             }
         }
 
@@ -178,7 +178,7 @@ class MatchVodController extends Controller
                 abort_unless($allowedPublisherIds->count() === 1, 422);
                 $validated['publisher_id'] = $allowedPublisherIds->first();
             } else {
-                abort_unless($allowedPublisherIds->contains($publisherId), 403);
+                abort_unless($allowedPublisherIds->contains($publisherId), 403, __('admin.vods.matches.errors.wrong_publisher'));
             }
         }
 
@@ -237,6 +237,6 @@ class MatchVodController extends Controller
         $allowed = $vod->publisher_id
             && PublisherScope::publisherIdsWithPermission($user->id, 'publisher.vods.link')->contains($vod->publisher_id);
 
-        abort_unless($allowed, 403);
+        abort_unless($allowed, 403, __('admin.vods.errors.no_publisher_scope'));
     }
 }

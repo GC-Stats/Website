@@ -141,7 +141,7 @@ new class extends Component
 
     public function acceptRules(): void
     {
-        abort_unless(Auth::check(), 403);
+        abort_unless(Auth::check(), 403, __('forum.login_required'));
 
         Auth::user()->acceptForumRules();
     }
@@ -170,10 +170,10 @@ new class extends Component
 
     public function postMessage(): void
     {
-        abort_unless(Auth::check(), 403);
-        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403);
-        abort_if(Auth::user()->activeGlobalMuteSanction(), 403);
-        abort_unless(Auth::user()->hasAcceptedForumRules(), 403);
+        abort_unless(Auth::check(), 403, __('forum.login_required'));
+        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('forum.errors.globally_blocked'));
+        abort_if(Auth::user()->activeGlobalMuteSanction(), 403, __('forum.errors.globally_muted'));
+        abort_unless(Auth::user()->hasAcceptedForumRules(), 403, __('forum.errors.rules_not_accepted'));
 
         if ($this->tooManyPosts()) {
             $this->addError('body', __('forum.errors.too_many_messages'));
@@ -222,8 +222,8 @@ new class extends Component
      */
     public function submitMessageReport(int $messageId, string $category, string $reason): void
     {
-        abort_unless(Auth::check(), 403);
-        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403);
+        abort_unless(Auth::check(), 403, __('forum.login_required'));
+        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('forum.errors.globally_blocked'));
 
         $limiterKey = 'message-report:'.Auth::id();
 

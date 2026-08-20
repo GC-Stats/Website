@@ -187,6 +187,9 @@
                 @if (session('error'))
                     <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3">
                         {{ __('admin.status.'.session('error')) }}
+                        @if (session('errorDetail'))
+                            <div class="mt-1 text-red-300/80">{{ session('errorDetail') }}</div>
+                        @endif
                     </div>
                 @endif
 

@@ -66,7 +66,7 @@ class MatchStreamController extends Controller
     {
         $allowedPublisherIds = $this->allowedPublisherIds($request);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.streams.matches.errors.no_publisher_scope'));
 
         $status = $request->get('status', 'active');
         [$sort, $direction] = $this->resolveSort($request, self::SORTABLE, 'scheduled_at', 'desc');
@@ -95,7 +95,7 @@ class MatchStreamController extends Controller
     {
         $allowedPublisherIds = $this->allowedPublisherIds($request);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.streams.matches.errors.no_publisher_scope'));
 
         return view('admin.streams.matches.create');
     }
@@ -127,7 +127,7 @@ class MatchStreamController extends Controller
 
         $allowedPublisherIds = $this->allowedPublisherIds($request);
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.streams.matches.errors.no_publisher_scope'));
 
         $alreadyLinkedIds = isset($validated['match_id'])
             ? Matchs::findOrFail($validated['match_id'])->streams()->pluck('stream_channels.id')
@@ -282,6 +282,6 @@ class MatchStreamController extends Controller
         $allowed = $channel->publisher_id
             && PublisherScope::publisherIdsWithPermission($user->id, 'publisher.streams.link')->contains($channel->publisher_id);
 
-        abort_unless($allowed, 403);
+        abort_unless($allowed, 403, __('admin.streams.errors.no_publisher_scope'));
     }
 }

@@ -21,6 +21,6 @@ class ChangeRequestItemAlreadyResolvedException extends RuntimeException
 {
     public function __construct()
     {
-        parent::__construct('This item has already been resolved.');
+        parent::__construct(__('admin.change_requests.errors.item_already_resolved'));
     }
 }

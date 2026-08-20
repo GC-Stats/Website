@@ -55,7 +55,7 @@ class ApiTeamController extends Controller
 
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:100'],
-            'short_name' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'short_name' => ['sometimes', 'nullable', 'string', 'max:10'],
             'country_code' => ['sometimes', 'nullable', 'string', 'size:2'],
             'bio' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'vlr_id' => ['sometimes', 'nullable', 'integer', 'max:99999999'],

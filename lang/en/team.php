@@ -193,6 +193,7 @@ return [
         'errors' => [
             'no_changes' => 'Change at least one field before submitting.',
             'joined_at_required' => 'Pick a join date for the proposed roster addition.',
+            'logo_too_large' => 'The logo image may not be larger than 10 MB.',
         ],
     ],
 

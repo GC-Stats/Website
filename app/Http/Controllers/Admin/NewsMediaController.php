@@ -39,7 +39,7 @@ class NewsMediaController extends Controller
         $user = $request->user();
         $allowedPublisherIds = $user->can('news.media.view') ? null : $this->allowedPublisherIds($request, 'publisher.media.view');
 
-        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403);
+        abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.news.errors.no_media_publisher_scope'));
 
         $unattachedOnly = $request->boolean('unattached');
 
@@ -76,7 +76,7 @@ class NewsMediaController extends Controller
     {
         $user = $request->user();
 
-        abort_unless($user->can('news.media.upload') || $this->allowedPublisherIds($request, 'publisher.media.upload')->isNotEmpty(), 403);
+        abort_unless($user->can('news.media.upload') || $this->allowedPublisherIds($request, 'publisher.media.upload')->isNotEmpty(), 403, __('admin.news.errors.no_media_publisher_scope'));
 
         $validated = $request->validate([
             'image' => ['required', 'file', 'image', 'max:10240'],
@@ -163,7 +163,7 @@ class NewsMediaController extends Controller
     public function destroy(Request $request, NewsImage $image, LogoUploadService $logoUploadService): RedirectResponse
     {
         if (! $request->user()->can('news.media.delete')) {
-            abort_unless($image->news, 403);
+            abort_unless($image->news, 403, __('admin.news.errors.unattached_media_restricted'));
             $this->ensureCanManageArticle($request, $image->news, 'news.media.delete', 'publisher.media.delete');
         }
 

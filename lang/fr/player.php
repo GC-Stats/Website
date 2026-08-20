@@ -109,6 +109,7 @@ return [
             'already_linked_to_you' => 'Ce profil est déjà lié à votre compte.',
             'player_already_linked' => 'Ce profil est déjà lié à un autre compte.',
             'user_already_linked' => 'Votre compte est déjà lié à un autre profil de joueuse.',
+            'photo_too_large' => 'La photo ne doit pas dépasser 4 Mo.',
         ],
     ],
 

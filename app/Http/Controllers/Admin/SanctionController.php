@@ -66,6 +66,8 @@ class SanctionController extends Controller
             'type' => ['required', 'string', Rule::in(Sanction::TYPES)],
             'reason' => ['required', 'string', 'max:2000'],
             'ends_at' => ['nullable', 'date', 'after:now'],
+        ], [
+            'username.exists' => __('admin.sanctions.errors.user_not_found'),
         ]);
 
         $user = User::where('username', $validated['username'])->firstOrFail();

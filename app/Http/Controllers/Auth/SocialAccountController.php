@@ -28,7 +28,7 @@ class SocialAccountController extends Controller
         SocialAccount $socialAccount,
         AccountSecurityService $accountSecurity,
     ): RedirectResponse {
-        abort_unless($socialAccount->user_id === $request->user()->id, 403);
+        abort_unless($socialAccount->user_id === $request->user()->id, 403, __('account.errors.not_own_social_account'));
 
         try {
             $accountSecurity->unlinkProvider($request->user(), $socialAccount);

@@ -52,7 +52,7 @@ class UserReportController extends Controller
      */
     public function show(Request $request, UserReport $userReport): View
     {
-        abort_unless($userReport->reporter_id === $request->user()->id, 403);
+        abort_unless($userReport->reporter_id === $request->user()->id, 403, __('account.errors.not_own_report'));
 
         $userReport->load(['reportedUser:id,name,username', 'reportedMessage.user:id,name,username', 'emote', 'reactable', 'reviewedBy:id,name,username']);
 

@@ -61,6 +61,9 @@ return [
             'api-key-toggled' => 'Statut de la clé mis à jour.',
             'api-key-regenerated' => 'Clé régénérée.',
         ],
+        'errors' => [
+            'not_own_key' => "Ce n'est pas une de tes clés API.",
+        ],
         'overview' => [
             'title' => 'Vue d\'ensemble',
             'api-keys' => 'Clés API',

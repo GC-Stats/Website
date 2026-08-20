@@ -97,6 +97,9 @@ return [
         'too_many_threads' => 'Too many threads created — please try again later.',
         'blocked' => 'This message was blocked for violating our community guidelines.',
         'muted' => 'You are muted from the forum until :until for repeated automod flags.',
+        'globally_blocked' => 'You are currently blocked from posting on the forum.',
+        'globally_muted' => 'You are currently muted from the forum.',
+        'rules_not_accepted' => 'You must accept the forum rules before posting.',
     ],
     'embed' => [
         'trigger' => 'Link a player, team, or match',

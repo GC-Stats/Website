@@ -129,7 +129,7 @@ new #[Lazy] class extends Component
             return;
         }
 
-        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403);
+        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('reactions.errors.blocked'));
 
         if ($this->tooManyReactionToggles($emoteId)) {
             $this->pickerOpen = false;
@@ -151,7 +151,7 @@ new #[Lazy] class extends Component
             return;
         }
 
-        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403);
+        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('reactions.errors.blocked'));
 
         if ($this->tooManyReactionToggles($emoteId)) {
             return;
@@ -174,21 +174,21 @@ new #[Lazy] class extends Component
 
     public function toggleGroup(int $emoteId): void
     {
-        abort_unless(Auth::user()?->can('reaction.view'), 403);
+        abort_unless(Auth::user()?->can('reaction.view'), 403, __('reactions.errors.no_permission_view'));
 
         $this->openGroupEmoteId = $this->openGroupEmoteId === $emoteId ? null : $emoteId;
     }
 
     public function deleteReaction(int $reactionId): void
     {
-        abort_unless(Auth::user()?->can('reaction.delete'), 403);
+        abort_unless(Auth::user()?->can('reaction.delete'), 403, __('reactions.errors.no_permission_delete'));
 
         app(ReactionService::class)->remove(Reaction::findOrFail($reactionId), Auth::user());
     }
 
     public function deleteAllForEmote(int $emoteId): void
     {
-        abort_unless(Auth::user()?->can('reaction.delete'), 403);
+        abort_unless(Auth::user()?->can('reaction.delete'), 403, __('reactions.errors.no_permission_delete'));
 
         app(ReactionService::class)->removeAllForEmote($this->reactable(), Emote::findOrFail($emoteId), Auth::user());
 
@@ -208,8 +208,8 @@ new #[Lazy] class extends Component
      */
     public function submitReactionReport(): void
     {
-        abort_unless(Auth::check(), 403);
-        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403);
+        abort_unless(Auth::check(), 403, __('reactions.login_required'));
+        abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('reactions.errors.blocked'));
 
         $limiterKey = 'reaction-report:'.Auth::id();
 

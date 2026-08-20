@@ -76,8 +76,8 @@ class TeamChangeRequestController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'short_name' => ['nullable', 'string', 'max:50'],
-            'country_code' => ['nullable', 'string', 'max:5'],
+            'short_name' => ['nullable', 'string', 'max:10'],
+            'country_code' => ['nullable', 'string', 'max:3'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'liquipedia_link' => ['nullable', 'url', 'max:255'],
             'socials' => ['nullable', 'array'],
@@ -96,6 +96,8 @@ class TeamChangeRequestController extends Controller
             'history.*.joined_at' => ['nullable', 'date'],
             'history.*.left_at' => ['nullable', 'date'],
             'note' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'logo.max' => __('team.change_request.errors.logo_too_large'),
         ]);
 
         $items = [];

@@ -175,11 +175,14 @@
                                 return;
                             }
 
-                            this.error = data.error ?? null;
+                            this.error = data.error ?? {{ \Illuminate\Support\Js::from(__('admin.matches.maps.errors.unexpected')) }};
                             this.missingValIdsHtml = data.missing_val_ids_html ?? null;
                             this.isEsportEndpoint = !! data.is_esport_endpoint;
                             this.teamColorOptions = data.available_colors ?? null;
                             this.teamColorPlayers = data.players ?? null;
+                        })
+                        .catch(() => {
+                            this.error = {{ \Illuminate\Support\Js::from(__('admin.matches.maps.errors.network')) }};
                         })
                         .finally(() => { this.loading = false; });
                 },
