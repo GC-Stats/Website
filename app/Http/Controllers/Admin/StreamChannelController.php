@@ -157,7 +157,7 @@ class StreamChannelController extends Controller
             'publisher_id' => ['nullable', 'integer', 'exists:news_publishers,id'],
             'name' => ['required', 'string', 'max:255'],
             'platform' => ['required', 'string', Rule::in(StreamChannel::PLATFORMS)],
-            'url' => ['required', 'url', 'max:2048'],
+            'url' => ['required', 'url', 'max:255'],
             'language_code' => ['required', 'string', 'max:5', Rule::in(array_keys(app(Countries::class)->list()))],
             'is_active' => ['sometimes', 'boolean'],
         ]);
@@ -170,7 +170,7 @@ class StreamChannelController extends Controller
                 // A publisher-scoped editor can't create/leave a channel
                 // admin-only (publisher_id null) — it must belong to one of
                 // their own publishers.
-                abort_unless($allowedPublisherIds->count() === 1, 422);
+                abort_unless($allowedPublisherIds->count() === 1, 422, __('admin.streams.errors.ambiguous_publisher'));
                 $validated['publisher_id'] = $allowedPublisherIds->first();
             } elseif (! $publisherUnchanged) {
                 abort_unless($allowedPublisherIds->contains($publisherId), 403, __('admin.streams.errors.wrong_publisher'));

@@ -918,6 +918,7 @@ return [
         'category_custom' => 'Personnalisée…',
         'finished_locked' => 'Ce tournoi est terminé — la permission "modifier les tournois terminés" est requise pour le modifier.',
         'inactive_locked' => 'Ce tournoi est inactif — la permission "modifier les tournois inactifs" est requise pour le modifier.',
+        'inactive_delete_locked' => 'Ce tournoi est inactif — la permission "supprimer les tournois inactifs" est requise pour le supprimer.',
         'status' => [
             'upcoming' => 'À venir',
             'live' => 'En cours',
@@ -1146,6 +1147,7 @@ return [
         'errors' => [
             'no_publisher_scope' => "Tu n'as pas la permission de gérer cette chaîne — elle n'appartient pas à un éditeur auquel tu es rattaché.",
             'wrong_publisher' => "Tu ne peux assigner cette chaîne qu'à un éditeur auquel tu es rattaché.",
+            'ambiguous_publisher' => "Tu es rattaché à plusieurs éditeurs — choisis à qui appartient cette chaîne.",
         ],
     ],
     'vods' => [
@@ -1193,6 +1195,7 @@ return [
             'errors' => [
                 'no_publisher_scope' => "Tu n'as la permission publisher.vods.link sur aucun éditeur, tu ne peux donc pas lier de VODs à des matchs.",
                 'wrong_publisher' => "Tu ne peux lier une VOD que sous un éditeur auquel tu es rattaché.",
+                'ambiguous_publisher' => "Tu es rattaché à plusieurs éditeurs — choisis à qui appartient cette VOD.",
             ],
         ],
         'errors' => [
@@ -1638,6 +1641,7 @@ return [
                 'no_permission' => "Tu n'as pas la permission de modifier cet éditeur.",
                 'no_logo_permission' => "Tu n'as pas la permission de changer le logo de cet éditeur.",
                 'not_scoped' => "Tu n'as pas accès à cet éditeur.",
+                'invalid_social_link' => 'Le champ :attribute doit être un lien valide.',
             ],
         ],
         'authors' => [
@@ -1662,6 +1666,7 @@ return [
                 'not_own_profile' => "Tu ne peux modifier que ton propre profil auteur.",
                 'username_not_found' => "Aucun utilisateur trouvé avec ce nom d'utilisateur.",
                 'username_not_allowed' => "Tu n'as pas la permission de lier ce profil à un autre utilisateur.",
+                'invalid_social_link' => 'Le champ :attribute doit être un lien valide.',
             ],
         ],
         'media' => [

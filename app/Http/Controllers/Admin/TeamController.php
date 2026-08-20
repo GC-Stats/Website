@@ -103,7 +103,7 @@ class TeamController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:teams,name'],
             'country_code' => ['nullable', 'string', 'max:3'],
-            'vlr_id' => ['nullable', 'integer'],
+            'vlr_id' => ['nullable', 'integer', 'max:99999999'],
         ]);
 
         $team = Team::create([
@@ -141,7 +141,7 @@ class TeamController extends Controller
             'short_name' => ['nullable', 'string', 'max:10'],
             'country_code' => ['nullable', 'string', 'max:3'],
             'bio' => ['nullable', 'string', 'max:2000'],
-            'vlr_id' => ['nullable', 'integer'],
+            'vlr_id' => ['nullable', 'integer', 'max:99999999'],
             'liquipedia_link' => ['nullable', 'url', 'max:255'],
             'socials' => ['nullable', 'array'],
             'socials.website' => ['nullable', 'url', 'max:255'],

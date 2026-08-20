@@ -60,7 +60,7 @@ class ApiKeyController extends Controller
     {
         $validated = $request->validate([
             'client_name' => ['required', 'string', 'min:3', 'max:50'],
-            'rate_limit' => ['required', 'integer', 'min:1'],
+            'rate_limit' => ['required', 'integer', 'min:1', 'max:1000000'],
             'owner_username' => ['required', 'string', 'exists:users,username'],
         ], [
             'owner_username.exists' => __('admin.api_keys.errors.owner_not_found'),
@@ -94,7 +94,7 @@ class ApiKeyController extends Controller
     {
         $validated = $request->validate([
             'client_name' => ['required', 'string', 'min:3', 'max:50'],
-            'rate_limit' => ['required', 'integer', 'min:1'],
+            'rate_limit' => ['required', 'integer', 'min:1', 'max:1000000'],
             'owner_username' => ['required', 'string', 'exists:users,username'],
         ], [
             'owner_username.exists' => __('admin.api_keys.errors.owner_not_found'),

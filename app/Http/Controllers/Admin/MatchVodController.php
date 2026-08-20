@@ -122,7 +122,7 @@ class MatchVodController extends Controller
         abort_if($allowedPublisherIds !== null && $allowedPublisherIds->isEmpty(), 403, __('admin.vods.matches.errors.no_publisher_scope'));
 
         $validated = $request->validate([
-            'url' => ['required', 'url', 'max:2048'],
+            'url' => ['required', 'url', 'max:255'],
             'language_code' => ['required', 'string', 'max:5', Rule::in(array_keys(app(Countries::class)->list()))],
             'game_map_id' => ['nullable', 'integer', Rule::exists('game_maps', 'id')->where('match_id', $match->id)],
             'publisher_id' => ['nullable', 'integer', 'exists:news_publishers,id'],
@@ -132,7 +132,7 @@ class MatchVodController extends Controller
             $publisherId = $validated['publisher_id'] ?? null;
 
             if (! $publisherId) {
-                abort_unless($allowedPublisherIds->count() === 1, 422);
+                abort_unless($allowedPublisherIds->count() === 1, 422, __('admin.vods.matches.errors.ambiguous_publisher'));
                 $validated['publisher_id'] = $allowedPublisherIds->first();
             } else {
                 abort_unless($allowedPublisherIds->contains($publisherId), 403, __('admin.vods.matches.errors.wrong_publisher'));
@@ -165,7 +165,7 @@ class MatchVodController extends Controller
         $allowedPublisherIds = $this->allowedPublisherIds($request);
 
         $validated = $request->validate([
-            'url' => ['required', 'url', 'max:2048'],
+            'url' => ['required', 'url', 'max:255'],
             'language_code' => ['required', 'string', 'max:5', Rule::in(array_keys(app(Countries::class)->list()))],
             'game_map_id' => ['nullable', 'integer', Rule::exists('game_maps', 'id')->where('match_id', $match->id)],
             'publisher_id' => ['nullable', 'integer', 'exists:news_publishers,id'],
@@ -175,7 +175,7 @@ class MatchVodController extends Controller
             $publisherId = $validated['publisher_id'] ?? null;
 
             if (! $publisherId) {
-                abort_unless($allowedPublisherIds->count() === 1, 422);
+                abort_unless($allowedPublisherIds->count() === 1, 422, __('admin.vods.matches.errors.ambiguous_publisher'));
                 $validated['publisher_id'] = $allowedPublisherIds->first();
             } else {
                 abort_unless($allowedPublisherIds->contains($publisherId), 403, __('admin.vods.matches.errors.wrong_publisher'));

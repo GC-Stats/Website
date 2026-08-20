@@ -156,7 +156,7 @@ class MatchController extends Controller
         abort_unless(
             $tournament->status !== 'finished' || $request->user()->can('matches.create.finished'),
             403,
-            'Only a user with matches.create.finished can create a match in a finished tournament.'
+            __('admin.matches.finished_locked')
         );
 
         $validated = $this->validateMatch($request);
@@ -603,6 +603,23 @@ class MatchController extends Controller
             $validated['round_name'] = '';
         }
 
+        // team_a_score/team_b_score/best_of are NOT NULL columns (see
+        // 0010_matches.php) with no ->nullable() — the form fields can be
+        // cleared to an empty string, which 'nullable' lets through as
+        // null and would otherwise crash the insert/update on that
+        // constraint. Coerce back to the column's own default instead.
+        if (array_key_exists('team_a_score', $validated) && $validated['team_a_score'] === null) {
+            $validated['team_a_score'] = 0;
+        }
+
+        if (array_key_exists('team_b_score', $validated) && $validated['team_b_score'] === null) {
+            $validated['team_b_score'] = 0;
+        }
+
+        if (array_key_exists('best_of', $validated) && $validated['best_of'] === null) {
+            $validated['best_of'] = 1;
+        }
+
         return $validated;
     }
 
@@ -635,7 +652,7 @@ class MatchController extends Controller
         abort_unless(
             ! self::isFinished($tournament, $match) || $request->user()->can("{$permission}.finished"),
             403,
-            "Only a user with {$permission}.finished can edit a finished match."
+            __('admin.matches.finished_locked')
         );
     }
 

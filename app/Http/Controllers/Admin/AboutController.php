@@ -51,7 +51,7 @@ class AboutController extends Controller
     public function saveSection(string $key, Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'order' => ['sometimes', 'integer'],
+            'order' => ['sometimes', 'integer', 'min:0'],
             'title' => ['array'],
             'title.*' => ['nullable', 'string', 'max:255'],
             'content' => ['array'],
@@ -128,7 +128,7 @@ class AboutController extends Controller
             'description' => ['sometimes', 'array'],
             'description.*' => ['nullable', 'string', 'max:2000'],
             'url' => ['sometimes', 'nullable', 'url', 'max:255'],
-            'order' => ['sometimes', 'integer'],
+            'order' => ['sometimes', 'integer', 'min:0'],
         ]);
 
         $data['is_active'] = $request->boolean('is_active');

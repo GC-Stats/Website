@@ -107,7 +107,7 @@ class NewsPublisherController extends Controller
             'socials' => ['nullable', 'array'],
             'socials.*' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
                 if (! HtmlSanitizer::isSafeUrl($value)) {
-                    $fail('The '.$attribute.' field must be a valid link.');
+                    $fail(__('admin.news.publishers.errors.invalid_social_link', ['attribute' => $attribute]));
                 }
             }],
         ]);
@@ -134,7 +134,7 @@ class NewsPublisherController extends Controller
             'socials' => ['nullable', 'array'],
             'socials.*' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
                 if (! HtmlSanitizer::isSafeUrl($value)) {
-                    $fail('The '.$attribute.' field must be a valid link.');
+                    $fail(__('admin.news.publishers.errors.invalid_social_link', ['attribute' => $attribute]));
                 }
             }],
         ]);

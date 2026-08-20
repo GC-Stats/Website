@@ -107,7 +107,7 @@ class PlayerController extends Controller
             'handle' => ['required', 'string', 'max:255'],
             'country_code' => ['nullable', 'string', 'max:3'],
             'team_id' => ['nullable', 'integer', 'exists:teams,id'],
-            'vlr_id' => ['nullable', 'integer'],
+            'vlr_id' => ['nullable', 'integer', 'max:99999999'],
         ]);
 
         $player = Player::create([
@@ -229,7 +229,7 @@ class PlayerController extends Controller
             'country_code' => ['nullable', 'string', 'max:3'],
             'pronouns' => ['required', 'integer', Rule::in(Pronouns::OPTIONS)],
             'bio' => ['nullable', 'string', 'max:2000'],
-            'vlr_id' => ['nullable', 'integer'],
+            'vlr_id' => ['nullable', 'integer', 'max:99999999'],
             'liquipedia_link' => ['nullable', 'url', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
             'socials' => ['nullable', 'array'],

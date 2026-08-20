@@ -929,6 +929,7 @@ return [
         'category_custom' => 'Custom…',
         'finished_locked' => 'This tournament is finished — you need the "edit finished tournaments" permission to change it.',
         'inactive_locked' => 'This tournament is inactive — you need the "edit inactive tournaments" permission to change it.',
+        'inactive_delete_locked' => 'This tournament is inactive — you need the "delete inactive tournaments" permission to delete it.',
         'status' => [
             'upcoming' => 'Upcoming',
             'live' => 'Live',
@@ -1181,6 +1182,7 @@ return [
         'errors' => [
             'no_publisher_scope' => "You don't have permission to manage this channel — it doesn't belong to a publisher you're scoped to.",
             'wrong_publisher' => "You can only assign this channel to a publisher you're scoped to.",
+            'ambiguous_publisher' => 'You are scoped to more than one publisher — pick which one this channel belongs to.',
         ],
     ],
 
@@ -1229,6 +1231,7 @@ return [
             'errors' => [
                 'no_publisher_scope' => "You don't have the publisher.vods.link permission on any publisher, so you can't link VODs to matches.",
                 'wrong_publisher' => "You can only link VODs under a publisher you're scoped to.",
+                'ambiguous_publisher' => 'You are scoped to more than one publisher — pick which one this VOD belongs to.',
             ],
         ],
         'errors' => [
@@ -1679,6 +1682,7 @@ return [
                 'no_permission' => "You don't have permission to edit this publisher.",
                 'no_logo_permission' => "You don't have permission to change this publisher's logo.",
                 'not_scoped' => "You don't have access to this publisher.",
+                'invalid_social_link' => 'The :attribute field must be a valid link.',
             ],
         ],
 
@@ -1704,6 +1708,7 @@ return [
                 'not_own_profile' => 'You can only edit your own author profile.',
                 'username_not_found' => 'No user was found with that username.',
                 'username_not_allowed' => "You don't have permission to link this profile to another user.",
+                'invalid_social_link' => 'The :attribute field must be a valid link.',
             ],
         ],
 

@@ -86,7 +86,7 @@ class NewsAuthorController extends Controller
             'socials' => ['nullable', 'array'],
             'socials.*' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) {
                 if (! HtmlSanitizer::isSafeUrl($value)) {
-                    $fail('The '.$attribute.' field must be a valid link.');
+                    $fail(__('admin.news.authors.errors.invalid_social_link', ['attribute' => $attribute]));
                 }
             }],
             'username' => $canManageUser ? ['nullable', 'string', 'exists:users,username'] : ['prohibited'],

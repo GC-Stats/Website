@@ -73,7 +73,10 @@ class FinanceController extends Controller
         $data = $this->validateCommon($request);
 
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:0.01'],
+            // Capped well under the amount_usd/amount_eur decimal(10,2) columns'
+            // 99999999.99 ceiling, leaving headroom for the currency conversion
+            // below (either direction) to never overflow them.
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:90000000'],
             'currency' => ['required', Rule::in(self::CURRENCIES)],
         ]);
 
@@ -107,8 +110,8 @@ class FinanceController extends Controller
         $data = $this->validateCommon($request);
 
         $amounts = $request->validate([
-            'amount_eur' => ['required', 'numeric', 'min:0.01'],
-            'amount_usd' => ['required', 'numeric', 'min:0.01'],
+            'amount_eur' => ['required', 'numeric', 'min:0.01', 'max:99999999.99'],
+            'amount_usd' => ['required', 'numeric', 'min:0.01', 'max:99999999.99'],
         ]);
 
         $entry->update([...$data, ...$amounts]);

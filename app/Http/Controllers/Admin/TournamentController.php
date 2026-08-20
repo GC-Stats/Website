@@ -152,13 +152,13 @@ class TournamentController extends Controller
         abort_unless(
             $tournament->status !== 'finished' || $request->user()->can('tournaments.finished.edit'),
             403,
-            'Only a user with tournaments.finished.edit can edit a finished tournament.'
+            __('admin.tournaments.finished_locked')
         );
 
         abort_unless(
             $tournament->active || $request->user()->can('tournaments.inactive.edit'),
             403,
-            'Only a user with tournaments.inactive.edit can edit an inactive tournament.'
+            __('admin.tournaments.inactive_locked')
         );
 
         $validated = $this->resolveCustomCategory($this->validateTournament($request, true));
@@ -192,7 +192,7 @@ class TournamentController extends Controller
         abort_unless(
             $tournament->active || $request->user()->can('tournaments.inactive.delete'),
             403,
-            'Only a user with tournaments.inactive.delete can delete an inactive tournament.'
+            __('admin.tournaments.inactive_delete_locked')
         );
 
         $name = $tournament->name;
@@ -399,6 +399,18 @@ class TournamentController extends Controller
 
             $parentId = $phase['parent_id'];
             $parentId = $idMap[$parentId] ?? $parentId;
+
+            // parent_id has a DB-level FK constraint (see 0008_tournaments_phases.php)
+            // and 'phases.*.parent_id' is only validated as a bare integer above
+            // (it can't be a plain exists:tournament_phases,id rule since it may
+            // instead reference another phase's position within this same
+            // submitted batch, resolved via $idMap just above) — so a garbage or
+            // cross-tournament id here would otherwise throw an uncaught
+            // QueryException. Only accept ids that are actually part of this
+            // tournament's own just-processed phase set.
+            if (! in_array($parentId, $keptIds, true)) {
+                continue;
+            }
 
             TournamentPhase::where('id', $idMap[$index])->update(['parent_id' => $parentId]);
         }
