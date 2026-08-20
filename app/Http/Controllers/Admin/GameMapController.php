@@ -86,6 +86,8 @@ class GameMapController extends Controller
             'weaponPool' => config('valorant.weapons'),
             'armorPool' => config('valorant.armor_types'),
             'winTypePool' => config('valorant.win_types'),
+            'riotRegions' => collect(config('regions.riot_api'))->unique()->values()->push('esports')->values(),
+            'defaultRegion' => config('regions.riot_api.'.$tournament->region),
         ]);
     }
 
@@ -324,6 +326,70 @@ class GameMapController extends Controller
         $payload = json_decode($response->getContent(), true) ?? [];
 
         return back()->with('error', 'map-fetch-failed')->with('fetchError', $payload);
+    }
+
+    /**
+     * Stitches several raw Riot match IDs (each restricted to a round range)
+     * into one synthetic match via RiotRelayClient::mergeMatch() — used when
+     * a map's game got interrupted and Riot recorded it as multiple separate
+     * matches. Only relinks the map's api_match_id to the relay's returned
+     * merged ID; the operator still triggers Fetch afterward (same button as
+     * for any other linked match) to actually pull stats, so the existing
+     * missing-val-id / team-color-ambiguity resolution flow in fetch() isn't
+     * duplicated here.
+     */
+    public function merge(Request $request, Tournament $tournament, Matchs $match, GameMap $map): RedirectResponse|JsonResponse
+    {
+        $this->requireEditable($request, $tournament, $match, 'maps.fetch', $map);
+
+        $allowedRegions = collect(config('regions.riot_api'))->unique()->values()->push('esports')->values()->all();
+
+        $validated = $request->validate([
+            'region' => ['required', 'string', Rule::in($allowedRegions)],
+            'segments' => ['required', 'array', 'min:2'],
+            'segments.*.matchId' => ['required', 'string', 'max:100', 'regex:/^[A-Za-z0-9_-]+$/'],
+            'segments.*.startRound' => ['required', 'integer', 'min:1'],
+            'segments.*.endRound' => ['required', 'integer', 'min:1', 'gte:segments.*.startRound'],
+        ], [
+            'region.in' => __('admin.operations.errors.invalid_region'),
+        ]);
+
+        $relay = app(RiotRelayClient::class);
+
+        $result = $relay->mergeMatch($validated['region'], $validated['segments']);
+
+        // The relay's response body is the merged match itself (same
+        // matchInfo/players/teams/roundResults shape as GET /match/{region}/{id}),
+        // not a {"matchId": ...} wrapper — the new synthetic ID lives at
+        // matchInfo.matchId (see RiotRelay's merge_round_data()).
+        $mergedMatchId = $result->successful ? ($result->json['matchInfo']['matchId'] ?? null) : null;
+
+        $changeSet = ActivityChangeSet::make()->add('api_match_id', $map->api_match_id, $mergedMatchId);
+
+        if ($mergedMatchId) {
+            $map->update(['api_match_id' => $mergedMatchId]);
+        }
+
+        activity('tournament')->causedBy($request->user())
+            ->performedOn($map)
+            ->withProperties($changeSet->mergeInto(['success' => (bool) $mergedMatchId, 'region' => $validated['region'], 'segments' => $validated['segments']]))
+            ->log('map.merged');
+
+        if (! $mergedMatchId) {
+            $message = $result->successful ? __('admin.matches.maps.errors.invalid_response') : $result->message();
+
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $message], $result->successful ? 502 : ($result->status ?: 502));
+            }
+
+            return back()->with('error', 'map-merge-failed')->with('errorDetail', $message);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'api_match_id' => $mergedMatchId]);
+        }
+
+        return redirect()->route('admin.matches.maps.show', [$tournament, $match, $map])->with('status', 'map-merged');
     }
 
     /**

@@ -37,15 +37,34 @@ class RiotRelayClient
         return $this->call('post', "/match/{$region}/{$matchId}/renew");
     }
 
-    private function call(string $method, string $path): RiotRelayResult
+    /**
+     * Stitches several raw match IDs into one continuous match — used when a
+     * map's game was interrupted (disconnect/restart) and Riot recorded it
+     * as multiple separate matches. Each segment picks the round range
+     * (startRound/endRound, inclusive) to pull from its own match. The relay
+     * returns a synthetic match ID (format `GCS-xxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`)
+     * that behaves like a normal one for every other RiotRelay/relay-backed
+     * call (getMatch/renewMatch) from then on.
+     *
+     * @param  list<array{matchId: string, startRound: int, endRound: int}>  $segments
+     */
+    public function mergeMatch(string $region, array $segments): RiotRelayResult
+    {
+        return $this->call('post', "/match/{$region}/merge", ['segments' => $segments]);
+    }
+
+    private function call(string $method, string $path, ?array $body = null): RiotRelayResult
     {
         $relayUrl = rtrim((string) config('services.riot.relay_url'), '/');
 
         try {
-            $response = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
+            $request = Http::withHeaders(['Authorization' => config('services.riot.relay_token')])
                 ->connectTimeout(self::CONNECT_TIMEOUT)
-                ->timeout(self::TIMEOUT)
-                ->{$method}("{$relayUrl}{$path}");
+                ->timeout(self::TIMEOUT);
+
+            $response = $body !== null
+                ? $request->{$method}("{$relayUrl}{$path}", $body)
+                : $request->{$method}("{$relayUrl}{$path}");
         } catch (ConnectionException) {
             return RiotRelayResult::unreachable();
         }

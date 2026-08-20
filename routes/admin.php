@@ -304,6 +304,8 @@ Route::middleware(['auth', 'can:access-admin'])->prefix('admin')->name('admin.')
                 ->middleware('can:maps.edit')->name('stats.update');
             Route::post('/{map}/fetch', [GameMapController::class, 'fetch'])
                 ->middleware('can:maps.fetch')->name('fetch');
+            Route::post('/{map}/merge', [GameMapController::class, 'merge'])
+                ->middleware('can:maps.fetch')->name('merge');
             Route::post('/{map}/renew', [GameMapController::class, 'renew'])
                 ->middleware('can:maps.cache.renew')->name('renew');
             Route::post('/{map}/reset', [GameMapController::class, 'reset'])

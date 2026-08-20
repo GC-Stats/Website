@@ -205,6 +205,76 @@
                 sortedColors() {
                     return [...(this.teamColorOptions || [])].sort((a, b) => (a === 'Red' ? -1 : b === 'Red' ? 1 : 0));
                 },
+
+                mergeOpen: false,
+                mergeRegion: {{ \Illuminate\Support\Js::from($defaultRegion) }},
+                mergeSegments: [{ matchId: '', startRound: 1, endRound: '' }],
+                mergeError: null,
+                mergeSubmitting: false,
+
+                openMerge() {
+                    this.mergeRegion = {{ \Illuminate\Support\Js::from($defaultRegion) }};
+                    this.mergeSegments = [{ matchId: '', startRound: 1, endRound: '' }];
+                    this.mergeError = null;
+                    this.mergeOpen = true;
+                },
+
+                addMergeSegment() {
+                    const last = this.mergeSegments[this.mergeSegments.length - 1];
+                    const nextStart = last && last.endRound !== '' ? parseInt(last.endRound, 10) + 1 : '';
+                    this.mergeSegments.push({ matchId: '', startRound: nextStart || '', endRound: '' });
+                },
+
+                removeMergeSegment(index) {
+                    if (this.mergeSegments.length > 1) this.mergeSegments.splice(index, 1);
+                },
+
+                // The region styled-select's option list is teleported to
+                // body, same as this modal — so a click on it is, structurally,
+                // a sibling click outside the modal and would otherwise close
+                // it via click.away on every region pick (see modal.blade.php,
+                // same fix).
+                closeMergeUnlessPortalClick(event) {
+                    if (! event.target.closest('[data-dropdown-portal]')) {
+                        this.mergeOpen = false;
+                    }
+                },
+
+                submitMerge() {
+                    this.mergeError = null;
+                    this.mergeSubmitting = true;
+
+                    const segments = this.mergeSegments.map((s) => ({
+                        matchId: s.matchId.trim(),
+                        startRound: parseInt(s.startRound, 10),
+                        endRound: parseInt(s.endRound, 10),
+                    }));
+
+                    fetch({{ \Illuminate\Support\Js::from(route('admin.matches.maps.merge', [$tournament, $match, $map])) }}, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': {{ \Illuminate\Support\Js::from(csrf_token()) }},
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ region: this.mergeRegion, segments }),
+                    })
+                        .then(async (res) => {
+                            const data = await res.json().catch(() => ({}));
+
+                            if (res.ok) {
+                                window.location.reload();
+
+                                return;
+                            }
+
+                            this.mergeError = data.error ?? Object.values(data.errors ?? {})[0]?.[0] ?? {{ \Illuminate\Support\Js::from(__('admin.matches.maps.errors.unexpected')) }};
+                        })
+                        .catch(() => {
+                            this.mergeError = {{ \Illuminate\Support\Js::from(__('admin.matches.maps.errors.network')) }};
+                        })
+                        .finally(() => { this.mergeSubmitting = false; });
+                },
              }"
              @endcan
         >
@@ -232,6 +302,10 @@
                         <button type="button" @click="fetchMap()" :disabled="loading || {{ $fetchLocked ? 'true' : 'false' }}"
                                 class="{{ $bigBtn }} bg-white/5 border border-white/10 text-white hover:bg-white/10">
                             <span x-text="loading ? '{{ __('admin.matches.maps.fetching') }}' : '{{ __('admin.matches.maps.fetch') }}'"></span>
+                        </button>
+                        <button type="button" @click="openMerge()" :disabled="loading || {{ $fetchLocked ? 'true' : 'false' }}"
+                                class="{{ $bigBtn }} bg-white/5 border border-white/10 text-white hover:bg-white/10">
+                            {{ __('admin.matches.maps.merge') }}
                         </button>
                     @endcan
                     @can('maps.cache.renew')
@@ -281,6 +355,68 @@
                         </template>
                     </div>
                 </div>
+
+                <template x-teleport="body">
+                    <div x-show="mergeOpen" x-cloak
+                         class="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                         @keydown.escape.window="mergeOpen = false">
+                        <div @click.away="closeMergeUnlessPortalClick($event)" role="dialog" aria-modal="true"
+                             class="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-bg-card border border-white/10 rounded-xl p-6 shadow-xl space-y-4">
+                            <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('admin.matches.maps.merge_title') }}</h2>
+                            <p class="text-xs text-gray-400">{{ __('admin.matches.maps.merge_help') }}</p>
+
+                            <div x-show="mergeError" x-cloak class="bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-lg px-4 py-3" x-text="mergeError"></div>
+
+                            <label class="block max-w-xs">
+                                <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.operations.cache_purge.region') }}</span>
+                                <x-styled-select x-model="mergeRegion" class="w-full"
+                                    :options="collect($riotRegions)->mapWithKeys(fn ($region) => [$region => $region])" />
+                            </label>
+
+                            <div class="space-y-3">
+                                <template x-for="(segment, index) in mergeSegments" :key="index">
+                                    <div class="grid grid-cols-[1fr_auto_auto_auto] items-end gap-2">
+                                        <label class="block">
+                                            <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.maps.merge_match_id') }}</span>
+                                            <input type="text" x-model="segment.matchId" placeholder="a5980c74-babe-4555-83bb-29322de43fc2"
+                                                   class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-gc-yellow transition">
+                                        </label>
+                                        <label class="block">
+                                            <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.maps.merge_start_round') }}</span>
+                                            <input type="number" x-model="segment.startRound" min="1"
+                                                   class="w-20 h-[38px] rounded-lg border border-white/10 bg-white/5 px-2 text-center text-xs text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+                                        </label>
+                                        <label class="block">
+                                            <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.matches.maps.merge_end_round') }}</span>
+                                            <input type="number" x-model="segment.endRound" min="1"
+                                                   class="w-20 h-[38px] rounded-lg border border-white/10 bg-white/5 px-2 text-center text-xs text-white focus:outline-none focus:border-gc-yellow [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+                                        </label>
+                                        <button type="button" @click="removeMergeSegment(index)" :disabled="mergeSegments.length <= 1"
+                                                class="flex h-[38px] w-9 items-center justify-center rounded-md text-gray-500 hover:bg-red-500/10 hover:text-red-400 transition disabled:opacity-30">
+                                            @svg('fas-xmark', 'w-3 h-3', ['aria-hidden' => 'true'])
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <button type="button" @click="addMergeSegment()"
+                                    class="font-bold uppercase text-[10px] tracking-widest px-3 py-1.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
+                                {{ __('admin.matches.maps.merge_add_segment') }}
+                            </button>
+
+                            <div class="flex justify-end gap-2 pt-4 border-t border-white/10">
+                                <button type="button" @click="mergeOpen = false"
+                                        class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-white/5 border border-white/10 text-white hover:bg-white/10">
+                                    {{ __('account.edit.cancel') }}
+                                </button>
+                                <button type="button" @click="submitMerge()" :disabled="mergeSubmitting"
+                                        class="font-bold uppercase text-[10px] tracking-widest px-4 py-2.5 rounded-lg transition active:scale-95 bg-gc-yellow text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(228,174,34,0.35)] disabled:opacity-40">
+                                    <span x-text="mergeSubmitting ? '{{ __('admin.matches.maps.merge_submitting') }}' : '{{ __('admin.matches.maps.merge_submit') }}'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             @endcan
             </div>
 
