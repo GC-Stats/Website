@@ -116,15 +116,20 @@ class PlayerController extends Controller
         );
     }
 
-    /** Flattens a RosterMerger stint back into the ['id','name','logo','pivot' => [...]] shape the team views expect. */
+    /**
+     * Flattens a RosterMerger stint back into the ['id','name','logo','pivot' => [...]] shape the
+     * team views expect, resolving the team's name/logo as they were when the player left (or now,
+     * for an ongoing stint) rather than the team's current branding.
+     */
     private function stintToTeamArray(array $stint): array
     {
         $team = $stint['model'];
+        $asOf = $stint['left_at'] ? Carbon::parse($stint['left_at']) : now();
 
         return [
             'id' => $team->id,
-            'name' => $team->name,
-            'logo' => $team->logo,
+            'name' => $team->nameAt($asOf),
+            'logo' => $team->logoAt($asOf, CurrentTheme::get()),
             'pivot' => [
                 'role' => $stint['role'],
                 'joined_at' => $stint['joined_at'] ? Carbon::parse($stint['joined_at'])->toDateString() : null,
@@ -186,6 +191,7 @@ class PlayerController extends Controller
                 $player->teams()
                     ->select('teams.id', 'teams.name')
                     ->withPivot('role', 'joined_at', 'left_at')
+                    ->with(['nameHistory', 'logos'])
                     ->get(),
                 'team_id'
             );
@@ -292,6 +298,7 @@ class PlayerController extends Controller
                 $player->teams()
                     ->select('teams.id', 'teams.name')
                     ->withPivot('role', 'joined_at', 'left_at')
+                    ->with(['nameHistory', 'logos'])
                     ->get(),
                 'team_id'
             )
