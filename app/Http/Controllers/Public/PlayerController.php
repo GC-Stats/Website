@@ -253,12 +253,41 @@ class PlayerController extends Controller
             return $redirect;
         }
 
-        $page = $request->integer('page', 1);
+        $data = $this->buildHistoryPayload($id, $request->integer('page', 1));
+        $pastTeams = $this->paginatorFromCache($data['pastPlayersItems'], $data['meta'], $request);
+
+        return response()
+            ->view('public.player.history', ['player' => $data['player'], 'pastTeams' => $pastTeams])
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the player history page renders, as JSON (pastPlayersItems
+     * as a plain paginated array instead of the blade's LengthAwarePaginator).
+     * Shares the exact cache entry the blade view reads/writes.
+     */
+    public function historyRaw(Request $request, int $id, ?string $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'players.history')) {
+            return $redirect;
+        }
+
+        $data = $this->buildHistoryPayload($id, $request->integer('page', 1));
+
+        return response()
+            ->json($data)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    private function buildHistoryPayload(int $id, int $page): array
+    {
         $player = Player::findOrFail($id);
         $cacheKey = "player_history_{$id}_page_{$page}_{$player->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "player_{$id}";
 
-        $data = Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($player, $page) {
+        return Cache::tags([$tag, 'players'])->remember($cacheKey, now()->addDay(), function () use ($player, $page) {
             $pastStints = RosterMerger::merge(
                 $player->teams()
                     ->select('teams.id', 'teams.name')
@@ -274,7 +303,7 @@ class PlayerController extends Controller
             $items = $pastStints->forPage($page, $perPage)->map(fn ($stint) => $this->stintToTeamArray($stint))->values()->all();
 
             return [
-                'player' => $player->toArray(),
+                'player' => $player->makeHidden(['vlr_id', 'val_id', 'esports_val_id', 'discord_id'])->toArray(),
                 'pastPlayersItems' => $items,
                 'meta' => [
                     'total' => $pastStints->count(),
@@ -283,13 +312,6 @@ class PlayerController extends Controller
                 ],
             ];
         });
-
-        $pastTeams = $this->paginatorFromCache($data['pastPlayersItems'], $data['meta'], $request);
-
-        return response()
-            ->view('public.player.history', ['player' => $data['player'], 'pastTeams' => $pastTeams])
-            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-            ->header('Vary', 'Accept-Language');
     }
 
     public function matches(Request $request, int $id, ?string $slug = null)
@@ -298,25 +320,44 @@ class PlayerController extends Controller
             return $redirect;
         }
 
-        $page = $request->input('page', 1);
+        $data = $this->buildMatchesPayload($id, $request->input('page', 1));
+        $matches = $this->paginatorFromCache($data['matches'], $data['meta'], $request);
+
+        return response()
+            ->view('public.player.matches', ['player' => $data['player'], 'matches' => $matches])
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the player matches page renders, as JSON (matches as a
+     * plain paginated array instead of the blade's LengthAwarePaginator).
+     * Shares the exact cache entry the blade view reads/writes.
+     */
+    public function matchesRaw(Request $request, int $id, ?string $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'players.matches')) {
+            return $redirect;
+        }
+
+        $data = $this->buildMatchesPayload($id, $request->input('page', 1));
+
+        return response()
+            ->json($data)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    private function buildMatchesPayload(int $id, $page): array
+    {
         $playerUpdatedAt = Player::where('id', $id)->value('updated_at');
         abort_unless($playerUpdatedAt !== null, 404);
 
         $cacheKey = "player_page_matches_{$id}_page_{$page}_".Carbon::parse($playerUpdatedAt)->timestamp.'_theme_'.CurrentTheme::get();
         $tag = "player_{$id}";
 
-        $cached = Cache::tags([$tag])->get($cacheKey);
-        if ($cached) {
-            $matches = $this->paginatorFromCache($cached['matches'], $cached['meta'], $request);
-
-            return response()
-                ->view('public.player.matches', ['player' => $cached['player'], 'matches' => $matches])
-                ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-                ->header('Vary', 'Accept-Language');
-        }
-
-        $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id) {
-            $player = Player::findOrFail($id)->toArray();
+        return Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id) {
+            $player = Player::findOrFail($id)->makeHidden(['vlr_id', 'val_id', 'esports_val_id', 'discord_id'])->toArray();
 
             $paginated = $this->playerMatchesQuery($id)
                 ->orderBy('matches.scheduled_at', 'desc')
@@ -337,13 +378,6 @@ class PlayerController extends Controller
                 ],
             ];
         });
-
-        $matches = $this->paginatorFromCache($data['matches'], $data['meta'], $request);
-
-        return response()
-            ->view('public.player.matches', ['player' => $data['player'], 'matches' => $matches])
-            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-            ->header('Vary', 'Accept-Language');
     }
 
     public function stats(Request $request, int $id, ?string $slug = null)
@@ -352,6 +386,34 @@ class PlayerController extends Controller
             return $redirect;
         }
 
+        $payload = $this->buildStatsPayload($request, $id);
+
+        return response()
+            ->view('public.player.stats', $payload)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the player stats page renders, as JSON. Shares the exact
+     * cache entries the blade view reads/writes.
+     */
+    public function statsRaw(Request $request, int $id, ?string $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'players.stats')) {
+            return $redirect;
+        }
+
+        $payload = $this->buildStatsPayload($request, $id);
+
+        return response()
+            ->json($payload)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    private function buildStatsPayload(Request $request, int $id): array
+    {
         $isAllTime = false;
         $start = null;
         $end = null;
@@ -405,10 +467,7 @@ class PlayerController extends Controller
 
         $cached = Cache::tags([$tag])->get($cacheKey);
         if ($cached) {
-            return response()
-                ->view('public.player.stats', ['player' => $cached['player'], 'stats' => $cached['stats'], 'insights' => $cached['insights'], 'weapons' => $cached['weapons'], 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps])
-                ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-                ->header('Vary', 'Accept-Language');
+            return ['player' => $cached['player'], 'stats' => $cached['stats'], 'insights' => $cached['insights'], 'weapons' => $cached['weapons'], 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps];
         }
 
         $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $start, $end, $isAllTime, $agents, $maps, $roleSlugs) {
@@ -487,17 +546,14 @@ class PlayerController extends Controller
             });
 
             return [
-                'player' => $player->toArray(),
+                'player' => $player->makeHidden(['vlr_id', 'val_id', 'esports_val_id', 'discord_id'])->toArray(),
                 'stats' => $stats->toArray(),
                 'insights' => $this->buildAgentStatsInsights($stats),
                 'weapons' => $weapons,
             ];
         });
 
-        return response()
-            ->view('public.player.stats', ['player' => $data['player'], 'stats' => $data['stats'], 'insights' => $data['insights'], 'weapons' => $data['weapons'], 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps])
-            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-            ->header('Vary', 'Accept-Language');
+        return ['player' => $data['player'], 'stats' => $data['stats'], 'insights' => $data['insights'], 'weapons' => $data['weapons'], 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps];
     }
 
     /**

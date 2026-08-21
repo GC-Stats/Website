@@ -177,12 +177,48 @@ class TeamController extends Controller
             return $redirect;
         }
 
-        $page = $request->input('page', 1);
+        $data = $this->buildHistoryPayload($id, $page = $request->input('page', 1));
+
+        $pastPlayers = new LengthAwarePaginator(
+            $data['pastPlayers'],
+            $data['meta']['total'],
+            $data['meta']['per_page'],
+            $data['meta']['current_page'],
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return response()
+            ->view('public.team.history', ['team' => $data['team'], 'pastPlayers' => $pastPlayers])
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the team history page renders, as JSON (pastPlayers as a
+     * plain paginated array instead of the blade's LengthAwarePaginator).
+     * Shares the exact cache entry the blade view reads/writes.
+     */
+    public function historyRaw(Request $request, int $id, ?string $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.history')) {
+            return $redirect;
+        }
+
+        $data = $this->buildHistoryPayload($id, $request->input('page', 1));
+
+        return response()
+            ->json($data)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    private function buildHistoryPayload(int $id, $page): array
+    {
         $team = Team::findOrFail($id);
         $cacheKey = "team_history_{$id}_page_{$page}_{$team->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "team_{$id}";
 
-        $data = Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($team, $page) {
+        return Cache::tags([$tag, 'teams'])->remember($cacheKey, now()->addDay(), function () use ($team, $page) {
             $pastStints = RosterMerger::merge(
                 $team->players()
                     ->select('players.id', 'players.handle', 'players.country_code')
@@ -199,7 +235,7 @@ class TeamController extends Controller
             $pageItems = $pastStints->forPage($page, $perPage)->map(fn ($stint) => $this->stintToArray($stint))->values()->all();
 
             return [
-                'team' => $team->toArray(),
+                'team' => $team->makeHidden(['vlr_id'])->toArray(),
                 'pastPlayers' => $pageItems,
                 'meta' => [
                     'total' => $pastStints->count(),
@@ -208,19 +244,6 @@ class TeamController extends Controller
                 ],
             ];
         });
-
-        $pastPlayers = new LengthAwarePaginator(
-            $data['pastPlayers'],
-            $data['meta']['total'],
-            $data['meta']['per_page'],
-            $data['meta']['current_page'],
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-
-        return response()
-            ->view('public.team.history', ['team' => $data['team'], 'pastPlayers' => $pastPlayers])
-            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-            ->header('Vary', 'Accept-Language');
     }
 
     public function matches(Request $request, int $id, ?string $slug = null)
@@ -229,53 +252,8 @@ class TeamController extends Controller
             return $redirect;
         }
 
-        $page = $request->input('page', 1);
-        $status = $request->input('status');
-        $status = in_array($status, ['upcoming', 'finished'], true) ? $status : null;
-        $teamUpdatedAt = Team::where('id', $id)->value('updated_at');
-        abort_unless($teamUpdatedAt !== null, 404);
-
-        $cacheKey = "team_page_matches_{$id}_page_{$page}_status_".($status ?? 'all').'_'.Carbon::parse($teamUpdatedAt)->timestamp.'_theme_'.CurrentTheme::get();
-        $tag = "team_{$id}";
-
-        $cached = Cache::tags([$tag])->get($cacheKey);
-        if ($cached) {
-            $matches = new LengthAwarePaginator(
-                $cached['matches'],
-                $cached['meta']['total'],
-                $cached['meta']['per_page'],
-                $cached['meta']['current_page'],
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-
-            return response()
-                ->view('public.team.matches', ['team' => $cached['team'], 'matches' => $matches, 'status' => $status])
-                ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-                ->header('Vary', 'Accept-Language');
-        }
-
-        $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $status) {
-            $team = Team::findOrFail($id);
-
-            $paginated = $this->teamMatchesQuery($id)
-                ->when($status, fn ($query) => $query->where('matches.status', $status))
-                ->orderBy('matches.scheduled_at', 'desc')
-                ->paginate(10);
-
-            $matchesArray = collect($paginated->items())
-                ->map(fn ($match) => $this->formatTeamMatch($match, $id))
-                ->all();
-
-            return [
-                'team' => $team->toArray(),
-                'matches' => $matchesArray,
-                'meta' => [
-                    'total' => $paginated->total(),
-                    'per_page' => $paginated->perPage(),
-                    'current_page' => $paginated->currentPage(),
-                ],
-            ];
-        });
+        $status = $this->normalizeMatchesStatus($request->input('status'));
+        $data = $this->buildMatchesPayload($id, $request->input('page', 1), $status);
 
         $matches = new LengthAwarePaginator(
             $data['matches'],
@@ -291,12 +269,97 @@ class TeamController extends Controller
             ->header('Vary', 'Accept-Language');
     }
 
+    /**
+     * Same payload the team matches page renders, as JSON (matches as a
+     * plain paginated array instead of the blade's LengthAwarePaginator).
+     * Shares the exact cache entry the blade view reads/writes.
+     */
+    public function matchesRaw(Request $request, int $id, ?string $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.matches')) {
+            return $redirect;
+        }
+
+        $status = $this->normalizeMatchesStatus($request->input('status'));
+        $data = $this->buildMatchesPayload($id, $request->input('page', 1), $status);
+
+        return response()
+            ->json(array_merge($data, ['status' => $status]))
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    private function normalizeMatchesStatus(?string $status): ?string
+    {
+        return in_array($status, ['upcoming', 'finished'], true) ? $status : null;
+    }
+
+    private function buildMatchesPayload(int $id, $page, ?string $status): array
+    {
+        $teamUpdatedAt = Team::where('id', $id)->value('updated_at');
+        abort_unless($teamUpdatedAt !== null, 404);
+
+        $cacheKey = "team_page_matches_{$id}_page_{$page}_status_".($status ?? 'all').'_'.Carbon::parse($teamUpdatedAt)->timestamp.'_theme_'.CurrentTheme::get();
+        $tag = "team_{$id}";
+
+        return Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $status) {
+            $team = Team::findOrFail($id);
+
+            $paginated = $this->teamMatchesQuery($id)
+                ->when($status, fn ($query) => $query->where('matches.status', $status))
+                ->orderBy('matches.scheduled_at', 'desc')
+                ->paginate(10);
+
+            $matchesArray = collect($paginated->items())
+                ->map(fn ($match) => $this->formatTeamMatch($match, $id))
+                ->all();
+
+            return [
+                'team' => $team->makeHidden(['vlr_id'])->toArray(),
+                'matches' => $matchesArray,
+                'meta' => [
+                    'total' => $paginated->total(),
+                    'per_page' => $paginated->perPage(),
+                    'current_page' => $paginated->currentPage(),
+                ],
+            ];
+        });
+    }
+
     public function maps(Request $request, int $id, ?string $slug = null)
     {
         if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.maps')) {
             return $redirect;
         }
 
+        $payload = $this->buildMapsPayload($request, $id);
+
+        return response()
+            ->view('public.team.maps', $payload)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the team maps page renders, as JSON. Shares the exact
+     * cache entry the blade view reads/writes.
+     */
+    public function mapsRaw(Request $request, int $id, ?string $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.maps')) {
+            return $redirect;
+        }
+
+        $payload = $this->buildMapsPayload($request, $id);
+
+        return response()
+            ->json($payload)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    private function buildMapsPayload(Request $request, int $id): array
+    {
         $team = Team::findOrFail($id);
         $cacheKey = "team_maps_{$id}_{$team->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "team_{$id}";
@@ -384,7 +447,7 @@ class TeamController extends Controller
             })->sortByDesc('times_played')->values();
 
             return [
-                'team' => $team->toArray(),
+                'team' => $team->makeHidden(['vlr_id'])->toArray(),
                 'maps' => $maps->toArray(),
             ];
         });
@@ -410,15 +473,12 @@ class TeamController extends Controller
             $h2hEnd
         );
 
-        return response()
-            ->view('public.team.maps', [
-                'team' => $data['team'],
-                'maps' => $data['maps'],
-                'insights' => $this->buildMapInsights($data['maps']),
-                'headToHead' => $headToHead,
-            ])
-            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-            ->header('Vary', 'Accept-Language');
+        return [
+            'team' => $data['team'],
+            'maps' => $data['maps'],
+            'insights' => $this->buildMapInsights($data['maps']),
+            'headToHead' => $headToHead,
+        ];
     }
 
     /**

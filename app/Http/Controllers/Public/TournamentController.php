@@ -568,6 +568,79 @@ class TournamentController extends Controller
             return $redirect;
         }
 
+        $payload = $this->buildMatchesPayload($request, $id);
+
+        $matches = new LengthAwarePaginator(
+            $payload['matches'],
+            $payload['meta']['total'],
+            $payload['meta']['per_page'],
+            $payload['meta']['current_page'],
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        $view = [
+            'tournament' => $payload['tournament'],
+            'matches' => $matches,
+            'filters' => $payload['filters'],
+            'phaseId' => $payload['phaseId'],
+            'teamId' => $payload['teamId'],
+            'roundName' => $payload['roundName'],
+            'status' => $payload['status'],
+        ];
+
+        if ($payload['private']) {
+            return response()
+                ->view('public.tournament.matches', array_merge($view, ['inactive_access' => true]))
+                ->header('Cache-Control', 'private, no-store')
+                ->header('Vary', 'Accept-Language');
+        }
+
+        return response()
+            ->view('public.tournament.matches', $view)
+            ->header('Cache-Control', "public, max-age={$payload['ttl']}, s-maxage={$payload['ttl']}")
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the tournament matches page renders, as JSON (matches as
+     * a plain paginated array instead of the blade's LengthAwarePaginator).
+     * Shares the exact cache entries the blade view reads/writes, so
+     * hitting this endpoint never duplicates the underlying data build.
+     */
+    public function matchesRaw(Request $request, $id, $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'tournaments.matches')) {
+            return $redirect;
+        }
+
+        $payload = $this->buildMatchesPayload($request, $id);
+
+        $body = [
+            'tournament' => $payload['tournament'],
+            'matches' => $payload['matches'],
+            'meta' => $payload['meta'],
+            'filters' => $payload['filters'],
+            'phaseId' => $payload['phaseId'],
+            'teamId' => $payload['teamId'],
+            'roundName' => $payload['roundName'],
+            'status' => $payload['status'],
+        ];
+
+        if ($payload['private']) {
+            return response()
+                ->json($body)
+                ->header('Cache-Control', 'private, no-store')
+                ->header('Vary', 'Accept-Language');
+        }
+
+        return response()
+            ->json($body)
+            ->header('Cache-Control', "public, max-age={$payload['ttl']}, s-maxage={$payload['ttl']}")
+            ->header('Vary', 'Accept-Language');
+    }
+
+    private function buildMatchesPayload(Request $request, $id): array
+    {
         $page = $request->input('page', 1);
         $phaseId = $request->get('phase_id');
         $teamId = $request->get('team_id');
@@ -725,27 +798,15 @@ class TournamentController extends Controller
             $filters = $buildFilters();
             $data = $buildPage();
 
-            $matches = new LengthAwarePaginator(
-                $data['matches'],
-                $data['meta']['total'],
-                $data['meta']['per_page'],
-                $data['meta']['current_page'],
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-
-            return response()
-                ->view('public.tournament.matches', [
-                    'tournament' => $data['tournament'],
-                    'matches' => $matches,
-                    'filters' => $filters,
-                    'phaseId' => $phaseId,
-                    'teamId' => $teamId,
-                    'roundName' => $roundName,
-                    'status' => $statusFilter,
-                    'inactive_access' => true,
-                ])
-                ->header('Cache-Control', 'private, no-store')
-                ->header('Vary', 'Accept-Language');
+            return array_merge($data, [
+                'filters' => $filters,
+                'phaseId' => $phaseId,
+                'teamId' => $teamId,
+                'roundName' => $roundName,
+                'status' => $statusFilter,
+                'ttl' => null,
+                'private' => true,
+            ]);
         }
 
         $filters = Cache::tags([$tag])->remember("tournament_matches_filters_{$id}_{$tournamentVersion}", $ttl, $buildFilters);
@@ -755,50 +816,28 @@ class TournamentController extends Controller
 
         $cached = Cache::tags([$tag])->get($cacheKey);
         if ($cached) {
-            $matches = new LengthAwarePaginator(
-                $cached['matches'],
-                $cached['meta']['total'],
-                $cached['meta']['per_page'],
-                $cached['meta']['current_page'],
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-
-            return response()
-                ->view('public.tournament.matches', [
-                    'tournament' => $cached['tournament'],
-                    'matches' => $matches,
-                    'filters' => $filters,
-                    'phaseId' => $phaseId,
-                    'teamId' => $teamId,
-                    'roundName' => $roundName,
-                    'status' => $statusFilter,
-                ])
-                ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
-                ->header('Vary', 'Accept-Language');
-        }
-
-        $data = Cache::tags([$tag])->remember($cacheKey, $ttl, $buildPage);
-
-        $matches = new LengthAwarePaginator(
-            $data['matches'],
-            $data['meta']['total'],
-            $data['meta']['per_page'],
-            $data['meta']['current_page'],
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
-
-        return response()
-            ->view('public.tournament.matches', [
-                'tournament' => $data['tournament'],
-                'matches' => $matches,
+            return array_merge($cached, [
                 'filters' => $filters,
                 'phaseId' => $phaseId,
                 'teamId' => $teamId,
                 'roundName' => $roundName,
                 'status' => $statusFilter,
-            ])
-            ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
-            ->header('Vary', 'Accept-Language');
+                'ttl' => $ttl,
+                'private' => false,
+            ]);
+        }
+
+        $data = Cache::tags([$tag])->remember($cacheKey, $ttl, $buildPage);
+
+        return array_merge($data, [
+            'filters' => $filters,
+            'phaseId' => $phaseId,
+            'teamId' => $teamId,
+            'roundName' => $roundName,
+            'status' => $statusFilter,
+            'ttl' => $ttl,
+            'private' => false,
+        ]);
     }
 
     public function stats(Request $request, $id, $slug = null)
@@ -807,6 +846,35 @@ class TournamentController extends Controller
             return $redirect;
         }
 
+        $payload = $this->buildStatsPayload($request, $id);
+
+        return response()
+            ->view('public.tournament.stats', $payload)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the tournament stats page renders, as JSON. Shares the
+     * exact cache entries the blade view reads/writes, so hitting this
+     * endpoint never duplicates the underlying data build.
+     */
+    public function statsRaw(Request $request, $id, $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'tournaments.stats')) {
+            return $redirect;
+        }
+
+        $payload = $this->buildStatsPayload($request, $id);
+
+        return response()
+            ->json($payload)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    private function buildStatsPayload(Request $request, $id): array
+    {
         $phaseId = $request->get('phase_id');
 
         $allPhases = TournamentPhase::where('tournament_id', $id)->get(['id', 'parent_id', 'name', 'order']);
@@ -865,10 +933,7 @@ class TournamentController extends Controller
 
         $cached = Cache::tags([$tag])->get($cacheKey);
         if ($cached) {
-            return response()
-                ->view('public.tournament.stats', ['tournament' => $cached['tournament'], 'stats' => $cached['stats'], 'insights' => $cached['insights'], 'weapons' => $cached['weapons'], 'phases' => $parentPhases, 'selectedPhase' => $phaseId, 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps])
-                ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-                ->header('Vary', 'Accept-Language');
+            return ['tournament' => $cached['tournament'], 'stats' => $cached['stats'], 'insights' => $cached['insights'], 'weapons' => $cached['weapons'], 'phases' => $parentPhases, 'selectedPhase' => $phaseId, 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps];
         }
 
         $data = Cache::tags([$tag])->remember($cacheKey, 3600, function () use ($id, $phaseIds, $start, $end, $agents, $maps, $roleSlugs) {
@@ -955,10 +1020,7 @@ class TournamentController extends Controller
             ];
         });
 
-        return response()
-            ->view('public.tournament.stats', ['tournament' => $data['tournament'], 'stats' => $data['stats'], 'insights' => $data['insights'], 'weapons' => $data['weapons'], 'phases' => $parentPhases, 'selectedPhase' => $phaseId, 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps])
-            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-            ->header('Vary', 'Accept-Language');
+        return ['tournament' => $data['tournament'], 'stats' => $data['stats'], 'insights' => $data['insights'], 'weapons' => $data['weapons'], 'phases' => $parentPhases, 'selectedPhase' => $phaseId, 'filterOptions' => $filterOptions, 'selectedAgents' => $agents, 'selectedRoles' => $roles, 'selectedMaps' => $maps];
     }
 
     /**
@@ -1011,6 +1073,35 @@ class TournamentController extends Controller
             return $redirect;
         }
 
+        $payload = $this->buildMapsPayload($request, $id);
+
+        return response()
+            ->view('public.tournament.maps', $payload)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the tournament maps page renders, as JSON. Shares the
+     * exact cache entry the blade view reads/writes, so hitting this
+     * endpoint never duplicates the underlying data build.
+     */
+    public function mapsRaw(Request $request, $id, $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'tournaments.maps')) {
+            return $redirect;
+        }
+
+        $payload = $this->buildMapsPayload($request, $id);
+
+        return response()
+            ->json($payload)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    private function buildMapsPayload(Request $request, $id): array
+    {
         $phaseId = $request->get('phase_id');
 
         $allPhases = TournamentPhase::where('tournament_id', $id)->get(['id', 'parent_id', 'name', 'order']);
@@ -1129,18 +1220,15 @@ class TournamentController extends Controller
             }
         }
 
-        return response()
-            ->view('public.tournament.maps', [
-                'tournament' => $data['tournament'],
-                'maps' => $data['maps'],
-                'phases' => $parentPhases,
-                'selectedPhase' => $phaseId,
-                'insights' => $this->buildMapInsights($data['maps']),
-                'headToHead' => $headToHead,
-                'tournamentTeams' => $tournamentTeams,
-            ])
-            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-            ->header('Vary', 'Accept-Language');
+        return [
+            'tournament' => $data['tournament'],
+            'maps' => $data['maps'],
+            'phases' => $parentPhases,
+            'selectedPhase' => $phaseId,
+            'insights' => $this->buildMapInsights($data['maps']),
+            'headToHead' => $headToHead,
+            'tournamentTeams' => $tournamentTeams,
+        ];
     }
 
     /**

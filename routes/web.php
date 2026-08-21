@@ -86,22 +86,31 @@ Route::prefix('/tournaments/{tournament}/{slug?}')->name('tournaments.')->group(
     Route::get('/', [TournamentController::class, 'show'])->name('show');
     Route::get('/raw', [TournamentController::class, 'raw'])->middleware('throttle:raw')->name('raw');
     Route::get('/matches', [TournamentController::class, 'matches'])->name('matches');
+    Route::get('/matches/raw', [TournamentController::class, 'matchesRaw'])->middleware('throttle:raw')->name('matches.raw');
     Route::get('/stats', [TournamentController::class, 'stats'])->name('stats');
+    Route::get('/stats/raw', [TournamentController::class, 'statsRaw'])->middleware('throttle:raw')->name('stats.raw');
     Route::get('/maps', [TournamentController::class, 'maps'])->name('maps');
+    Route::get('/maps/raw', [TournamentController::class, 'mapsRaw'])->middleware('throttle:raw')->name('maps.raw');
 });
 
 Route::prefix('/team/{team}/{slug?}')->name('teams.')->group(function () {
     Route::get('/history', [TeamController::class, 'history'])->name('history');
+    Route::get('/history/raw', [TeamController::class, 'historyRaw'])->middleware('throttle:raw')->name('history.raw');
     Route::get('/matches', [TeamController::class, 'matches'])->name('matches');
+    Route::get('/matches/raw', [TeamController::class, 'matchesRaw'])->middleware('throttle:raw')->name('matches.raw');
     Route::get('/maps', [TeamController::class, 'maps'])->name('maps');
+    Route::get('/maps/raw', [TeamController::class, 'mapsRaw'])->middleware('throttle:raw')->name('maps.raw');
     Route::get('/raw', [TeamController::class, 'raw'])->middleware('throttle:raw')->name('raw');
     Route::get('/', [TeamController::class, 'index'])->name('show');
 });
 
 Route::prefix('/player/{player}/{slug?}')->name('players.')->group(function () {
     Route::get('/history', [PlayerController::class, 'history'])->name('history');
+    Route::get('/history/raw', [PlayerController::class, 'historyRaw'])->middleware('throttle:raw')->name('history.raw');
     Route::get('/matches', [PlayerController::class, 'matches'])->name('matches');
+    Route::get('/matches/raw', [PlayerController::class, 'matchesRaw'])->middleware('throttle:raw')->name('matches.raw');
     Route::get('/stats', [PlayerController::class, 'stats'])->name('stats');
+    Route::get('/stats/raw', [PlayerController::class, 'statsRaw'])->middleware('throttle:raw')->name('stats.raw');
     Route::get('/raw', [PlayerController::class, 'raw'])->middleware('throttle:raw')->name('raw');
     Route::get('/', [PlayerController::class, 'index'])->name('show');
 });
