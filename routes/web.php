@@ -84,6 +84,7 @@ Route::middleware(['static.cache:300'])->group(function () {
 Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
 Route::prefix('/tournaments/{tournament}/{slug?}')->name('tournaments.')->group(function () {
     Route::get('/', [TournamentController::class, 'show'])->name('show');
+    Route::get('/raw', [TournamentController::class, 'raw'])->middleware('throttle:raw')->name('raw');
     Route::get('/matches', [TournamentController::class, 'matches'])->name('matches');
     Route::get('/stats', [TournamentController::class, 'stats'])->name('stats');
     Route::get('/maps', [TournamentController::class, 'maps'])->name('maps');
@@ -93,6 +94,7 @@ Route::prefix('/team/{team}/{slug?}')->name('teams.')->group(function () {
     Route::get('/history', [TeamController::class, 'history'])->name('history');
     Route::get('/matches', [TeamController::class, 'matches'])->name('matches');
     Route::get('/maps', [TeamController::class, 'maps'])->name('maps');
+    Route::get('/raw', [TeamController::class, 'raw'])->middleware('throttle:raw')->name('raw');
     Route::get('/', [TeamController::class, 'index'])->name('show');
 });
 
@@ -100,6 +102,7 @@ Route::prefix('/player/{player}/{slug?}')->name('players.')->group(function () {
     Route::get('/history', [PlayerController::class, 'history'])->name('history');
     Route::get('/matches', [PlayerController::class, 'matches'])->name('matches');
     Route::get('/stats', [PlayerController::class, 'stats'])->name('stats');
+    Route::get('/raw', [PlayerController::class, 'raw'])->middleware('throttle:raw')->name('raw');
     Route::get('/', [PlayerController::class, 'index'])->name('show');
 });
 
@@ -109,6 +112,7 @@ Route::prefix('/user/{user:username}')->name('users.')->group(function () {
 });
 
 Route::get('/match/{id}', [MatchController::class, 'index'])->name('match.show');
+Route::get('/match/{id}/raw', [MatchController::class, 'raw'])->middleware('throttle:raw')->name('match.raw');
 
 Route::middleware(['throttle:60,1'])->prefix('/widget')->name('widget.')->group(function () {
     Route::get('/', [WidgetController::class, 'index'])->name('index');

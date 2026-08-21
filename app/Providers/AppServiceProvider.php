@@ -43,6 +43,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -54,6 +55,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\ParallelTesting;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -85,6 +87,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Route::pattern('id', '[0-9]+');
+
+        // Shared across every /raw endpoint (tournaments/team/player/match) so a
+        // client hammering several entities in parallel is throttled as one
+        // consumer, keyed by user id when authenticated, IP otherwise — not by
+        // route, unlike the default `throttle:` signature.
+        RateLimiter::for('raw', function ($request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
 
         Str::macro('routeSlug', function ($value, $fallback) {
             $slug = Str::slug((string) $value);

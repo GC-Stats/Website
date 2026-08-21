@@ -140,6 +140,41 @@ class PlayerController extends Controller
             return $redirect;
         }
 
+        $data = $this->buildIndexPayload($id);
+
+        return response()
+            ->view('public.player.index', $data)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the player profile page renders, as JSON. Shares the
+     * exact cache entry the blade view reads/writes (same cache key/tag),
+     * so hitting this endpoint never duplicates the underlying data build.
+     */
+    public function raw(int $id, ?string $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'players.show')) {
+            return $redirect;
+        }
+
+        $data = $this->buildIndexPayload($id);
+
+        return response()
+            ->json($data)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Builds the array the player profile page (blade and /raw) renders:
+     * the cached teams/matches/achievements payload merged with the
+     * per-request news list. Reads/writes the same cache key as the
+     * previous behavior, so callers share one cache entry.
+     */
+    private function buildIndexPayload(int $id): array
+    {
         $player = Player::findOrFail($id);
         $cacheKey = "player_page_{$id}_{$player->updated_at->timestamp}_theme_".CurrentTheme::get();
         $tag = "player_{$id}";
@@ -191,7 +226,7 @@ class PlayerController extends Controller
             };
 
             return [
-                'player' => $player->makeHidden(['teams'])->toArray(),
+                'player' => $player->makeHidden(['teams', 'vlr_id', 'val_id', 'esports_val_id', 'discord_id'])->toArray(),
                 'currentTeams' => $currentTeams,
                 'pastTeams' => $pastTeams,
                 'upcomingMatches' => $processMatches($upcomingMatchesRaw),
@@ -209,10 +244,7 @@ class PlayerController extends Controller
             ->get()
             ->toArray();
 
-        return response()
-            ->view('public.player.index', array_merge($data, ['news' => $news]))
-            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-            ->header('Vary', 'Accept-Language');
+        return array_merge($data, ['news' => $news]);
     }
 
     public function history(Request $request, int $id, ?string $slug = null)

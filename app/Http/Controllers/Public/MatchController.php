@@ -29,6 +29,58 @@ class MatchController extends Controller
 {
     public function index($id)
     {
+        ['data' => $matchData, 'status' => $status, 'private' => $private] = $this->buildMatchPayload($id);
+
+        if ($private) {
+            return response()
+                ->view('public.match', array_merge($matchData, $this->perRequestViewData()))
+                ->header('Cache-Control', 'private, no-store')
+                ->header('Vary', 'Accept-Language');
+        }
+
+        return $this->respondWithMatchView($matchData, $status);
+    }
+
+    /**
+     * Same payload the match page renders, as JSON. Shares the exact cache
+     * entry the blade view reads/writes (same cache key), so hitting this
+     * endpoint never duplicates the underlying data build.
+     */
+    public function raw($id)
+    {
+        ['data' => $matchData, 'status' => $status, 'private' => $private] = $this->buildMatchPayload($id);
+
+        $perRequest = $this->perRequestViewData();
+
+        if ($private || $perRequest['canLinkStreams'] || $perRequest['canLinkVods']) {
+            return response()
+                ->json(array_merge($matchData, $perRequest))
+                ->header('Cache-Control', 'private, no-store')
+                ->header('Vary', 'Accept-Language');
+        }
+
+        $ttl = match ($status) {
+            'finished' => 86400 * 30,
+            'upcoming' => 86400,
+            'live' => 60,
+            default => 3600,
+        };
+
+        return response()
+            ->json(array_merge($matchData, $perRequest))
+            ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Builds the cached match payload (teams, maps, stats, head-to-head,
+     * encounters) shared by the show page and /raw — excludes the
+     * per-visitor permission flags, which are merged in by each caller.
+     *
+     * @return array{data: array, status: string}
+     */
+    private function buildMatchPayload($id): array
+    {
         $tag = "match_{$id}";
 
         $meta = DB::table('matches')
@@ -48,7 +100,7 @@ class MatchController extends Controller
         if ($meta->tournament_active) {
             $cached = Cache::tags([$tag])->get($cacheKey);
             if ($cached) {
-                return $this->respondWithMatchView($cached, $cached['match']['status']);
+                return ['data' => $cached, 'status' => $cached['match']['status'], 'private' => false];
             }
         }
 
@@ -343,15 +395,16 @@ class MatchController extends Controller
         if (! $meta->tournament_active) {
             $matchData = $buildMatchData();
 
-            return response()
-                ->view('public.match', array_merge($matchData, ['inactive_access' => true], $this->perRequestViewData()))
-                ->header('Cache-Control', 'private, no-store')
-                ->header('Vary', 'Accept-Language');
+            return [
+                'data' => array_merge($matchData, ['inactive_access' => true]),
+                'status' => $matchData['match']['status'],
+                'private' => true,
+            ];
         }
 
         $matchData = Cache::remember($cacheKey, CacheTtl::forMatch($status), $buildMatchData);
 
-        return $this->respondWithMatchView($matchData, $matchData['match']['status']);
+        return ['data' => $matchData, 'status' => $matchData['match']['status'], 'private' => false];
     }
 
     /**

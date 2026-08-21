@@ -165,6 +165,55 @@ class TournamentController extends Controller
             return $redirect;
         }
 
+        ['data' => $data, 'ttl' => $ttl, 'private' => $private] = $this->buildShowPayload($id);
+
+        if ($private) {
+            return response()
+                ->view('public.tournament.show', $data)
+                ->header('Cache-Control', 'private, no-store')
+                ->header('Vary', 'Accept-Language');
+        }
+
+        return response()
+            ->view('public.tournament.show', $data)
+            ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the show page renders, as JSON. Shares the exact cache
+     * entry the blade view reads/writes (same cache key/tag), so hitting
+     * this endpoint never duplicates the underlying data build.
+     */
+    public function raw($id, $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'tournaments.show')) {
+            return $redirect;
+        }
+
+        ['data' => $data, 'ttl' => $ttl, 'private' => $private] = $this->buildShowPayload($id);
+
+        if ($private) {
+            return response()
+                ->json($data)
+                ->header('Cache-Control', 'private, no-store')
+                ->header('Vary', 'Accept-Language');
+        }
+
+        return response()
+            ->json($data)
+            ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Builds the array the tournament show page (blade and /raw) renders:
+     * the cached tournament/teams/matches/phases payload merged with the
+     * per-request news list and default phase. Reads/writes the same cache
+     * key as the previous behavior, so callers share one cache entry.
+     */
+    private function buildShowPayload($id): array
+    {
         $tag = "tournament_{$id}";
 
         $news = News::with(['author', 'publisher'])
@@ -195,13 +244,14 @@ class TournamentController extends Controller
                     default => 3600,
                 };
 
-                return response()
-                    ->view('public.tournament.show', array_merge($cached, [
+                return [
+                    'data' => array_merge($cached, [
                         'news' => $news,
                         'default_phase_id' => $this->currentRootPhaseId($cached['root_phases']),
-                    ]))
-                    ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
-                    ->header('Vary', 'Accept-Language');
+                    ]),
+                    'ttl' => $ttl,
+                    'private' => false,
+                ];
             }
         }
 
@@ -482,14 +532,15 @@ class TournamentController extends Controller
         if (! $tournamentMeta->active) {
             $data = $buildData();
 
-            return response()
-                ->view('public.tournament.show', array_merge($data, [
+            return [
+                'data' => array_merge($data, [
                     'news' => $news,
                     'inactive_access' => true,
                     'default_phase_id' => $this->currentRootPhaseId($data['root_phases']),
-                ]))
-                ->header('Cache-Control', 'private, no-store')
-                ->header('Vary', 'Accept-Language');
+                ]),
+                'ttl' => null,
+                'private' => true,
+            ];
         }
 
         $data = Cache::tags([$tag])->remember($cacheKey, CacheTtl::forTournament($tournamentMeta->status), $buildData);
@@ -501,13 +552,14 @@ class TournamentController extends Controller
             default => 3600,
         };
 
-        return response()
-            ->view('public.tournament.show', array_merge($data, [
+        return [
+            'data' => array_merge($data, [
                 'news' => $news,
                 'default_phase_id' => $this->currentRootPhaseId($data['root_phases']),
-            ]))
-            ->header('Cache-Control', "public, max-age={$ttl}, s-maxage={$ttl}")
-            ->header('Vary', 'Accept-Language');
+            ]),
+            'ttl' => $ttl,
+            'private' => false,
+        ];
     }
 
     public function matches(Request $request, $id, $slug = null)

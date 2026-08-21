@@ -70,6 +70,41 @@ class TeamController extends Controller
             return $redirect;
         }
 
+        $data = $this->buildIndexPayload($id);
+
+        return response()
+            ->view('public.team.index', $data)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Same payload the team profile page renders, as JSON. Shares the exact
+     * cache entry the blade view reads/writes (same cache key/tag), so
+     * hitting this endpoint never duplicates the underlying data build.
+     */
+    public function raw(int $id, ?string $slug = null)
+    {
+        if ($redirect = $this->redirectToCanonicalSlug($id, $slug, 'teams.show')) {
+            return $redirect;
+        }
+
+        $data = $this->buildIndexPayload($id);
+
+        return response()
+            ->json($data)
+            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
+            ->header('Vary', 'Accept-Language');
+    }
+
+    /**
+     * Builds the array the team profile page (blade and /raw) renders: the
+     * cached roster/matches/achievements payload merged with the
+     * per-request news list. Reads/writes the same cache key as the
+     * previous behavior, so callers share one cache entry.
+     */
+    private function buildIndexPayload(int $id): array
+    {
         $team = Team::findOrFail($id);
 
         $cacheKey = "team_page_{$id}_{$team->updated_at->timestamp}_theme_".CurrentTheme::get();
@@ -116,7 +151,7 @@ class TeamController extends Controller
                 ->all();
 
             return [
-                'team' => $team->makeHidden(['players'])->toArray(),
+                'team' => $team->makeHidden(['players', 'vlr_id'])->toArray(),
                 'currentRoster' => $currentRoster,
                 'pastPlayers' => $pastPlayers,
                 'matches' => $processedMatches,
@@ -133,10 +168,7 @@ class TeamController extends Controller
             ->get()
             ->toArray();
 
-        return response()
-            ->view('public.team.index', array_merge($data, ['news' => $news]))
-            ->header('Cache-Control', 'public, max-age=3600, s-maxage=3600')
-            ->header('Vary', 'Accept-Language');
+        return array_merge($data, ['news' => $news]);
     }
 
     public function history(Request $request, int $id, ?string $slug = null)
