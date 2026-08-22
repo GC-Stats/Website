@@ -151,7 +151,7 @@ class TeamProfileService
 
             // A user's fan tag (App\Models\User::team_tag) is only ever
             // validated against this list at pick time (see
-            // Auth\AccountSettingsController::updateFanTeam) — without this,
+            // Auth\ProfileSettingsController::updateFanTeam) — without this,
             // removing a tag here would leave it permanently displayed on
             // any profile that had already picked it.
             User::where('team_id', $team->id)

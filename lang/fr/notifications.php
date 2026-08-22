@@ -11,6 +11,7 @@ return [
     'see_all' => 'Voir toutes les notifications',
     'from' => 'De :name',
     'from_system' => 'Système',
+    'settings_hint' => 'Gérez lesquelles sont aussi envoyées par email dans vos',
 
     'email' => [
         'view_action' => 'Voir les détails',

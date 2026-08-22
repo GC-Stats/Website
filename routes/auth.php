@@ -15,6 +15,7 @@
 use App\Http\Controllers\Auth\AccountSettingsController;
 use App\Http\Controllers\Auth\NotificationController;
 use App\Http\Controllers\Auth\PlayerChangeRequestController;
+use App\Http\Controllers\Auth\ProfileSettingsController;
 use App\Http\Controllers\Auth\ResendVerificationController;
 use App\Http\Controllers\Auth\SocialAccountController;
 use App\Http\Controllers\Auth\SocialAuthController;
@@ -42,6 +43,8 @@ Route::post('/email/verify/resend', [ResendVerificationController::class, 'store
 Route::middleware(['auth'])->group(function () {
     Route::get('/settings/account', [AccountSettingsController::class, 'edit'])
         ->name('account.edit');
+    Route::get('/settings/profile', [ProfileSettingsController::class, 'edit'])
+        ->name('profile.edit');
     Route::get('/settings/account/export', [AccountSettingsController::class, 'exportData'])
         ->name('account.export');
     Route::delete('/settings/account', [AccountSettingsController::class, 'destroyAccount'])
@@ -76,10 +79,10 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/settings/account/password', [AccountSettingsController::class, 'destroyPassword'])
             ->name('account.password.destroy');
 
-        Route::put('/settings/account/team', [AccountSettingsController::class, 'updateFanTeam'])
+        Route::put('/settings/account/team', [ProfileSettingsController::class, 'updateFanTeam'])
             ->name('account.team.update');
 
-        Route::put('/settings/account/bio', [AccountSettingsController::class, 'updateBio'])
+        Route::put('/settings/account/bio', [ProfileSettingsController::class, 'updateBio'])
             ->name('account.bio.update');
 
         Route::post('/settings/change-requests/{changeRequest}/messages', [UserChangeRequestController::class, 'storeMessage'])

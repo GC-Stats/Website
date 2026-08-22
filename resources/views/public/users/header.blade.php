@@ -15,6 +15,16 @@
 --}}
 <div class="mb-6">
     @auth
+        @if (auth()->id() === $profileUser->id)
+            <div class="flex justify-end mb-3">
+                <a href="{{ route('profile.edit') }}"
+                   class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest bg-[var(--brand-yellow)] text-black shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:brightness-110 active:scale-95 transition-all">
+                    @svg('fas-pen', 'w-3 h-3', ['aria-hidden' => 'true'])
+                    {{ __('user.profile.edit_button') }}
+                </a>
+            </div>
+        @endif
+
         @if (auth()->id() !== $profileUser->id)
             <div class="flex flex-col items-end gap-2 mb-3">
                 @if (session('status') === 'report-submitted')

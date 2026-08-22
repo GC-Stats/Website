@@ -63,7 +63,7 @@
 
                                         <p style="margin:28px 0 0; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08); font-size:11px; line-height:1.6; color:#4b5563;">
                                             {{ __('notifications.email.preferences_hint') }}
-                                            <a href="{{ route('account.notifications.index') }}" style="color:#6b7280;">{{ route('account.notifications.index') }}</a>
+                                            <a href="{{ route('account.edit') }}" style="color:#6b7280;">{{ route('account.edit') }}</a>
                                         </p>
                                     </td>
                                 </tr>

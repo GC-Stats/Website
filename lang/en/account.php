@@ -3,6 +3,10 @@
 use App\Support\Pronouns;
 
 return [
+    'profile_edit' => [
+        'title' => 'Edit profile',
+    ],
+
     'edit' => [
         'title' => 'Account settings',
         'confirm_title' => 'Are you sure?',
@@ -54,6 +58,7 @@ return [
                 'tiktok' => 'TikTok',
                 'email' => 'Email',
             ],
+            'email_staff_only' => 'Staff only',
             'submit' => 'Save',
             'saved' => 'Bio updated.',
             'not_eligible' => 'You can add a bio and social links once your account is at least 30 days old (15 days if linked to a connected account), or once you hold a staff role.',

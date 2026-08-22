@@ -9,6 +9,7 @@ return [
         'news' => 'Actualités',
     ],
     'profile' => [
+        'edit_button' => 'Modifier mon profil',
         'fan_of' => 'Fan de',
         'view_player_profile' => [
             Pronouns::FEMININE => 'Voir le profil joueuse',

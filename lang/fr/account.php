@@ -3,6 +3,10 @@
 use App\Support\Pronouns;
 
 return [
+    'profile_edit' => [
+        'title' => 'Modifier le profil',
+    ],
+
     'edit' => [
         'title' => 'Paramètres du compte',
         'confirm_title' => 'Êtes-vous sûr(e) ?',
@@ -54,6 +58,7 @@ return [
                 'tiktok' => 'TikTok',
                 'email' => 'Email',
             ],
+            'email_staff_only' => 'Réservé au staff',
             'submit' => 'Enregistrer',
             'saved' => 'Bio mise à jour.',
             'not_eligible' => "Vous pourrez ajouter une bio et des réseaux sociaux une fois votre compte âgé d'au moins 30 jours (15 jours si lié à un compte connecté), ou si vous détenez un rôle de l'équipe.",

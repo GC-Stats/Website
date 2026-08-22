@@ -190,11 +190,6 @@
                                         <x-fas-pen class="w-3.5 h-3.5" aria-hidden="true" />
                                         {{ __('layout.account.change_requests') }}
                                     </a>
-                                    <a href="{{ route('account.notifications.index') }}" role="menuitem"
-                                       class="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
-                                        <x-fas-bell class="w-3.5 h-3.5" aria-hidden="true" />
-                                        {{ __('layout.account.notifications') }}
-                                    </a>
                                     @can('access-admin')
                                         <a href="{{ route('admin.dashboard') }}" role="menuitem"
                                            class="flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-white/5 hover:text-white transition-all">
@@ -357,12 +352,6 @@
                        class="flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all {{ request()->routeIs('account.change-requests.*') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 bg-white/5' }}">
                         <x-fas-pen class="w-3.5 h-3.5" aria-hidden="true" />
                         {{ __('layout.account.change_requests') }}
-                    </a>
-                    <a href="{{ route('account.notifications.index') }}"
-                       @if(request()->routeIs('account.notifications.*')) aria-current="page" @endif
-                       class="flex items-center gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all {{ request()->routeIs('account.notifications.*') ? 'bg-[var(--brand-yellow)] text-black' : 'text-gray-400 bg-white/5' }}">
-                        <x-fas-bell class="w-3.5 h-3.5" aria-hidden="true" />
-                        {{ __('layout.account.notifications') }}
                     </a>
                     @can('access-admin')
                         <a href="{{ route('admin.dashboard') }}"

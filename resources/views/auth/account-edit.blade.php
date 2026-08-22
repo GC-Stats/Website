@@ -24,7 +24,7 @@
 
 @section('content')
     <div class="grid grid-cols-12 gap-6">
-        <section class="col-span-12 lg:col-span-6 lg:col-start-4 space-y-6"
+        <section class="col-span-12 lg:col-span-10 lg:col-start-2"
                  x-data="accountSecurity({
                     routes: {
                         confirmPassword: '{{ route('password.confirm') }}',
@@ -51,174 +51,22 @@
 
             @php
                 $statusKey = match (session('status')) {
-                    'profile-information-updated' => 'account.edit.profile.saved',
                     'password-updated' => 'account.edit.password.updated',
                     'password-removed' => 'account.edit.password.removed',
                     'provider-unlinked' => 'account.edit.connected.unlinked',
-                    'team-tag-updated' => 'account.edit.team.saved',
-                    'bio-updated' => 'account.edit.bio.saved',
+                    'email-preferences-updated' => 'notifications.email_preferences.saved',
                     default => null,
                 };
             @endphp
 
             @if ($statusKey)
-                <div class="bg-green-500/10 border border-green-500/30 text-green-400 text-sm rounded-sm px-4 py-3">
+                <div class="bg-green-500/10 border border-green-500/30 text-green-400 text-sm rounded-sm px-4 py-3 mt-6">
                     {{ __($statusKey) }}
                 </div>
             @endif
 
-            {{-- Profile --}}
-            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
-                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('account.edit.profile.title') }}</h2>
-
-                <form method="POST" action="{{ route('user-profile-information.update') }}" class="space-y-4">
-                    @csrf
-                    @method('PUT')
-
-                    <div>
-                        <label for="name" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
-                            {{ __('account.edit.profile.name_label') }}
-                        </label>
-                        <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}" required
-                               class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
-                        @error('name', 'updateProfileInformation')
-                            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="username" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
-                            {{ __('account.edit.profile.username_label') }}
-                        </label>
-                        <input id="username" type="text" name="username" value="{{ old('username', $user->username) }}" required
-                               class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
-                        @error('username', 'updateProfileInformation')
-                            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="pronouns" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
-                            {{ __('account.edit.profile.pronouns_label') }}
-                        </label>
-                        <select id="pronouns" name="pronouns"
-                                class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
-                            @foreach (__('account.edit.profile.pronouns_options') as $value => $label)
-                                <option value="{{ $value }}" @selected((int) old('pronouns', $user->pronouns) === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('pronouns', 'updateProfileInformation')
-                            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="email" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
-                            {{ __('account.edit.profile.email_label') }}
-                        </label>
-                        <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" autocomplete="email"
-                               class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
-                        <p class="text-xs text-gray-500 mt-2">{{ __('account.edit.profile.email_help') }}</p>
-                        @error('email', 'updateProfileInformation')
-                            <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <button type="submit"
-                            class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
-                        {{ __('account.edit.profile.submit') }}
-                    </button>
-                </form>
-            </div>
-
-            {{-- Avatar --}}
-            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
-                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('account.edit.avatar.title') }}</h2>
-
-                <div class="flex items-center gap-4">
-                    <x-user-avatar :user="$user" class="w-16 h-16 rounded-lg bg-white/5 border border-border-subtle text-base" />
-                    <p class="text-xs text-gray-500">
-                        {{ __('account.edit.avatar.body') }}
-                        <a href="https://gravatar.com" target="_blank" rel="noopener noreferrer" class="text-gc-yellow hover:underline">
-                            {{ __('account.edit.avatar.link_label') }}
-                        </a>
-                    </p>
-                </div>
-            </div>
-
-            {{-- Team fan tag --}}
-            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
-                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('account.edit.team.title') }}</h2>
-                <p class="text-xs text-gray-500">{{ __('account.edit.team.body') }}</p>
-
-                <form method="POST" action="{{ route('account.team.update') }}" class="space-y-4">
-                    @csrf
-                    @method('PUT')
-
-                    @livewire('team-fan-picker', ['initialTeamId' => $user->team_id, 'initialTeamTag' => $user->team_tag])
-
-                    @error('team_id')
-                        <p class="text-xs text-red-400">{{ $message }}</p>
-                    @enderror
-                    @error('team_tag')
-                        <p class="text-xs text-red-400">{{ $message }}</p>
-                    @enderror
-
-                    <button type="submit"
-                            class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
-                        {{ __('account.edit.team.submit') }}
-                    </button>
-                </form>
-            </div>
-
-            {{-- Bio & social links --}}
-            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
-                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('account.edit.bio.title') }}</h2>
-                <p class="text-xs text-gray-500">{{ __('account.edit.bio.body') }}</p>
-
-                @if ($user->isEligibleForBio())
-                    <form method="POST" action="{{ route('account.bio.update') }}" class="space-y-4">
-                        @csrf
-                        @method('PUT')
-
-                        <div>
-                            <label for="bio" class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
-                                {{ __('account.edit.bio.bio_label') }}
-                            </label>
-                            <textarea id="bio" name="bio" rows="4" maxlength="1000"
-                                      class="w-full bg-[#050505] border border-border-subtle rounded-sm px-4 py-3 text-sm text-white focus:outline-none focus:border-gc-yellow transition">{{ old('bio', $user->bio) }}</textarea>
-                            @error('bio')
-                                <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">
-                                {{ __('account.edit.bio.socials_label') }}
-                            </label>
-                            <div class="grid grid-cols-2 gap-2">
-                                @foreach ($socialPlatforms as $platform)
-                                    <input type="text" name="socials[{{ $platform }}]"
-                                           placeholder="{{ __('account.edit.bio.social.'.$platform) }}"
-                                           value="{{ old('socials.'.$platform, $user->socials[$platform] ?? '') }}"
-                                           class="w-full bg-[#050505] border border-border-subtle rounded-sm px-3 py-2 text-xs text-white focus:outline-none focus:border-gc-yellow transition">
-                                @endforeach
-                            </div>
-                            @error('socials.*')
-                                <p class="text-xs text-red-400 mt-2">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <button type="submit"
-                                class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
-                            {{ __('account.edit.bio.submit') }}
-                        </button>
-                    </form>
-                @else
-                    <p class="text-xs text-gray-500">{{ __('account.edit.bio.not_eligible') }}</p>
-                @endif
-            </div>
-
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div class="space-y-6">
             {{-- Password --}}
             <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
                 <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('account.edit.password.title') }}</h2>
@@ -335,6 +183,33 @@
                 @enderror
             </div>
 
+            {{-- Email notification preferences --}}
+            <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
+                <h2 class="text-xs font-black uppercase tracking-widest text-gc-yellow">{{ __('notifications.email_preferences.title') }}</h2>
+                <p class="text-xs text-gray-500">{{ __('notifications.email_preferences.intro') }}</p>
+
+                <form method="POST" action="{{ route('account.notifications.email-preferences.update') }}" class="space-y-3">
+                    @csrf
+                    @method('PUT')
+
+                    @foreach ($emailCategories as $category)
+                        <label class="flex items-center gap-3 text-sm text-gray-300">
+                            <input type="checkbox" name="categories[]" value="{{ $category }}"
+                                   @checked(\App\Support\EmailNotificationPreferences::enabled($user, $category))
+                                   class="rounded border-white/20 bg-white/5 text-[var(--brand-yellow)] focus:ring-[var(--brand-yellow)]">
+                            {{ __('notifications.email_preferences.'.$category) }}
+                        </label>
+                    @endforeach
+
+                    <button type="submit"
+                            class="w-full font-bold uppercase text-xs tracking-widest py-3 rounded-sm transition active:scale-95 bg-gc-yellow text-black hover:opacity-90">
+                        {{ __('notifications.email_preferences.submit') }}
+                    </button>
+                </form>
+            </div>
+            </div>
+
+            <div class="space-y-6">
             {{-- Two-factor authentication (password-protected accounts only — it exists to harden a password login) --}}
             @if ($user->password)
             <div class="bg-bg-card border border-border-subtle rounded-sm p-6 shadow-xl space-y-4">
@@ -494,6 +369,8 @@
                         </x-confirm-modal>
                     </form>
                 </div>
+            </div>
+            </div>
             </div>
 
             <template x-teleport="body">

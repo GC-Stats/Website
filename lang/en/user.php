@@ -9,6 +9,7 @@ return [
         'news' => 'News',
     ],
     'profile' => [
+        'edit_button' => 'Edit my profile',
         'fan_of' => 'Fan of',
         'view_player_profile' => [
             Pronouns::FEMININE => 'View player profile',

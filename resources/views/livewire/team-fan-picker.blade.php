@@ -7,7 +7,7 @@
  * the global searchbar, see App\Services\SearchService::searchTeams()) used
  * on the account settings page to pick a "fan of" team + one of its tags.
  * Renders plain `team_id`/`team_tag` hidden inputs so the surrounding native
- * <form> (Auth\AccountSettingsController::updateFanTeam) submits them as-is
+ * <form> (Auth\ProfileSettingsController::updateFanTeam) submits them as-is
  * — this component only manages the picking UI, not the save itself.
  *
  * @copyright Copyright (c) 2026 Alice Alleman — GC-Stats-Website
