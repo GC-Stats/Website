@@ -120,6 +120,8 @@ class MatchController extends Controller
                 'map_bans.sidePickedBy:id,name,short_name',
                 'streams' => fn ($query) => $query->active()->orderBy('name'),
                 'vods.gameMap:id,map_name',
+                'playerPovs.player:id,handle',
+                'playerPovs.team:id,name,short_name',
             ])->findOrFail($id);
 
             $allPlayerStats = DB::table('game_player_stats')

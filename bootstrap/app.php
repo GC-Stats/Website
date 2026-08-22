@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('app:prune-data-explorer-error-logs')->daily();
 
         $schedule->command('matches:activate-live')->everyMinute();
+        $schedule->command('matches:detect-player-povs')->everyMinute();
         $schedule->command('tournaments:activate-live')->daily();
     })
     ->withMiddleware(function (Middleware $middleware) {

@@ -305,6 +305,7 @@ class TournamentController extends Controller
             'prize_pool' => ['sometimes', 'nullable', 'string', 'max:100'],
             'description' => ['sometimes', 'nullable', 'string'],
             'liquipedia_link' => ['sometimes', 'nullable', 'url', 'max:255'],
+            'player_pov_phrase' => ['sometimes', 'nullable', 'string', 'max:255'],
             'status' => ['sometimes', 'string', 'in:upcoming,live,finished'],
             'active' => ['sometimes', 'boolean'],
             'point_type_id' => ['sometimes', 'nullable', 'integer', 'exists:point_types,id'],
@@ -337,7 +338,7 @@ class TournamentController extends Controller
 
     private function coreColumns(array $validated): array
     {
-        $columns = ['name', 'region', 'category', 'start_date', 'end_date', 'location', 'prize_pool', 'description', 'liquipedia_link', 'status', 'active', 'point_type_id'];
+        $columns = ['name', 'region', 'category', 'start_date', 'end_date', 'location', 'prize_pool', 'description', 'liquipedia_link', 'player_pov_phrase', 'status', 'active', 'point_type_id'];
 
         return array_intersect_key($validated, array_flip($columns));
     }

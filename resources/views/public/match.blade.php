@@ -70,6 +70,8 @@
                 @include('components.public.match.streams', ['match' => $match, 'canLinkStreams' => $canLinkStreams ?? false])
             @endif
 
+            @include('components.public.match.player-povs', ['match' => $match])
+
             <div class="mt-10 -mx-4 md:-mx-6">
                 <div class="flex items-center justify-center gap-4 mb-8">
                     <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10"></div>

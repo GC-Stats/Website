@@ -75,6 +75,10 @@ return [
     'multi_kills' => 'Multi-kills',
     'economy' => 'Économie de :team',
     'veto' => 'Processus de veto',
+    'player_povs' => [
+        'title' => 'Player POV',
+        'info' => 'Ces streams sont détectés automatiquement et peuvent parfois être erronés.',
+    ],
     'streams' => [
         'title' => 'Streams',
         'watch' => 'Regarder',

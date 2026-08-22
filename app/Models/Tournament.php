@@ -42,6 +42,7 @@ class Tournament extends Model
         'active',
         'liquipedia_link',
         'point_type_id',
+        'player_pov_phrase',
     ];
 
     protected $casts = [

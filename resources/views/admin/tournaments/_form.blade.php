@@ -106,6 +106,14 @@
         </label>
 
         <label class="block">
+            <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.player_pov_phrase') }}</span>
+            <input type="text" name="player_pov_phrase" value="{{ old('player_pov_phrase', $tournament->player_pov_phrase ?? '') }}"
+                   placeholder="{{ __('admin.tournaments.player_pov_phrase_placeholder') }}"
+                   class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gc-yellow transition">
+            <span class="block text-[11px] text-gray-500 mt-1.5">{{ __('admin.tournaments.player_pov_phrase_help') }}</span>
+        </label>
+
+        <label class="block">
             <span class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1.5">{{ __('admin.tournaments.point_type') }}</span>
             <x-styled-select name="point_type_id" :selected="old('point_type_id', $tournament->point_type_id ?? '')"
                 :options="collect(['' => __('admin.tournaments.point_type_none')])->union($pointTypes->mapWithKeys(fn ($pointType) => [$pointType->id => $pointType->name]))" />

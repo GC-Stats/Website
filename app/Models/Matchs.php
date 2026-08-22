@@ -111,6 +111,11 @@ class Matchs extends Model
         return $this->hasMany(Vod::class, 'match_id');
     }
 
+    public function playerPovs(): HasMany
+    {
+        return $this->hasMany(MatchPlayerPov::class, 'match_id');
+    }
+
     /**
      * The array shape resources/views/components/match/score-header.blade.php
      * needs — single source of truth for the time-aware team name/logo

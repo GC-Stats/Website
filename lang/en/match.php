@@ -82,6 +82,10 @@ return [
         'add' => 'Add a stream',
         'picker_label' => 'Channel',
     ],
+    'player_povs' => [
+        'title' => 'Player POV',
+        'info' => 'These streams are detected automatically and may sometimes be wrong.',
+    ],
     'vods' => [
         'title' => 'VODs',
         'empty' => 'No VOD linked to this match yet.',
