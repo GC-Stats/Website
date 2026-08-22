@@ -18,6 +18,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Public\Controller;
 use App\Models\Notification;
 use App\Services\NotificationService;
+use App\Support\EmailNotificationPreferences;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

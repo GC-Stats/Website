@@ -6,11 +6,11 @@ use App\Services\NotificationService;
 use App\Support\EmailNotificationPreferences;
 use Illuminate\Support\Facades\Mail;
 
-test('the notifications settings page renders the email preferences form', function () {
+test('the account settings page renders the email preferences form', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->get(route('account.notifications.index'))
+        ->get(route('account.edit'))
         ->assertOk()
         ->assertSee(__('notifications.email_preferences.title'));
 });
