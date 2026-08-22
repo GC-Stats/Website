@@ -262,6 +262,8 @@
         position: relative;
         box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.5);
         transition: box-shadow 0.5s ease;
+        transform: translateZ(0);
+        backface-visibility: hidden;
     }
 
     .live-match-glow:hover {
