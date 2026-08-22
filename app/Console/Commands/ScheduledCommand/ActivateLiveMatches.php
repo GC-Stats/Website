@@ -36,6 +36,9 @@ class ActivateLiveMatches extends Command
     /** Matches of the same tournament scheduled less than this apart are considered chained. */
     private const CHAIN_GAP_HOURS = 3;
 
+    /** Matches scheduled closer together than this are parallel (different brackets), never chained. */
+    private const CHAIN_MIN_GAP_HOURS = 1;
+
     public function handle(): int
     {
         $matches = Matchs::query()
@@ -82,10 +85,8 @@ class ActivateLiveMatches extends Command
             ->where('tournament_id', $match->tournament_id)
             ->where('id', '!=', $match->id)
             ->where('status', '!=', 'finished')
-            ->whereBetween('scheduled_at', [
-                $match->scheduled_at->copy()->subHours(self::CHAIN_GAP_HOURS),
-                $match->scheduled_at,
-            ])
+            ->where('scheduled_at', '>=', $match->scheduled_at->copy()->subHours(self::CHAIN_GAP_HOURS))
+            ->where('scheduled_at', '<=', $match->scheduled_at->copy()->subHours(self::CHAIN_MIN_GAP_HOURS))
             ->exists();
     }
 
