@@ -949,6 +949,7 @@ class TournamentController extends Controller
                 ->selectRaw('
                     game_player_stats.player_id,
                     players.handle as player_handle,
+                    players.country_code as player_country_code,
                     COUNT(*) as games_played,
                     GROUP_CONCAT(DISTINCT game_player_stats.agent_name ORDER BY game_player_stats.agent_name ASC SEPARATOR ",") as played_agents,
                     GROUP_CONCAT(DISTINCT CASE WHEN game_maps.map_name IS NOT NULL AND game_maps.map_name != "Unknown" THEN game_maps.map_name END ORDER BY game_maps.map_name ASC SEPARATOR ",") as played_maps,
@@ -985,7 +986,7 @@ class TournamentController extends Controller
                 ->when($agents !== [], fn ($query) => $query->whereIn('game_player_stats.agent_name', $agents))
                 ->when($maps !== [], fn ($query) => $query->whereIn('game_maps.map_name', $maps))
                 ->when($roleSlugs !== [], fn ($query) => $query->whereIn(DB::raw('LOWER(REPLACE(game_player_stats.agent_name, "/", ""))'), $roleSlugs))
-                ->groupBy('game_player_stats.player_id', 'players.handle')
+                ->groupBy('game_player_stats.player_id', 'players.handle', 'players.country_code')
                 ->orderBy('avg_acs', 'desc')
                 ->get()
                 ->map(function ($item) {

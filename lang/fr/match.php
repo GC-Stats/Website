@@ -44,6 +44,7 @@ return [
         'headshot_percentage' => 'HS%',
         'agent_name' => 'Agent',
         'player' => 'Joueuse',
+        'nationality' => 'Nationalité',
         'mvp' => 'MVP',
         'caption' => 'Statistiques joueuses de :team',
         'ability1_kills' => 'Kills capacité 1',

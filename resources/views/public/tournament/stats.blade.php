@@ -166,6 +166,8 @@
 
                                     <th @click="sortBy('player_handle')" class="p-3 text-center border-b border-gray-800/50 hover:text-white transition-colors cursor-pointer">{{ __("match.stats.player") }}</th>
 
+                                    <th @click="sortBy('player_country_code')" class="p-3 text-center border-b border-gray-800/50 hover:text-white transition-colors cursor-pointer">{{ __("match.stats.nationality") }}</th>
+
                                     <template x-for="col in allCols" :key="col.key">
                                         <th x-show="visibleCols.includes(col.key)" @click="sortBy(col.key)" class="p-3 text-center border-b border-gray-800/50 hover:text-white transition-colors group cursor-pointer">
                                             <div class="flex items-center justify-center gap-1">
@@ -203,6 +205,13 @@
                                             <a :href="'/player/' + stat.player_id + '/' + (stat.player_handle || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')" x-text="stat.player_handle || '---'"></a>
                                         </td>
 
+                                        <td class="p-2 text-center border-b border-gray-800/30">
+                                            <span class="fi shadow-sm inline-block"
+                                                  :class="'fi-' + (stat.player_country_code ? stat.player_country_code.toLowerCase() : 'un')"
+                                                  :aria-label="stat.player_country_code || ''"
+                                                  role="img"></span>
+                                        </td>
+
                                         <template x-for="col in allCols" :key="col.key">
                                             <td x-show="visibleCols.includes(col.key)" class="p-2 text-center border-b border-gray-800/30"
                                                 :class="col.key === 'kast' ? (val(stat, 'kast') >= 75 ? 'text-green-500' : 'text-gray-500') : 'text-gray-300'"
@@ -213,7 +222,7 @@
                                 </template>
 
                                 <tr x-show="filteredStats.length === 0">
-                                    <td colspan="20" class="p-8 text-center text-gray-600 uppercase font-black tracking-widest">{{ __("tournament.stats.no_data") }}</td>
+                                    <td colspan="21" class="p-8 text-center text-gray-600 uppercase font-black tracking-widest">{{ __("tournament.stats.no_data") }}</td>
                                 </tr>
                             </tbody>
                         </table>

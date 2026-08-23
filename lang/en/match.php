@@ -45,6 +45,7 @@ return [
         'headshot_percentage' => 'HS%',
         'agent_name' => 'Agent',
         'player' => 'Player',
+        'nationality' => 'Nationality',
         'mvp' => 'MVP',
         'caption' => ':team player statistics',
         'ability1_kills' => 'Ability 1 kills',

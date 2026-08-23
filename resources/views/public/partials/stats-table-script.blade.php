@@ -126,9 +126,11 @@
             },
 
             get filteredStats() {
+                const stringCols = ['player_handle', 'player_country_code'];
+
                 let rows = [...this.stats].sort((a, b) => {
-                    let valA = this.sortCol === 'player_handle' ? (a.player_handle ?? '') : this.val(a, this.sortCol);
-                    let valB = this.sortCol === 'player_handle' ? (b.player_handle ?? '') : this.val(b, this.sortCol);
+                    let valA = stringCols.includes(this.sortCol) ? (a[this.sortCol] ?? '') : this.val(a, this.sortCol);
+                    let valB = stringCols.includes(this.sortCol) ? (b[this.sortCol] ?? '') : this.val(b, this.sortCol);
 
                     if (!isNaN(valA) && !isNaN(valB)) {
                         return this.sortAsc ? valA - valB : valB - valA;
