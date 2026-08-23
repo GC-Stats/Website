@@ -14,6 +14,12 @@ return [
         'open_menu' => 'Open menu',
         'close_menu' => 'Close menu',
     ],
+    'wingman' => [
+        'hover' => 'Made by :name — click for more info',
+        'modal_title' => 'Artwork credit',
+        'modal_bio_pending' => 'Artist bio coming soon.',
+        'modal_close' => 'Close',
+    ],
     'account' => [
         'menu_label' => 'Account menu',
         'login' => 'Sign in',
@@ -44,6 +50,8 @@ return [
             'title' => 'Accent',
             'none' => 'None',
             'pride' => 'Pride',
+            'wingman' => 'Wingman',
+            'hint' => 'You can combine multiple accents at once.',
         ],
         'timezone' => [
             'title' => 'Timezone',

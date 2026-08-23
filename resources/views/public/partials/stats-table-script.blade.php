@@ -46,6 +46,8 @@
             { key: 'multi_4k', name: {{ Js::from(__('match.stats.multi_4k')) }} },
             { key: 'multi_5k', name: {{ Js::from(__('match.stats.multi_5k')) }} },
             { key: 'clutches', name: {{ Js::from(__('match.stats.clutches')) }} },
+            { key: 'plants', name: {{ Js::from(__('match.stats.plants')) }} },
+            { key: 'defuses', name: {{ Js::from(__('match.stats.defuses')) }} },
             ...weapons.map(w => ({ key: 'weapon_' + statsWeaponSlug(w), name: w })),
         ];
 

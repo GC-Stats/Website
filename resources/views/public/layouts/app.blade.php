@@ -22,9 +22,12 @@
                 document.documentElement.setAttribute('data-theme', 'white');
             }
 
-            if (localStorage.getItem('gcs_accent') === '1') {
-                document.documentElement.setAttribute('data-accent', 'pride');
-            }
+            try {
+                var accents = JSON.parse(localStorage.getItem('gcs_accents') || '[]');
+                if (Array.isArray(accents) && accents.length) {
+                    document.documentElement.setAttribute('data-accent', accents.join(' '));
+                }
+            } catch (e) {}
         })();
     </script>
 
@@ -81,24 +84,32 @@
             searchOpen: false,
             configOpen: false,
             theme: 'dark',
-            accent: 'none',
+            accents: [],
+            wingmanUnlocked: false,
             timezone: '',
             timezones: [],
             timeFormat: '24h',
             initConfig() {
                 this.theme = GCS.getTheme();
-                this.accent = GCS.getAccent();
+                this.accents = GCS.getAccents();
+                this.wingmanUnlocked = GCS.isWingmanUnlocked();
                 this.timezone = GCS.getTimezone();
                 this.timezones = GCS.getTimezones();
                 this.timeFormat = GCS.getTimeFormat();
+            },
+            onWingmanUnlocked() {
+                this.wingmanUnlocked = true;
+                this.accents = GCS.getAccents();
             },
             selectTheme(value) {
                 this.theme = value;
                 GCS.setTheme(value);
             },
-            selectAccent(value) {
-                this.accent = value;
-                GCS.setAccent(value);
+            toggleAccent(value) {
+                this.accents = GCS.toggleAccent(value);
+            },
+            clearAccents() {
+                this.accents = GCS.clearAccents();
             },
             selectTimezone(value) {
                 this.timezone = value;
@@ -110,6 +121,7 @@
             },
          }"
          x-init="initConfig()"
+         @wingman-unlocked.window="onWingmanUnlocked()"
          aria-label="{{ __('layout.nav.aria_label') }}"
          class="sticky top-4 z-50 w-[calc(100%-2rem)] max-w-7xl mx-auto bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.8)]">
         <div class="px-4 md:px-6">
@@ -117,6 +129,9 @@
 
                 <div class="flex items-center gap-6">
                     <a href="/" class="brand-logo group flex items-center shrink-0">
+                        <span class="mr-2" x-show="accents.includes('wingman')" x-cloak>
+                            @include('public.partials.wingman-credit', ['imgClass' => 'h-6 w-6 md:h-7 md:w-7'])
+                        </span>
                         <span class="text-xl md:text-2xl font-black tracking-tighter text-white uppercase italic transition-all group-hover:drop-shadow-[0_0_8px_var(--brand-yellow)]">
                             GC<span class="gc-stats-text text-[var(--brand-yellow)]"><span class="gc-letter">S</span><span class="gc-letter">T</span><span class="gc-letter">A</span><span class="gc-letter">T</span><span class="gc-letter">S</span></span>
                         </span>
@@ -450,21 +465,30 @@
                         {{ __('layout.config.accent.title') }}
                     </h3>
                     <div class="grid grid-cols-2 gap-3">
-                        <button @click="selectAccent('none')"
-                                :aria-pressed="(accent === 'none').toString()"
+                        <button @click="clearAccents()"
+                                :aria-pressed="(accents.length === 0).toString()"
                                 class="flex flex-col items-center gap-2 px-4 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all"
-                                :class="accent === 'none' ? 'border-[var(--brand-yellow)] text-white bg-white/5' : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'">
+                                :class="accents.length === 0 ? 'border-[var(--brand-yellow)] text-white bg-white/5' : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'">
                             <span class="w-6 h-6 rounded-full border border-white/20 bg-transparent"></span>
                             {{ __('layout.config.accent.none') }}
                         </button>
-                        <button @click="selectAccent('pride')"
-                                :aria-pressed="(accent === 'pride').toString()"
+                        <button @click="toggleAccent('pride')"
+                                :aria-pressed="accents.includes('pride').toString()"
                                 class="flex flex-col items-center gap-2 px-4 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all"
-                                :class="accent === 'pride' ? 'border-[var(--brand-yellow)] text-white bg-white/5' : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'">
+                                :class="accents.includes('pride') ? 'border-[var(--brand-yellow)] text-white bg-white/5' : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'">
                             <span class="w-6 h-6 rounded-full" style="background: linear-gradient(90deg, #e40303, #ff8c00, #ffed00, #008026, #004dff, #750787);"></span>
                             {{ __('layout.config.accent.pride') }}
                         </button>
+                        <button x-show="wingmanUnlocked" x-cloak
+                                @click="toggleAccent('wingman')"
+                                :aria-pressed="accents.includes('wingman').toString()"
+                                class="flex flex-col items-center gap-2 px-4 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all"
+                                :class="accents.includes('wingman') ? 'border-[var(--brand-yellow)] text-white bg-white/5' : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'">
+                            <img src="{{ asset('storage/images/wingman.webp') }}" alt="" aria-hidden="true" class="w-6 h-6 rounded-full object-cover">
+                            {{ __('layout.config.accent.wingman') }}
+                        </button>
                     </div>
+                    <p class="text-[9px] text-gray-600 mt-2">{{ __('layout.config.accent.hint') }}</p>
                 </div>
 
                 <div>
@@ -537,6 +561,8 @@
             </div>
         </div>
         </template>
+
+        @include('public.partials.wingman-modal')
     </nav>
 
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">

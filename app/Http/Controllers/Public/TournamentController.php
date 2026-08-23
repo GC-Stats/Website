@@ -971,7 +971,9 @@ class TournamentController extends Controller
                     ROUND(AVG(headshot_percentage), 2) as avg_hs,
                     SUM(headshot_percentage) as total_hs,
                     SUM(COALESCE(gpas.clutch_1v1_won,0)+COALESCE(gpas.clutch_1v2_won,0)+COALESCE(gpas.clutch_1v3_won,0)+COALESCE(gpas.clutch_1v4_won,0)+COALESCE(gpas.clutch_1v5_won,0)) as clutches_won,
-                    SUM(COALESCE(gpas.clutch_1v1_total,0)+COALESCE(gpas.clutch_1v2_total,0)+COALESCE(gpas.clutch_1v3_total,0)+COALESCE(gpas.clutch_1v4_total,0)+COALESCE(gpas.clutch_1v5_total,0)) as clutch_attempts
+                    SUM(COALESCE(gpas.clutch_1v1_total,0)+COALESCE(gpas.clutch_1v2_total,0)+COALESCE(gpas.clutch_1v3_total,0)+COALESCE(gpas.clutch_1v4_total,0)+COALESCE(gpas.clutch_1v5_total,0)) as clutch_attempts,
+                    SUM(COALESCE(gpas.plants,0)) as total_plants,
+                    SUM(COALESCE(gpas.defuses,0)) as total_defuses
                 ')
                 ->where('game_player_stats.tournament_id', $id)
                 ->when($phaseIds !== null, function ($query) use ($phaseIds) {
@@ -995,6 +997,11 @@ class TournamentController extends Controller
                     $clutchRate = $item->clutch_attempts > 0 ? round($item->clutches_won / $item->clutch_attempts * 100, 1) : 0.0;
                     $item->total_clutch_rate = $clutchRate;
                     $item->avg_clutch_rate = $clutchRate;
+
+                    $item->total_plants = (int) $item->total_plants;
+                    $item->avg_plants = $item->games_played > 0 ? round($item->total_plants / $item->games_played, 2) : 0.0;
+                    $item->total_defuses = (int) $item->total_defuses;
+                    $item->avg_defuses = $item->games_played > 0 ? round($item->total_defuses / $item->games_played, 2) : 0.0;
 
                     return $item;
                 });
@@ -1061,6 +1068,7 @@ class TournamentController extends Controller
             $card('top_kast', 'avg_kast', '%'),
             $card('top_entries', 'avg_first_kills'),
             $card('top_utility', 'avg_grenade_kills'),
+            $card('top_plants', 'total_plants'),
             $card('top_clutch_rate', 'total_clutch_rate', '%'),
             $card('top_operator', 'total_weapon_operator'),
             $card('top_sheriff', 'total_weapon_sheriff'),

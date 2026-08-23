@@ -13,6 +13,12 @@ return [
         'open_menu' => 'Ouvrir le menu',
         'close_menu' => 'Fermer le menu',
     ],
+    'wingman' => [
+        'hover' => 'Fait par :name — cliquer pour plus d\'info',
+        'modal_title' => "Crédits de l'illustration",
+        'modal_bio_pending' => "Bio de l'artiste à venir.",
+        'modal_close' => 'Fermer',
+    ],
     'account' => [
         'menu_label' => 'Menu du compte',
         'login' => 'Connexion',
@@ -43,6 +49,8 @@ return [
             'title' => 'Accent',
             'none' => 'Aucun',
             'pride' => 'Pride',
+            'wingman' => 'Wingman',
+            'hint' => 'Vous pouvez combiner plusieurs accents en même temps.',
         ],
         'timezone' => [
             'title' => 'Fuseau horaire',

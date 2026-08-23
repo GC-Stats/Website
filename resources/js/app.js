@@ -57,14 +57,19 @@ document.addEventListener('DOMContentLoaded', localizeMatchTimes);
  * paint to avoid a flash of the default theme.
  */
 const GCS_THEME_KEY = 'gcs_theme';
-const GCS_ACCENT_KEY = 'gcs_accent';
+const GCS_ACCENTS_KEY = 'gcs_accents';
+const GCS_WINGMAN_UNLOCKED_KEY = 'gcs_wingman_unlocked';
 const GCS_TIMEZONE_KEY = 'gcs_timezone';
 const GCS_TIME_FORMAT_KEY = 'gcs_time_format';
 
 // Preferences are persisted as numeric indexes into these tables rather
 // than as full strings, to keep localStorage entries as light as possible.
+// Accents are the exception: any number of them can be active at once, so
+// they're persisted as a JSON array of slugs (see GCS_KNOWN_ACCENTS) and
+// applied as a space-separated `data-accent` attribute (`[data-accent~=]`
+// selectors in resources/css/accent/*.css match one token in that list).
 const GCS_THEMES = ['dark', 'white'];
-const GCS_ACCENTS = ['none', 'pride'];
+const GCS_KNOWN_ACCENTS = ['pride', 'wingman'];
 const GCS_TIME_FORMATS = ['24h', '12h'];
 const GCS_TIMEZONES = [
     'UTC',
@@ -126,18 +131,79 @@ window.GCS.setTheme = function (theme) {
         .finally(() => window.location.reload());
 };
 
-window.GCS.getAccent = function () {
-    return readIndexed(GCS_ACCENT_KEY, GCS_ACCENTS, 'none');
-};
+function readAccents() {
+    let stored;
 
-window.GCS.setAccent = function (accent) {
-    writeIndexed(GCS_ACCENT_KEY, GCS_ACCENTS, accent);
+    try {
+        stored = JSON.parse(localStorage.getItem(GCS_ACCENTS_KEY) || '[]');
+    } catch (e) {
+        stored = [];
+    }
 
-    if (accent === 'none') {
+    return Array.isArray(stored) ? stored.filter((a) => GCS_KNOWN_ACCENTS.includes(a)) : [];
+}
+
+function applyAccents(accents) {
+    if (accents.length === 0) {
         document.documentElement.removeAttribute('data-accent');
     } else {
-        document.documentElement.setAttribute('data-accent', accent);
+        document.documentElement.setAttribute('data-accent', accents.join(' '));
     }
+}
+
+function writeAccents(accents) {
+    localStorage.setItem(GCS_ACCENTS_KEY, JSON.stringify(accents));
+    applyAccents(accents);
+
+    return accents;
+}
+
+window.GCS.getAccents = function () {
+    return readAccents();
+};
+
+/** Toggles one accent on/off, keeping any other active accents untouched. */
+window.GCS.toggleAccent = function (accent) {
+    const current = readAccents();
+    const next = current.includes(accent) ? current.filter((a) => a !== accent) : [...current, accent];
+
+    return writeAccents(next);
+};
+
+/** "None" in the config panel: deselects every active accent. */
+window.GCS.clearAccents = function () {
+    return writeAccents([]);
+};
+
+/**
+ * "Wingman" accent — a hidden easter egg unlocked from the "More plants"
+ * stats card (see stats-insights.blade.php). Once unlocked it stays
+ * unlocked (persisted in localStorage): the navbar logo becomes visible
+ * and the accent becomes pickable in the config panel. The unlock also
+ * turns the accent on immediately, alongside whatever else is already
+ * active, and fires a `wingman-unlocked` window event so the navbar — a
+ * separate Alpine component — can react without a page reload. Idempotent:
+ * does nothing once already unlocked, so it won't keep re-enabling the
+ * accent every time the easter egg is re-triggered after the visitor turns
+ * it back off.
+ */
+window.GCS.isWingmanUnlocked = function () {
+    return localStorage.getItem(GCS_WINGMAN_UNLOCKED_KEY) === '1';
+};
+
+window.GCS.unlockWingman = function () {
+    if (window.GCS.isWingmanUnlocked()) {
+        return;
+    }
+
+    localStorage.setItem(GCS_WINGMAN_UNLOCKED_KEY, '1');
+
+    const current = readAccents();
+    if (!current.includes('wingman')) {
+        writeAccents([...current, 'wingman']);
+    }
+
+    window.dispatchEvent(new CustomEvent('wingman-unlocked'));
 };
 
 window.GCS.getTimezone = function () {

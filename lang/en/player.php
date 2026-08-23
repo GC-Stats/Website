@@ -39,6 +39,7 @@ return [
             'top_kast' => 'Top KAST',
             'top_entries' => 'Top first kills',
             'top_utility' => 'Top utility kills',
+            'top_plants' => 'More plants',
             'top_clutch_rate' => 'Top clutch rate',
             'top_operator' => 'Most Operator kills',
             'top_sheriff' => 'Most Sheriff kills',

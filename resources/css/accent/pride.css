@@ -4,7 +4,7 @@
  * Applied via a `data-accent="pride"` attribute on <html>, on top of
  * whichever theme is active.
  */
-[data-accent="pride"] {
+[data-accent~="pride"] {
     /* Horizontal pride-flag gradient used for the animated border ring. */
     --pride-gradient: linear-gradient(90deg,
         #e40303, #ff8c00, #ffed00, #008026, #004dff, #750787,
@@ -19,25 +19,25 @@
 /* "STATS" wordmark: each letter gets a solid pride-flag color, like the
    classic letter-by-letter pride logo treatment — clean, static, and every
    color is fully visible regardless of font metrics. */
-[data-accent="pride"] .gc-stats-text .gc-letter:nth-child(1) { color: #e40303; }
-[data-accent="pride"] .gc-stats-text .gc-letter:nth-child(2) { color: #ff8c00; }
-[data-accent="pride"] .gc-stats-text .gc-letter:nth-child(3) { color: #ffed00; }
-[data-accent="pride"] .gc-stats-text .gc-letter:nth-child(4) { color: #008026; }
-[data-accent="pride"] .gc-stats-text .gc-letter:nth-child(5) { color: #004dff; }
+[data-accent~="pride"] .gc-stats-text .gc-letter:nth-child(1) { color: #e40303; }
+[data-accent~="pride"] .gc-stats-text .gc-letter:nth-child(2) { color: #ff8c00; }
+[data-accent~="pride"] .gc-stats-text .gc-letter:nth-child(3) { color: #ffed00; }
+[data-accent~="pride"] .gc-stats-text .gc-letter:nth-child(4) { color: #008026; }
+[data-accent~="pride"] .gc-stats-text .gc-letter:nth-child(5) { color: #004dff; }
 
 /* Animated rainbow gradient ring on hover, drawn as a masked pseudo-element
    so it stays a smooth gradient instead of a sliced border-image. Only
    tournament/match cards get the ring — the GCSTATS logo, navbar icons
    and nav/tab links are left untouched. */
-[data-accent="pride"] .tournament-card,
-[data-accent="pride"] .match-card,
-[data-accent="pride"] .bg-bg-card:not(.absolute):not(.fixed):not(.no-accent-ring) {
+[data-accent~="pride"] .tournament-card,
+[data-accent~="pride"] .match-card,
+[data-accent~="pride"] .bg-bg-card:not(.absolute):not(.fixed):not(.no-accent-ring) {
     position: relative;
 }
 
-[data-accent="pride"] .tournament-card::after,
-[data-accent="pride"] .match-card::after,
-[data-accent="pride"] .bg-bg-card:not(.no-accent-ring)::after {
+[data-accent~="pride"] .tournament-card::after,
+[data-accent~="pride"] .match-card::after,
+[data-accent~="pride"] .bg-bg-card:not(.no-accent-ring)::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -54,15 +54,15 @@
     animation: pride-shift 2.5s linear infinite;
 }
 
-[data-accent="pride"] .tournament-card:hover::after,
-[data-accent="pride"] .match-card:hover::after,
-[data-accent="pride"] .bg-bg-card:not(.no-accent-ring):hover::after {
+[data-accent~="pride"] .tournament-card:hover::after,
+[data-accent~="pride"] .match-card:hover::after,
+[data-accent~="pride"] .bg-bg-card:not(.no-accent-ring):hover::after {
     opacity: 1;
 }
 
 /* Small pride-flag swatch shown next to the GCSTATS wordmark in the navbar
    while the pride accent is active. Hidden otherwise (see app.css). */
-[data-accent="pride"] .pride-flag-badge {
+[data-accent~="pride"] .pride-flag-badge {
     display: inline-block;
     width: 18px;
     height: 12px;
@@ -81,7 +81,7 @@
 /* Player/team/tournament profile header card: a thin pride-flag gradient
    accent strip along the top edge — a small, elegant touch inspired by
    pride-themed profile banners. */
-[data-accent="pride"] .bg-white\/\[0\.02\].border.border-white\/5.rounded-2xl.overflow-hidden::before {
+[data-accent~="pride"] .bg-white\/\[0\.02\].border.border-white\/5.rounded-2xl.overflow-hidden::before {
     content: '';
     position: absolute;
     top: 0;

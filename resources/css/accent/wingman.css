@@ -1,0 +1,68 @@
+/*
+ * Accent: wingman
+ *
+ * Applied via a `data-accent="wingman"` attribute on <html>, on top of
+ * whichever theme is active. Unlocked from the "More plants" stats easter
+ * egg (see resources/js/app.js GCS.unlockWingman and
+ * public/partials/stats-insights.blade.php) — mirrors accent/pride.css's
+ * structure, swapping the rainbow gradient for Wingman's gold/cyan colors.
+ */
+[data-accent~="wingman"] {
+    --wingman-glow: #f2b90c;
+    --wingman-eye: #3fd4ff;
+}
+
+/* Glowing gold/cyan ring on hover, same masked-pseudo-element technique as
+   the pride accent ring — only tournament/match cards get it. */
+[data-accent~="wingman"] .tournament-card,
+[data-accent~="wingman"] .match-card,
+[data-accent~="wingman"] .bg-bg-card:not(.absolute):not(.fixed):not(.no-accent-ring) {
+    position: relative;
+}
+
+[data-accent~="wingman"] .tournament-card::after,
+[data-accent~="wingman"] .match-card::after,
+[data-accent~="wingman"] .bg-bg-card:not(.no-accent-ring)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(90deg, var(--wingman-glow), var(--wingman-eye), var(--wingman-glow));
+    background-size: 200% 100%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    animation: wingman-shift 2.5s linear infinite;
+}
+
+[data-accent~="wingman"] .tournament-card:hover::after,
+[data-accent~="wingman"] .match-card:hover::after,
+[data-accent~="wingman"] .bg-bg-card:not(.no-accent-ring):hover::after {
+    opacity: 1;
+}
+
+@keyframes wingman-shift {
+    from { background-position: 0% 50%; }
+    to { background-position: 100% 50%; }
+}
+
+/* "STATS" wordmark tinted cyan while the wingman accent is active. */
+[data-accent~="wingman"] .gc-stats-text .gc-letter {
+    color: var(--wingman-eye);
+}
+
+/* Profile header card top strip, same treatment as the pride accent. */
+[data-accent~="wingman"] .bg-white\/\[0\.02\].border.border-white\/5.rounded-2xl.overflow-hidden::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--wingman-glow), var(--wingman-eye), var(--wingman-glow));
+    z-index: 1;
+}
