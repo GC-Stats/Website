@@ -74,8 +74,7 @@
                     'destination_label' => null,
                     'destination_url' => null,
                 ];
-            })
-            ->filter(fn ($row) => $row['team']['name']);
+            });
     }
 @endphp
 
@@ -120,7 +119,7 @@
                                 <span class="text-[11px] md:text-xs font-bold uppercase text-white truncate group-hover:text-gc-yellow transition-colors">{{ $row['team']['name'] }}</span>
                             </a>
                         @else
-                            <span class="text-[11px] md:text-xs font-bold uppercase text-white truncate">{{ $row['team']['name'] ?? __('match.team_unknown') }}</span>
+                            <span class="text-[11px] md:text-xs font-bold uppercase text-white truncate">{{ $row['team']['name'] ?? __('match.team_tbd') }}</span>
                         @endif
                     </div>
 
@@ -165,7 +164,7 @@
                                     <span class="text-[11px] md:text-xs font-bold uppercase text-gray-300 truncate group-hover:text-gc-yellow transition-colors">{{ $row['team']['name'] }}</span>
                                 </a>
                             @else
-                                <span class="text-[11px] md:text-xs font-bold uppercase text-gray-300 truncate">{{ $row['team']['name'] ?? __('match.team_unknown') }}</span>
+                                <span class="text-[11px] md:text-xs font-bold uppercase text-gray-300 truncate">{{ $row['team']['name'] ?? __('match.team_tbd') }}</span>
                             @endif
                         </div>
 
