@@ -5,6 +5,12 @@
     brackets grouped side by side) in the draggable/zoomable canvas shared
     across every bracket view in the tournament phase tree.
 
+    Panning uses `transform: translate`, zooming uses the CSS `zoom`
+    property (not `transform: scale`) so content is actually re-laid-out
+    at each zoom level instead of a rasterized layer being stretched —
+    that's what was causing blurry text on Chrome and border-clipping
+    artifacts on Firefox.
+
     Copyright (c) 2026 Alice Alleman — GC-Stats-Website
     License: https://github.com/GC-Stats/Website/blob/main/LICENSE (GC-Stats License v1.0)
     Repository: https://github.com/GC-Stats/Website
@@ -27,8 +33,11 @@
         </span>
     </div>
 
-    <div :style="`transform: translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale}); transform-origin: 0 0; visibility: ${ready ? 'visible' : 'hidden'};`"
-         class="inline-block p-10 min-w-max">
-        {{ $slot }}
+    <div x-ref="pan"
+         :style="`transform: translate3d(${offset.x}px, ${offset.y}px, 0); visibility: ${ready ? 'visible' : 'hidden'};`"
+         class="inline-block">
+        <div x-ref="content" :style="`zoom: ${scale}`" class="inline-block p-10 min-w-max">
+            {{ $slot }}
+        </div>
     </div>
 </div>

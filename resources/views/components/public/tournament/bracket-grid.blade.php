@@ -181,8 +181,8 @@
             const transformedEl = svg.closest('.inline-block');
             let scale = 1;
             if (transformedEl) {
-                const matrix = new DOMMatrix(getComputedStyle(transformedEl).transform);
-                if (matrix.a && matrix.a !== 0) scale = matrix.a;
+                const z = parseFloat(getComputedStyle(transformedEl).zoom);
+                if (z && z !== 0) scale = z;
             }
 
             const svgRect         = svg.getBoundingClientRect();

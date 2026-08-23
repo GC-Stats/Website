@@ -71,8 +71,7 @@ new class extends Component {
 
             fitToContainer() {
                 const container = this.$el;
-                const content   = this.$el.querySelector('[\\:style]')
-                    ?? this.$el.querySelector('.inline-block');
+                const content   = this.$refs.content;
                 if (!content) return;
 
                 const cW = container.clientWidth;
@@ -94,17 +93,13 @@ new class extends Component {
                     this.scale = scaleX;
                 }
 
-                this.containerHeight = cH;
+                this.containerHeight = Math.round(cH);
 
                 this.offset.x = Math.round((cW - iW * this.scale) / 2);
                 this.offset.y = Math.round((cH - iH * this.scale) / 2);
 
                 this.ready = true;
-                this.$nextTick(() => {
-                    const inner = this.$el.querySelector('.inline-block.p-10');
-                    if (inner) void inner.offsetHeight;
-                    requestAnimationFrame(drawBracketConnectors);
-                });
+                this.$nextTick(() => requestAnimationFrame(drawBracketConnectors));
             },
 
             updateTransform() {
