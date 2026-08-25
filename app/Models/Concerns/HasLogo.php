@@ -88,9 +88,10 @@ trait HasLogo
      * was when the match was played rather than the current one. Reads from
      * the already-loaded `logos` collection when available (eager-load it
      * to avoid N+1 across a list of matches), skipping any entry an admin
-     * marked `is_visible = false`. Falls back to defaultLogoUrl() — not the
-     * live current logo — when nothing matches, since a caller resolving a
-     * specific date wants that date's logo or nothing, not today's.
+     * marked `is_visible = false`. Falls back to the entity's current logo
+     * for a date that predates its logo history (e.g. matches played before
+     * the entity's first tracked logo), and only to defaultLogoUrl() when
+     * the entity has no logo at all, current or historical.
      */
     public function logoAt(CarbonInterface|string $date, ?string $theme = null): string
     {
@@ -106,10 +107,10 @@ trait HasLogo
             default => $matches->first(fn (Logo $logo) => $logo->theme === null),
         };
 
-        if (! $logo) {
-            return $this->defaultLogoUrl($theme);
+        if ($logo) {
+            return Storage::disk('public')->url("{$this->logoStorageFolder()}/{$logo->id}/200x200.webp");
         }
 
-        return Storage::disk('public')->url("{$this->logoStorageFolder()}/{$logo->id}/200x200.webp");
+        return $this->resolveLogoUrl($theme);
     }
 }

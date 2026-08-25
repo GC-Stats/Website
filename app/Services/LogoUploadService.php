@@ -54,6 +54,17 @@ use Intervention\Image\Interfaces\ImageInterface;
 class LogoUploadService
 {
     /**
+     * Backdate placed on an entity's very first logo (per theme) so that
+     * logoAt() resolves it for any historical date — matches predate,
+     * tournaments, etc. that existed before logos were tracked — instead of
+     * falling back to defaultLogoUrl() just because no explicit `from` was
+     * given. Kept a day after the Unix epoch (rather than epoch itself) to
+     * stay clear of the MySQL TIMESTAMP column's lower bound once converted
+     * across timezones.
+     */
+    private const OLDEST_POSSIBLE_DATE = '1970-01-02 00:00:00';
+
+    /**
      * Decode an uploaded image and store a thumbnail + full-size WebP pair
      * under "{folder}/{uuid}/200x200.webp" and "{folder}/{uuid}/full.webp".
      *
@@ -171,12 +182,19 @@ class LogoUploadService
         ?string $theme = null,
         bool $visible = true
     ): Logo {
+        $isFirstLogo = $from === null && ! Logo::where('entity_type', $entityType)
+            ->where('entity_id', $entity->id)
+            ->when($theme === null, fn ($query) => $query->whereNull('theme'), fn ($query) => $query->where('theme', $theme))
+            ->exists();
+
+        $resolvedFrom = $from ?? ($isFirstLogo ? self::OLDEST_POSSIBLE_DATE : now());
+
         if ($until) {
             return Logo::create([
                 'id' => $uuid,
                 'entity_type' => $entityType,
                 'entity_id' => $entity->id,
-                'from' => $from ?? now(),
+                'from' => $resolvedFrom,
                 'until' => $until,
                 'theme' => $theme,
                 'is_visible' => $visible,
@@ -193,7 +211,7 @@ class LogoUploadService
             'id' => $uuid,
             'entity_type' => $entityType,
             'entity_id' => $entity->id,
-            'from' => $from ?? now(),
+            'from' => $resolvedFrom,
             'theme' => $theme,
             'is_visible' => $visible,
         ]);
