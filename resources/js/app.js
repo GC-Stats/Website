@@ -229,6 +229,83 @@ window.GCS.getTimezones = function () {
 };
 
 /**
+ * "67 mode" — a silly options toggle that rewrites every standalone "67"
+ * (and "6.7") found in the page text into "68" (and "6.8"). Kept simple on
+ * purpose: it walks text nodes once on load/toggle and again whenever new
+ * content is added to the DOM (Livewire updates, AJAX-loaded stats tables).
+ */
+const GCS_67_KEY = 'gcs_67_mode';
+let gcs67Observer = null;
+
+function apply67ToTextNode(node) {
+    if (!node.nodeValue || (!node.nodeValue.includes('67') && !node.nodeValue.includes('6.7'))) return;
+
+    node.nodeValue = node.nodeValue
+        .replace(/\b6\.7\b/g, '6.8')
+        .replace(/\b67\b/g, '68');
+}
+
+function apply67ToTree(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+            const tag = node.parentElement?.tagName;
+            return tag === 'SCRIPT' || tag === 'STYLE' ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+        },
+    });
+
+    let current;
+    while ((current = walker.nextNode())) {
+        apply67ToTextNode(current);
+    }
+}
+
+function start67Observer() {
+    if (gcs67Observer) return;
+
+    gcs67Observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    apply67ToTextNode(node);
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    apply67ToTree(node);
+                }
+            });
+        });
+    });
+
+    gcs67Observer.observe(document.body, { childList: true, subtree: true });
+}
+
+function stop67Observer() {
+    gcs67Observer?.disconnect();
+    gcs67Observer = null;
+}
+
+window.GCS.is67ModeEnabled = function () {
+    return localStorage.getItem(GCS_67_KEY) === '1';
+};
+
+window.GCS.set67Mode = function (enabled) {
+    localStorage.setItem(GCS_67_KEY, enabled ? '1' : '0');
+
+    if (enabled) {
+        apply67ToTree(document.body);
+        start67Observer();
+    } else {
+        stop67Observer();
+        window.location.reload();
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.GCS.is67ModeEnabled()) {
+        apply67ToTree(document.body);
+        start67Observer();
+    }
+});
+
+/**
  * Admin: manual map stat entry
  *
  * Lets an admin type in a map's player stats (and, optionally, per-round

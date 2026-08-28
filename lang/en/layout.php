@@ -62,6 +62,12 @@ return [
             '12h' => '12h',
             '24h' => '24h',
         ],
+        'meme_67' => [
+            'title' => 'User protection (67 removal)',
+            'off' => 'Off',
+            'on' => 'On',
+            'hint' => 'To protect our users and make sure their brains aren\'t damaged by using our site, disable 6-7.',
+        ],
     ],
     'type' => [
         'players' => 'Players',

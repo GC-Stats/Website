@@ -61,6 +61,12 @@ return [
             '12h' => '12h',
             '24h' => '24h',
         ],
+        'meme_67' => [
+            'title' => 'Protections des utilisateurs (Retrait des 67)',
+            'off' => 'Off',
+            'on' => 'On',
+            'hint' => 'Dans l.\'optique de protéger nos utilisateurs, et de s\'assurer que le cerveau ne soit pas endommagé par l\'usage de notre site, désactiver le 6-7',
+        ],
     ],
     'type' => [
         'players' => 'Joueurs',

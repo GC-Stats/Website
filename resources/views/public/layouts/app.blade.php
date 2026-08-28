@@ -89,6 +89,7 @@
             timezone: '',
             timezones: [],
             timeFormat: '24h',
+            meme67: false,
             initConfig() {
                 this.theme = GCS.getTheme();
                 this.accents = GCS.getAccents();
@@ -96,6 +97,7 @@
                 this.timezone = GCS.getTimezone();
                 this.timezones = GCS.getTimezones();
                 this.timeFormat = GCS.getTimeFormat();
+                this.meme67 = GCS.is67ModeEnabled();
             },
             onWingmanUnlocked() {
                 this.wingmanUnlocked = true;
@@ -118,6 +120,10 @@
             selectTimeFormat(value) {
                 this.timeFormat = value;
                 GCS.setTimeFormat(value);
+            },
+            selectMeme67(value) {
+                this.meme67 = value;
+                GCS.set67Mode(value);
             },
          }"
          x-init="initConfig()"
@@ -556,6 +562,28 @@
                             {{ __('layout.config.time_format.12h') }}
                         </button>
                     </div>
+                </div>
+
+                <div>
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-4 flex items-center gap-2">
+                        <span class="w-1 h-3 bg-[var(--brand-yellow)]"></span>
+                        {{ __('layout.config.meme_67.title') }}
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button @click="selectMeme67(false)"
+                                :aria-pressed="(!meme67).toString()"
+                                class="flex flex-col items-center gap-2 px-4 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all"
+                                :class="!meme67 ? 'border-[var(--brand-yellow)] text-white bg-white/5' : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'">
+                            {{ __('layout.config.meme_67.off') }}
+                        </button>
+                        <button @click="selectMeme67(true)"
+                                :aria-pressed="meme67.toString()"
+                                class="flex flex-col items-center gap-2 px-4 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all"
+                                :class="meme67 ? 'border-[var(--brand-yellow)] text-white bg-white/5' : 'border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'">
+                            {{ __('layout.config.meme_67.on') }}
+                        </button>
+                    </div>
+                    <p class="text-[9px] text-gray-600 mt-2">{{ __('layout.config.meme_67.hint') }}</p>
                 </div>
 
             </div>
