@@ -22,9 +22,10 @@
     }
 
     function statsTable(initialStats, weapons, storageKey) {
-        const defaultCols = ['acs', 'kd', 'kda', 'adr', 'kast', 'first_kills', 'first_deaths', 'hs'];
+        const defaultCols = ['played', 'acs', 'kd', 'kda', 'adr', 'kast', 'first_kills', 'first_deaths', 'hs'];
 
         const baseCols = [
+            { key: 'played', name: {{ Js::from(__('match.stats.played')) }} },
             { key: 'acs', name: {{ Js::from(__('match.stats.acs')) }} },
             { key: 'kills', name: {{ Js::from(__('match.stats.kills')) }} },
             { key: 'deaths', name: {{ Js::from(__('match.stats.deaths')) }} },
@@ -102,6 +103,8 @@
 
             formatVal(stat, key) {
                 const v = Number(this.val(stat, key) ?? 0);
+
+                if (key === 'played') return Math.round(v);
 
                 if (key === 'kast' || key === 'hs') return Math.round(v) + '%';
 

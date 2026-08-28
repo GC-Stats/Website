@@ -59,6 +59,7 @@ return [
         'clutches' => 'Clutchs',
         'plants' => 'Plants',
         'defuses' => 'Désamorçages',
+        'played' => 'Parties jouées',
         'wingman_best' => 'The best',
         'wingman_message' => ':name est forte, mais personne ne pourra jamais me détrôner, rappelez-vous qui est le best.',
         'weapon_kills' => 'Kills (arme)',

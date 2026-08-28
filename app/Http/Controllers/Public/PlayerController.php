@@ -534,6 +534,9 @@ class PlayerController extends Controller
             $stats = $stats->map(function ($item) use ($utility) {
                 $item->played_maps = $item->played_maps ? explode(',', $item->played_maps) : [];
 
+                $item->total_played = (int) $item->games_played;
+                $item->avg_played = (int) $item->games_played;
+
                 $item->total_clutches = (int) $item->clutches_won;
                 $item->avg_clutches = $item->games_played > 0 ? round($item->clutches_won / $item->games_played, 2) : 0.0;
                 $clutchRate = $item->clutch_attempts > 0 ? round($item->clutches_won / $item->clutch_attempts * 100, 1) : 0.0;

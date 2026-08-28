@@ -60,6 +60,7 @@ return [
         'clutches' => 'Clutches',
         'plants' => 'Plants',
         'defuses' => 'Defuses',
+        'played' => 'Games played',
         'wingman_best' => 'The best',
         'wingman_message' => ":name is strong, but nobody will ever dethrone me - remember who's the best.",
         'weapon_kills' => 'Weapon kills',

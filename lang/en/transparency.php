@@ -34,9 +34,9 @@ return [
                 'body' => 'Runs somes off-site application, like our Status page and also our Weblate instance.',
             ],
             'mail' => [
-                'name' => 'MXRoute',
-                'role' => 'Email hosting',
-                'body' => 'Handles the delivery and storage of our emails.',
+                'name' => 'Infomaniak',
+                'role' => 'Email hosting & Cloud instance',
+                'body' => 'Handles the delivery and storage of our emails and files.',
             ],
             'domain' => [
                 'name' => 'Infomaniak',
