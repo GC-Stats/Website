@@ -1,5 +1,4 @@
 <?php
-
 return [
     'title' => 'Transparence',
     'subtitle' => 'Comment GC Stats est développé, hébergé et financé',
