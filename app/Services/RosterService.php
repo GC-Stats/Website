@@ -23,8 +23,8 @@ use Illuminate\Support\Facades\DB;
 class RosterService
 {
     public const ROLES = [
-        'player-igl', 'player', 'sub', 'coach', 'assistant coach', 'performance coach', 'analyst', 'manager',
-        'player-igl-inactive', 'player-inactive', 'sub-inactive', 'coach-inactive', 'assistant coach-inactive', 'performance coach-inactive', 'analyst-inactive', 'manager-inactive',
+        'player-igl', 'player', 'sub', 'coach', 'assistant coach', 'performance coach', 'mental coach', 'analyst', 'manager',
+        'player-igl-inactive', 'player-inactive', 'sub-inactive', 'coach-inactive', 'assistant coach-inactive', 'performance coach-inactive', 'mental coach-inactive', 'analyst-inactive', 'manager-inactive',
     ];
 
     public function history(int $teamId): Collection
