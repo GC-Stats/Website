@@ -12,7 +12,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.28",
         "laravel/tinker": "^3.0",
-        "livewire/livewire": "^4.2",
+        "livewire/livewire": "^4.3.1",
         "livewire/volt": "^1.10",
         "owenvoke/blade-fontawesome": "^3.2",
         "platformcommunity/flysystem-bunnycdn": "^3.3",
