@@ -977,6 +977,7 @@ class TournamentController extends Controller
                     SUM(COALESCE(gpas.defuses,0)) as total_defuses
                 ')
                 ->where('game_player_stats.tournament_id', $id)
+                ->where('game_player_stats.stats_enabled', true)
                 ->when($phaseIds !== null, function ($query) use ($phaseIds) {
                     return $query->whereIn('game_player_stats.phase_id', $phaseIds);
                 })
