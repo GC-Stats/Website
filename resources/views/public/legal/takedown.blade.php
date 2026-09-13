@@ -77,7 +77,7 @@
                                 </div>
                                 <div class="text-left">
                                     <h4 class="text-[10px] font-black text-white uppercase">{{ __('takedown.channels.email') }}</h4>
-                                    <p class="text-[11px] text-gray-500 tracking-tight">takedown@gc-stats.app</p>
+                                    <p class="text-[11px] text-gray-500 tracking-tight">editor@gc-stats.app</p>
                                 </div>
                             </div>
                         </a>

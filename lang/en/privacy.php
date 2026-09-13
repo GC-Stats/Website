@@ -67,7 +67,7 @@ return [
     'rights' => [
         'title' => 'Your Rights (GDPR)',
         'text' => 'In accordance with GDPR, you have the right to access, rectify, and delete your personal information.',
-        'contact' => 'For any request: gpdr@gc-stats.app',
+        'contact' => 'For any request: executive@gc-stats.app',
     ],
 
     'cookies' => [

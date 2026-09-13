@@ -59,7 +59,7 @@ return [
     'rights' => [
         'title' => 'Vos Droits (RGPD)',
         'text' => 'Conformément au RGPD, vous disposez d\'un droit d\'accès, de rectification et de suppression de vos informations personnelles.',
-        'contact' => 'Pour toute demande : gdpr@gc-stats.app',
+        'contact' => 'Pour toute demande : executive@gc-stats.app',
     ],
 
     'cookies' => [

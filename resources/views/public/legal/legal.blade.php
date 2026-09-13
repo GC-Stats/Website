@@ -113,7 +113,7 @@
                         </h2>
                         <div class="text-sm space-y-3 text-gray-300">
                             <p>{{ __('legal.gdpr.intro') }}</p>
-                            <p><span class="text-[10px] block font-bold text-gray-500 uppercase">{{ __('legal.gdpr.contact') }}</span>gdpr@gc-stats.app</p>
+                            <p><span class="text-[10px] block font-bold text-gray-500 uppercase">{{ __('legal.gdpr.contact') }}</span>executive@gc-stats.app</p>
                         </div>
                     </div>
                 </div>
