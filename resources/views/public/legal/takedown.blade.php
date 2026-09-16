@@ -54,7 +54,7 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                        <a href="https://discord.gg/JZgVmAFK9a" target="_blank" class="bg-bg-main border border-border-subtle rounded-sm p-6 hover:border-gc-yellow transition-colors group">
+                        <a href="https://discord.gg/kFHNN8cDXJ" target="_blank" class="bg-bg-main border border-border-subtle rounded-sm p-6 hover:border-gc-yellow transition-colors group">
                             <div class="flex items-center gap-6">
                                 <div class="text-gc-yellow flex-shrink-0 group-hover:scale-110 transition-transform">
                                     <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -63,7 +63,7 @@
                                 </div>
                                 <div class="text-left">
                                     <h4 class="text-[10px] font-black text-white uppercase">{{ __('takedown.channels.discord') }}</h4>
-                                    <p class="text-[11px] text-gray-500 tracking-tight">https://discord.gg/JZgVmAFK9a</p>
+                                    <p class="text-[11px] text-gray-500 tracking-tight">https://discord.gg/kFHNN8cDXJ</p>
                                 </div>
                             </div>
                         </a>

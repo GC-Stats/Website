@@ -81,7 +81,7 @@
                     <span class="text-gc-yellow">#</span> {{ __('data_explorer.docs.help_title') }}
                 </h2>
                 <p class="text-sm text-gray-300 leading-relaxed">{{ __('data_explorer.docs.help_body') }}</p>
-                <a href="https://discord.gg/JZgVmAFK9a" target="_blank" rel="noopener noreferrer"
+                <a href="https://discord.gg/kFHNN8cDXJ" target="_blank" rel="noopener noreferrer"
                    class="inline-flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white text-[10px] font-black uppercase px-6 py-2 rounded-sm transition">
                     <x-fab-discord class="w-3.5 h-3.5 inline-block" aria-hidden="true" />
                     {{ __('data_explorer.docs.help_btn') }}

@@ -55,7 +55,7 @@
                         </div>
 
                         <div class="flex justify-center pt-2">
-                            <a href="https://discord.gg/JZgVmAFK9a" target="_blank" class="inline-flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white text-[10px] font-black uppercase px-6 py-2 rounded-sm transition">
+                            <a href="https://discord.gg/kFHNN8cDXJ" target="_blank" class="inline-flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white text-[10px] font-black uppercase px-6 py-2 rounded-sm transition">
                                 <x-fab-discord class="w-3.5 h-3.5 inline-block" aria-hidden="true" /> {{ __('developers.api_key.btn') }}
                             </a>
                         </div>

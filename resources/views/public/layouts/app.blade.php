@@ -702,7 +702,7 @@
                            class="w-11 h-11 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white transition-all duration-300 hover:bg-[#1DA1F2] hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.4)]">
                             <x-fab-twitter class="w-4 h-4" aria-hidden="true" />
                         </a>
-                        <a href="https://discord.gg/JZgVmAFK9a" target="_blank" rel="noopener noreferrer"
+                        <a href="https://discord.gg/kFHNN8cDXJ" target="_blank" rel="noopener noreferrer"
                            aria-label="Discord"
                            class="w-11 h-11 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white transition-all duration-300 hover:bg-[#5865F2] hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.4)]">
                             <x-fab-discord class="w-4 h-4" aria-hidden="true" />

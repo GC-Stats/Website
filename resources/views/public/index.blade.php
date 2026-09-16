@@ -24,7 +24,7 @@
     'logo' => asset('web-app-manifest-512x512.png'),
     'sameAs' => [
         'https://x.com/GC_Stats',
-        'https://discord.gg/JZgVmAFK9a',
+        'https://discord.gg/kFHNN8cDXJ',
         'https://github.com/GC-Stats/',
     ],
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
