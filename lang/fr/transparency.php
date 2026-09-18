@@ -14,9 +14,9 @@ return [
         'body' => 'Nous nous appuyons sur quatre prestataires pour garder GC Stats rapide, fiable et transparent. Voici exactement qui héberge quoi, sans jamais revendre les données collectées.',
         'providers' => [
             'cdn' => [
-                'name' => 'BunnyCDN',
+                'name' => 'BunnyCDN / Cloudflare',
                 'role' => 'Diffusion de contenu',
-                'body' => 'Mise en cache de notre CSS/JS, ainsi que des images de joueuses, équipes & tournois, sur des serveurs partout dans le monde, afin d\'aléger nos serveurs. Notre site opendata est également servie par Bunny (data.gc-stats.app)',
+                'body' => 'Mise en cache de notre CSS/JS par Cloudflare, BunnyCDN sert les images de joueuses, équipes & tournois. Notre site opendata est également servie par Bunny (data.gc-stats.app)',
             ],
             'eu-servers' => [
                 'name' => 'Contabo',
@@ -41,7 +41,7 @@ return [
             'domain' => [
                 'name' => 'Infomaniak',
                 'role' => 'Nom de domaine',
-                'body' => 'Registraire suisse gérant notre nom de domaine. Cependant les serveurs de noms sont gérer par Bunny',
+                'body' => 'Registraire suisse gérant notre nom de domaine. Cependant les serveurs de noms sont gérer par Cloudflare',
             ],
         ],
     ],

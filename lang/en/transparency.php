@@ -14,9 +14,9 @@ return [
         'body' => 'We rely on four providers to keep GC Stats fast, reliable and transparent. Here is exactly who hosts what, without ever reselling the data we collect.',
         'providers' => [
             'cdn' => [
-                'name' => 'BunnyCDN',
+                'name' => 'BunnyCDN / Cloudflare',
                 'role' => 'Content delivery',
-                'body' => 'Caches our CSS/JS, as well as player, team & tournament images, on servers around the world to lighten the load on our own servers. Our open data site is also served by Bunny (data.gc-stats.app).',
+                'body' => 'Cloudflare caches our CSS/JS, BunnyCDN is delivering player, team & tournament images. Our open data site is also served by Bunny (data.gc-stats.app).',
             ],
             'eu-servers' => [
                 'name' => 'Contabo',
