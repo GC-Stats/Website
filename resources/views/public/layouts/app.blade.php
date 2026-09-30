@@ -65,6 +65,7 @@
         {{ __('layout.skip_to_content') }}
     </a>
 
+    <x-public.write-freeze-banner />
     <x-public.verify-email-banner />
 
     @php

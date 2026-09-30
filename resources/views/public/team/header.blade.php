@@ -30,11 +30,13 @@
                         </div>
                     @endif
 
-                    <a href="{{ route('teams.change-requests.create', $team['id']) }}"
-                       class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gc-yellow hover:text-white transition">
-                        @svg('fas-pen', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
-                        {{ __('team.change_request.trigger') }}
-                    </a>
+                    @unless (\App\Support\WriteFreeze::active())
+                        <a href="{{ route('teams.change-requests.create', $team['id']) }}"
+                           class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gc-yellow hover:text-white transition">
+                            @svg('fas-pen', 'w-2.5 h-2.5', ['aria-hidden' => 'true'])
+                            {{ __('team.change_request.trigger') }}
+                        </a>
+                    @endunless
                 </div>
             @else
                 <span></span>

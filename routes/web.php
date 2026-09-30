@@ -145,8 +145,8 @@ Route::prefix('/forum')->name('forum.')->group(function () {
     Route::get('/rules', [ForumController::class, 'rules'])->name('rules');
     Route::post('/rules/accept', [ForumController::class, 'acceptRules'])->middleware('auth')->name('rules.accept');
     Route::get('/general', [ForumController::class, 'generalIndex'])->name('general.index');
-    Route::get('/general/create', [ForumController::class, 'generalCreate'])->middleware('auth')->name('general.create');
-    Route::post('/general', [ForumController::class, 'generalStore'])->middleware('auth')->name('general.store');
+    Route::get('/general/create', [ForumController::class, 'generalCreate'])->middleware(['auth', 'writes-not-frozen'])->name('general.create');
+    Route::post('/general', [ForumController::class, 'generalStore'])->middleware(['auth', 'writes-not-frozen'])->name('general.store');
     Route::get('/threads/{thread}', [ForumController::class, 'show'])->name('threads.show');
 });
 

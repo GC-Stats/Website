@@ -25,7 +25,7 @@
             </div>
         @endif
 
-        @if (auth()->id() !== $profileUser->id)
+        @if (auth()->id() !== $profileUser->id && ! \App\Support\WriteFreeze::active())
             <div class="flex flex-col items-end gap-2 mb-3">
                 @if (session('status') === 'report-submitted')
                     <div class="w-full md:w-auto bg-green-500/10 border border-green-500/30 text-green-400 text-[11px] rounded-sm px-3 py-2">

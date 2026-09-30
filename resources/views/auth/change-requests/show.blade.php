@@ -115,6 +115,8 @@
 
                 @if ($request->isResolved())
                     <p class="text-xs text-gray-500 pt-3 border-t border-border-subtle italic">{{ __('admin.change_requests.discussion_closed') }}</p>
+                @elseif (\App\Support\WriteFreeze::active())
+                    <p class="text-xs text-gray-500 pt-3 border-t border-border-subtle italic">{{ __('layout.write_freeze.blocked') }}</p>
                 @else
                     <form method="POST" action="{{ route('account.change-requests.messages.store', $request) }}" class="pt-3 border-t border-border-subtle space-y-2">
                         @csrf

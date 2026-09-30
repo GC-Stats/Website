@@ -25,6 +25,7 @@ use App\Models\Reaction;
 use App\Models\UserReport;
 use App\Services\ReactionService;
 use App\Services\UserReportService;
+use App\Support\WriteFreeze;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -113,8 +114,19 @@ new #[Lazy] class extends Component
             'reactors' => $this->openGroupEmoteId !== null
                 ? $this->reactable()->reactionsForEmote($this->openGroupEmoteId)
                 : null,
-            'blockingSanction' => Auth::user()?->activeGlobalBlockingSanction(),
+            'blockedReason' => $this->blockedReason(),
         ];
+    }
+
+    private function blockedReason(): ?string
+    {
+        if (WriteFreeze::active()) {
+            return __('layout.write_freeze.blocked');
+        }
+
+        $sanction = Auth::user()?->activeGlobalBlockingSanction();
+
+        return $sanction ? __('account.errors.sanctioned_global', ['reason' => $sanction->reason]) : null;
     }
 
     public function togglePicker(): void
@@ -129,6 +141,7 @@ new #[Lazy] class extends Component
             return;
         }
 
+        WriteFreeze::abortIfActive();
         abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('reactions.errors.blocked'));
 
         if ($this->tooManyReactionToggles($emoteId)) {
@@ -151,6 +164,7 @@ new #[Lazy] class extends Component
             return;
         }
 
+        WriteFreeze::abortIfActive();
         abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('reactions.errors.blocked'));
 
         if ($this->tooManyReactionToggles($emoteId)) {
@@ -209,6 +223,7 @@ new #[Lazy] class extends Component
     public function submitReactionReport(): void
     {
         abort_unless(Auth::check(), 403, __('reactions.login_required'));
+        WriteFreeze::abortIfActive();
         abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('reactions.errors.blocked'));
 
         $limiterKey = 'reaction-report:'.Auth::id();
@@ -242,18 +257,18 @@ new #[Lazy] class extends Component
 <div class="flex flex-wrap items-center gap-2" x-data @click.away="$wire.pickerOpen = false">
     @foreach ($summary as $row)
         <button type="button" wire:click="toggleReaction({{ $row['emote']->id }})"
-                @if (! auth()->check() || $blockingSanction) disabled @endif
-                title="{{ $blockingSanction ? __('account.errors.sanctioned_global', ['reason' => $blockingSanction->reason]) : $row['emote']->name }}"
+                @if (! auth()->check() || $blockedReason) disabled @endif
+                title="{{ $blockedReason ?? $row['emote']->name }}"
                 class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition text-xs font-bold
                 {{ $row['reacted'] ? 'bg-gc-yellow/10 border-gc-yellow text-gc-yellow' : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/20' }}
-                {{ ! auth()->check() || $blockingSanction ? 'cursor-not-allowed' : '' }}">
+                {{ ! auth()->check() || $blockedReason ? 'cursor-not-allowed' : '' }}">
             <img src="{{ $row['emote']->image_url }}" alt="{{ $row['emote']->name }}" class="w-4 h-4 object-contain">
             <span>{{ $row['count'] }}</span>
         </button>
     @endforeach
 
     @auth
-        @if ($summary->isNotEmpty() && ! $blockingSanction)
+        @if ($summary->isNotEmpty() && ! $blockedReason)
             <x-modal :title="__('reactions.report.title')" max-width="max-w-md">
                 <x-slot:trigger>
                     <button type="button"
@@ -373,9 +388,9 @@ new #[Lazy] class extends Component
     @endcan
 
     @auth
-        @if ($blockingSanction)
+        @if ($blockedReason)
             <span class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-600 cursor-not-allowed"
-                  title="{{ __('account.errors.sanctioned_global', ['reason' => $blockingSanction->reason]) }}">
+                  title="{{ $blockedReason }}">
                 @svg('fas-face-smile', 'w-3.5 h-3.5', ['aria-hidden' => 'true'])
             </span>
         @else

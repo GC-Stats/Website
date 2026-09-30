@@ -85,24 +85,27 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/settings/account/bio', [ProfileSettingsController::class, 'updateBio'])
             ->name('account.bio.update');
 
-        Route::post('/settings/change-requests/{changeRequest}/messages', [UserChangeRequestController::class, 'storeMessage'])
-            ->middleware('throttle:30,60')
-            ->name('account.change-requests.messages.store');
+        // Frozen during the V2 migration, see App\Support\WriteFreeze
+        Route::middleware(['writes-not-frozen'])->group(function () {
+            Route::post('/settings/change-requests/{changeRequest}/messages', [UserChangeRequestController::class, 'storeMessage'])
+                ->middleware('throttle:30,60')
+                ->name('account.change-requests.messages.store');
 
-        Route::post('/users/{user}/report', [UserReportController::class, 'store'])
-            ->middleware('throttle:15,60')
-            ->name('users.report');
+            Route::post('/users/{user}/report', [UserReportController::class, 'store'])
+                ->middleware('throttle:15,60')
+                ->name('users.report');
 
-        Route::get('/players/{player}/change-requests/create', [PlayerChangeRequestController::class, 'create'])
-            ->name('players.change-requests.create');
-        Route::post('/players/{player}/change-requests', [PlayerChangeRequestController::class, 'store'])
-            ->middleware('throttle:15,60')
-            ->name('players.change-requests.store');
+            Route::get('/players/{player}/change-requests/create', [PlayerChangeRequestController::class, 'create'])
+                ->name('players.change-requests.create');
+            Route::post('/players/{player}/change-requests', [PlayerChangeRequestController::class, 'store'])
+                ->middleware('throttle:15,60')
+                ->name('players.change-requests.store');
 
-        Route::get('/teams/{team}/change-requests/create', [TeamChangeRequestController::class, 'create'])
-            ->name('teams.change-requests.create');
-        Route::post('/teams/{team}/change-requests', [TeamChangeRequestController::class, 'store'])
-            ->middleware('throttle:15,60')
-            ->name('teams.change-requests.store');
+            Route::get('/teams/{team}/change-requests/create', [TeamChangeRequestController::class, 'create'])
+                ->name('teams.change-requests.create');
+            Route::post('/teams/{team}/change-requests', [TeamChangeRequestController::class, 'store'])
+                ->middleware('throttle:15,60')
+                ->name('teams.change-requests.store');
+        });
     });
 });

@@ -103,4 +103,8 @@ return [
     'errors' => [
         'go_back_home' => 'Go back home',
     ],
+    'write_freeze' => [
+        'banner' => 'Migration to the new version in progress: contributions (edit requests, forum, reactions, reports) are paused. The site stays available for browsing.',
+        'blocked' => 'Contributions are paused during the migration to the new version.',
+    ],
 ];

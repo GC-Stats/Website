@@ -39,6 +39,7 @@ use App\Models\Tournament;
 use App\Models\UserReport;
 use App\Services\ForumService;
 use App\Services\UserReportService;
+use App\Support\WriteFreeze;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
@@ -156,6 +157,7 @@ new class extends Component
             'blockingSanction' => Auth::user()?->activeGlobalBlockingSanction(),
             'muteSanction' => Auth::user()?->activeGlobalMuteSanction(),
             'rulesAccepted' => Auth::user()?->hasAcceptedForumRules() ?? true,
+            'writesFrozen' => WriteFreeze::active(),
             // NOTE: the composer's `:name:` shortcode catalog (name/id keyed
             // maps of every active emote) used to be built and embedded here
             // on every render. With ~4,000 emotes imported from Twemoji, that
@@ -171,6 +173,7 @@ new class extends Component
     public function postMessage(): void
     {
         abort_unless(Auth::check(), 403, __('forum.login_required'));
+        WriteFreeze::abortIfActive();
         abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('forum.errors.globally_blocked'));
         abort_if(Auth::user()->activeGlobalMuteSanction(), 403, __('forum.errors.globally_muted'));
         abort_unless(Auth::user()->hasAcceptedForumRules(), 403, __('forum.errors.rules_not_accepted'));
@@ -223,6 +226,7 @@ new class extends Component
     public function submitMessageReport(int $messageId, string $category, string $reason): void
     {
         abort_unless(Auth::check(), 403, __('forum.login_required'));
+        WriteFreeze::abortIfActive();
         abort_if(Auth::user()->activeGlobalBlockingSanction(), 403, __('forum.errors.globally_blocked'));
 
         $limiterKey = 'message-report:'.Auth::id();
@@ -265,7 +269,7 @@ new class extends Component
         @forelse ($messages as $message)
             <div class="relative bg-white/[0.03] border border-white/[0.06] rounded-lg p-3">
                 @auth
-                    @if ($message->user_id !== auth()->id())
+                    @if ($message->user_id !== auth()->id() && ! $writesFrozen)
                         <div class="absolute top-2 right-2" x-data="{ reportCategory: '', reportReason: '' }">
                             <x-modal :title="__('forum.report.title')" max-width="max-w-md">
                                 <x-slot:trigger>
@@ -374,7 +378,9 @@ new class extends Component
     </div>
 
     @auth
-        @if ($blockingSanction)
+        @if ($writesFrozen)
+            <p class="text-xs text-gray-500">{{ __('layout.write_freeze.blocked') }}</p>
+        @elseif ($blockingSanction)
             <p class="text-xs text-gray-500">{{ __('account.errors.sanctioned_global', ['reason' => $blockingSanction->reason]) }}</p>
         @elseif ($muteSanction)
             <p class="text-xs text-gray-500">{{ __('forum.errors.muted', ['until' => $muteSanction->ends_at?->format('Y-m-d H:i')]) }}</p>

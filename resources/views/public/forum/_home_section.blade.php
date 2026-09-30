@@ -34,10 +34,12 @@
     </div>
 
     <div class="flex items-center gap-3 mt-3">
-        <a href="{{ route('forum.general.create') }}"
-           class="text-[9px] font-black uppercase tracking-widest text-gc-yellow hover:text-white transition">
-            {{ __('forum.general.new_thread') }}
-        </a>
+        @unless (\App\Support\WriteFreeze::active())
+            <a href="{{ route('forum.general.create') }}"
+               class="text-[9px] font-black uppercase tracking-widest text-gc-yellow hover:text-white transition">
+                {{ __('forum.general.new_thread') }}
+            </a>
+        @endunless
         <a href="{{ route('forum.index') }}"
            class="text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition">
             {{ __('forum.general.view_all') }}

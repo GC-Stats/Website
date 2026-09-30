@@ -102,4 +102,8 @@ return [
     'errors' => [
         'go_back_home' => 'Retour à l\'accueil',
     ],
+    'write_freeze' => [
+        'banner' => 'Migration vers la nouvelle version en cours : les contributions (demandes de modification, forum, réactions, signalements) sont en pause. Le site reste consultable.',
+        'blocked' => 'Les contributions sont en pause pendant la migration vers la nouvelle version.',
+    ],
 ];

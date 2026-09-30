@@ -15,10 +15,12 @@
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-black text-white">{{ __('forum.category.general') }}</h1>
             @auth
-                <a href="{{ route('forum.general.create') }}"
-                   class="font-bold uppercase text-xs tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-gc-yellow/10 border border-gc-yellow/40 text-gc-yellow hover:bg-gc-yellow/20">
-                    {{ __('forum.general.new_thread') }}
-                </a>
+                @unless (\App\Support\WriteFreeze::active())
+                    <a href="{{ route('forum.general.create') }}"
+                       class="font-bold uppercase text-xs tracking-widest px-4 py-2 rounded-lg transition active:scale-95 bg-gc-yellow/10 border border-gc-yellow/40 text-gc-yellow hover:bg-gc-yellow/20">
+                        {{ __('forum.general.new_thread') }}
+                    </a>
+                @endunless
             @endauth
         </div>
 
