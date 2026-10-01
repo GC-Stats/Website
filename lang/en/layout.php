@@ -106,5 +106,13 @@ return [
     'write_freeze' => [
         'banner' => 'Migration to the new version in progress: contributions (edit requests, forum, reactions, reports) are paused. The site stays available for browsing.',
         'blocked' => 'Contributions are paused during the migration to the new version.',
+        'more_info' => 'More info',
+    ],
+    'maintenance' => [
+        'scheduled' => 'Scheduled maintenance on',
+        'starts_in' => 'starts in',
+        'in_progress' => 'Maintenance in progress: contributions are paused.',
+        'days_short' => 'd',
+        'more_info' => 'More info',
     ],
 ];

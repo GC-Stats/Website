@@ -155,4 +155,17 @@ return [
         'role' => env('APP_SERVER_ROLE'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Scheduled V2 Maintenance
+    |--------------------------------------------------------------------------
+    |
+    | Start of the planned V2 migration maintenance (any date parseable by
+    | Carbon, timezone included). Drives the countdown banner shown on every
+    | page and the /v2-migration info page. Set it empty to hide the banner.
+    |
+    */
+
+    'v2_maintenance_at' => env('V2_MAINTENANCE_AT', '2026-10-03 21:00 Europe/Paris'),
+
 ];

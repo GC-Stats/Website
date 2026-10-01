@@ -76,6 +76,10 @@ Route::middleware(['static.cache:2592000'])->group(function () {
 });
 
 Route::middleware(['static.cache:300'])->group(function () {
+    Route::get('/v2-migration', function () {
+        return view('public.v2-migration');
+    })->name('v2-migration');
+
     Route::get('/about', [AboutController::class, 'index'])->name('about');
     Route::get('/transparency', [TransparencyController::class, 'index'])->name('transparency');
     Route::get('/finance', [FinanceController::class, 'index'])->name('finance');
